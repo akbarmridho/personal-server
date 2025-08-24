@@ -20,7 +20,12 @@
         "node": ">=24"
     },
     "dependencies": {
+        "@filen/network-drive": "^0.9.44",
+        "@filen/sdk": "^0.3.11",
+        "@filen/webdav": "^0.3.1",
         "@personal-server/common": "workspace:*",
+        "@t3-oss/env-core": "catalog:core",
+        "totp-generator": "^1.0.0",
         "zod": "catalog:core"
     },
     "devDependencies": {

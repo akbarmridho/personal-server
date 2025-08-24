@@ -20,7 +20,7 @@ const logLevel = (process.env.LOG_LEVEL || "info") as
   | "debug"
   | "trace";
 
-export const logger = pino.default({
+export const logger = pino({
   level: logLevel,
   transport: {
     targets: [

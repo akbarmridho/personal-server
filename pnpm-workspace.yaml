@@ -5,6 +5,7 @@ packages:
 catalogs:
   core:
     '@dotenvx/dotenvx': ^1.49.0
+    "@t3-oss/env-core": 0.13.8
     ai: ^5.0.22
     ai-fallback: ^1.0.2
     typescript: ^5.9.2
