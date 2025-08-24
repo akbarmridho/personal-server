@@ -1,0 +1,13 @@
+{
+    "biome.enabled": true,
+    "editor.defaultFormatter": "biomejs.biome",
+    "prettier.enable": false,
+    "eslint.enable": false,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    }
+}

@@ -1,0 +1,30 @@
+{
+    "name": "@personal-server/filen",
+    "version": "1.0.0",
+    "description": "Filen network and webdav custom integration.",
+    "main": "index.js",
+    "scripts": {
+        "build": "turbo run compile --filter={./}",
+        "compile": "tsc",
+        "format": "biome format --write src",
+        "lint": "biome lint src",
+        "check": "biome check src",
+        "check:apply": "biome check --apply src",
+        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "engines": {
+        "node": ">=24"
+    },
+    "dependencies": {
+        "@personal-server/common": "workspace:*",
+        "zod": "catalog:core"
+    },
+    "devDependencies": {
+        "@types/node": "^22.16.4",
+        "typescript": "catalog:core"
+    }
+}

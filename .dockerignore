@@ -1,0 +1,78 @@
+**/.mastra
+.env
+.env.*
+**/.env*
+
+# Git / Version Control
+.git
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+
+# Node.js - THIS IS THE MOST IMPORTANT ONE
+# Ignore all node_modules directories at any level
+**/node_modules
+
+# pnpm
+# The pnpm store can sometimes be created locally in the project
+.pnpm-store
+
+# Build artifacts and output directories
+# Ignore all dist and build directories at any level
+**/dist
+**/build
+.next/
+.out/
+.svelte-kit/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Development Environment & IDE settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local environment variables - DO NOT include secrets in your image
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.docker
+
+# Operating System generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test reports
+coverage/
+.nyc_output/
+
+*.db
+*.db-shm
+*.db-wal
+
+scratchpad.md
+scratchpad/
+
+openapi_files/

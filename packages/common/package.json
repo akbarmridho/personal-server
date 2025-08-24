@@ -1,0 +1,40 @@
+{
+    "name": "@personal-server/common",
+    "version": "0.1.0",
+    "description": "Common utilities",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        },
+        "./*": {
+            "import": "./dist/*.js",
+            "types": "./dist/*.d.ts"
+        }
+    },
+    "type": "module",
+    "scripts": {
+        "build": "turbo run compile --filter={./}",
+        "compile": "tsc -p ./tsconfig.build.json"
+    },
+    "author": "Akbar Maulana Ridho",
+    "license": "ISC",
+    "devDependencies": {
+        "@types/node": "^24.0.14",
+        "typescript": "catalog:core"
+    },
+    "dependencies": {
+        "@dotenvx/dotenvx": "catalog:core",
+        "pino": "^9.7.0",
+        "pino-pretty": "^13.0.0"
+    },
+    "engines": {
+        "node": ">=24"
+    }
+}

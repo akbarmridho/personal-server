@@ -1,0 +1,29 @@
+{
+    "name": "personal-server",
+    "version": "1.0.0",
+    "description": "Collection of packages for Akbar's personal server.",
+    "private": true,
+    "scripts": {
+        "preinstall": "npx only-allow pnpm",
+        "build": "turbo run compile",
+        "lint": "turbo run lint",
+        "clean": "pnpm run cleandep && pnpm run cleandis",
+        "cleandep": "rm -rf node_modules && pnpm -r exec rm -rf node_modules",
+        "cleandist": "rm -rf dist && pnpm -r exec rm -rf dist"
+    },
+    "keywords": [],
+    "author": "Akbar Maulana Ridho",
+    "license": "ISC",
+    "packageManager": "pnpm@10.14.0",
+    "workspaces": [
+        "apps/*",
+        "tools/*"
+    ],
+    "devDependencies": {
+        "@biomejs/biome": "2.2.2",
+        "@types/node": "^24.2.0",
+        "turbo": "^2.5.5",
+        "typescript": "catalog:core",
+        "@swc-node/register": "^1.10.10"
+    }
+}
