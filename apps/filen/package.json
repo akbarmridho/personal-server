@@ -10,7 +10,8 @@
         "lint": "biome lint src",
         "check": "biome check src",
         "check:apply": "biome check --apply src",
-        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register"
+        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register",
+        "run": "pm2 start ecosystem.config.js"
     },
     "keywords": [],
     "author": "",
