@@ -7,7 +7,7 @@ export const setupWebdav = async () => {
   const webdavServer = new WebDAVServer({
     hostname: "0.0.0.0",
     port: env.FILEN_WEBDAV_PORT,
-    https: false,
+    https: true,
     user: {
       username: env.FILEN_WEBDAV_USER,
       password: env.FILEN_WEBDAV_PASSWORD,
