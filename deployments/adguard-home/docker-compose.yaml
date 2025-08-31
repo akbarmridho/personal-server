@@ -1,11 +1,13 @@
 services:
   adguardhome:
-    image: adguard/adguardhome:v0.107.65
+    build:
+      context: ./
+      dockerfile: Dockerfile
     container_name: adguardhome
     restart: unless-stopped
     volumes:
       - adguardhome-data:/opt/adguardhome/work
-      - ./conf:/opt/adguardhome/conf
+      - adguardhome-conf:/opt/adguardhome/conf
     ports:
       - "53:53/tcp" # plain dns
       - "53:53/udp" # plain dns
@@ -24,3 +26,4 @@ services:
 
 volumes:
   adguardhome-data:
+  adguardhome-conf:
