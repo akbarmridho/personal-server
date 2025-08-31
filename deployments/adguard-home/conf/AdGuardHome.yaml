@@ -19,8 +19,8 @@ theme: dark
 dns:
   # Listen on all available container interfaces.
   bind_hosts:
-    - '0.0.0.0'
-    - '::'
+    - "0.0.0.0"
+    - "::"
   port: 53
   # Upstream DNS servers. Using a mix of providers and protocols (DoH and DoT).
   # These will be queried simultaneously, and the first valid response is used.
@@ -32,18 +32,18 @@ dns:
   # DNS servers used to resolve the hostnames of your encrypted upstreams (e.g., dns.cloudflare.com).
   # Using IP addresses here is more reliable.
   bootstrap_dns:
-    - 1.1.1.1   # Cloudflare
-    - 9.9.9.9   # Quad9
-    - 8.8.8.8   # Google
+    - "1.1.1.1" # Cloudflare
+    - "9.9.9.9" # Quad9
+    - "8.8.8.8" # Google
   # Fallback servers are used only when all primary upstreams fail.
   fallback_dns:
-    - 1.0.0.1   # Cloudflare
-    - 8.8.4.4   # Google
+    - "1.0.0.1" # Cloudflare
+    - "8.8.4.4" # Google
   ratelimit: 0
   # Caching settings for faster responses on repeated queries.
   cache_enabled: true
   cache_size: 16777216 # 16 MB
-  cache_ttl_min: 600   # 10 minutes
+  cache_ttl_min: 600 # 10 minutes
   cache_ttl_max: 86400 # 24 hours
   # For privacy, disable EDNS Client Subnet (prevents sending your IP subnet to upstream DNS).
   edns_client_subnet:
@@ -82,10 +82,10 @@ filters:
   - name: Hagezi Pro
     enabled: true
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
-  - name: Hagezi Fake 
+  - name: Hagezi Fake
     enabled: true
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/fake.txt
-  - name: Hagezi Popup Ads 
+  - name: Hagezi Popup Ads
     enabled: true
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/popupads.txt
   - name: Hagezi Threat Intelligence Feeds - Medium version
