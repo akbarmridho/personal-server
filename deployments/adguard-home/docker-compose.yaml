@@ -1,0 +1,26 @@
+services:
+  adguardhome:
+    image: adguard/adguardhome:v0.107.65
+    container_name: adguardhome
+    restart: unless-stopped
+    volumes:
+      - adguardhome-data:/opt/adguardhome/work
+      - ./conf:/opt/adguardhome/conf
+    ports:
+      - "53:53/tcp" # plain dns
+      - "53:53/udp" # plain dns
+      # - "67:67/udp" # dhcp server 
+      # - "68:68/udp" # dhcp client 
+      # - "80:80/tcp" # HTTP (main)
+      # - "443:443/tcp" # HTTPS, DNS-over-HTTPS (incl. HTTP/3), DNSCrypt (main
+      # - "443:443/udp" # HTTPS, DNS-over-HTTPS (incl. HTTP/3), DNSCrypt (main
+      - "8000:3000/tcp" # HTTP(S) (alt, incl. HTTP/3)
+      # - "853:853/tcp" # DNS-over-TLS, DNS-over-QUIC
+      # - "853:853/udp" # DNS-over-TLS, DNS-over-QUIC
+      # - "5443:5443/tcp" # DNSCrypt (alt)
+      # - "5443:5443/udp" # DNSCrypt (alt)
+      # - "6060:6060/tcp" # HTTP (pprof)
+    # network_mode: host # to see original client IP
+
+volumes:
+  adguardhome-data:

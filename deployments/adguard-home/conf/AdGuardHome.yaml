@@ -1,0 +1,108 @@
+# see https://github.com/AdguardTeam/Adguardhome/wiki/Configuration
+
+# HTTP web interface configuration.
+# AdGuard listens on port 3000 inside the container, which you've mapped to 8000 on the host.
+http:
+  address: 0.0.0.0:3000
+  pprof:
+    enabled: false
+
+# Leave users empty for the initial setup. You will create your admin user
+# through the web interface on the first run.
+users: []
+
+# UI settings.
+language: en
+theme: dark
+
+# Core DNS server settings.
+dns:
+  # Listen on all available container interfaces.
+  bind_hosts:
+    - '0.0.0.0'
+    - '::'
+  port: 53
+  # Upstream DNS servers. Using a mix of providers and protocols (DoH and DoT).
+  # These will be queried simultaneously, and the first valid response is used.
+  upstream_dns:
+    - https://dns.quad9.net/dns-query
+    - https://dns.adguard-dns.com/dns-query
+    - https://dns.cloudflare.com/dns-query
+  upstream_mode: parallel # Queries all upstreams and uses the first response
+  # DNS servers used to resolve the hostnames of your encrypted upstreams (e.g., dns.cloudflare.com).
+  # Using IP addresses here is more reliable.
+  bootstrap_dns:
+    - 1.1.1.1   # Cloudflare
+    - 9.9.9.9   # Quad9
+    - 8.8.8.8   # Google
+  # Fallback servers are used only when all primary upstreams fail.
+  fallback_dns:
+    - 1.0.0.1   # Cloudflare
+    - 8.8.4.4   # Google
+  ratelimit: 0
+  # Caching settings for faster responses on repeated queries.
+  cache_enabled: true
+  cache_size: 16777216 # 16 MB
+  cache_ttl_min: 600   # 10 minutes
+  cache_ttl_max: 86400 # 24 hours
+  # For privacy, disable EDNS Client Subnet (prevents sending your IP subnet to upstream DNS).
+  edns_client_subnet:
+    enabled: false
+  hostsfile_enabled: true
+  pending_requests:
+    enabled: true
+  # Enable DNSSEC for an extra layer of security.
+  enable_dnssec: true
+  anonymize_client_ip: false
+
+# Filtering, ad-blocking, and security settings.
+filtering:
+  # Master switch for all filtering.
+  protection_enabled: true
+  filtering_enabled: true
+  # How AdGuard responds to blocked domains. 'nxdomain' is the standard.
+  blocking_mode: nxdomain
+  # Parental control is disabled by default. Enable it in the UI if needed.
+  parental_enabled: false
+  safe_search:
+    enabled: false
+  # Block malicious and phishing domains using Safe Browsing.
+  safebrowsing_enabled: true
+
+# Logging and statistics settings.
+querylog:
+  enabled: true
+  interval: 168h # Retain query logs for 7 days (168 hours).
+
+statistics:
+  enabled: true
+  interval: 720h # Retain statistics for 30 days (720 hours).
+
+filters:
+  - name: Hagezi Pro
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt
+  - name: Hagezi Fake 
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/fake.txt
+  - name: Hagezi Popup Ads 
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/popupads.txt
+  - name: Hagezi Threat Intelligence Feeds - Medium version
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/tif.medium.txt
+  - name: Hagezi Dynamic DNS blocking
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/dyndns.txt
+  - name: Hagezi Gambling Medium
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/gambling.medium.txt
+
+# TLS (DoH/DoT/DoQ) server settings.
+# Since you are using Tailscale, all your DNS traffic is already encrypted within the WireGuard tunnel.
+# Setting up your own TLS for DNS is complex and unnecessary for this use case.
+tls:
+  enabled: false
+
+dhcp:
+  enabled: false
