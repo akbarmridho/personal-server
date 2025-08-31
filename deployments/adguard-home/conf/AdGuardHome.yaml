@@ -1,10 +1,10 @@
 # see https://github.com/AdguardTeam/Adguardhome/wiki/Configuration
-
 # HTTP web interface configuration.
 # AdGuard listens on port 3000 inside the container, which you've mapped to 8000 on the host.
 http:
   address: 0.0.0.0:3000
   pprof:
+    port: 6060
     enabled: false
 
 # Leave users empty for the initial setup. You will create your admin user
@@ -31,10 +31,10 @@ dns:
   upstream_mode: parallel # Queries all upstreams and uses the first response
   # DNS servers used to resolve the hostnames of your encrypted upstreams (e.g., dns.cloudflare.com).
   # Using IP addresses here is more reliable.
-  bootstrap_dns:
-    - "1.1.1.1" # Cloudflare
-    - "9.9.9.9" # Quad9
-    - "8.8.8.8" # Google
+  bootstrap_dns: # do not format/indent this
+  - "1.1.1.1" # Cloudflare
+  - "9.9.9.9" # Quad9
+  - "8.8.8.8" # Google
   # Fallback servers are used only when all primary upstreams fail.
   fallback_dns:
     - "1.0.0.1" # Cloudflare
@@ -47,7 +47,9 @@ dns:
   cache_ttl_max: 86400 # 24 hours
   # For privacy, disable EDNS Client Subnet (prevents sending your IP subnet to upstream DNS).
   edns_client_subnet:
+    custom_ip: ""
     enabled: false
+    use_custom: false
   hostsfile_enabled: true
   pending_requests:
     enabled: true
@@ -66,17 +68,33 @@ filtering:
   parental_enabled: false
   safe_search:
     enabled: false
+    bing: false
+    duckduckgo: false
+    google: false
+    pixabay: false
+    yandex: false
+    youtube: false
   # Block malicious and phishing domains using Safe Browsing.
-  safebrowsing_enabled: true
+  safebrowsing_enabled: false
+  blocked_services:
+    schedule:
+      time_zone: Local
+  safe_fs_patterns:
+    - /opt/adguardhome/work/data/userfilters/*
+
 
 # Logging and statistics settings.
 querylog:
   enabled: true
-  interval: 168h # Retain query logs for 7 days (168 hours).
+  file_enabled: true
+  ignored: []
+  interval: 2160h
+  size_memory: 1000
 
 statistics:
   enabled: true
-  interval: 720h # Retain statistics for 30 days (720 hours).
+  ignored: []
+  interval: 720h
 
 filters:
   - name: Hagezi Pro
@@ -105,4 +123,21 @@ tls:
   enabled: false
 
 dhcp:
+  dhcpv4: {}
   enabled: false
+
+clients:
+  persistent: []
+  runtime_sources:
+    arp: true
+    dhcp: true
+    hosts: true
+    rdns: false
+    whois: true
+
+os:
+  group: ""
+  rlimit_nofile: 0
+  user: ""
+
+schema_version: 30
