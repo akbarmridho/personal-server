@@ -26,19 +26,20 @@ dns:
   # These will be queried simultaneously, and the first valid response is used.
   upstream_dns:
     - https://dns.quad9.net/dns-query
-    - https://dns.adguard-dns.com/dns-query
-    - https://dns.cloudflare.com/dns-query
+    - https://security.cloudflare-dns.com/dns-query
+    - https://freedns.controld.com/p2 # ControlD Ads & Tracking
   upstream_mode: parallel # Queries all upstreams and uses the first response
   # DNS servers used to resolve the hostnames of your encrypted upstreams (e.g., dns.cloudflare.com).
   # Using IP addresses here is more reliable.
   bootstrap_dns: # do not format/indent this
-  - "1.1.1.1" # Cloudflare
+  - "1.1.1.2" # Cloudflare Security
   - "9.9.9.9" # Quad9
-  - "8.8.8.8" # Google
+  - "76.76.2.2" # ControlD Ads & Tracking
   # Fallback servers are used only when all primary upstreams fail.
   fallback_dns:
-    - "1.0.0.1" # Cloudflare
-    - "8.8.4.4" # Google
+    - "1.0.0.2" # Cloudflare Security
+    - "149.112.112.112" # Quad9
+    - "76.76.10.2" # ControlD Ads & Tracking
   ratelimit: 0
   # Caching settings for faster responses on repeated queries.
   cache_enabled: true
@@ -115,6 +116,18 @@ filters:
   - name: Hagezi Gambling Medium
     enabled: true
     url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/gambling.medium.txt
+  - name: Samsung
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/native.samsung.txt
+  - name: Microsoft
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/native.winoffice.txt
+  - name: TikTok
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/native.tiktok.txt
+  - name: Xiaomi
+    enabled: true
+    url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/native.xiaomi.txt
 
 # TLS (DoH/DoT/DoQ) server settings.
 # Since you are using Tailscale, all your DNS traffic is already encrypted within the WireGuard tunnel.
