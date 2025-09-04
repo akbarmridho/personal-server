@@ -17,6 +17,11 @@ services:
       - "5433:5432"
     networks:
       - personal_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres_main_backup:
     image: prodrigestivill/postgres-backup-local
@@ -46,7 +51,8 @@ services:
     environment:
       - PGWEB_DATABASE_URL=postgres://postgres:postgres@postgres_main:5432/postgres?sslmode=disable
     depends_on:
-      - postgres_main
+      postgres_main:
+        condition: service_healthy
     networks:
       - personal_network
 
