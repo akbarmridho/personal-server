@@ -1,9 +1,9 @@
 FROM postgres:17.6-bookworm
 
-# Install PGroonga + MeCab tokenizer + other extensions
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
+       wget \
        postgresql-17-pgvector \
        postgresql-17-cron \
     \
