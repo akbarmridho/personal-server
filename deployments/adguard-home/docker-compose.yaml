@@ -22,7 +22,12 @@ services:
       # - "5443:5443/tcp" # DNSCrypt (alt)
       # - "5443:5443/udp" # DNSCrypt (alt)
       # - "6060:6060/tcp" # HTTP (pprof)
-    # network_mode: host # to see original client IP
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true
 
 volumes:
   adguardhome-data:

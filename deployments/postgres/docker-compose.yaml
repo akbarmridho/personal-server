@@ -1,0 +1,45 @@
+services:
+  postgres_main:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postgres_main
+    restart: unless-stopped
+    command: -c config_file=/etc/postgresql.conf
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql.conf
+    ports:
+      - "5433:5432"
+    networks:
+      - personal_network
+
+  postgres_main_backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: postgres_main_backup
+    restart: always
+    user: postgres:postgres
+    depends_on:
+      - postgres_main
+    environment:
+      POSTGRES_HOST: postgres_main
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_CLUSTER: "TRUE"
+      POSTGRES_EXTRA_OPTS: ""   # must be empty or some pg_dumpall-compatible option
+      SCHEDULE: "@daily"
+    volumes:
+      - ./postgres_backup:/backups
+
+volumes:
+  postgres_data:
+
+networks:
+  personal_network:
+    external: true
