@@ -35,7 +35,7 @@ services:
       POSTGRES_EXTRA_OPTS: ""   # must be empty or some pg_dumpall-compatible option
       SCHEDULE: "@daily"
     volumes:
-      - ./postgres_backup:/backups
+      - /root/postgres_backup:/backups
 
 volumes:
   postgres_data:
