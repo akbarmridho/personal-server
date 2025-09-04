@@ -21,7 +21,7 @@ services:
   postgres_main_backup:
     image: prodrigestivill/postgres-backup-local
     container_name: postgres_main_backup
-    restart: always
+    restart: unless-stopped
     user: postgres:postgres
     depends_on:
       - postgres_main
@@ -37,21 +37,14 @@ services:
     volumes:
       - /root/postgres_backup:/backups
 
-  pgadmin:
-    image: dpage/pgadmin4:9.8.0
-    container_name: pgadmin
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: postgres_pgweb
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@local.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
-      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     ports:
-      - "8001:80"
-    volumes:
-      - ./servers.json:/pgadmin4/servers.json
+      - "8001:8081"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres_main:5432/dbname?sslmode=disable
     depends_on:
       - postgres_main
     networks:
