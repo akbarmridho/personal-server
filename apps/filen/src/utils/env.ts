@@ -13,10 +13,12 @@ export const env = createEnv({
     FILEN_EMAIL: z.string(),
     FILEN_PASSWORD: z.string(),
     FILEN_2FA: z.string(),
+    FILEN_FEATURE_CHECK: z.string().default("webdav,network,sync"),
     FILEN_WEBDAV_PORT: z.coerce.number().default(4001),
     FILEN_WEBDAV_USER: z.string(),
     FILEN_WEBDAV_PASSWORD: z.string(),
     FILEN_NETWORK_MOUNT: z.string(),
+    FILEN_SYNC_CONFIG: z.string().optional(),
   },
   /*
    * Specify what values should be validated by your schemas above.

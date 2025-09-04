@@ -240,3 +240,4 @@ scratchpad
 .aider.tags*
 .env.docker
 .turbo
+sync_db/
