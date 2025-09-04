@@ -23,3 +23,4 @@ docker network create personal_network
 
 - `53 (TCP/UDP)` DNS Server.
 - `8000 (TCP)` Admin Dashboard.
+- `8001 (TCP)` pgAdmin Dashboard.
