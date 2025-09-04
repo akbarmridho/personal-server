@@ -44,7 +44,7 @@ services:
     ports:
       - "8001:8081"
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres_main:5432/dbname?sslmode=disable
+      - PGWEB_DATABASE_URL=postgres://postgres:postgres@postgres_main:5432/postgres?sslmode=disable
     depends_on:
       - postgres_main
     networks:
