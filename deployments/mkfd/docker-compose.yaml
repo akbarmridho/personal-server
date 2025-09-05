@@ -1,6 +1,8 @@
 services:
   mkfd:
-    image: tbosk/mkfd:2.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: mkfd
     restart: unless-stopped
     ports:
