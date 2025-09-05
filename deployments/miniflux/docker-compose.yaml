@@ -1,0 +1,20 @@
+services:
+  miniflux:
+    image: miniflux/miniflux:2.2.12
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/bin/miniflux", "-healthcheck", "auto"]
+    ports:
+      - "8003:8080"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres_main:5432/miniflux?sslmode=disable
+      - RUN_MIGRATIONS=1
+      - CREATE_ADMIN=1
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true

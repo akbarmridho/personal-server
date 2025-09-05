@@ -41,6 +41,8 @@ services:
       SCHEDULE: "@daily"
     volumes:
       - /root/postgres_backup:/backups
+    networks:
+      - personal_network
 
   pgweb:
     image: sosedoff/pgweb

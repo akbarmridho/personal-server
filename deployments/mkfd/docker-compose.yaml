@@ -1,0 +1,19 @@
+services:
+  mkfd:
+    image: tbosk/mkfd:2.0.0
+    container_name: mkfd
+    restart: unless-stopped
+    ports:
+      - "8002:5000"
+    volumes:
+      - ./configs:/app/configs
+    env_file:
+      - .env
+    environment:
+      SSL: false
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true

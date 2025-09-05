@@ -4,7 +4,6 @@
 
 - Active Pieces (https://github.com/activepieces/activepieces/)
 - Setup NGINX Proxy Manager
-- Setup PostgreSQL
 - Setup Immich -> gak bisa pake network storage filen? https://immich.app/docs/guides/custom-locations/
 
 ## Docker Network
@@ -23,4 +22,13 @@ docker network create personal_network
 
 - `53 (TCP/UDP)` DNS Server.
 - `8000 (TCP)` Admin Dashboard.
-- `8001 (TCP)` pgAdmin Dashboard.
+
+### PostgreSQL
+
+- `5433` PostgreSQL.
+- `8001 (TCP)` pgweb Dashboard.
+
+### RSS Feed
+
+- `8002 (TCP)` mkfd.
+- `8003 (TCP)` miniflux.
