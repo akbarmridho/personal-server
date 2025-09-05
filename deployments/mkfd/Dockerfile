@@ -14,10 +14,11 @@ RUN bunx patchright install --with-deps chromium
 
 WORKDIR /app
 
-# Clone mkfd repo and checkout specific commit
+# Clone mkfd repo, checkout commit, and replace "chrome" with "chromium" in *.ts
 RUN git clone https://github.com/TBosak/mkfd.git /app \
  && cd /app \
  && git checkout 9d6541445e28f5caa46fe6eb18c4a8ff512004a9 \
+ && find . -type f -name "*.ts" -exec sed -i 's/chrome/chromium/g' {} + \
  && rm -rf .git
 
 # Install dependencies
