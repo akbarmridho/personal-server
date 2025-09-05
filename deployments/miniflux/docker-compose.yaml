@@ -11,7 +11,7 @@ services:
       - RUN_MIGRATIONS=1
       - CREATE_ADMIN=1
       - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin
+      - ADMIN_PASSWORD=password
     networks:
       - personal_network
 
