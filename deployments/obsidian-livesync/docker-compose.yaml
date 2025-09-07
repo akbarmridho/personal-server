@@ -1,8 +1,7 @@
 services:
   obsidian_couchdb:
-    image: couchdb:3.5.0-nouveau
+    image: couchdb:3.5.0
     container_name: obsidian_couchdb
-    user: 5984:5984
     environment:
       COUCHDB_USER: admin
       COUCHDB_PASSWORD: admin
