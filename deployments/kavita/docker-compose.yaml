@@ -10,6 +10,8 @@ services:
     ports:
       - "8004:5000"
     restart: unless-stopped
+    networks:
+      - personal_network
 
   kavita_backup:
     image: offen/docker-volume-backup:v2
@@ -21,6 +23,12 @@ services:
       - kavita_config:/backup/kavita_config:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /root/filen-sync/kavita_backup:/archive
+    networks:
+      - personal_network
 
 volumes:
   kavita_config:
+
+networks:
+  personal_network:
+    external: true
