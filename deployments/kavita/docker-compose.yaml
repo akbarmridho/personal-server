@@ -3,10 +3,8 @@ services:
     image: jvmilazz0/kavita:0.8.7
     container_name: kavita
     volumes:
-      - kavita_manga:/manga
-      - kavita_comics:/comics
-      - kavita_books:/books
       - kavita_config:/kavita/config
+      - /root/filen-mount/kavita:/libraries
     environment:
       - TZ=Asia/Jakarta
     ports:
@@ -20,15 +18,9 @@ services:
     environment:
       BACKUP_RETENTION_DAYS: '7'
     volumes:
-      - kavita_manga:/backup/kavita_manga:ro
-      - kavita_comics:/backup/kavita_comics:ro
-      - kavita_books:/backup/kavita_books:ro
       - kavita_config:/backup/kavita_config:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /root/filen-mount/personal-server/kavita-backup:/archive
 
 volumes:
-  kavita_manga:
-  kavita_comics:
-  kavita_books:
   kavita_config:
