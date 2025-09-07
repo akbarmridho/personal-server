@@ -1,0 +1,57 @@
+services:
+  obsidian_couchdb:
+    image: couchdb:3.5.0-nouveau
+    container_name: obsidian_couchdb
+    user: 5984:5984
+    environment:
+      COUCHDB_USER: admin
+      COUCHDB_PASSWORD: admin
+    volumes:
+      - couchdb_data:/opt/couchdb/data
+      - couchdb_etc:/opt/couchdb/etc/local.d
+    ports:
+      - 5984:5984
+    restart: unless-stopped
+    networks:
+      - personal_network
+
+  obsidian_couchdb_backup:
+    image: tiredofit/db-backup:4.1.21
+    container_name: obsidian_couchdb_backup
+    # Ensures the database is started before the backup container
+    depends_on:
+      - obsidian_couchdb
+    volumes:
+      # Mount a local directory to store the backup files
+      - /root/filen-sync/couchdb_backup:/backup
+    environment:
+      - TIMEZONE=Asia/Jakarta
+      - CONTAINER_ENABLE_MONITORING=FALSE
+      # - DEBUG_MODE=TRUE # Uncomment for detailed logs
+
+      # Default settings for all jobs
+      - DEFAULT_COMPRESSION=ZSTD
+      - DEFAULT_BACKUP_INTERVAL=1440  # Backup every 24 hours
+      - DEFAULT_BACKUP_BEGIN=0000     # Start the daily backup at midnight
+      - DEFAULT_CLEANUP_TIME=10080    # Cleanup backups older than 7 days (7 * 1440)
+
+      # --- CouchDB Backup Job Configuration ---
+      - DB01_TYPE=couch
+      - DB01_HOST=obsidian_couchdb # Use the service name of the db container
+      - DB01_NAME=ALL              # Set to 'ALL' to back up all databases
+      - DB01_USER=admin            # Match the CouchDB user
+      - DB01_PASS=admin            # Match the CouchDB password
+      - DB01_BACKUP_BEGIN=+1       # (Optional) Start the first backup 1 minute after container start
+      
+    restart: always
+    networks:
+      # This service must be on the same network as the database
+      - personal_network
+
+volumes:
+  couchdb_data:
+  couchdb_etc:
+
+networks:
+  personal_network:
+    external: true

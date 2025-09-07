@@ -36,3 +36,8 @@ docker network create personal_network
 ### Kavita
 
 - `8004 (TCP)` Kavita.
+
+### CouchDB for Obsidian LiveSync
+
+- `5984` CouchDB.
+  
