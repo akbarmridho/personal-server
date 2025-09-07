@@ -13,6 +13,20 @@ services:
       - "8004:5000"
     restart: unless-stopped
 
+  kavita_backup:
+    image: offen/docker-volume-backup:v2
+    container_name: kavita_backup
+    restart: unless-stopped
+    environment:
+      BACKUP_RETENTION_DAYS: '7'
+    volumes:
+      - kavita_manga:/backup/kavita_manga:ro
+      - kavita_comics:/backup/kavita_comics:ro
+      - kavita_books:/backup/kavita_books:ro
+      - kavita_config:/backup/kavita_config:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /root/filen-mount/personal-server/kavita-backup:/archive
+
 volumes:
   kavita_manga:
   kavita_comics:
