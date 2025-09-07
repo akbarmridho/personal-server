@@ -24,23 +24,18 @@ services:
       # Mount a local directory to store the backup files
       - /root/filen-sync/couchdb_backup:/backup
     environment:
-      - TIMEZONE=Asia/Jakarta
-      - CONTAINER_ENABLE_MONITORING=FALSE
-      # - DEBUG_MODE=TRUE # Uncomment for detailed logs
-
-      # Default settings for all jobs
-      - DEFAULT_COMPRESSION=ZSTD
-      - DEFAULT_BACKUP_INTERVAL=1440  # Backup every 24 hours
-      - DEFAULT_BACKUP_BEGIN=0000     # Start the daily backup at midnight
-      - DEFAULT_CLEANUP_TIME=10080    # Cleanup backups older than 7 days (7 * 1440)
-
-      # --- CouchDB Backup Job Configuration ---
-      - DB01_TYPE=couch
-      - DB01_HOST=obsidian_couchdb # Use the service name of the db container
-      - DB01_NAME=ALL              # Set to 'ALL' to back up all databases
-      - DB01_USER=admin            # Match the CouchDB user
-      - DB01_PASS=admin            # Match the CouchDB password
-      - DB01_BACKUP_BEGIN=+1       # (Optional) Start the first backup 1 minute after container start
+      TIMEZONE: Asia/Jakarta
+      CONTAINER_ENABLE_MONITORING: FALSE
+      DEFAULT_COMPRESSION: ZSTD
+      DEFAULT_BACKUP_INTERVAL: 1440  # Backup every 24 hours
+      DEFAULT_BACKUP_BEGIN: 0000     # Start the daily backup at midnight
+      DEFAULT_CLEANUP_TIME: 10080    # Cleanup backups older than 7 days (7 * 1440)
+      DB01_TYPE: couch
+      DB01_HOST: "obsidian_couchdb:5984"
+      DB01_NAME: ALL              # Set to 'ALL' to back up all databases
+      DB01_USER: admin            # Match the CouchDB user
+      DB01_PASS: admin            # Match the CouchDB password
+      DB01_BACKUP_BEGIN: +1       # (Optional) Start the first backup 1 minute after container start
       
     restart: always
     networks:
