@@ -32,3 +32,7 @@ docker network create personal_network
 
 - `8002 (TCP)` mkfd.
 - `8003 (TCP)` miniflux.
+
+### Kavita
+
+- `8004 (TCP)` Kavita.

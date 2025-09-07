@@ -1,0 +1,20 @@
+services:
+  kavita:
+    image: jvmilazz0/kavita:0.8.7
+    container_name: kavita
+    volumes:
+      - kavita_manga:/manga
+      - kavita_comics:/comics
+      - kavita_books:/books
+      - kavita_config:/kavita/config
+    environment:
+      - TZ=Asia/Jakarta
+    ports:
+      - "8004:5000"
+    restart: unless-stopped
+
+volumes:
+  kavita_manga:
+  kavita_comics:
+  kavita_books:
+  kavita_config:
