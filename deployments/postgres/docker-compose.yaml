@@ -40,7 +40,7 @@ services:
       POSTGRES_EXTRA_OPTS: ""   # must be empty or some pg_dumpall-compatible option
       SCHEDULE: "@daily"
     volumes:
-      - /root/filen-mount/personal-server/postgres-backup:/backups
+      - /root/filen-sync/postgres_backup:/backups
     networks:
       - personal_network
 
