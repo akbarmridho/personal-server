@@ -35,7 +35,6 @@ services:
       DB01_NAME: ALL              # Set to 'ALL' to back up all databases
       DB01_USER: admin            # Match the CouchDB user
       DB01_PASS: admin            # Match the CouchDB password
-      DB01_BACKUP_BEGIN: +1       # (Optional) Start the first backup 1 minute after container start
       
     restart: always
     networks:
