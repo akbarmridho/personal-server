@@ -35,6 +35,7 @@ services:
       DB01_NAME: ALL              # Set to 'ALL' to back up all databases
       DB01_USER: admin            # Match the CouchDB user
       DB01_PASS: admin            # Match the CouchDB password
+      DB01_BACKUP_BEGIN: "+1"
       
     restart: always
     networks:
