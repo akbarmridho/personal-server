@@ -34,9 +34,9 @@ services:
       DB01_HOST: obsidian_couchdb
       DB01_DEFAULT_PORT: 5984
       DB01_PORT: 5984
-      DB01_NAME: ALL              # Set to 'ALL' to back up all databases
-      DB01_USER: admin            # Match the CouchDB user
-      DB01_PASS: admin            # Match the CouchDB password
+      DB01_NAME: obsidiannotes
+      DB01_USER: admin
+      DB01_PASS: admin
       DB01_BACKUP_BEGIN: "+1"
       
     restart: always
