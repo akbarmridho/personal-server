@@ -5,11 +5,11 @@ services:
     environment:
       COUCHDB_USER: admin
       COUCHDB_PASSWORD: admin
-      ERL_FLAGS: "+P 256000 -env ERL_MAX_ETS_TABLES 256 +sbwt none +sbwtdcpu none +sbwtdio none"
+      # ERL_FLAGS: "+P 256000 -env ERL_MAX_ETS_TABLES 256 +sbwt none +sbwtdcpu none +sbwtdio none"
     volumes:
       - couchdb_data:/opt/couchdb/data
       - couchdb_etc:/opt/couchdb/etc/local.d
-      # - ./limits.ini:/opt/couchdb/etc/local.d/limits.ini:ro
+      - ./limits.ini:/opt/couchdb/etc/local.d/limits.ini:ro
     ports:
       - 5984:5984
     restart: unless-stopped
