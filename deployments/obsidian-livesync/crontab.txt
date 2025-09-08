@@ -1,0 +1,5 @@
+# Run the backup script daily at midnight.
+# Redirect output to Docker logs for easy debugging.
+0 0 * * * backup.sh >> /proc/1/fd/1 2>>/proc/1/fd/2
+
+# Note: A blank line is required at the end of a crontab file

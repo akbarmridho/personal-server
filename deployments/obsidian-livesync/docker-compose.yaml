@@ -15,33 +15,21 @@ services:
       - personal_network
 
   obsidian_couchdb_backup:
-    image: tiredofit/db-backup:4.1.21
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: obsidian_couchdb_backup
-    # Ensures the database is started before the backup container
     depends_on:
       - obsidian_couchdb
     volumes:
-      # Mount a local directory to store the backup files
       - /root/filen-sync/couchdb_backup:/backup
     environment:
-      TIMEZONE: Asia/Jakarta
-      CONTAINER_ENABLE_MONITORING: FALSE
-      DEFAULT_COMPRESSION: ZSTD
-      DEFAULT_BACKUP_INTERVAL: 1440  # Backup every 24 hours
-      DEFAULT_BACKUP_BEGIN: 0000     # Start the daily backup at midnight
-      DEFAULT_CLEANUP_TIME: 10080    # Cleanup backups older than 7 days (7 * 1440)
-      DB01_TYPE: couch
-      DB01_HOST: obsidian_couchdb
-      DB01_DEFAULT_PORT: 5984
-      DB01_PORT: 5984
-      DB01_NAME: obsidiannotes
-      DB01_USER: admin
-      DB01_PASS: admin
-      DB01_BACKUP_BEGIN: "+1"
-      
-    restart: always
+      TZ: Asia/Jakarta
+      COUCH_URL: http://admin:admin@obsidian_couchdb:5984
+      COUCH_DATABASE: obsidiannotes
+      CLEANUP_DAYS: 7
+    restart: unless-stopped
     networks:
-      # This service must be on the same network as the database
       - personal_network
 
 volumes:
