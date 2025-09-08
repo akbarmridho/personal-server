@@ -11,6 +11,7 @@ module.exports = {
       restart_delay: 2000,
       watch: true,
       ignore_watch: ["node_modules", "logs", ".mastra"],
+      cron_restart: "0 0 * * 0",
     },
   ],
 };
