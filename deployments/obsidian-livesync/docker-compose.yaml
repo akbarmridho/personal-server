@@ -31,7 +31,9 @@ services:
       DEFAULT_BACKUP_BEGIN: 0000     # Start the daily backup at midnight
       DEFAULT_CLEANUP_TIME: 10080    # Cleanup backups older than 7 days (7 * 1440)
       DB01_TYPE: couch
-      DB01_HOST: "obsidian_couchdb:5984"
+      DB01_HOST: obsidian_couchdb
+      DB01_DEFAULT_PORT: 5984
+      DB01_PORT: 5984
       DB01_NAME: ALL              # Set to 'ALL' to back up all databases
       DB01_USER: admin            # Match the CouchDB user
       DB01_PASS: admin            # Match the CouchDB password
