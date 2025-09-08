@@ -9,7 +9,7 @@ services:
     volumes:
       - couchdb_data:/opt/couchdb/data
       - couchdb_etc:/opt/couchdb/etc/local.d
-      - ./limits.ini:/opt/couchdb/etc/local.d/limits.ini:ro
+      # - ./limits.ini:/opt/couchdb/etc/local.d/limits.ini:ro
     ports:
       - 5984:5984
     restart: unless-stopped
