@@ -5,14 +5,23 @@ services:
     environment:
       COUCHDB_USER: admin
       COUCHDB_PASSWORD: admin
+      ERL_FLAGS: "+P 256000 -env ERL_MAX_ETS_TABLES 256 +sbwt none +sbwtdcpu none +sbwtdio none"
+    command: >
+      bash -c "exec couchdb -couch_ini /opt/couchdb/etc/default.d/*.ini
+                                /opt/couchdb/etc/local.d/*.ini
+                                /opt/couchdb/etc/local.d/limits.ini"
     volumes:
       - couchdb_data:/opt/couchdb/data
       - couchdb_etc:/opt/couchdb/etc/local.d
+      - ./limits.ini:/opt/couchdb/etc/local.d/limits.ini:ro
     ports:
       - 5984:5984
     restart: unless-stopped
     networks:
       - personal_network
+    mem_limit: 512m
+    mem_reservation: 256m
+
 
   obsidian_couchdb_backup:
     build:
