@@ -6,10 +6,6 @@ services:
       COUCHDB_USER: admin
       COUCHDB_PASSWORD: admin
       ERL_FLAGS: "+P 256000 -env ERL_MAX_ETS_TABLES 256 +sbwt none +sbwtdcpu none +sbwtdio none"
-    command: >
-      bash -c "exec couchdb -couch_ini /opt/couchdb/etc/default.d/*.ini
-                                /opt/couchdb/etc/local.d/*.ini
-                                /opt/couchdb/etc/local.d/limits.ini"
     volumes:
       - couchdb_data:/opt/couchdb/data
       - couchdb_etc:/opt/couchdb/etc/local.d
