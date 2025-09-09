@@ -13,6 +13,11 @@ services:
     restart: unless-stopped
     networks:
       - personal_network
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
 
   obsidian_couchdb_backup:
     build:
