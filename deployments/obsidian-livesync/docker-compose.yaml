@@ -17,7 +17,12 @@ services:
       nofile:
         soft: 65535
         hard: 65535
-
+    deploy:
+      resources:
+        reservations:
+          memory: 384m
+        limits:
+          memory: 512m
 
   obsidian_couchdb_backup:
     build:
