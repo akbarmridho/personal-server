@@ -41,3 +41,6 @@ docker network create personal_network
 
 - `5984` CouchDB.
   
+### Beszel
+
+- `8005` Beszel.
