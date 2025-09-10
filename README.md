@@ -48,3 +48,8 @@ docker network create personal_network
 ### Activepieces
 
 - `8006` Activepieces.
+
+### Lobe Chat
+
+- `8007` Casdoor.
+- `8008` Lobe.
