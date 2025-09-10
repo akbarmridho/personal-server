@@ -44,3 +44,7 @@ docker network create personal_network
 ### Beszel
 
 - `8005` Beszel.
+
+### Activepieces
+
+- `8006` Activepieces.
