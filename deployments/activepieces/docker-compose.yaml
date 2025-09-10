@@ -26,6 +26,12 @@ services:
       - .env
     networks:
       - personal_network
+    deploy:
+      resources:
+        reservations:
+          memory: 768m
+        limits:
+          memory: 1024m
 
   ap_redis:
     image: redis:7.4.5-bookworm
