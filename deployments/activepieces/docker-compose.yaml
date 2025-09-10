@@ -32,7 +32,7 @@ services:
     container_name: ap_redis
     restart: unless-stopped
     volumes:
-      - ap_redis:/data
+      - ap_redis_data:/data
     networks:
       - personal_network
 
