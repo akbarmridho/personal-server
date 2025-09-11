@@ -4,7 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
        wget \
-       postgresql-17-pgvector \
+       ostgresql-17-pgvector=0.8.0-* \
        postgresql-17-cron \
     \
     # Add Groonga APT source
@@ -18,8 +18,13 @@ RUN apt-get update \
        postgresql-17-pgdg-pgroonga \
        groonga-tokenizer-mecab \
     \
+    # Install vchord 0.5.1
+    && wget https://github.com/tensorchord/VectorChord/releases/download/0.5.1/postgresql-17-vchord_0.5.1-1_$(dpkg --print-architecture).deb -P /tmp \
+    && apt-get install -y /tmp/postgresql-17-vchord_0.5.1-1_$(dpkg --print-architecture).deb \
+    \
     # Cleanup
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get remove -y wget ca-certificates \
+    && apt-get purge -y --auto-remove \
+    && rm -rf /tmp/* /var/lib/apt/lists/*
 
 COPY init.sql /docker-entrypoint-initdb.d/
