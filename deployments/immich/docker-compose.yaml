@@ -3,7 +3,12 @@ services:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:v1.141.1
     volumes:
-      - ${UPLOAD_LOCATION}:/data
+      - /mnt/filen/personal-server/immich/uploads/upload:/data/upload
+      - immich-thumbnail:/data/thumbs
+      - immich-video:/data/encoded-video
+      - immich-library:/data/library
+      - immich-profile:/data/profile
+      - /mnt/filen/personal-server/immich/uploads/backups:/data/backups
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -46,6 +51,10 @@ services:
 
 volumes:
   model-cache:
+  immich-thumbnail:
+  immich-video:
+  immich-library:
+  immich-profile:
 
 networks:
   personal_network:
