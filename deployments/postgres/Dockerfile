@@ -4,7 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
        wget \
-       postgresql-17-pgvector=0.8.0-* \
+       postgresql-17-pgvector=0.8.1-* \
        postgresql-17-cron \
     \
     # Add Groonga APT source
