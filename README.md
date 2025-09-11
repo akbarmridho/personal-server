@@ -53,3 +53,7 @@ docker network create personal_network
 
 - `8007` Casdoor.
 - `8008` Lobe.
+
+### Immich
+
+- `8009` Immich.
