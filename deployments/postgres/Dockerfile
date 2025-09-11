@@ -18,9 +18,9 @@ RUN apt-get update \
        postgresql-17-pgdg-pgroonga \
        groonga-tokenizer-mecab \
     \
-    # Install vchord 0.5.1
-    && wget https://github.com/tensorchord/VectorChord/releases/download/0.5.1/postgresql-17-vchord_0.5.1-1_$(dpkg --print-architecture).deb -P /tmp \
-    && apt-get install -y /tmp/postgresql-17-vchord_0.5.1-1_$(dpkg --print-architecture).deb \
+    # Install vchord 0.4.3
+    && wget https://github.com/tensorchord/VectorChord/releases/download/0.4.3/postgresql-17-vchord_0.4.3-1_$(dpkg --print-architecture).deb -P /tmp \
+    && apt-get install -y /tmp/postgresql-17-vchord_0.4.3-1_$(dpkg --print-architecture).deb \
     \
     # Cleanup
     && apt-get remove -y wget ca-certificates \
