@@ -1,11 +1,5 @@
 # Personal Server
 
-## Todo
-
-- Active Pieces (https://github.com/activepieces/activepieces/)
-- Setup NGINX Proxy Manager
-- Setup Immich -> gak bisa pake network storage filen? https://immich.app/docs/guides/custom-locations/
-
 ## Docker Network
 
 ```bash
