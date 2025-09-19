@@ -51,3 +51,7 @@ docker network create personal_network
 ### Immich
 
 - `8009` Immich.
+
+### Flowise
+
+- `8010` Flowise server.

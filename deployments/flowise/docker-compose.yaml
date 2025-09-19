@@ -1,0 +1,67 @@
+services:
+  flowise_redis:
+    image: redis:7.4.5-bookworm
+    hostname: flowise_redis
+    # ports:
+    #   - '6379:6379'
+    volumes:
+      - flowise_redis:/data
+    networks:
+      - personal_network
+    restart: unless-stopped
+
+  flowise_server:
+    image: flowiseai/flowise:3.0.7
+    container_name: flowise_server
+    restart: unless-stopped
+    ports:
+      - '8010:3000'
+    networks:
+      - personal_network
+    volumes:
+      - flowise_server_data:/root/.flowise
+    depends_on:
+      - flowise_redis
+    environment:
+      PORT: 3000
+    env_file:
+      - .env
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/v1/ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    entrypoint: /bin/sh -c "sleep 3; flowise start"
+
+  flowise_worker:
+    image: flowiseai/flowise-worker:3.0.7
+    container_name: flowise_worker
+    restart: unless-stopped
+    volumes:
+      - flowise_worker_data:/root/.flowise
+    environment:
+      WORKER_PORT: 5566
+    env_file:
+      - .env
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:5566/healthz']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    entrypoint: /bin/sh -c "node /app/healthcheck/healthcheck.js & sleep 5 && pnpm run start-worker"
+    depends_on:
+      - flowise_redis
+      - flowise_server
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true
+
+volumes:
+    flowise_redis:
+    flowise_server_data:
+    flowise_worker_data:
