@@ -5,7 +5,7 @@ module.exports = {
       script: "./dist/index.js",
       cwd: "./",
       autorestart: false,
-      max_memory_restart: "384M",
+      max_memory_restart: "2048M",
       min_uptime: 5000,
       max_restarts: 5,
       restart_delay: 2000,
