@@ -55,3 +55,7 @@ docker network create personal_network
 ### Flowise
 
 - `8010` Flowise server.
+
+### Dozzle
+
+- `8011` Dozzle server.
