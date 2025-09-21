@@ -1,6 +1,6 @@
 services:
   beszel:
-    image: henrygd/beszel:latest
+    image: henrygd/beszel:0.12.9
     container_name: beszel
     restart: unless-stopped
     ports:
@@ -12,7 +12,7 @@ services:
       - personal_network
 
   beszel-agent:
-    image: henrygd/beszel-agent:latest
+    image: henrygd/beszel-agent:0.12.9
     container_name: beszel-agent
     restart: unless-stopped
     network_mode: host
