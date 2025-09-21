@@ -1,0 +1,34 @@
+{
+    "name": "@personal-server/knowledge-gateway",
+    "version": "1.0.0",
+    "description": "Unified MCP servers for personal project knowledge gateway's need.",
+    "main": "index.js",
+    "scripts": {
+        "build": "turbo run compile --filter={./}",
+        "compile": "tsc",
+        "format": "biome format --write src",
+        "lint": "biome lint src",
+        "check": "biome check src",
+        "check:apply": "biome check --apply src",
+        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register",
+        "run": "pm2 start ecosystem.config.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "engines": {
+        "node": ">=24"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.18.1",
+        "@personal-server/common": "workspace:*",
+        "@t3-oss/env-core": "catalog:core",
+        "fastmcp": "^3.17.0",
+        "zod": "catalog:core"
+    },
+    "devDependencies": {
+        "@types/node": "^22.16.4",
+        "typescript": "catalog:core"
+    }
+}

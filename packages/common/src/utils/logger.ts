@@ -31,14 +31,14 @@ export const logger = pino({
           colorize: process.stdout.isTTY, // Only colorize if TTY (interactive terminal)
         },
       },
-      {
-        target: "pino/file",
-        level: logLevel,
-        options: {
-          destination: logFile,
-          colorize: false, // Ensure no ANSI color in file output
-        },
-      },
+      // {
+      //   target: "pino/file",
+      //   level: logLevel,
+      //   options: {
+      //     destination: logFile,
+      //     colorize: false, // Ensure no ANSI color in file output
+      //   },
+      // },
     ],
   },
 });
