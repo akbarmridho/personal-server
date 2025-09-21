@@ -342,7 +342,7 @@
       "clientId": "a387a4892ee19b1a2249",
       "clientSecret": "4d58dc34e15ce803187f2b5164257617",
       "redirectUris": [
-        "http://personal-01:8008/api/auth/callback/casdoor"
+        "https://lobechat.akbarmr.dev/api/auth/callback/casdoor"
       ],
       "forcedRedirectOrigin": "",
       "tokenFormat": "JWT",
@@ -1717,7 +1717,7 @@
       "name": "webhook_default",
       "createdTime": "2025-08-11T17:13:56+08:00",
       "organization": "lobechat",
-      "url": "http://personal-01:8008/api/webhooks/casdoor",
+      "url": "https://lobechat.akbarmr.dev/api/webhooks/casdoor",
       "method": "POST",
       "contentType": "application/json",
       "headers": [
