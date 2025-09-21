@@ -64,3 +64,7 @@ docker network create personal_network
 
 - `81` Admin.
 - `80` and `443` nginx.
+
+### Heimdall
+
+- `8012` Heimdall.
