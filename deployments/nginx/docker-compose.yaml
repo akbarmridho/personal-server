@@ -20,6 +20,8 @@ services:
       DB_POSTGRES_NAME: nginx
       INITIAL_ADMIN_EMAIL: admin@admin.com
       INITIAL_ADMIN_PASSWORD: admin
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 volumes:
   nginx_data:
   nginx_letsencrypt:

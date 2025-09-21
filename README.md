@@ -59,3 +59,8 @@ docker network create personal_network
 ### Dozzle
 
 - `8011` Dozzle server.
+
+### Nginx Proxy Manager
+
+- `81` Admin.
+- `80` and `443` nginx.
