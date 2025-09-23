@@ -31,6 +31,7 @@ rclone mount filen: /mnt/filen --vfs-cache-mode writes --no-check-certificate
 sudo mkdir -p /var/lib/docker-plugins/rclone/config
 sudo mkdir -p /var/lib/docker-plugins/rclone/cache
 
-docker plugin install rclone/docker-volume-rclone args="-v" --alias rclone --grant-all-permissions
+docker plugin install rclone/docker-volume-rclone:arm64 args="-v" --alias rclone --grant-all-permissions
+docker plugin enable rclone
 docker plugin list
 ```

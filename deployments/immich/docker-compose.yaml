@@ -66,13 +66,12 @@ volumes:
     driver: rclone
     driver_opts:
       type: 'webdav'
-      webdav_url: 'https://host.docker.internal:4001'
+      webdav_url: 'https://localhost:4001'
       webdav_vendor: 'other'
       webdav_user: 'admin'
-      webdav_pass: 'admin'
+      webdav_pass: 'LACyVhZAkys-312NHJJrUobWhYky'
       allow_other: 'true'
       path: 'personal-server/immich/uploads'
-      no_check_certificate: 'true'
       vfs_cache_mode: 'writes'
       poll_interval: '30s'
 
