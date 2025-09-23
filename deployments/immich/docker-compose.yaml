@@ -66,7 +66,7 @@ volumes:
     driver: rclone
     driver_opts:
       type: 'webdav'
-      webdav_url: 'https://localhost:4001'
+      webdav_url: 'http://localhost:4001'
       webdav_vendor: 'other'
       webdav_user: 'admin'
       webdav_pass: 'LACyVhZAkys-312NHJJrUobWhYky'
