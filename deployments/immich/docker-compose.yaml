@@ -3,12 +3,11 @@ services:
     container_name: immich_server
     image: ghcr.io/immich-app/immich-server:v1.142.1
     volumes:
-      - /mnt/filen/personal-server/immich/uploads/upload:/data/upload
+      - immich-filen:/data
       - immich-thumbnail:/data/thumbs
       - immich-video:/data/encoded-video
       - immich-library:/data/library
       - immich-profile:/data/profile
-      - /mnt/filen/personal-server/immich/uploads/backups:/data/backups
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -18,11 +17,11 @@ services:
       - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "/usr/src/app/server/bin/immich-healthcheck"]
-      interval: 30s     
-      timeout: 10s     
-      retries: 3       
-      start_period: 30s 
+      test: ["CMD-SHELL", "test -r /data/upload && /usr/src/app/bin/immich-health-check.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
     networks:
       - personal_network
 
@@ -63,6 +62,19 @@ volumes:
   immich-video:
   immich-library:
   immich-profile:
+  immich-filen:
+    driver: rclone
+    driver_opts:
+      type: 'webdav'
+      webdav_url: 'https://host.docker.internal:4001'
+      webdav_vendor: 'other'
+      webdav_user: 'admin'
+      webdav_pass: 'admin'
+      allow_other: 'true'
+      path: 'personal-server/immich/uploads'
+      no_check_certificate: 'true'
+      vfs_cache_mode: 'writes'
+      poll_interval: '30s'
 
 networks:
   personal_network:
