@@ -17,7 +17,7 @@ services:
       - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "test -r /data/upload && /usr/src/app/bin/immich-health-check.sh"]
+      test: ["CMD-SHELL", "test -r /data/upload && /usr/src/app/server/bin/immich-healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 5
