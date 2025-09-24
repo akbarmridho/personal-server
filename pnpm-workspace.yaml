@@ -4,15 +4,17 @@ packages:
 
 catalogs:
   core:
-    '@dotenvx/dotenvx': ^1.49.0
-    '@t3-oss/env-core': 0.13.8
-    ai: ^5.0.22
-    ai-fallback: ^1.0.2
+    "@dotenvx/dotenvx": ^1.49.0
+    "@t3-oss/env-core": ^0.13.8
+    ai: ^5.0.51
+    "@ai-sdk/openai": ^2.0.34
+    "@openrouter/ai-sdk-provider": ^1.2.0
+    ai-fallback: ^1.0.7
     typescript: ^5.9.2
     zod: ^4.1.1
 
 onlyBuiltDependencies:
-  - '@biomejs/biome'
-  - '@parcel/watcher'
-  - '@swc/core'
+  - "@biomejs/biome"
+  - "@parcel/watcher"
+  - "@swc/core"
   - oxc-resolver

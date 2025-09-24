@@ -1,0 +1,56 @@
+{
+    "name": "@personal-server/kb-backend",
+    "version": "1.0.0",
+    "description": "Backend for managing document knowledge base.",
+    "main": "index.js",
+    "scripts": {
+        "build": "turbo run compile --filter={./}",
+        "compile": "tsc",
+        "format": "biome format --write src",
+        "lint": "biome lint src",
+        "check": "biome check src",
+        "check:apply": "biome check --apply src",
+        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register",
+        "run": "pm2 start ecosystem.config.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "engines": {
+        "node": ">=24"
+    },
+    "dependencies": {
+        "@personal-server/common": "workspace:*",
+        "@t3-oss/env-core": "catalog:core",
+        "markdown-table": "^2.0.0",
+        "@dotenvx/dotenvx": "catalog:core",
+        "ai": "catalog:core",
+        "@ai-sdk/openai": "catalog:core",
+        "@openrouter/ai-sdk-provider": "catalog:core",
+        "ai-fallback": "catalog:core",
+        "md-to-adf": "^0.6.4",
+        "mdast-util-from-markdown": "^2.0.2",
+        "mdast-util-gfm": "^3.1.0",
+        "mdast-util-to-markdown": "^2.1.2",
+        "mdast-util-to-string": "^4.0.0",
+        "micromark-extension-gfm": "^3.0.0",
+        "remark": "^15.0.1",
+        "remark-gfm": "^4.0.1",
+        "remark-math": "^6.0.0",
+        "remark-parse": "^11.0.0",
+        "text-segmentation": "^1.0.3",
+        "tokenizers": "^0.13.3",
+        "turndown": "^7.2.0",
+        "turndown-plugin-confluence-to-gfm": "^0.5.0",
+        "unified": "^11.0.5",
+        "voyageai": "^0.0.8",
+        "zod": "catalog:core"
+    },
+    "devDependencies": {
+        "@types/mdast": "^4.0.4",
+        "@types/node": "^22.16.4",
+        "@types/turndown": "^5.0.5",
+        "typescript": "catalog:core"
+    }
+}
