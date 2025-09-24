@@ -1,0 +1,45 @@
+services:
+  postgres_main:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postgres_main
+    restart: unless-stopped
+    command: -c config_file=/etc/postgresql.conf
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql.conf
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: postgres_pgweb
+    restart: unless-stopped
+    ports:
+      - "8001:8081"
+    environment:
+      - PGWEB_DATABASE_URL=postgres://postgres:postgres@postgres_main:5432/postgres?sslmode=disable
+    depends_on:
+      postgres_main:
+        condition: service_healthy
+    networks:
+      - postgres_network
+
+volumes:
+  postgres_data:
+
+networks:
+  postgres_network:
+
