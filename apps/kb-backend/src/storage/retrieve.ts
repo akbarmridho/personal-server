@@ -434,3 +434,5 @@ export class HierarchicalRetriever {
     return result;
   }
 }
+
+export const retriever = new HierarchicalRetriever({});

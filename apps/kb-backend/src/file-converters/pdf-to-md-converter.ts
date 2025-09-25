@@ -97,3 +97,5 @@ export class PdfToMarkdownConverter {
     }
   }
 }
+
+export const pdfToMarkdownConverter = new PdfToMarkdownConverter();

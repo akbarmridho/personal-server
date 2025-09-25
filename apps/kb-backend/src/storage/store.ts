@@ -37,7 +37,6 @@ export class VectorStore {
    * Store or update a document with chunks
    */
   async storeDocument(
-    collection_id: number,
     document: DocumentInsert,
   ): Promise<{ id: number; isNew: boolean }> {
     const titlePath = document.hierarchy_path
@@ -48,7 +47,7 @@ export class VectorStore {
     const docSummary = await this.generateSummary(titlePath, document.content);
 
     const { document_id, is_new } = await upsertDocument({
-      collection_id_input: collection_id,
+      collection_id_input: document.collection_id,
       title_input: document.title,
       content_input: contentWithHierarchy,
       summary_input: docSummary.summaryContent,
@@ -182,3 +181,5 @@ export class VectorStore {
     }
   }
 }
+
+export const vectorStore = new VectorStore();
