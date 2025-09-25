@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "personal-filen",
+      name: "kb-backend",
       script: "./dist/index.js",
       cwd: "./",
       autorestart: false,

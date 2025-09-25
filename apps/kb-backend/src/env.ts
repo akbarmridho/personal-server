@@ -12,8 +12,9 @@ export const env = createEnv({
   server: {
     VOYAGE_API_KEY: z.string(),
     OPENROUTER_API_KEY: z.string(),
-    SERVER_PORT: z.coerce.number().prefault(3000),
-    MCP_PORT: z.coerce.number().prefault(3001),
+    SERVER_PORT: z.coerce.number().prefault(3010),
+    MCP_PORT: z.coerce.number().prefault(3011),
+    DATABASE_URL: z.string(),
   },
   /*
    * Specify what values should be validated by your schemas above.

@@ -132,14 +132,7 @@ export const setupServer = () => {
             start_date,
             end_date,
             collection_id,
-          }: {
-            query: string;
-            hyde_answer: string;
-            embedding_weight: number;
-            fulltext_weight: number;
-            start_date?: string;
-            end_date?: string;
-            collection_id: number;
+            metadata,
           } = body;
 
           const results = await retriever.hierarchicalSearch(
@@ -151,6 +144,7 @@ export const setupServer = () => {
               fulltext_weight: fulltext_weight,
               start_date: start_date,
               end_date: end_date,
+              metadataFilter: metadata,
             },
           );
 
@@ -197,6 +191,7 @@ export const setupServer = () => {
             }),
           ),
           collection_id: t.Number(),
+          metadata: t.Optional(t.Record(t.String(), t.Any())),
         }),
       },
     )

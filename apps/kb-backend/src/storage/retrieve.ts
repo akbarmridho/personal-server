@@ -92,8 +92,8 @@ export class HierarchicalRetriever {
   private embeddings = new VoyageEmbeddings();
 
   constructor(args: RetrieverArgs) {
-    this.docSearchLimit = args.docSearchLimit ?? 256;
-    this.chunkSearchLimit = args.chunkSearchLimit ?? 1024;
+    this.docSearchLimit = args.docSearchLimit ?? 128;
+    this.chunkSearchLimit = args.chunkSearchLimit ?? 512;
     this.topN = args.topN ?? 128;
     this.embeddingWeight = args.embeddingWeight ?? 0.7;
     this.fulltextWeight = args.fulltextWeight ?? 0.3;
