@@ -1,10 +1,7 @@
+import { logger } from "@personal-server/common/utils/logger";
 import { db, matchDocumentsHierarchical } from "../db/db.js";
 import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
-
-export interface HierachicalQueryInput {
-  text: string;
-  embedding?: number[];
-}
+import { parseDate } from "../utils/date.js";
 
 // Extended search parameters
 export interface HierachicalSearchParams {
@@ -26,6 +23,9 @@ export interface HierachicalSearchParams {
   // Retrieve full document when majority of chunks are returned for a document
   useFullDocumentWhenMajority?: boolean;
   majorityChunkThreshold?: number;
+  // temporal filter
+  start_date?: string;
+  end_date?: string;
 }
 
 // Individual chunk result
@@ -147,57 +147,13 @@ export class HierarchicalRetriever {
    * @throws {Error} If there is an error during the database search or if embeddings cannot be generated for the query and HyDE document.
    */
   public async hierarchicalSearch(
-    query: string | HierachicalQueryInput,
-    hydeDoc: string | HierachicalQueryInput,
+    query: string,
+    hydeDoc: string,
     collection_id: number,
     searchParams: HierachicalSearchParams,
   ): Promise<GroupedSearchResultItem[]> {
-    // Extract text and embeddings
-    const queryText = typeof query === "string" ? query : query.text;
-    const hydeText = typeof hydeDoc === "string" ? hydeDoc : hydeDoc.text;
-
-    // Get embeddings if provided, otherwise keep undefined
-    let queryEmbedding =
-      typeof query === "string" ? undefined : query.embedding;
-    let hydeEmbedding =
-      typeof hydeDoc === "string" ? undefined : hydeDoc.embedding;
-
-    // Generate any missing embeddings
-    if (!queryEmbedding || !hydeEmbedding) {
-      const textsToEmbed: string[] = [];
-      const embeddingIndexMap = new Map<string, number>();
-
-      if (!queryEmbedding) {
-        embeddingIndexMap.set("query", textsToEmbed.length);
-        textsToEmbed.push(queryText);
-      }
-
-      if (!hydeEmbedding) {
-        embeddingIndexMap.set("hyde", textsToEmbed.length);
-        textsToEmbed.push(hydeText);
-      }
-
-      if (textsToEmbed.length > 0) {
-        const embeddings =
-          await this.embeddings.embedMultipleQueries(textsToEmbed);
-
-        if (!queryEmbedding && embeddingIndexMap.has("query")) {
-          const queryIndex = embeddingIndexMap.get("query")!;
-          queryEmbedding = embeddings[queryIndex];
-        }
-
-        if (!hydeEmbedding && embeddingIndexMap.has("hyde")) {
-          const hydeIndex = embeddingIndexMap.get("hyde")!;
-          hydeEmbedding = embeddings[hydeIndex];
-        }
-      }
-    }
-
-    if (!queryEmbedding || !hydeEmbedding) {
-      throw new Error(
-        "Failed to generate embeddings for query and HyDE document",
-      );
-    }
+    const [queryEmbedding, hydeEmbedding] =
+      await this.embeddings.embedMultipleQueries([query, hydeDoc]);
 
     // Continue with existing implementation - these params remain the same
     const embeddingWeight =
@@ -214,15 +170,28 @@ export class HierarchicalRetriever {
         : [searchParams.excludeDocumentIds];
     }
 
-    // Clean search parameters for dates and metadata
-    const cleanedParams = this.cleanSearchParams(searchParams);
+    let start_date: Date | null = null;
+    let end_date: Date | null = null;
+
+    if (searchParams.start_date) {
+      start_date = parseDate(searchParams.start_date);
+      if (!start_date) {
+        logger.warn(`Invalid start_date ${searchParams.start_date}`);
+      }
+    }
+
+    if (searchParams.end_date) {
+      end_date = parseDate(searchParams.end_date);
+      if (!end_date) {
+        logger.warn(`Invalid end_date ${searchParams.end_date}`);
+      }
+    }
 
     // Call the database function with updated parameters including metadata filter
-    console.time("DB search");
     const searches = await matchDocumentsHierarchical({
       query_embedding: queryEmbedding,
       hyde_embedding: hydeEmbedding,
-      query_text: queryText,
+      query_text: query,
       collection_id_input: collection_id,
       doc_search_limit: searchParams.doc_search_limit ?? this.docSearchLimit,
       chunk_search_limit:
@@ -231,8 +200,10 @@ export class HierarchicalRetriever {
       semantic_weight: embeddingWeight,
       similarity_threshold: similarityThreshold,
       exclude_document_ids: excludeDocumentIds,
-      metadata_filter: cleanedParams.metadataFilter,
+      metadata_filter: searchParams.metadataFilter,
       strict_metadata_matching: searchParams.strictMetadataMatching ?? false,
+      start_ts: start_date,
+      end_ts: end_date,
     });
 
     if (searches.length === 0) {
@@ -461,29 +432,5 @@ export class HierarchicalRetriever {
     }
 
     return result;
-  }
-
-  private cleanSearchParams(
-    params: HierachicalSearchParams,
-  ): Partial<HierachicalSearchParams> & {
-    metadataFilter?: Record<string, unknown>;
-  } {
-    const validateDate = (date?: string) => {
-      if (!date || date === "null") return false;
-      try {
-        new Date(date).toISOString();
-        return true;
-      } catch {
-        return false;
-      }
-    };
-
-    return {
-      metadataFilter: params.metadataFilter, // Include metadata filter
-      // start_date: validateDate(params.start_date)
-      //   ? params.start_date
-      //   : undefined,
-      // end_date: validateDate(params.end_date) ? params.end_date : undefined,
-    };
   }
 }

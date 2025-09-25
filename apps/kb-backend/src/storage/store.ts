@@ -1,7 +1,6 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { logger } from "@personal-server/common/utils/logger";
 import { generateObject } from "ai";
-import { type SqlBool, sql } from "kysely";
 import pRetry from "p-retry";
 import { db, upsertDocument } from "../db/db.js";
 import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
@@ -11,17 +10,16 @@ import {
   docSummaryUserPrompt,
 } from "../prompts/doc-summary-prompt.js";
 
-export interface DocumentInsert {
+interface DocumentInsert {
   collection_id: number;
   title: string;
   content: string;
-  summary: string;
-  summary_embedding: number[];
   hierarchy_path?: string | null;
+  document_ts?: Date | null;
   metadata?: Record<string, any> | null;
 }
 
-export interface DocumentChunkInsert {
+interface DocumentChunkInsert {
   content: string;
   embedding: number[];
   chunk_index: number;
@@ -40,12 +38,7 @@ export class VectorStore {
    */
   async storeDocument(
     collection_id: number,
-    document: Omit<
-      DocumentInsert,
-      "summary" | "summary_embedding" | "metadata"
-    > & {
-      metadata: Record<string, any>;
-    },
+    document: DocumentInsert,
   ): Promise<{ id: number; isNew: boolean }> {
     const titlePath = document.hierarchy_path
       ? `${document.hierarchy_path}\\${document.title}`
@@ -98,33 +91,19 @@ export class VectorStore {
   /**
    * Get existing documents in a collection
    */
-  async getExistingDocumentsByCollectionId<T>(
-    collectionId: number,
-    metadataFilters: Record<string, string | string[]> = {},
-  ): Promise<Map<number, T & { updated_at: string }>> {
-    let query = db
+  async getDocuments(collectionId: number) {
+    const rows = await db
       .selectFrom("documents")
-      .select(["id", "metadata", "updated_at"])
-      .where("collection_id", "=", collectionId.toString());
+      .select(["id", "title", "summary", "metadata", "document_ts"])
+      .where("collection_id", "=", collectionId.toString())
+      .execute();
 
-    // optional metadata filters (jsonb @> operator)
-    for (const [key, value] of Object.entries(metadataFilters)) {
-      query = query.where(
-        sql<SqlBool>`metadata @> ${JSON.stringify({ [key]: value })}::jsonb`,
-      );
-    }
-
-    const rows = await query.execute();
-
-    return new Map(
-      rows.map((doc) => [
-        Number(doc.id),
-        {
-          ...(doc.metadata as T),
-          updated_at: doc.updated_at.toString(),
-        },
-      ]),
-    );
+    return rows.map((row) => {
+      return {
+        ...row,
+        document_ts: row.document_ts.toString(),
+      };
+    });
   }
 
   /**

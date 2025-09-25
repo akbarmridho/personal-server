@@ -30,6 +30,7 @@
         "@t3-oss/env-core": "catalog:core",
         "ai": "catalog:core",
         "ai-fallback": "catalog:core",
+        "dayjs": "^1.11.18",
         "kysely": "^0.28.7",
         "markdown-table": "^2.0.0",
         "md-to-adf": "^0.6.4",

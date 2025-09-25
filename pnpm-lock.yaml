@@ -108,6 +108,9 @@ importers:
       ai-fallback:
         specifier: catalog:core
         version: 1.0.7(zod@4.1.1)
+      dayjs:
+        specifier: ^1.11.18
+        version: 1.11.18
       kysely:
         specifier: ^0.28.7
         version: 0.28.7
@@ -1027,6 +1030,9 @@ packages:
 
   dateformat@4.6.3:
     resolution: {integrity: sha512-2P0p0pFGzHS5EMnhdxQi7aJN+iMheud0UhG4dlE1DLAlvL8JHjJJTX/CSm4JXwV0Ka5nGk3zC5mcb5bUQUxxMA==}
+
+  dayjs@1.11.18:
+    resolution: {integrity: sha512-zFBQ7WFRvVRhKcWoUh+ZA1g2HVgUbsZm9sbddh8EC5iv93sui8DVVz1Npvz+r6meo9VKfa8NyLWBsQK1VvIKPA==}
 
   dbmate@2.28.0:
     resolution: {integrity: sha512-kbJ+Aqna/SOsS86RuimX8X/qmo9ItG00EYMUfUQmo3xGoXBac4+PZwOYV0fVPIGakIRljNolhfJySkPAFjmZsA==}
@@ -3364,6 +3370,8 @@ snapshots:
   crypto-js@4.2.0: {}
 
   dateformat@4.6.3: {}
+
+  dayjs@1.11.18: {}
 
   dbmate@2.28.0:
     optionalDependencies:
