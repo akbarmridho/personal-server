@@ -43,8 +43,8 @@ export interface VoyageEmbeddingsParams {
 interface DocumentChunksInsert {
   content: string;
   embedding: number[];
-  chunkIndex: number;
-  maxChunkIndex: number;
+  chunk_index: number;
+  max_chunk_index: number;
 }
 
 const RPM_LIMIT = 500;
@@ -221,8 +221,8 @@ export class VoyageEmbeddings {
               return {
                 content,
                 embedding: embedding,
-                chunkIndex: currentChunkIndex++,
-                maxChunkIndex: totalChunks - 1,
+                chunk_index: currentChunkIndex++,
+                max_chunk_index: totalChunks - 1,
               };
             },
           );

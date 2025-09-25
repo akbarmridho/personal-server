@@ -1,20 +1,15 @@
+import { openrouter } from "@openrouter/ai-sdk-provider";
 import { logger } from "@personal-server/common/utils/logger";
-import { sql } from "kysely";
+import { generateObject } from "ai";
+import { type SqlBool, sql } from "kysely";
+import pRetry from "p-retry";
 import { db, upsertDocument } from "../db/db.js";
 import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
-import { docSummaryUserPrompt } from "../prompts/doc-summary-prompt.js";
-
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
-
-export interface CollectionInsert {
-  name: string;
-}
+import {
+  DocumentSummarySchema,
+  docSummarySystemPrompt,
+  docSummaryUserPrompt,
+} from "../prompts/doc-summary-prompt.js";
 
 export interface DocumentInsert {
   collection_id: number;
@@ -23,13 +18,12 @@ export interface DocumentInsert {
   summary: string;
   summary_embedding: number[];
   hierarchy_path?: string | null;
-  metadata?: Json | null;
+  metadata?: Record<string, any> | null;
 }
 
 export interface DocumentChunkInsert {
   content: string;
   embedding: number[];
-  document_id: number;
   chunk_index: number;
   max_chunk_index: number;
 }
@@ -116,7 +110,7 @@ export class VectorStore {
     // optional metadata filters (jsonb @> operator)
     for (const [key, value] of Object.entries(metadataFilters)) {
       query = query.where(
-        sql`metadata @> ${JSON.stringify({ [key]: value })}::jsonb`,
+        sql<SqlBool>`metadata @> ${JSON.stringify({ [key]: value })}::jsonb`,
       );
     }
 
@@ -166,24 +160,19 @@ export class VectorStore {
       docContent,
     });
 
-    const summaryResponse = await this.ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-04-17",
-      contents: formattedPrompt,
-      config: {
+    const ops = async () => {
+      const response = await generateObject({
+        model: openrouter("google/gemini-2.5-flash"),
+        schema: DocumentSummarySchema,
+        system: docSummarySystemPrompt.format(),
         temperature: 0.5,
-        responseMimeType: "application/json",
-        responseSchema: DocumentSummarySchema,
-        systemInstruction: docSummarySystemPrompt.format(),
-      },
-    });
+        prompt: formattedPrompt,
+      });
 
-    if (!summaryResponse.text) {
-      throw new Error("Document summary response did not contain text.");
-    }
-    const { summaryContent } = JSON.parse(summaryResponse.text) as {
-      // Use summaryResponse.text
-      summaryContent: string;
+      return response.object.summaryContent;
     };
+
+    const summaryContent = await pRetry(ops, { retries: 3 });
 
     const summary = `${titlePath}\n\n${summaryContent}`;
 

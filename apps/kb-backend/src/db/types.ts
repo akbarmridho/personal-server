@@ -35,6 +35,7 @@ export interface Collections {
   created_at: Generated<Timestamp>;
   id: Generated<Int8>;
   name: string;
+  description: string;
 }
 
 export interface DocumentChunks {

@@ -1,14 +1,5 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import type { Database, Json } from "@tm/supabase/database";
-
-import {
-  JinaEmbeddings,
-  JinaReranker,
-  type RerankedDocument,
-  type RerankerDocument,
-} from "..";
-import type { DocumentSource } from "../types";
+import { db, matchDocumentsHierarchical } from "../db/db.js";
+import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
 
 export interface HierachicalQueryInput {
   text: string;
@@ -19,10 +10,6 @@ export interface HierachicalQueryInput {
 export interface HierachicalSearchParams {
   metadataFilter?: Record<string, unknown>;
   strictMetadataMatching?: boolean; // Controls how missing properties are handled
-  source?: DocumentSource | DocumentSource[];
-  target_user_id: string;
-  start_date?: string;
-  end_date?: string;
   // Parameters for hierarchical search
   doc_search_limit?: number;
   chunk_search_limit?: number;
@@ -30,8 +17,6 @@ export interface HierachicalSearchParams {
   // Weights for hybrid search
   embedding_weight?: number;
   fulltext_weight?: number;
-  // Option to override reranker setting for this search
-  useReranker?: boolean;
   // Option to concatenate chunks into a single string
   concatChunks?: boolean;
   // Similarity threshold for filtering results
@@ -52,87 +37,70 @@ export interface ChunkItem {
   maxChunkIndex?: number;
 }
 
+export interface DocumentMapped {
+  pageContent: string;
+  metadata: {
+    id: number;
+    documentId: number;
+    similarity: number;
+  };
+}
+
 // Grouped search result by document
 export interface GroupedSearchResultItem {
   metadata: Record<string, unknown>;
-  source: DocumentSource;
   title: string;
-  url: string;
-  sourceId: string;
   similarity: number; // Highest similarity score among chunks
   documentId: number;
-  sourceParentId?: string;
   hierarchyPath?: string;
   contentParts: ChunkItem[] | string;
-  sourceUpdatedAt: string;
 }
 
 // Retriever configuration
 export interface RetrieverArgs {
-  client: SupabaseClient<Database>;
   docSearchLimit?: number;
   chunkSearchLimit?: number;
   chunkDocumentThreshold?: number;
   topN?: number;
   embeddingWeight?: number;
   fulltextWeight?: number;
-  useReranker?: boolean;
   concatChunks?: boolean;
   defaultSimilarityThreshold?: number;
   useFullDocumentWhenMajority?: boolean;
   majorityChunkThreshold?: number;
 }
 
-type MatchDocumentsHierarchicalFunction =
-  Database["public"]["Functions"]["match_documents_hierarchical"];
-type MatchDocumentsHierarchical =
-  Database["public"]["Functions"]["match_documents_hierarchical"]["Returns"];
-
 // Full document metadata
 interface DocumentMetadata {
-  source: DocumentSource;
   title: string;
-  url: string;
-  sourceId: string;
   chunkIndex?: number;
   maxChunkIndex?: number;
-  sourceParentId?: string;
   hierarchyPath?: string;
-  sourceUpdatedAt: string;
   [key: string]: unknown;
 }
 
 export class HierarchicalRetriever {
-  private client: SupabaseClient<Database>;
   private topN: number;
   private docSearchLimit: number;
   private chunkSearchLimit: number;
   private embeddingWeight: number;
   private fulltextWeight: number;
-  private jinaReranker: JinaReranker;
-  private useReranker: boolean;
   private concatChunks: boolean;
   private defaultSimilarityThreshold: number;
   private useFullDocumentWhenMajority: boolean;
   private majorityChunkThreshold: number;
-  private embeddings = new JinaEmbeddings({
-    task: "retrieval.query",
-    lateChunking: false,
-  });
+  private embeddings = new VoyageEmbeddings();
 
   constructor(args: RetrieverArgs) {
-    this.client = args.client;
     this.docSearchLimit = args.docSearchLimit ?? 256;
     this.chunkSearchLimit = args.chunkSearchLimit ?? 1024;
     this.topN = args.topN ?? 128;
     this.embeddingWeight = args.embeddingWeight ?? 0.7;
     this.fulltextWeight = args.fulltextWeight ?? 0.3;
-    this.useReranker = args.useReranker ?? false;
     this.concatChunks = args.concatChunks ?? true;
     this.defaultSimilarityThreshold = args.defaultSimilarityThreshold ?? 0.3;
     this.useFullDocumentWhenMajority = args.useFullDocumentWhenMajority ?? true;
     this.majorityChunkThreshold = args.majorityChunkThreshold ?? 0.75; // Default to 75%
-    this.jinaReranker = new JinaReranker({ topN: this.topN });
   }
 
   /**
@@ -181,6 +149,7 @@ export class HierarchicalRetriever {
   public async hierarchicalSearch(
     query: string | HierachicalQueryInput,
     hydeDoc: string | HierachicalQueryInput,
+    collection_id: number,
     searchParams: HierachicalSearchParams,
   ): Promise<GroupedSearchResultItem[]> {
     // Extract text and embeddings
@@ -250,42 +219,21 @@ export class HierarchicalRetriever {
 
     // Call the database function with updated parameters including metadata filter
     console.time("DB search");
-    const { data, error } = await this.client.rpc<
-      "match_documents_hierarchical",
-      MatchDocumentsHierarchicalFunction
-    >("match_documents_hierarchical", {
-      query_embedding: queryEmbedding as unknown as string,
-      hyde_embedding: hydeEmbedding as unknown as string,
+    const searches = await matchDocumentsHierarchical({
+      query_embedding: queryEmbedding,
+      hyde_embedding: hydeEmbedding,
       query_text: queryText,
-      target_user_id: searchParams.target_user_id,
-      source_types: Array.isArray(searchParams.source)
-        ? searchParams.source
-        : searchParams.source
-          ? [searchParams.source]
-          : undefined,
+      collection_id_input: collection_id,
       doc_search_limit: searchParams.doc_search_limit ?? this.docSearchLimit,
       chunk_search_limit:
         searchParams.chunk_search_limit ?? this.chunkSearchLimit,
       keyword_weight: fulltextWeight,
       semantic_weight: embeddingWeight,
-      start_date: cleanedParams.start_date,
-      end_date: cleanedParams.end_date,
       similarity_threshold: similarityThreshold,
       exclude_document_ids: excludeDocumentIds,
-      metadata_filter: cleanedParams.metadataFilter as unknown as Json,
+      metadata_filter: cleanedParams.metadataFilter,
       strict_metadata_matching: searchParams.strictMetadataMatching ?? false,
     });
-    console.timeEnd("DB search");
-
-    if (error) {
-      throw new Error(
-        `Error in hierarchical search: ${error.code} ${error.message} ${error.details}`,
-      );
-    }
-
-    const searches = data as (MatchDocumentsHierarchical[number] & {
-      metadata: Record<string, unknown>;
-    })[];
 
     if (searches.length === 0) {
       return [];
@@ -294,67 +242,34 @@ export class HierarchicalRetriever {
     // Store full metadata separately by chunk ID
     const metadataMap = new Map<number, DocumentMetadata>();
 
-    // Prepare simplified documents for reranking
-    const documentsForReranking: RerankerDocument[] = searches.map((resp) => {
-      // Store full metadata
+    for (const resp of searches) {
       metadataMap.set(resp.id, {
-        source: resp.source,
         title: resp.title || "",
-        url: (resp.metadata.url as string) || "",
-        sourceId: resp.source_id,
         chunkIndex: resp.chunk_index,
         maxChunkIndex: resp.max_chunk_index,
-        sourceParentId: resp.source_parent_id,
-        hierarchyPath: resp.hierarchy_path,
-        sourceUpdatedAt: resp.source_updated_at,
+        hierarchyPath: resp.hierarchy_path ? resp.hierarchy_path : undefined,
         ...(typeof resp.metadata === "object" ? resp.metadata : {}),
       });
-
-      // Return minimal structure for reranking
-      return {
-        pageContent: resp.content,
-        metadata: {
-          id: resp.id,
-          documentId: resp.document_id,
-          originalSimilarity: resp.similarity,
-        },
-      };
-    });
-
-    // Determine whether to use reranker (prefer parameter passed in search params if provided)
-    const shouldUseReranker = searchParams.useReranker ?? this.useReranker;
-
-    // Apply reranking with minimal data for better efficiency if enabled
-    let rerankedResults: RerankedDocument[];
-    if (shouldUseReranker) {
-      console.time("Reranking");
-      rerankedResults = await this.jinaReranker.compressDocuments(
-        documentsForReranking,
-        queryText,
-      );
-      console.timeEnd("Reranking");
-    } else {
-      // If not using reranker, just pass through the original results
-      rerankedResults = documentsForReranking.map((doc) => ({
-        ...doc,
-        metadata: {
-          ...doc.metadata,
-          // No _reranker_score when reranking is disabled
-        },
-      })) as RerankedDocument[];
     }
 
     // Group results by document ID
-    const groupedByDocId = new Map<number, RerankedDocument[]>();
+    const groupedByDocId = new Map<number, DocumentMapped[]>();
 
-    rerankedResults.forEach((item) => {
-      const docId = item.metadata.documentId;
+    searches.forEach((item) => {
+      const docId = item.document_id;
       if (!groupedByDocId.has(docId)) {
         groupedByDocId.set(docId, []);
       }
       const group = groupedByDocId.get(docId);
       if (group) {
-        group.push(item);
+        group.push({
+          pageContent: item.content,
+          metadata: {
+            id: item.id,
+            documentId: item.document_id,
+            similarity: item.similarity,
+          },
+        });
       }
     });
 
@@ -412,17 +327,14 @@ export class HierarchicalRetriever {
     // Fetch full document content if needed
     const documentContentMap = new Map<number, string>();
     if (documentsNeedingFullContent.size > 0) {
-      const { data: fullDocuments, error: fetchError } = await this.client
-        .from("documents")
-        .select("id, content")
-        .in("id", Array.from(documentsNeedingFullContent));
+      const fullDocuments = await db
+        .selectFrom("documents")
+        .select(["id", "content"])
+        .where("id", "in", Array.from(documentsNeedingFullContent).map(String))
+        .execute();
 
-      if (fetchError) {
-        console.error("Error fetching full documents:", fetchError);
-      } else if (fullDocuments) {
-        for (const doc of fullDocuments) {
-          documentContentMap.set(doc.id, doc.content);
-        }
+      for (const doc of fullDocuments) {
+        documentContentMap.set(Number(doc.id), doc.content);
       }
     }
 
@@ -431,11 +343,7 @@ export class HierarchicalRetriever {
       groupedByDocId.entries(),
     ).map(([documentId, chunks]) => {
       // Sort chunks by similarity (descending)
-      chunks.sort(
-        (a, b) =>
-          (b.metadata._reranker_score ?? b.metadata.originalSimilarity) -
-          (a.metadata._reranker_score ?? a.metadata.originalSimilarity),
-      );
+      chunks.sort((a, b) => b.metadata.similarity - a.metadata.similarity);
 
       // Get the best chunk
       const bestChunk = chunks[0];
@@ -452,21 +360,10 @@ export class HierarchicalRetriever {
       }
 
       // Extract core fields from metadata
-      const {
-        source,
-        title,
-        url = "",
-        sourceId,
-        sourceParentId,
-        hierarchyPath,
-        sourceUpdatedAt,
-        ...otherMetadata
-      } = fullMetadata;
+      const { title, hierarchyPath, ...otherMetadata } = fullMetadata;
 
       // Get the highest similarity score
-      const highestSimilarity =
-        bestChunk.metadata._reranker_score ??
-        bestChunk.metadata.originalSimilarity;
+      const highestSimilarity = bestChunk.metadata.similarity;
 
       // Create chunk results
       const chunkItems: ChunkItem[] = chunks.map((chunk) => {
@@ -474,8 +371,7 @@ export class HierarchicalRetriever {
         return {
           id: chunk.metadata.id,
           content: chunk.pageContent,
-          similarity:
-            chunk.metadata._reranker_score ?? chunk.metadata.originalSimilarity,
+          similarity: chunk.metadata.similarity,
           chunkIndex: chunkMetadata?.chunkIndex,
           maxChunkIndex: chunkMetadata?.maxChunkIndex,
         };
@@ -498,16 +394,11 @@ export class HierarchicalRetriever {
 
       return {
         metadata: otherMetadata,
-        source,
         title,
-        url,
-        sourceId,
         similarity: highestSimilarity,
         documentId,
-        sourceParentId,
         hierarchyPath,
         contentParts,
-        sourceUpdatedAt,
       };
     });
 
@@ -589,11 +480,10 @@ export class HierarchicalRetriever {
 
     return {
       metadataFilter: params.metadataFilter, // Include metadata filter
-      source: params.source,
-      start_date: validateDate(params.start_date)
-        ? params.start_date
-        : undefined,
-      end_date: validateDate(params.end_date) ? params.end_date : undefined,
+      // start_date: validateDate(params.start_date)
+      //   ? params.start_date
+      //   : undefined,
+      // end_date: validateDate(params.end_date) ? params.end_date : undefined,
     };
   }
 }
