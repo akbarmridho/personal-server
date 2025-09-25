@@ -14,6 +14,7 @@ CREATE EXTENSION IF NOT EXISTS pgroonga;
 CREATE TABLE collections (
     id bigserial PRIMARY KEY,
     name text NOT NULL UNIQUE,
+    description text NOT NULL,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -26,6 +27,7 @@ CREATE TABLE documents (
     content text NOT NULL,              -- Markdown content
     summary text NOT NULL,              -- Summary of the content
     summary_embedding vector(1024) NOT NULL,  -- Embedding for summary
+    document_ts timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL,
     metadata jsonb,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -173,7 +175,9 @@ CREATE OR REPLACE FUNCTION match_documents_hierarchical(
     similarity_threshold float DEFAULT 0.2,
     exclude_document_ids bigint[] DEFAULT null,
     metadata_filter jsonb DEFAULT null,
-    strict_metadata_matching boolean DEFAULT false
+    strict_metadata_matching boolean DEFAULT false,
+    start_ts timestamptz DEFAULT null,
+    end_ts timestamptz DEFAULT null
 ) RETURNS TABLE (
     id bigint,
     content text,
@@ -211,7 +215,8 @@ BEGIN
         FROM documents d
         WHERE d.collection_id = collection_id_input -- Filter by collection
             AND (exclude_document_ids IS NULL OR NOT (d.id = ANY(exclude_document_ids)))
-            -- Generic metadata filtering logic
+            AND (start_ts IS NULL OR d.document_ts >= start_ts)
+            AND (end_ts IS NULL OR d.document_ts <= end_ts)
             AND (
                 metadata_filter IS NULL
                 OR
@@ -347,6 +352,84 @@ BEGIN
     -- although the threshold is currently applied *before* scoring. Consider if threshold should apply to final combined_score.
     ORDER BY combined_score DESC
     LIMIT chunk_search_limit;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION upsert_document(
+  -- Document parameters based on the schema
+  collection_id_input BIGINT,
+  title_input TEXT,
+  content_input TEXT,
+  summary_input TEXT,
+  summary_embedding_input VECTOR(1024),
+  hierarchy_path_input TEXT DEFAULT NULL,
+  metadata_input JSONB DEFAULT NULL,
+  document_ts_input timestamptz DEFAULT NULL,
+  -- Return values
+  OUT document_id BIGINT,
+  OUT is_new BOOLEAN
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_existing_doc_id BIGINT;
+BEGIN
+  -- Check if a document with the same collection_id and title already exists.
+  SELECT d.id INTO v_existing_doc_id
+  FROM documents d
+  WHERE d.collection_id = collection_id_input
+    AND d.title = title_input
+  LIMIT 1;
+
+  IF v_existing_doc_id IS NOT NULL THEN
+    -- === UPDATE PATH ===
+    is_new := FALSE;
+    document_id := v_existing_doc_id;
+
+    -- Update the existing document record.
+    -- The 'updated_at' field is handled automatically by the trigger.
+    UPDATE documents
+    SET
+      content = content_input,
+      summary = summary_input,
+      summary_embedding = summary_embedding_input,
+      hierarchy_path = hierarchy_path_input,
+      metadata = metadata_input,
+      document_ts = COALESCE(document_ts_input, document_ts)
+    WHERE id = v_existing_doc_id;
+
+    -- Delete existing chunks to be recreated by the application layer.
+    DELETE FROM document_chunks dc
+    WHERE dc.document_id = v_existing_doc_id;
+
+  ELSE
+    -- === INSERT PATH ===
+    is_new := TRUE;
+
+    -- Insert a new document record.
+    -- 'created_at' and 'updated_at' have default values.
+    INSERT INTO documents (
+      collection_id,
+      title,
+      content,
+      summary,
+      summary_embedding,
+      hierarchy_path,
+      metadata,
+      document_ts
+    ) VALUES (
+      collection_id_input,
+      title_input,
+      content_input,
+      summary_input,
+      summary_embedding_input,
+      hierarchy_path_input,
+      metadata_input,
+      COALESCE(document_ts_input, timezone('utc'::text, now()))
+    )
+    RETURNING id INTO document_id;
+
+  END IF;
 END;
 $$;
 

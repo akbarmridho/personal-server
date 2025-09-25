@@ -27,15 +27,13 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
-export type Numeric = ColumnType<string, number | string, number | string>;
-
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Collections {
   created_at: Generated<Timestamp>;
+  description: string;
   id: Generated<Int8>;
   name: string;
-  description: string;
 }
 
 export interface DocumentChunks {
@@ -53,6 +51,7 @@ export interface Documents {
   collection_id: Int8;
   content: string;
   created_at: Generated<Timestamp>;
+  document_ts: Generated<Timestamp>;
   hierarchy_path: string | null;
   id: Generated<Int8>;
   metadata: Json | null;

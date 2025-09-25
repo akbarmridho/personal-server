@@ -10,35 +10,6 @@ export const db = new Kysely<DB>({
   }),
 });
 
-export type CountDocumentsByCollectionOutput = Record<string, number>;
-
-export async function countDocumentsByCollection(): Promise<CountDocumentsByCollectionOutput> {
-  const result = await sql<{
-    count_documents_by_collection: CountDocumentsByCollectionOutput;
-  }>`select count_documents_by_collection() as count_documents_by_collection`.execute(
-    db,
-  );
-
-  return result.rows[0].count_documents_by_collection;
-}
-
-// get_documents_by_collection_id
-export async function getDocumentsByCollectionId(
-  collection_id_input: number,
-  metadata_filters: object = {},
-) {
-  const result = await sql<{
-    id: number;
-    title: string;
-    metadata: unknown;
-    updated_at: string;
-  }>`
-    select * from get_documents_by_collection_id(${collection_id_input}, ${metadata_filters}::jsonb)
-  `.execute(db);
-
-  return result.rows;
-}
-
 // upsert_document
 export async function upsertDocument(params: {
   collection_id_input: number;
@@ -48,6 +19,7 @@ export async function upsertDocument(params: {
   summary_embedding_input: number[];
   hierarchy_path_input?: string | null;
   metadata_input?: object | null;
+  document_ts_input?: Date | null;
 }) {
   const {
     collection_id_input,
@@ -57,6 +29,7 @@ export async function upsertDocument(params: {
     summary_embedding_input,
     hierarchy_path_input = null,
     metadata_input = null,
+    document_ts_input = null,
   } = params;
 
   const result = await sql<{
@@ -70,7 +43,8 @@ export async function upsertDocument(params: {
       ${summary_input},
       ${summary_embedding_input}::vector,
       ${hierarchy_path_input},
-      ${metadata_input}::jsonb
+      ${metadata_input}::jsonb,
+      ${document_ts_input ? document_ts_input.toISOString() : null}
     )
   `.execute(db);
 
@@ -90,33 +64,8 @@ export interface MatchDocumentsHierarchicalInput {
   exclude_document_ids?: number[] | null;
   metadata_filter?: object | null;
   strict_metadata_matching?: boolean;
-}
-
-export interface MatchDocumentsHierarchicalOutput {
-  id: number;
-  content: string;
-  title: string;
-  metadata: unknown;
-  similarity: number;
-  document_id: number;
-  chunk_index: number;
-  max_chunk_index: number;
-  hierarchy_path: string | null;
-}
-
-export interface MatchDocumentsHierarchicalInput {
-  query_embedding: number[];
-  hyde_embedding: number[];
-  query_text: string;
-  collection_id_input: number;
-  keyword_weight?: number;
-  semantic_weight?: number;
-  doc_search_limit?: number;
-  chunk_search_limit?: number;
-  similarity_threshold?: number;
-  exclude_document_ids?: number[] | null;
-  metadata_filter?: object | null;
-  strict_metadata_matching?: boolean;
+  start_ts?: Date | null;
+  end_ts?: Date | null;
 }
 
 export interface MatchDocumentsHierarchicalOutput {
@@ -144,6 +93,8 @@ export async function matchDocumentsHierarchical({
   exclude_document_ids = null,
   metadata_filter = null,
   strict_metadata_matching = false,
+  start_ts = null,
+  end_ts = null,
 }: MatchDocumentsHierarchicalInput): Promise<
   MatchDocumentsHierarchicalOutput[]
 > {
@@ -160,7 +111,9 @@ export async function matchDocumentsHierarchical({
       ${similarity_threshold},
       ${exclude_document_ids}::bigint[],
       ${metadata_filter}::jsonb,
-      ${strict_metadata_matching}
+      ${strict_metadata_matching},
+      ${start_ts ? start_ts.toISOString() : null},
+      ${end_ts ? end_ts.toISOString() : null}
     )
   `.execute(db);
 
