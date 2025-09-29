@@ -208,7 +208,7 @@ export const setupServer = () => {
             ),
           embedding_weight: z
             .number()
-            .min(1)
+            .min(0)
             .max(1)
             .default(EMBEDDING_WEIGHT)
             .describe(
@@ -216,7 +216,7 @@ export const setupServer = () => {
             ),
           fulltext_weight: z
             .number({})
-            .min(1)
+            .min(0)
             .max(1)
             .default(FULLTEXT_WEIGHT)
             .describe(
