@@ -22,7 +22,15 @@ export const setupServer = () => {
         origin: true,
       }),
     )
-    .use(openapi())
+    .use(
+      openapi({
+        exclude: {
+          paths: ["/live", "/ready"],
+        },
+        path: "/docs",
+        provider: "swagger-ui",
+      }),
+    )
     .get("/", () => "Hello World!")
     .post(
       "/documents",
