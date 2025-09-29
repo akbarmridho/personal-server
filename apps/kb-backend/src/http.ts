@@ -173,7 +173,7 @@ export const setupServer = () => {
             metadata,
           } = body;
 
-          const metadataFilter = normalizeMetadata(metadata);
+          const metadataFilter = normalizeMetadata(metadata || {});
 
           const results = await retriever.hierarchicalSearch(
             query,
@@ -235,7 +235,9 @@ export const setupServer = () => {
               'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
             ),
           collection_id: z.number(),
-          metadata: z.union([z.record(z.string(), z.any()), z.string()]),
+          metadata: z
+            .union([z.record(z.string(), z.any()), z.string()])
+            .optional(),
         }),
       },
     )
