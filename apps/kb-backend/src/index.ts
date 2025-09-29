@@ -1,8 +1,9 @@
 import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
-import { setupServer } from "./http.js";
-import { setupMcp } from "./mcp.js";
 
 loadDotenv();
+
+import { setupServer } from "./http.js";
+import { setupMcp } from "./mcp.js";
 
 async function main() {
   const _httpServer = setupServer();
