@@ -117,7 +117,7 @@ export const setupServer = () => {
           }),
           // Multipart with file
           z.object({
-            collection_id: z.number(),
+            collection_id: z.coerce.number(),
             title: z.string(),
             file: z
               .instanceof(File)
