@@ -17,18 +17,21 @@ const EMBEDDING_WEIGHT = 0.7;
 const FULLTEXT_WEIGHT = 0.3;
 
 // Normalize metadata: allow object or JSON string
-function normalizeMetadata(metadata: unknown): Record<string, any> {
+function normalizeMetadata(metadata: unknown): Record<string, any> | null {
+  let obj: Record<string, any> = {};
+
   if (typeof metadata === "string") {
     try {
-      return JSON.parse(metadata);
+      obj = JSON.parse(metadata);
     } catch {
       throw new Error("Invalid metadata JSON string");
     }
   }
   if (typeof metadata === "object" && metadata !== null) {
-    return metadata as Record<string, any>;
+    obj = metadata;
   }
-  return {};
+
+  return Object.keys(obj).length > 1 ? obj : null;
 }
 
 export const setupServer = () => {
@@ -184,7 +187,7 @@ export const setupServer = () => {
               fulltext_weight: fulltext_weight,
               start_date: start_date,
               end_date: end_date,
-              metadataFilter,
+              metadataFilter: metadataFilter ? metadataFilter : undefined,
             },
           );
 
