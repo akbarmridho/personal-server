@@ -3,8 +3,9 @@ import { cors } from "@elysiajs/cors";
 import { node } from "@elysiajs/node";
 import { swagger } from "@elysiajs/swagger";
 import { logger } from "@personal-server/common/utils/logger";
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
+import z from "zod";
 import { db } from "./db/db.js";
 import { env } from "./env.js";
 import { pdfToMarkdownConverter } from "./file-converters/pdf-to-md-converter.js";
@@ -14,6 +15,21 @@ import { parseDate } from "./utils/date.js";
 
 const EMBEDDING_WEIGHT = 0.7;
 const FULLTEXT_WEIGHT = 0.3;
+
+// Normalize metadata: allow object or JSON string
+function normalizeMetadata(metadata: unknown): Record<string, any> {
+  if (typeof metadata === "string") {
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      throw new Error("Invalid metadata JSON string");
+    }
+  }
+  if (typeof metadata === "object" && metadata !== null) {
+    return metadata as Record<string, any>;
+  }
+  return {};
+}
 
 export const setupServer = () => {
   const app = new Elysia({ adapter: node() })
@@ -55,7 +71,6 @@ export const setupServer = () => {
             }
 
             // File uploaded (PDF)
-
             finalContent = await pdfToMarkdownConverter.convert(body.file);
           } else {
             throw new Error("Either `content` or `file` must be provided");
@@ -73,12 +88,15 @@ export const setupServer = () => {
             documentTs = parsed;
           }
 
+          // Normalize metadata
+          const metadata = normalizeMetadata(body.metadata);
+
           const result = await vectorStore.storeDocument({
             collection_id: body.collection_id,
             title: body.title,
             content: finalContent,
             document_ts: documentTs,
-            metadata: body.metadata,
+            metadata,
           });
 
           return { success: true, ...result };
@@ -88,22 +106,26 @@ export const setupServer = () => {
         }
       },
       {
-        body: t.Union([
+        body: z.union([
           // JSON body
-          t.Object({
-            collection_id: t.Number(),
-            title: t.String(),
-            content: t.Optional(t.String()),
-            document_ts: t.Optional(t.String()),
-            metadata: t.Optional(t.Record(t.String(), t.Any())),
+          z.object({
+            collection_id: z.coerce.number({}),
+            title: z.string(),
+            content: z.string(),
+            document_ts: z.string().optional(),
+            metadata: z.union([z.record(z.string(), z.any()), z.string()]),
           }),
           // Multipart with file
-          t.Object({
-            collection_id: t.Number(),
-            title: t.String(),
-            file: t.File(),
-            document_ts: t.Optional(t.String()),
-            metadata: t.Optional(t.Record(t.String(), t.Any())),
+          z.object({
+            collection_id: z.number(),
+            title: z.string(),
+            file: z
+              .instanceof(File)
+              .refine((file) => ["application/pdf"].includes(file.type), {
+                message: "Not a pdf.",
+              }),
+            document_ts: z.string().optional(),
+            metadata: z.union([z.record(z.string(), z.any()), z.string()]),
           }),
         ]),
       },
@@ -119,8 +141,8 @@ export const setupServer = () => {
         return docs;
       },
       {
-        params: t.Object({
-          id: t.Numeric(),
+        params: z.object({
+          id: z.coerce.number(),
         }),
       },
     )
@@ -131,8 +153,8 @@ export const setupServer = () => {
         return result;
       },
       {
-        params: t.Object({
-          id: t.Numeric(),
+        params: z.object({
+          id: z.coerce.number(),
         }),
       },
     )
@@ -151,6 +173,8 @@ export const setupServer = () => {
             metadata,
           } = body;
 
+          const metadataFilter = normalizeMetadata(metadata);
+
           const results = await retriever.hierarchicalSearch(
             query,
             hyde_answer,
@@ -160,7 +184,7 @@ export const setupServer = () => {
               fulltext_weight: fulltext_weight,
               start_date: start_date,
               end_date: end_date,
-              metadataFilter: metadata,
+              metadataFilter,
             },
           );
 
@@ -171,43 +195,47 @@ export const setupServer = () => {
         }
       },
       {
-        body: t.Object({
-          query: t.String({
-            description:
+        body: z.object({
+          query: z
+            .string()
+            .describe(
               "The search query to use. Be specific and include keywords related to what you are looking for.",
-          }),
-          hyde_answer: t.String({
-            description:
+            ),
+          hyde_answer: z
+            .string()
+            .describe(
               "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25-50 words that directly answer the query.",
-          }),
-          embedding_weight: t.Number({
-            description:
+            ),
+          embedding_weight: z
+            .number()
+            .min(1)
+            .max(1)
+            .default(EMBEDDING_WEIGHT)
+            .describe(
               "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
-            minimum: 0,
-            maximum: 1,
-            default: EMBEDDING_WEIGHT,
-          }),
-          fulltext_weight: t.Number({
-            description:
+            ),
+          fulltext_weight: z
+            .number({})
+            .min(1)
+            .max(1)
+            .default(FULLTEXT_WEIGHT)
+            .describe(
               "Weight for keyword (full-text) search between 0 and 1. Higher values prioritize exact keyword matches.",
-            minimum: 0,
-            maximum: 1,
-            default: FULLTEXT_WEIGHT,
-          }),
-          start_date: t.Optional(
-            t.String({
-              description:
-                'Optional start date for time-constrained queries in ISO format (e.g., "2023-01-01").',
-            }),
-          ),
-          end_date: t.Optional(
-            t.String({
-              description:
-                'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
-            }),
-          ),
-          collection_id: t.Number(),
-          metadata: t.Optional(t.Record(t.String(), t.Any())),
+            ),
+          start_date: z
+            .string()
+            .describe(
+              'Optional start date for time-constrained queries in ISO format (e.g., "2023-01-01").',
+            )
+            .optional(),
+          end_date: z
+            .string()
+            .optional()
+            .describe(
+              'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
+            ),
+          collection_id: z.number(),
+          metadata: z.union([z.record(z.string(), z.any()), z.string()]),
         }),
       },
     )
