@@ -1,11 +1,12 @@
 import { Kysely, PostgresDialect, sql } from "kysely";
 import { Pool } from "pg";
+import { env } from "../env.js";
 import type { DB } from "./types.js";
 
 export const db = new Kysely<DB>({
   dialect: new PostgresDialect({
     pool: new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: env.DATABASE_URL,
     }),
   }),
 });
