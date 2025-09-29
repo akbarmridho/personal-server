@@ -176,7 +176,13 @@ export class VoyageEmbeddings {
     const totalTokens = tokenCounts.reduce((sum, count) => sum + count, 0);
 
     await this.rateLimiter.checkAndUpdate(totalTokens);
-    const embeddings = await this.createEmbeddings(processedTexts, "query");
+
+    // should be modify createEmbeddings to handle difference in output dimension but well whatever
+    const embeddings = await Promise.all(
+      processedTexts.map((text) => {
+        return this.createEmbeddings([text], "query")[0];
+      }),
+    );
 
     return embeddings;
   }
