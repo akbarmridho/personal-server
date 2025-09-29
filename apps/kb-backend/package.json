@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "@ai-sdk/openai": "catalog:core",
+        "@bogeychan/elysia-logger": "^0.1.10",
         "@dotenvx/dotenvx": "catalog:core",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/node": "^1.4.0",

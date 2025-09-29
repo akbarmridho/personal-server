@@ -90,6 +90,9 @@ importers:
       '@ai-sdk/openai':
         specifier: catalog:core
         version: 2.0.34(zod@4.1.1)
+      '@bogeychan/elysia-logger':
+        specifier: ^0.1.10
+        version: 0.1.10(elysia@1.4.7(exact-mirror@0.2.2(@sinclair/typebox@0.34.41))(file-type@21.0.0)(typescript@5.9.2))(pino@9.9.0)
       '@dotenvx/dotenvx':
         specifier: catalog:core
         version: 1.49.0
@@ -349,6 +352,12 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
+
+  '@bogeychan/elysia-logger@0.1.10':
+    resolution: {integrity: sha512-wFp3KUCNIkCV4zcbo70gifHH99ch7e4LNrP5Xa5e2MRO2MDyPgM92SWQmrzkng6PsSZk13+UKJskGNQ+ZuDZkQ==}
+    peerDependencies:
+      elysia: '>= 1.2.10'
+      pino: '>= 9.6.0'
 
   '@borewit/text-codec@0.1.1':
     resolution: {integrity: sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA==}
@@ -2787,6 +2796,11 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.2.2':
     optional: true
+
+  '@bogeychan/elysia-logger@0.1.10(elysia@1.4.7(exact-mirror@0.2.2(@sinclair/typebox@0.34.41))(file-type@21.0.0)(typescript@5.9.2))(pino@9.9.0)':
+    dependencies:
+      elysia: 1.4.7(exact-mirror@0.2.2(@sinclair/typebox@0.34.41))(file-type@21.0.0)(typescript@5.9.2)
+      pino: 9.9.0
 
   '@borewit/text-codec@0.1.1': {}
 

@@ -1,3 +1,4 @@
+import { logger as elysiaLogger } from "@bogeychan/elysia-logger";
 import { cors } from "@elysiajs/cors";
 import { node } from "@elysiajs/node";
 import { swagger } from "@elysiajs/swagger";
@@ -17,6 +18,11 @@ const FULLTEXT_WEIGHT = 0.3;
 export const setupServer = () => {
   const app = new Elysia({ adapter: node() })
     .use(pluginGracefulServer({}))
+    .use(
+      elysiaLogger({
+        autoLogging: true,
+      }),
+    )
     .use(
       cors({
         origin: true,
@@ -201,6 +207,11 @@ export const setupServer = () => {
         }),
       },
     )
+    // .onError(({ code, error, set }) => {
+    //   logger.error(error, `Unhandled error (${code})`);
+    //   set.status = 500;
+    //   return { success: false, error: error.message };
+    // })
     .listen(env.SERVER_PORT, ({ hostname, port }) => {
       logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
     });
