@@ -1,3 +1,4 @@
+import { logger } from "@personal-server/common/utils/logger";
 import { VoyageAIClient, VoyageAIError } from "voyageai";
 import { estimateEmbeddingTokenCount } from "../utils/counter.js";
 import {
@@ -317,6 +318,7 @@ export class VoyageEmbeddings {
 
       return result;
     } catch (e) {
+      logger.error(e, "Create embeddings error");
       if (e instanceof VoyageAIError) {
         if (
           e.message.toLowerCase().includes("size") ||

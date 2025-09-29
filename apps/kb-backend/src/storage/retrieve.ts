@@ -152,6 +152,10 @@ export class HierarchicalRetriever {
     collection_id: number,
     searchParams: HierachicalSearchParams,
   ): Promise<GroupedSearchResultItem[]> {
+    logger.info(
+      { query, hydeDoc, collection_id, searchParams },
+      "hierarchicalSearch",
+    );
     const [queryEmbedding, hydeEmbedding] =
       await this.embeddings.embedMultipleQueries([query, hydeDoc]);
 
