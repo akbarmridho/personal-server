@@ -28,6 +28,10 @@ export const setupServer = () => {
         origin: true,
       }),
     )
+    .onError(({ code, error }) => {
+      logger.error(error, `Error received: ${code}`);
+      return new Response(error.toString());
+    })
     .use(
       swagger({
         exclude: ["/live", "/ready"],
@@ -207,11 +211,6 @@ export const setupServer = () => {
         }),
       },
     )
-    // .onError(({ code, error, set }) => {
-    //   logger.error(error, `Unhandled error (${code})`);
-    //   set.status = 500;
-    //   return { success: false, error: error.message };
-    // })
     .listen(env.SERVER_PORT, ({ hostname, port }) => {
       logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
     });
