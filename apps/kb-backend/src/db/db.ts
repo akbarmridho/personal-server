@@ -42,7 +42,7 @@ export async function upsertDocument(params: {
       ${title_input},
       ${content_input},
       ${summary_input},
-      ${summary_embedding_input}::vector,
+      ${JSON.stringify(summary_embedding_input)}::vector,
       ${hierarchy_path_input},
       ${metadata_input}::jsonb,
       ${document_ts_input ? document_ts_input.toISOString() : null}
