@@ -1,6 +1,6 @@
 import { cors } from "@elysiajs/cors";
 import { node } from "@elysiajs/node";
-import { openapi } from "@elysiajs/openapi";
+import { swagger } from "@elysiajs/swagger";
 import { logger } from "@personal-server/common/utils/logger";
 import { Elysia, t } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
@@ -23,12 +23,10 @@ export const setupServer = () => {
       }),
     )
     .use(
-      openapi({
-        exclude: {
-          paths: ["/live", "/ready"],
-        },
+      swagger({
+        exclude: ["/live", "/ready"],
         path: "/docs",
-        provider: "swagger-ui",
+        provider: "scalar",
       }),
     )
     .get("/", () => "Hello World!")

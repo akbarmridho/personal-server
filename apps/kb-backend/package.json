@@ -24,7 +24,7 @@
         "@dotenvx/dotenvx": "catalog:core",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/node": "^1.4.0",
-        "@elysiajs/openapi": "^1.4.11",
+        "@elysiajs/swagger": "1.2.2",
         "@openrouter/ai-sdk-provider": "catalog:core",
         "@personal-server/common": "workspace:*",
         "@t3-oss/env-core": "catalog:core",
