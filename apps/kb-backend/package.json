@@ -10,7 +10,8 @@
         "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register",
         "run": "pm2 start ecosystem.config.js",
         "migrate": "pnpx dbmate -d \"./src/db/migrations\" --env-file \".env\" --no-dump-schema migrate",
-        "kysely:gen": "kysely-codegen --out-file ./src/db/types.ts"
+        "kysely:gen": "kysely-codegen --out-file ./src/db/types.ts",
+        "playwright": "npx playwright install --with-deps"
     },
     "keywords": [],
     "author": "",
@@ -47,6 +48,7 @@
         "micromark-extension-gfm": "^3.0.0",
         "p-retry": "^7.0.0",
         "pg": "^8.16.3",
+        "playwright": "^1.55.1",
         "prettier": "^3.6.2",
         "text-segmentation": "^1.0.3",
         "voyageai": "^0.0.8",

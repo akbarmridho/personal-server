@@ -1,7 +1,7 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 
-const pdfToMdSystemPrompt = `\
+const pdfToMdSystemPrompt = `
 You are an advanced AI document processing tool. Your task is to convert a PDF document into Markdown format while preserving the original layout and structure.
 You will receive a PDF document as input, and your output should be a well-structured Markdown document that accurately represents the content of the PDF.
 
@@ -63,13 +63,27 @@ export class PdfToMarkdownConverter {
     return text;
   }
 
-  async convert(pdfBlob: Blob): Promise<string> {
+  /**
+   * Convert PDF (Blob or ArrayBuffer) to Markdown
+   */
+  async convert(pdfInput: Blob | ArrayBufferLike): Promise<string> {
     try {
-      if (pdfBlob.type !== "application/pdf") {
-        throw new Error("Input must be a PDF Blob.");
+      let pdfArrayBuffer: ArrayBufferLike;
+
+      if (pdfInput instanceof Blob) {
+        if (pdfInput.type !== "application/pdf") {
+          throw new Error("Input Blob must be of type application/pdf.");
+        }
+        pdfArrayBuffer = await pdfInput.arrayBuffer();
+      } else if (
+        pdfInput instanceof ArrayBuffer ||
+        pdfInput instanceof SharedArrayBuffer
+      ) {
+        pdfArrayBuffer = pdfInput;
+      } else {
+        throw new Error("Input must be a Blob or ArrayBuffer.");
       }
 
-      const pdfArrayBuffer = await pdfBlob.arrayBuffer();
       const pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
 
       const result = await generateText({
@@ -90,15 +104,11 @@ export class PdfToMarkdownConverter {
         model: openrouter("google/gemini-2.0-flash-001"),
       });
 
-      // Check if response text exists
       if (!result.text) {
         throw new Error("Model response did not contain text.");
       }
 
-      // Apply post-processing to remove any triple backticks
-      const processedText = this.postProcessMarkdown(result.text);
-
-      return processedText;
+      return this.postProcessMarkdown(result.text);
     } catch (error) {
       console.error("Error converting PDF to markdown:", error);
       throw error;

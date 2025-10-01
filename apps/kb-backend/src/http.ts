@@ -8,10 +8,12 @@ import { pluginGracefulServer } from "graceful-server-elysia";
 import z from "zod";
 import { db } from "./db/db.js";
 import { env } from "./env.js";
+import { htmlToPdf } from "./file-converters/html-to-pdf.js";
 import { pdfToMarkdownConverter } from "./file-converters/pdf-to-md-converter.js";
 import { retriever } from "./storage/retrieve.js";
 import { vectorStore } from "./storage/store.js";
 import { parseDate } from "./utils/date.js";
+import { detectContentType } from "./utils/language-detect.js";
 
 const EMBEDDING_WEIGHT = 0.7;
 const FULLTEXT_WEIGHT = 0.3;
@@ -67,7 +69,21 @@ export const setupServer = () => {
 
           if ("content" in body && body.content) {
             // Text content provided directly
-            finalContent = body.content;
+
+            const type = detectContentType(body.content);
+
+            if (type === "markdown") {
+              finalContent = body.content;
+            } else if (type === "html") {
+              // convert first to markdown via pdf
+              logger.info(
+                "detected html content. converting to pdf then markdown ...",
+              );
+              const pdf = await htmlToPdf(body.content);
+              finalContent = await pdfToMarkdownConverter.convert(pdf.buffer);
+            } else {
+              throw new Error("Unknown content type detected");
+            }
           } else if ("file" in body && body.file) {
             if (!body.file.type.includes("pdf")) {
               throw new Error("Only pdf file are supported");
