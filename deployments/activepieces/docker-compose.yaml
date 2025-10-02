@@ -19,9 +19,8 @@ services:
       AP_REDIS_HOST: ap_redis
       AP_REDIS_PORT: 6379
       AP_EXECUTION_MODE: UNSANDBOXED
-      AP_FRONTEND_URL: "https://ap.akbarmr.dev"
-      AP_WEBHOOK_URL: "https://webhook.akbarmr.dev"
-      AP_PUBLIC_URL: "https://webhook.akbarmr.dev"
+      AP_INTERNAL_URL: "https://ap.akbarmr.dev"
+      AP_FRONTEND_URL: "https://webhook.akbarmr.dev"
     volumes:
       - ap_cache:/usr/src/app/cache
     env_file:
