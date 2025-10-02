@@ -1,7 +1,7 @@
 services:
   immich-server:
     container_name: immich_server
-    image: ghcr.io/immich-app/immich-server:v1.142.1
+    image: ghcr.io/immich-app/immich-server:v2.0.0
     volumes:
       - immich-filen:/data
       - immich-thumbnail:/data/thumbs
@@ -12,12 +12,16 @@ services:
     env_file:
       - .env
     ports:
-      - '8009:2283'
+      - "8009:2283"
     depends_on:
       - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "test -r /data/upload && /usr/src/app/server/bin/immich-healthcheck"]
+      test:
+        [
+          "CMD-SHELL",
+          "test -r /data/upload && /usr/src/app/server/bin/immich-healthcheck",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -29,7 +33,7 @@ services:
     container_name: immich_machine_learning
     # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
     # Example tag: ${IMMICH_VERSION:-release}-cuda
-    image: ghcr.io/immich-app/immich-machine-learning:v1.142.1
+    image: ghcr.io/immich-app/immich-machine-learning:v2.0.0
     # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
     #   file: hwaccel.ml.yml
     #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
@@ -65,15 +69,15 @@ volumes:
   immich-filen:
     driver: rclone
     driver_opts:
-      type: 'webdav'
-      webdav_url: 'http://localhost:4001'
-      webdav_vendor: 'other'
-      webdav_user: 'admin'
-      webdav_pass: 'LACyVhZAkys-312NHJJrUobWhYky'
-      allow_other: 'true'
-      path: 'personal-server/immich/uploads'
-      vfs_cache_mode: 'writes'
-      poll_interval: '30s'
+      type: "webdav"
+      webdav_url: "http://localhost:4001"
+      webdav_vendor: "other"
+      webdav_user: "admin"
+      webdav_pass: "LACyVhZAkys-312NHJJrUobWhYky"
+      allow_other: "true"
+      path: "personal-server/immich/uploads"
+      vfs_cache_mode: "writes"
+      poll_interval: "30s"
 
 networks:
   personal_network:
