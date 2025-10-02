@@ -155,13 +155,19 @@ export const setupServer = () => {
     })
     .get(
       "/collections/:id/documents",
-      async ({ params }) => {
-        const docs = await vectorStore.getDocuments(Number(params.id));
+      async ({ params, query }) => {
+        const docs = await vectorStore.getDocuments(
+          Number(params.id),
+          query.title,
+        );
         return docs;
       },
       {
         params: z.object({
           id: z.coerce.number(),
+        }),
+        query: z.object({
+          title: z.string().optional(),
         }),
       },
     )

@@ -90,19 +90,22 @@ export class VectorStore {
   /**
    * Get existing documents in a collection
    */
-  async getDocuments(collectionId: number) {
-    const rows = await db
+  async getDocuments(collectionId: number, title?: string) {
+    let query = db
       .selectFrom("documents")
       .select(["id", "title", "summary", "metadata", "document_ts"])
-      .where("collection_id", "=", collectionId.toString())
-      .execute();
+      .where("collection_id", "=", collectionId.toString());
 
-    return rows.map((row) => {
-      return {
-        ...row,
-        document_ts: row.document_ts.toString(),
-      };
-    });
+    if (title) {
+      query = query.where("title", "=", title);
+    }
+
+    const rows = await query.execute();
+
+    return rows.map((row) => ({
+      ...row,
+      document_ts: row.document_ts.toString(),
+    }));
   }
 
   /**
