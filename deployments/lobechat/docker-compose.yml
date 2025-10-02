@@ -1,6 +1,6 @@
 name: lobe-chat-database
 services:
-# version lock ref: https://github.com/lobehub/lobe-chat/pull/7331
+  # version lock ref: https://github.com/lobehub/lobe-chat/pull/7331
   casdoor:
     image: casbin/casdoor:v2.13.0
     container_name: lobe-casdoor
@@ -9,10 +9,10 @@ services:
     entrypoint: /bin/sh -c './server --createDatabase=true'
     environment:
       httpport: 8000
-      RUNNING_IN_DOCKER: 'true'
-      driverName: 'postgres'
-      dataSourceName: 'user=postgres password=postgres host=postgres_main port=5432 sslmode=disable dbname=casdoor'
-      runmode: 'dev'
+      RUNNING_IN_DOCKER: "true"
+      driverName: "postgres"
+      dataSourceName: "user=postgres password=postgres host=postgres_main port=5432 sslmode=disable dbname=casdoor"
+      runmode: "dev"
     volumes:
       - ./init_data.json:/init_data.json
     env_file:
@@ -25,7 +25,7 @@ services:
       - "akbarmr.dev:host-gateway"
 
   lobe:
-    image: lobehub/lobe-chat-database:1.131.0
+    image: lobehub/lobe-chat-database:1.133.4
     container_name: lobe-chat
     ports:
       - 8008:3210

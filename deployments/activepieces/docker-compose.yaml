@@ -1,10 +1,10 @@
 services:
   activepieces:
-    image: activepieces/activepieces:0.69.0
+    image: activepieces/activepieces:0.70.1
     container_name: activepieces
     restart: unless-stopped
     ports:
-      - '8006:80'
+      - "8006:80"
     depends_on:
       - ap_redis
     environment:
