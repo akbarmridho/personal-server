@@ -11,11 +11,11 @@ services:
     restart: unless-stopped
 
   flowise_server:
-    image: flowiseai/flowise:3.0.7
+    image: flowiseai/flowise:3.0.8
     container_name: flowise_server
     restart: unless-stopped
     ports:
-      - '8010:3000'
+      - "8010:3000"
     networks:
       - personal_network
     volumes:
@@ -27,7 +27,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/v1/ping']
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,7 +35,7 @@ services:
     entrypoint: /bin/sh -c "sleep 3; flowise start"
 
   flowise_worker:
-    image: flowiseai/flowise-worker:3.0.7
+    image: flowiseai/flowise-worker:3.0.8
     container_name: flowise_worker
     restart: unless-stopped
     volumes:
@@ -45,7 +45,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:5566/healthz']
+      test: ["CMD", "curl", "-f", "http://localhost:5566/healthz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,6 +62,6 @@ networks:
     external: true
 
 volumes:
-    flowise_redis:
-    flowise_server_data:
-    flowise_worker_data:
+  flowise_redis:
+  flowise_server_data:
+  flowise_worker_data:
