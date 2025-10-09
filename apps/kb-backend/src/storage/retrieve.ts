@@ -210,6 +210,8 @@ export class HierarchicalRetriever {
       end_ts: end_date,
     });
 
+    logger.debug(searches, "searches result");
+
     if (searches.length === 0) {
       return [];
     }
@@ -376,6 +378,8 @@ export class HierarchicalRetriever {
         contentParts,
       };
     });
+
+    logger.debug(groupedResults, "grouped result");
 
     // Return top N grouped results
     return groupedResults

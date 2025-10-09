@@ -1,0 +1,37 @@
+{
+    "name": "@personal-server/mcp-search",
+    "version": "1.0.0",
+    "description": "MCP for handling internet search",
+    "main": "index.js",
+    "scripts": {
+        "build": "turbo run compile --filter={./}",
+        "start": "node dist/index.js",
+        "compile": "tsc",
+        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register",
+        "run": "pm2 start ecosystem.config.js",
+        "camoufox:install": "npx camoufox-js fetch"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "module",
+    "engines": {
+        "node": ">=24"
+    },
+    "dependencies": {
+        "@dotenvx/dotenvx": "catalog:core",
+        "@personal-server/common": "workspace:*",
+        "@t3-oss/env-core": "catalog:core",
+        "camoufox-js": "^0.7.0",
+        "cheerio": "^1.1.2",
+        "fastmcp": "^3.17.0",
+        "http-proxy-agent": "^7.0.2",
+        "https-proxy-agent": "^7.0.6",
+        "playwright": "^1.55.1",
+        "zod": "catalog:core"
+    },
+    "devDependencies": {
+        "@types/node": "^22.16.4",
+        "typescript": "catalog:core"
+    }
+}
