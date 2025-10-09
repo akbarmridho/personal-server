@@ -277,19 +277,15 @@ export class VoyageEmbeddings {
           outputDtype: this.embeddingType,
         });
 
-        if (
-          !response.data ||
-          response.data.length !== 1 ||
-          !response.data[0].data
-        ) {
+        if (!response.data) {
           throw new Error(
             "Unexpected response data. Data property not found, array response empty, or first element data is undefined.",
           );
         }
 
         if (task === "document") {
-          return response.data[0].data
-            .sort((a, b) => a.index! - b.index!)
+          return response.data[0]
+            .data!.sort((a, b) => a.index! - b.index!)
             .map((item) => item.embedding!);
         }
 
