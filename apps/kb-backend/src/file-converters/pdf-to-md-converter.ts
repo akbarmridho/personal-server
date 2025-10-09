@@ -162,6 +162,7 @@ export class PdfToMarkdownConverter {
       });
 
       if (!result.text) {
+        logger.error(result, "no text returned");
         throw new Error("Model response did not contain text.");
       }
 

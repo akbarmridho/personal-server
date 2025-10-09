@@ -231,7 +231,7 @@ export const setupServer = () => {
             .describe(
               "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25-50 words that directly answer the query.",
             ),
-          embedding_weight: z
+          embedding_weight: z.coerce
             .number()
             .min(0)
             .max(1)
@@ -239,7 +239,7 @@ export const setupServer = () => {
             .describe(
               "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
             ),
-          fulltext_weight: z
+          fulltext_weight: z.coerce
             .number({})
             .min(0)
             .max(1)
@@ -259,7 +259,7 @@ export const setupServer = () => {
             .describe(
               'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
             ),
-          collection_id: z.number(),
+          collection_id: z.coerce.number(),
           metadata: z
             .union([z.record(z.string(), z.any()), z.string()])
             .optional(),
