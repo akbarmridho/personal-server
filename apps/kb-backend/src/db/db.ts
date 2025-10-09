@@ -101,8 +101,8 @@ export async function matchDocumentsHierarchical({
 > {
   const res = await sql<MatchDocumentsHierarchicalOutput>`
     select * from match_documents_hierarchical(
-      ${query_embedding}::vector,
-      ${hyde_embedding}::vector,
+      ${JSON.stringify(query_embedding)}::vector,
+      ${JSON.stringify(hyde_embedding)}::vector,
       ${query_text},
       ${collection_id_input},
       ${keyword_weight},
