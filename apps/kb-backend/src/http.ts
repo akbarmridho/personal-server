@@ -5,6 +5,7 @@ import { swagger } from "@elysiajs/swagger";
 import { logger } from "@personal-server/common/utils/logger";
 import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
+import pRetry from "p-retry";
 import z from "zod";
 import { db } from "./db/db.js";
 import { env } from "./env.js";
@@ -79,7 +80,12 @@ export const setupServer = () => {
               logger.info(
                 "detected html content. converting to pdf then markdown ...",
               );
-              const pdf = await htmlToPdf(body.content);
+              const pdf = await pRetry(
+                async () => {
+                  return await htmlToPdf(body.content);
+                },
+                { retries: 3 },
+              );
               finalContent = await pdfToMarkdownConverter.convert(pdf.buffer);
             } else {
               throw new Error("Unknown content type detected");

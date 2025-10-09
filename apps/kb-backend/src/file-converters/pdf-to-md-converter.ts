@@ -1,6 +1,7 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { logger } from "@personal-server/common/utils/logger";
 import { generateText } from "ai";
+import pRetry from "p-retry";
 
 const pdfToMdSystemPrompt = `
 You are an advanced AI document processing tool. Your task is to convert a PDF document into a clean, well-structured Markdown document while preserving the original layout and hierarchy as faithfully as possible.
@@ -138,33 +139,40 @@ export class PdfToMarkdownConverter {
 
       const pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
 
-      const result = await generateText({
-        system: pdfToMdSystemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: [
+      const result = await pRetry(
+        async () => {
+          const response = await generateText({
+            system: pdfToMdSystemPrompt,
+            messages: [
               {
-                type: "file",
-                mediaType: "application/pdf",
-                data: pdfBase64,
+                role: "user",
+                content: [
+                  {
+                    type: "file",
+                    mediaType: "application/pdf",
+                    data: pdfBase64,
+                  },
+                  { type: "text", text: "Convert the PDF to Markdown format." },
+                ],
               },
-              { type: "text", text: "Convert the PDF to Markdown format." },
             ],
-          },
-        ],
-        model: openrouter("google/gemini-2.5-flash-preview-09-2025", {
-          reasoning: {
-            enabled: true,
-            effort: "low",
-          },
-        }),
-      });
+            model: openrouter("google/gemini-2.5-flash-preview-09-2025", {
+              reasoning: {
+                enabled: true,
+                effort: "low",
+              },
+            }),
+          });
 
-      if (!result.text) {
-        logger.error(result, "no text returned");
-        throw new Error("Model response did not contain text.");
-      }
+          if (!response.text) {
+            logger.error(response, "no text returned");
+            throw new Error("Model response did not contain text.");
+          }
+
+          return response;
+        },
+        { retries: 3 },
+      );
 
       return this.postProcessMarkdown(result.text);
     } catch (error) {
