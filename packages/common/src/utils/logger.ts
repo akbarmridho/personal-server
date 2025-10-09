@@ -1,3 +1,7 @@
+import { loadDotenv } from "./load-dotenv.js";
+
+loadDotenv();
+
 import fs from "node:fs";
 import path from "node:path";
 import pino from "pino";
