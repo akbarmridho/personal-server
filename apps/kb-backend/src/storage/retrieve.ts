@@ -191,8 +191,7 @@ export class HierarchicalRetriever {
       }
     }
 
-    // Call the database function with updated parameters including metadata filter
-    const searches = await matchDocumentsHierarchical({
+    const params = {
       query_embedding: queryEmbedding,
       hyde_embedding: hydeEmbedding,
       query_text: query,
@@ -208,7 +207,12 @@ export class HierarchicalRetriever {
       strict_metadata_matching: searchParams.strictMetadataMatching ?? false,
       start_ts: start_date,
       end_ts: end_date,
-    });
+    };
+
+    logger.debug(params, "search func params");
+
+    // Call the database function with updated parameters including metadata filter
+    const searches = await matchDocumentsHierarchical(params);
 
     logger.debug(searches, "searches result");
 
