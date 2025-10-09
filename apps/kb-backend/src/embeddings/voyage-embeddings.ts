@@ -178,12 +178,7 @@ export class VoyageEmbeddings {
 
     await this.rateLimiter.checkAndUpdate(totalTokens);
 
-    // should be modify createEmbeddings to handle difference in output dimension but well whatever
-    const embeddings = await Promise.all(
-      processedTexts.map((text) => {
-        return this.createEmbeddings([text], "query")[0];
-      }),
-    );
+    const embeddings = await this.createEmbeddings(processedTexts, "query");
 
     return embeddings;
   }
@@ -275,7 +270,7 @@ export class VoyageEmbeddings {
     try {
       if (this.contextualizedEmbedding) {
         const response = await this.voyageClient.contextualizedEmbed({
-          inputs: [texts],
+          inputs: task === "document" ? [texts] : texts.map((text) => [text]),
           model: this.model,
           inputType: task,
           outputDimension: this.dimensions,
@@ -292,11 +287,14 @@ export class VoyageEmbeddings {
           );
         }
 
-        const result = response.data[0].data
-          .sort((a, b) => a.index! - b.index!)
-          .map((item) => item.embedding!);
+        if (task === "document") {
+          return response.data[0].data
+            .sort((a, b) => a.index! - b.index!)
+            .map((item) => item.embedding!);
+        }
 
-        return result;
+        // query
+        return response.data!.map((e) => e.data![0].embedding!);
       }
 
       const response = await this.voyageClient.embed({
