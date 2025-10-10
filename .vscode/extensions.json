@@ -1,6 +1,8 @@
 {
-    "recommendations": [
-        "biomejs.biome",
-        "antfu.pnpm-catalog-lens"
-    ]
+  "recommendations": [
+    "biomejs.biome",
+    "antfu.pnpm-catalog-lens",
+    "mhutchie.git-graph",
+    "ms-vscode.vscode-typescript-next"
+  ]
 }
