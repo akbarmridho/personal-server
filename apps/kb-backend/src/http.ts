@@ -19,6 +19,9 @@ import { detectContentType } from "./utils/language-detect.js";
 const EMBEDDING_WEIGHT = 0.7;
 const FULLTEXT_WEIGHT = 0.3;
 
+// --------------------
+// Utility
+// --------------------
 // Normalize metadata: allow object or JSON string
 function normalizeMetadata(metadata: unknown): Record<string, any> | null {
   let obj: Record<string, any> = {};
@@ -37,6 +40,99 @@ function normalizeMetadata(metadata: unknown): Record<string, any> | null {
   return Object.keys(obj).length > 1 ? obj : null;
 }
 
+// --------------------
+// Zod Schemas & Types
+// --------------------
+
+// /documents — JSON body
+const DocumentJsonBody = z.object({
+  collection_id: z.coerce.number(),
+  title: z.string(),
+  content: z.string(),
+  document_ts: z.string().optional(),
+  metadata: z.union([z.record(z.string(), z.any()), z.string()]),
+});
+type DocumentJsonBody = z.infer<typeof DocumentJsonBody>;
+
+// /documents — Multipart body
+const DocumentMultipartBody = z.object({
+  collection_id: z.coerce.number(),
+  title: z.string(),
+  file: z
+    .instanceof(File)
+    .refine((file) => ["application/pdf"].includes(file.type), {
+      message: "Not a pdf.",
+    }),
+  document_ts: z.string().optional(),
+  metadata: z.union([z.record(z.string(), z.any()), z.string()]),
+});
+type DocumentMultipartBody = z.infer<typeof DocumentMultipartBody>;
+
+// /collections/:id/documents
+const CollectionParams = z.object({
+  id: z.coerce.number(),
+});
+type CollectionParams = z.infer<typeof CollectionParams>;
+
+const CollectionQuery = z.object({
+  title: z.string().optional(),
+});
+type CollectionQuery = z.infer<typeof CollectionQuery>;
+
+// /documents/:id
+const DocumentParams = z.object({
+  id: z.coerce.number(),
+});
+type DocumentParams = z.infer<typeof DocumentParams>;
+
+// /search
+const SearchBody = z.object({
+  query: z
+    .string()
+    .describe(
+      "The search query to use. Be specific and include keywords related to what you are looking for.",
+    ),
+  hyde_answer: z
+    .string()
+    .describe(
+      "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25–50 words that directly answer the query.",
+    ),
+  embedding_weight: z.coerce
+    .number()
+    .min(0)
+    .max(1)
+    .default(EMBEDDING_WEIGHT)
+    .describe(
+      "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
+    ),
+  fulltext_weight: z.coerce
+    .number()
+    .min(0)
+    .max(1)
+    .default(FULLTEXT_WEIGHT)
+    .describe(
+      "Weight for keyword (full-text) search between 0 and 1. Higher values prioritize exact keyword matches.",
+    ),
+  start_date: z
+    .string()
+    .optional()
+    .describe(
+      'Optional start date for time-constrained queries in ISO format (e.g., "2023-01-01").',
+    ),
+  end_date: z
+    .string()
+    .optional()
+    .describe(
+      'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
+    ),
+  collection_id: z.coerce.number(),
+  metadata: z.union([z.record(z.string(), z.any()), z.string()]).optional(),
+});
+type SearchBody = z.infer<typeof SearchBody>;
+
+// --------------------
+// Server Setup
+// --------------------
 export const setupServer = () => {
   const app = new Elysia({ adapter: node() })
     .use(pluginGracefulServer({}))
@@ -62,9 +158,12 @@ export const setupServer = () => {
       }),
     )
     .get("/", () => "Hello World!")
+    // --------------------
+    // POST /documents
+    // --------------------
     .post(
       "/documents",
-      async ({ body }) => {
+      async ({ body }: { body: DocumentJsonBody | DocumentMultipartBody }) => {
         try {
           let finalContent: string;
 
@@ -80,19 +179,16 @@ export const setupServer = () => {
               logger.info(
                 "detected html content. converting to pdf then markdown ...",
               );
-              const pdf = await pRetry(
-                async () => {
-                  return await htmlToPdf(body.content);
-                },
-                { retries: 3 },
-              );
+              const pdf = await pRetry(async () => htmlToPdf(body.content), {
+                retries: 3,
+              });
               finalContent = await pdfToMarkdownConverter.convert(pdf.buffer);
             } else {
               throw new Error("Unknown content type detected");
             }
           } else if ("file" in body && body.file) {
             if (!body.file.type.includes("pdf")) {
-              throw new Error("Only pdf file are supported");
+              throw new Error("Only pdf files are supported");
             }
 
             // File uploaded (PDF)
@@ -105,15 +201,10 @@ export const setupServer = () => {
 
           if (body.document_ts) {
             const parsed = parseDate(body.document_ts);
-
-            if (parsed === null) {
-              throw new Error("Invalid document_ts");
-            }
-
+            if (parsed === null) throw new Error("Invalid document_ts");
             documentTs = parsed;
           }
 
-          // Normalize metadata
           const metadata = normalizeMetadata(body.metadata);
 
           const result = await vectorStore.storeDocument({
@@ -131,37 +222,28 @@ export const setupServer = () => {
         }
       },
       {
-        body: z.union([
-          // JSON body
-          z.object({
-            collection_id: z.coerce.number({}),
-            title: z.string(),
-            content: z.string(),
-            document_ts: z.string().optional(),
-            metadata: z.union([z.record(z.string(), z.any()), z.string()]),
-          }),
-          // Multipart with file
-          z.object({
-            collection_id: z.coerce.number(),
-            title: z.string(),
-            file: z
-              .instanceof(File)
-              .refine((file) => ["application/pdf"].includes(file.type), {
-                message: "Not a pdf.",
-              }),
-            document_ts: z.string().optional(),
-            metadata: z.union([z.record(z.string(), z.any()), z.string()]),
-          }),
-        ]),
+        body: z.union([DocumentJsonBody, DocumentMultipartBody]),
       },
     )
+    // --------------------
+    // GET /collections
+    // --------------------
     .get("/collections", async () => {
       const rows = await db.selectFrom("collections").selectAll().execute();
       return rows;
     })
+    // --------------------
+    // GET /collections/:id/documents
+    // --------------------
     .get(
       "/collections/:id/documents",
-      async ({ params, query }) => {
+      async ({
+        params,
+        query,
+      }: {
+        params: CollectionParams;
+        query: CollectionQuery;
+      }) => {
         const docs = await vectorStore.getDocuments(
           Number(params.id),
           query.title,
@@ -169,29 +251,29 @@ export const setupServer = () => {
         return docs;
       },
       {
-        params: z.object({
-          id: z.coerce.number(),
-        }),
-        query: z.object({
-          title: z.string().optional(),
-        }),
+        params: CollectionParams,
+        query: CollectionQuery,
       },
     )
+    // --------------------
+    // DELETE /documents/:id
+    // --------------------
     .delete(
       "/documents/:id",
-      async ({ params }) => {
+      async ({ params }: { params: DocumentParams }) => {
         const result = await vectorStore.deleteDocumentById(Number(params.id));
         return result;
       },
       {
-        params: z.object({
-          id: z.coerce.number(),
-        }),
+        params: DocumentParams,
       },
     )
+    // --------------------
+    // POST /search
+    // --------------------
     .post(
       "/search",
-      async ({ body }) => {
+      async ({ body }: { body: SearchBody }) => {
         try {
           const {
             query,
@@ -211,11 +293,11 @@ export const setupServer = () => {
             hyde_answer,
             collection_id,
             {
-              embedding_weight: embedding_weight,
-              fulltext_weight: fulltext_weight,
-              start_date: start_date,
-              end_date: end_date,
-              metadataFilter: metadataFilter ? metadataFilter : undefined,
+              embedding_weight,
+              fulltext_weight,
+              start_date,
+              end_date,
+              metadataFilter: metadataFilter || undefined,
             },
           );
 
@@ -226,50 +308,7 @@ export const setupServer = () => {
         }
       },
       {
-        body: z.object({
-          query: z
-            .string()
-            .describe(
-              "The search query to use. Be specific and include keywords related to what you are looking for.",
-            ),
-          hyde_answer: z
-            .string()
-            .describe(
-              "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25-50 words that directly answer the query.",
-            ),
-          embedding_weight: z.coerce
-            .number()
-            .min(0)
-            .max(1)
-            .default(EMBEDDING_WEIGHT)
-            .describe(
-              "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
-            ),
-          fulltext_weight: z.coerce
-            .number({})
-            .min(0)
-            .max(1)
-            .default(FULLTEXT_WEIGHT)
-            .describe(
-              "Weight for keyword (full-text) search between 0 and 1. Higher values prioritize exact keyword matches.",
-            ),
-          start_date: z
-            .string()
-            .describe(
-              'Optional start date for time-constrained queries in ISO format (e.g., "2023-01-01").',
-            )
-            .optional(),
-          end_date: z
-            .string()
-            .optional()
-            .describe(
-              'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
-            ),
-          collection_id: z.coerce.number(),
-          metadata: z
-            .union([z.record(z.string(), z.any()), z.string()])
-            .optional(),
-        }),
+        body: SearchBody,
       },
     )
     .listen(env.SERVER_PORT, ({ hostname, port }) => {

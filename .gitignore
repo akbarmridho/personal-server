@@ -241,3 +241,4 @@ scratchpad
 .env.docker
 .turbo
 sync_db/
+playground
