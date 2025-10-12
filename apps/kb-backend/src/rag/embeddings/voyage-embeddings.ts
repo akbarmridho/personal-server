@@ -1,6 +1,6 @@
 import { logger } from "@personal-server/common/utils/logger";
 import { VoyageAIClient, VoyageAIError } from "voyageai";
-import { estimateEmbeddingTokenCount } from "../utils/counter.js";
+import { estimateEmbeddingTokenCount } from "../counter.js";
 import {
   type ChunkerOptions,
   GFMContextPathChunker,

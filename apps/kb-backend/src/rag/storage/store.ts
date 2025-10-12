@@ -2,7 +2,7 @@ import { openrouter } from "@openrouter/ai-sdk-provider";
 import { logger } from "@personal-server/common/utils/logger";
 import { generateObject } from "ai";
 import pRetry from "p-retry";
-import { db, upsertDocument } from "../db/db.js";
+import { db, upsertDocument } from "../../db/db.js";
 import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
 import {
   DocumentSummarySchema,
@@ -143,7 +143,7 @@ export class VectorStore {
 
     const ops = async () => {
       const response = await generateObject({
-        model: openrouter("google/gemini-2.5-flash"),
+        model: openrouter("google/gemini-2.5-flash-preview-09-2025"),
         schema: DocumentSummarySchema,
         system: docSummarySystemPrompt.format(),
         temperature: 0.5,

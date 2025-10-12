@@ -14,7 +14,7 @@ import { toMarkdown } from "mdast-util-to-markdown";
 import { toString as mdastToString } from "mdast-util-to-string";
 import { gfm } from "micromark-extension-gfm";
 import { splitGraphemes } from "text-segmentation";
-import { countWords, estimateEmbeddingTokenCount } from "../utils/counter.js";
+import { countWords, estimateEmbeddingTokenCount } from "../counter.js";
 
 interface HeaderPath {
   path: string[];

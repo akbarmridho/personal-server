@@ -120,6 +120,9 @@ importers:
       ai-fallback:
         specifier: catalog:core
         version: 1.0.7(zod@4.1.1)
+      camoufox-js:
+        specifier: ^0.7.0
+        version: 0.7.0(playwright-core@1.55.1)
       cheerio:
         specifier: ^1.1.2
         version: 1.1.2
@@ -205,46 +208,6 @@ importers:
       kysely-codegen:
         specifier: ^0.19.0
         version: 0.19.0(better-sqlite3@12.4.1)(kysely@0.28.7)(pg@8.16.3)(typescript@5.9.2)
-      typescript:
-        specifier: catalog:core
-        version: 5.9.2
-
-  apps/mcp-search:
-    dependencies:
-      '@dotenvx/dotenvx':
-        specifier: catalog:core
-        version: 1.49.0
-      '@personal-server/common':
-        specifier: workspace:*
-        version: link:../../packages/common
-      '@t3-oss/env-core':
-        specifier: catalog:core
-        version: 0.13.8(typescript@5.9.2)(zod@4.1.1)
-      camoufox-js:
-        specifier: ^0.7.0
-        version: 0.7.0(playwright-core@1.55.1)
-      cheerio:
-        specifier: ^1.1.2
-        version: 1.1.2
-      fastmcp:
-        specifier: ^3.17.0
-        version: 3.17.0
-      http-proxy-agent:
-        specifier: ^7.0.2
-        version: 7.0.2
-      https-proxy-agent:
-        specifier: ^7.0.6
-        version: 7.0.6
-      playwright:
-        specifier: ^1.55.1
-        version: 1.55.1
-      zod:
-        specifier: catalog:core
-        version: 4.1.1
-    devDependencies:
-      '@types/node':
-        specifier: ^22.16.4
-        version: 22.17.2
       typescript:
         specifier: catalog:core
         version: 5.9.2

@@ -7,14 +7,14 @@ import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
 import pRetry from "p-retry";
 import z from "zod";
-import { db } from "./db/db.js";
-import { env } from "./env.js";
+import { db } from "../db/db.js";
+import { env } from "../env.js";
+import { parseDate } from "../utils/date.js";
+import { detectContentType } from "../utils/language-detect.js";
 import { htmlToPdf } from "./file-converters/html-to-pdf.js";
 import { pdfToMarkdownConverter } from "./file-converters/pdf-to-md-converter.js";
 import { retriever } from "./storage/retrieve.js";
 import { vectorStore } from "./storage/store.js";
-import { parseDate } from "./utils/date.js";
-import { detectContentType } from "./utils/language-detect.js";
 
 const EMBEDDING_WEIGHT = 0.7;
 const FULLTEXT_WEIGHT = 0.3;
@@ -133,7 +133,7 @@ type SearchBody = z.infer<typeof SearchBody>;
 // --------------------
 // Server Setup
 // --------------------
-export const setupServer = () => {
+export const setupRAGServer = () => {
   const app = new Elysia({ adapter: node() })
     .use(pluginGracefulServer({}))
     .use(
@@ -311,7 +311,7 @@ export const setupServer = () => {
         body: SearchBody,
       },
     )
-    .listen(env.SERVER_PORT, ({ hostname, port }) => {
+    .listen(env.RAG_SERVER_PORT, ({ hostname, port }) => {
       logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
     });
 

@@ -1,7 +1,7 @@
 import { logger } from "@personal-server/common/utils/logger";
-import { db, matchDocumentsHierarchical } from "../db/db.js";
+import { db, matchDocumentsHierarchical } from "../../db/db.js";
+import { parseDate } from "../../utils/date.js";
 import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
-import { parseDate } from "../utils/date.js";
 
 // Extended search parameters
 export interface HierachicalSearchParams {

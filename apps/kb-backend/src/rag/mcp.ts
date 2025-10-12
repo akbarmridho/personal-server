@@ -1,8 +1,8 @@
 import { logger } from "@personal-server/common/utils/logger";
 import { FastMCP } from "fastmcp";
 import z from "zod";
-import { db } from "./db/db.js";
-import { env } from "./env.js";
+import { db } from "../db/db.js";
+import { env } from "../env.js";
 import { retriever } from "./storage/retrieve.js";
 
 const EMBEDDING_WEIGHT = 0.7;
@@ -36,7 +36,7 @@ const getCollection = async () => {
   return collection;
 };
 
-export const setupMcp = async () => {
+export const setupRAGMcp = async () => {
   const server = new FastMCP({
     name: "Knowledge Base Server",
     version: "1.0.0",
@@ -265,7 +265,7 @@ After performing the steps above, call the \`search-knowledge-base\` tool with a
       enableJsonResponse: true,
       stateless: true,
       host: "0.0.0.0",
-      port: env.MCP_PORT,
+      port: env.RAG_MCP_PORT,
     },
   });
 
