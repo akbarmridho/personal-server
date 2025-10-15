@@ -1,6 +1,6 @@
 services:
   activepieces:
-    image: activepieces/activepieces:0.70.1
+    image: activepieces/activepieces:0.70.6
     container_name: activepieces
     restart: unless-stopped
     ports:
