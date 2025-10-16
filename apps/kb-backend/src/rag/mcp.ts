@@ -264,7 +264,7 @@ After performing the steps above, call the \`search-knowledge-base\` tool with a
     httpStream: {
       enableJsonResponse: true,
       stateless: true,
-      host: "0.0.0.0",
+      host: "127.0.0.1", // bind to localhost (127.0.0.1) instead of 0.0.0.0. the request came from proxy so it's fine
       port: env.RAG_MCP_PORT,
     },
   });
