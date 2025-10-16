@@ -7,9 +7,10 @@
         "preinstall": "npx only-allow pnpm",
         "build": "turbo run compile",
         "lint": "turbo run lint",
-        "clean": "pnpm run cleandep && pnpm run cleandis",
+        "clean": "pnpm run cleandep && pnpm run cleandist && pnpm run cleanturbo",
         "cleandep": "rm -rf node_modules && pnpm -r exec rm -rf node_modules",
-        "cleandist": "rm -rf dist && pnpm -r exec rm -rf dist"
+        "cleandist": "rm -rf dist && pnpm -r exec rm -rf dist",
+        "cleanturbo": "rm -rf .turbo && pnpm -r exec rm -rf .turbo"
     },
     "keywords": [],
     "author": "Akbar Maulana Ridho",
