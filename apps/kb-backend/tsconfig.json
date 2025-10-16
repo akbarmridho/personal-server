@@ -8,7 +8,8 @@
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "tests/**/*.js",
-    "tests/**/*.jsx"
+    "tests/**/*.jsx",
+    "../../packages/common/src/utils/date.ts"
   ],
   "exclude": ["node_modules", "dist", "build", ".next", "out"],
   "compilerOptions": {
