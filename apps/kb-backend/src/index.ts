@@ -22,7 +22,7 @@ async function main() {
   proxyApp.use(
     "/mcps/rag",
     createProxyMiddleware({
-      target: `http://localhost:${env.RAG_MCP_PORT}`,
+      target: `http://0.0.0.0:${env.RAG_MCP_PORT}`,
       changeOrigin: true,
       ws: true,
       pathRewrite: {
@@ -37,7 +37,8 @@ async function main() {
   proxyApp.use(
     "/",
     createProxyMiddleware({
-      target: `http://localhost:${env.API_SERVER_PORT}`,
+      target: `http://0.0.0.0:${env.API_SERVER_PORT}`,
+      changeOrigin: true,
       // no path rewrite
     }),
   );

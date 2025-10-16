@@ -37,14 +37,9 @@ export const setupHTTPServer = () => {
     // Attach RAG routes under /rag prefix
     .use(setupRagRoutes())
 
-    .listen(
-      {
-        port: env.API_SERVER_PORT,
-      },
-      ({ hostname, port }) => {
-        logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
-      },
-    );
+    .listen(env.API_SERVER_PORT, ({ hostname, port }) => {
+      logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
+    });
 
   return app;
 };
