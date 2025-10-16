@@ -40,7 +40,6 @@ export const setupHTTPServer = () => {
     .listen(
       {
         port: env.API_SERVER_PORT,
-        hostname: "127.0.0.1", // bind to localhost (127.0.0.1) instead of 0.0.0.0. the request came from proxy so it's fine
       },
       ({ hostname, port }) => {
         logger.info(`🦊 Elysia is running at ${hostname}:${port}`);

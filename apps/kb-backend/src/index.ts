@@ -42,6 +42,12 @@ async function main() {
     }),
   );
 
+  // biome-ignore lint/correctness/noUnusedFunctionParameters: shutup
+  proxyApp.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send("Something broke!");
+  });
+
   const proxyServer = proxyApp.listen(env.HTTP_SERVER_PORT, () => {
     logger.info(`Proxy server running at ::${env.HTTP_SERVER_PORT}`);
   });
