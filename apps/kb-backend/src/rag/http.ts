@@ -1,16 +1,10 @@
-import { logger as elysiaLogger } from "@bogeychan/elysia-logger";
-import { cors } from "@elysiajs/cors";
-import { node } from "@elysiajs/node";
-import { swagger } from "@elysiajs/swagger";
 import { parseDate } from "@personal-server/common/utils/date";
 import { detectContentType } from "@personal-server/common/utils/language-detect";
 import { logger } from "@personal-server/common/utils/logger";
 import { Elysia } from "elysia";
-import { pluginGracefulServer } from "graceful-server-elysia";
 import pRetry from "p-retry";
 import z from "zod";
 import { db } from "../db/db.js";
-import { env } from "../env.js";
 import { htmlToPdf } from "./file-converters/html-to-pdf.js";
 import { pdfToMarkdownConverter } from "./file-converters/pdf-to-md-converter.js";
 import { retriever } from "./storage/retrieve.js";
@@ -131,33 +125,11 @@ const SearchBody = z.object({
 type SearchBody = z.infer<typeof SearchBody>;
 
 // --------------------
-// Server Setup
+// RAG Routes
 // --------------------
-export const setupRAGServer = () => {
-  const app = new Elysia({ adapter: node() })
-    .use(pluginGracefulServer({}))
-    .use(
-      elysiaLogger({
-        autoLogging: true,
-      }),
-    )
-    .use(
-      cors({
-        origin: true,
-      }),
-    )
-    .onError(({ code, error }) => {
-      logger.error(error, `Error received: ${code}`);
-      return new Response(error.toString());
-    })
-    .use(
-      swagger({
-        exclude: ["/live", "/ready"],
-        path: "/docs",
-        provider: "scalar",
-      }),
-    )
-    .get("/", () => "Hello World!")
+export const setupRagRoutes = () =>
+  new Elysia({ prefix: "/rag" })
+
     // --------------------
     // POST /documents
     // --------------------
@@ -225,6 +197,7 @@ export const setupRAGServer = () => {
         body: z.union([DocumentJsonBody, DocumentMultipartBody]),
       },
     )
+
     // --------------------
     // GET /collections
     // --------------------
@@ -232,6 +205,7 @@ export const setupRAGServer = () => {
       const rows = await db.selectFrom("collections").selectAll().execute();
       return rows;
     })
+
     // --------------------
     // GET /collections/:id/documents
     // --------------------
@@ -255,6 +229,7 @@ export const setupRAGServer = () => {
         query: CollectionQuery,
       },
     )
+
     // --------------------
     // DELETE /documents/:id
     // --------------------
@@ -268,6 +243,7 @@ export const setupRAGServer = () => {
         params: DocumentParams,
       },
     )
+
     // --------------------
     // POST /search
     // --------------------
@@ -310,10 +286,4 @@ export const setupRAGServer = () => {
       {
         body: SearchBody,
       },
-    )
-    .listen(env.RAG_SERVER_PORT, ({ hostname, port }) => {
-      logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
-    });
-
-  return app;
-};
+    );

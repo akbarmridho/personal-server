@@ -2,16 +2,16 @@ import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
 
 loadDotenv();
 
-import { setupRAGServer } from "./rag/http.js";
 import { setupRAGMcp } from "./rag/mcp.js";
+import { setupHTTPServer } from "./server.js";
 
 async function main() {
-  const ragHttpServer = setupRAGServer();
+  const httpServer = setupHTTPServer();
   const ragMcpServer = await setupRAGMcp();
 
   const shutdown = async () => {
     await ragMcpServer.stop();
-    ragHttpServer.stop();
+    httpServer.stop();
     process.exit(0);
   };
 

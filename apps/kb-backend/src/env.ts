@@ -12,7 +12,7 @@ export const env = createEnv({
   server: {
     VOYAGE_API_KEY: z.string(),
     OPENROUTER_API_KEY: z.string(),
-    RAG_SERVER_PORT: z.coerce.number().prefault(3010),
+    HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
     RAG_MCP_PORT: z.coerce.number().prefault(3011),
     DATABASE_URL: z.string(),
   },
