@@ -11,8 +11,7 @@
         "run": "pm2 start ecosystem.config.js",
         "migrate": "pnpx dbmate -d \"./src/db/migrations\" --env-file \".env\" --no-dump-schema migrate",
         "kysely:gen": "kysely-codegen --out-file ./src/db/types.ts",
-        "playwright": "npx playwright install --with-deps",
-        "camoufox": "npx camoufox-js fetch"
+        "playwright": "npx playwright install --with-deps"
     },
     "keywords": [],
     "author": "",
@@ -22,18 +21,18 @@
         "node": ">=24"
     },
     "dependencies": {
-        "@ai-sdk/openai": "catalog:core",
+        "@ai-sdk/google": "^2.0.23",
+        "@ai-sdk/openai": "^2.0.34",
         "@bogeychan/elysia-logger": "^0.1.10",
         "@dotenvx/dotenvx": "catalog:core",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/node": "^1.4.0",
         "@elysiajs/swagger": "1.2.2",
-        "@openrouter/ai-sdk-provider": "catalog:core",
+        "@openrouter/ai-sdk-provider": "^1.2.0",
         "@personal-server/common": "workspace:*",
         "@t3-oss/env-core": "catalog:core",
-        "ai": "catalog:core",
-        "ai-fallback": "catalog:core",
-        "camoufox-js": "^0.7.0",
+        "ai": "^5.0.51",
+        "ai-fallback": "^1.0.7",
         "cheerio": "^1.1.2",
         "dayjs": "^1.11.18",
         "dom-to-semantic-markdown": "^1.5.0",
@@ -58,7 +57,7 @@
         "text-segmentation": "^1.0.3",
         "voyageai": "^0.0.8",
         "yahoo-finance2": "^2.13.3",
-        "zod": "catalog:core"
+        "zod": "^4.1.1"
     },
     "devDependencies": {
         "@types/express": "^5.0.3",

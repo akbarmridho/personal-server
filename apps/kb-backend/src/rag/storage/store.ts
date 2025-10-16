@@ -143,7 +143,12 @@ export class VectorStore {
 
     const ops = async () => {
       const response = await generateObject({
-        model: openrouter("google/gemini-2.5-flash-preview-09-2025"),
+        model: openrouter("google/gemini-2.5-flash-preview-09-2025", {
+          models: [
+            "google/gemini-2.5-flash-lite-preview-09-2025",
+            "google/gemini-2.0-flash-001",
+          ],
+        }),
         schema: DocumentSummarySchema,
         system: docSummarySystemPrompt.format(),
         temperature: 0.5,

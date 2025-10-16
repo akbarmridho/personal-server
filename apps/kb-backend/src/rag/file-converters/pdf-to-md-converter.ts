@@ -161,6 +161,7 @@ export class PdfToMarkdownConverter {
                 enabled: true,
                 effort: "low",
               },
+              models: ["qwen/qwen3-vl-30b-a3b-instruct"],
             }),
           });
 
