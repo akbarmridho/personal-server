@@ -1,24 +1,16 @@
 import { logger } from "@personal-server/common/utils/logger";
-import { Elysia } from "elysia";
-import z from "zod";
-import {
-  FetchUrlContentSchema,
-  fetchUrlContent,
-} from "./services/crawl-page.js";
+import { Elysia, t } from "elysia";
+import { fetchUrlContent } from "./services/crawl-page.js";
 import {
   performGeneralSearch,
   performInvestmentSearch,
 } from "./services/internet-search.js";
 
-const SearchBody = z.object({
-  query: z.string(),
-});
-
 export const setupInternetRoutes = () =>
-  new Elysia({ prefix: "/internet" })
+  new Elysia({ prefix: "/internet", tags: ["Internet"] })
     .post(
       "/search/general",
-      async ({ body }: { body: z.infer<typeof SearchBody> }) => {
+      async ({ body }) => {
         try {
           const result = await performGeneralSearch({ query: body.query });
           return { success: true, ...result };
@@ -27,11 +19,11 @@ export const setupInternetRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { body: SearchBody },
+      { body: t.Object({ query: t.String() }) },
     )
     .post(
       "/search/investment",
-      async ({ body }: { body: z.infer<typeof SearchBody> }) => {
+      async ({ body }) => {
         try {
           const result = await performInvestmentSearch({ query: body.query });
           return { success: true, ...result };
@@ -40,11 +32,11 @@ export const setupInternetRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { body: SearchBody },
+      { body: t.Object({ query: t.String() }) },
     )
     .post(
       "/crawl",
-      async ({ body }: { body: z.infer<typeof FetchUrlContentSchema> }) => {
+      async ({ body }) => {
         try {
           const content = await fetchUrlContent(body);
           return { success: true, content };
@@ -53,5 +45,10 @@ export const setupInternetRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { body: FetchUrlContentSchema },
+      {
+        body: t.Object({
+          url: t.String({ format: "uri" }),
+          readImage: t.Boolean({ default: false }),
+        }),
+      },
     );

@@ -1,9 +1,8 @@
 import { parseDate } from "@personal-server/common/utils/date";
 import { detectContentType } from "@personal-server/common/utils/language-detect";
 import { logger } from "@personal-server/common/utils/logger";
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import pRetry from "p-retry";
-import z from "zod";
 import { db } from "../db/db.js";
 import { htmlToPdf } from "./file-converters/html-to-pdf.js";
 import { pdfToMarkdownConverter } from "./file-converters/pdf-to-md-converter.js";
@@ -35,107 +34,17 @@ function normalizeMetadata(metadata: unknown): Record<string, any> | null {
 }
 
 // --------------------
-// Zod Schemas & Types
-// --------------------
-
-// /documents — JSON body
-const DocumentJsonBody = z.object({
-  collection_id: z.coerce.number(),
-  title: z.string(),
-  content: z.string(),
-  document_ts: z.string().optional(),
-  metadata: z.union([z.record(z.string(), z.any()), z.string()]),
-});
-type DocumentJsonBody = z.infer<typeof DocumentJsonBody>;
-
-// /documents — Multipart body
-const DocumentMultipartBody = z.object({
-  collection_id: z.coerce.number(),
-  title: z.string(),
-  file: z
-    .instanceof(File)
-    .refine((file) => ["application/pdf"].includes(file.type), {
-      message: "Not a pdf.",
-    }),
-  document_ts: z.string().optional(),
-  metadata: z.union([z.record(z.string(), z.any()), z.string()]),
-});
-type DocumentMultipartBody = z.infer<typeof DocumentMultipartBody>;
-
-// /collections/:id/documents
-const CollectionParams = z.object({
-  id: z.coerce.number(),
-});
-type CollectionParams = z.infer<typeof CollectionParams>;
-
-const CollectionQuery = z.object({
-  title: z.string().optional(),
-});
-type CollectionQuery = z.infer<typeof CollectionQuery>;
-
-// /documents/:id
-const DocumentParams = z.object({
-  id: z.coerce.number(),
-});
-type DocumentParams = z.infer<typeof DocumentParams>;
-
-// /search
-const SearchBody = z.object({
-  query: z
-    .string()
-    .describe(
-      "The search query to use. Be specific and include keywords related to what you are looking for.",
-    ),
-  hyde_answer: z
-    .string()
-    .describe(
-      "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25–50 words that directly answer the query.",
-    ),
-  embedding_weight: z.coerce
-    .number()
-    .min(0)
-    .max(1)
-    .default(EMBEDDING_WEIGHT)
-    .describe(
-      "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
-    ),
-  fulltext_weight: z.coerce
-    .number()
-    .min(0)
-    .max(1)
-    .default(FULLTEXT_WEIGHT)
-    .describe(
-      "Weight for keyword (full-text) search between 0 and 1. Higher values prioritize exact keyword matches.",
-    ),
-  start_date: z
-    .string()
-    .optional()
-    .describe(
-      'Optional start date for time-constrained queries in ISO format (e.g., "2023-01-01").',
-    ),
-  end_date: z
-    .string()
-    .optional()
-    .describe(
-      'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
-    ),
-  collection_id: z.coerce.number(),
-  metadata: z.union([z.record(z.string(), z.any()), z.string()]).optional(),
-});
-type SearchBody = z.infer<typeof SearchBody>;
-
-// --------------------
 // RAG Routes
 // --------------------
 export const setupRagRoutes = () =>
-  new Elysia({ prefix: "/rag" })
+  new Elysia({ prefix: "/rag", tags: ["RAG"] })
 
     // --------------------
     // POST /documents
     // --------------------
     .post(
       "/documents",
-      async ({ body }: { body: DocumentJsonBody | DocumentMultipartBody }) => {
+      async ({ body }) => {
         try {
           let finalContent: string;
 
@@ -194,7 +103,22 @@ export const setupRagRoutes = () =>
         }
       },
       {
-        body: z.union([DocumentJsonBody, DocumentMultipartBody]),
+        body: t.Union([
+          t.Object({
+            collection_id: t.Numeric(),
+            title: t.String(),
+            content: t.String(),
+            document_ts: t.Optional(t.String()),
+            metadata: t.Union([t.Record(t.String(), t.Any()), t.String()]),
+          }),
+          t.Object({
+            collection_id: t.Numeric(),
+            title: t.String(),
+            file: t.File(),
+            document_ts: t.Optional(t.String()),
+            metadata: t.Union([t.Record(t.String(), t.Any()), t.String()]),
+          }),
+        ]),
       },
     )
 
@@ -211,13 +135,7 @@ export const setupRagRoutes = () =>
     // --------------------
     .get(
       "/collections/:id/documents",
-      async ({
-        params,
-        query,
-      }: {
-        params: CollectionParams;
-        query: CollectionQuery;
-      }) => {
+      async ({ params, query }) => {
         const docs = await vectorStore.getDocuments(
           Number(params.id),
           query.title,
@@ -225,8 +143,12 @@ export const setupRagRoutes = () =>
         return docs;
       },
       {
-        params: CollectionParams,
-        query: CollectionQuery,
+        params: t.Object({
+          id: t.Numeric(),
+        }),
+        query: t.Object({
+          title: t.Optional(t.String()),
+        }),
       },
     )
 
@@ -235,12 +157,14 @@ export const setupRagRoutes = () =>
     // --------------------
     .delete(
       "/documents/:id",
-      async ({ params }: { params: DocumentParams }) => {
+      async ({ params }) => {
         const result = await vectorStore.deleteDocumentById(Number(params.id));
         return result;
       },
       {
-        params: DocumentParams,
+        params: t.Object({
+          id: t.Numeric(),
+        }),
       },
     )
 
@@ -249,7 +173,7 @@ export const setupRagRoutes = () =>
     // --------------------
     .post(
       "/search",
-      async ({ body }: { body: SearchBody }) => {
+      async ({ body }) => {
         try {
           const {
             query,
@@ -284,6 +208,45 @@ export const setupRagRoutes = () =>
         }
       },
       {
-        body: SearchBody,
+        body: t.Object({
+          query: t.String({
+            description:
+              "The search query to use. Be specific and include keywords related to what you are looking for.",
+          }),
+          hyde_answer: t.String({
+            description:
+              "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25–50 words that directly answer the query.",
+          }),
+          embedding_weight: t.Numeric({
+            default: EMBEDDING_WEIGHT,
+            minimum: 0,
+            maximum: 1,
+            description:
+              "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
+          }),
+          fulltext_weight: t.Numeric({
+            default: FULLTEXT_WEIGHT,
+            minimum: 0,
+            maximum: 1,
+            description:
+              "Weight for keyword (full-text) search between 0 and 1. Higher values prioritize exact keyword matches.",
+          }),
+          start_date: t.Optional(
+            t.String({
+              description:
+                'Optional start date for time-constrained queries in ISO format (e.g., "2023-01-01").',
+            }),
+          ),
+          end_date: t.Optional(
+            t.String({
+              description:
+                'Optional end date for time-constrained queries in ISO format (e.g., "2023-12-31").',
+            }),
+          ),
+          collection_id: t.Numeric(),
+          metadata: t.Optional(
+            t.Union([t.Record(t.String(), t.Any()), t.String()]),
+          ),
+        }),
       },
     );
