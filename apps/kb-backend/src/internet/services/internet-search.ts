@@ -1,5 +1,7 @@
 import {
   type GoogleGenerativeAIProviderMetadata,
+  type GoogleGenerativeAIProviderOptions,
+  GoogleGenerativeAIProviderSettings,
   google,
 } from "@ai-sdk/google";
 import { logger } from "@personal-server/common/utils/logger";
@@ -21,7 +23,7 @@ export const performBaseSearch = async ({
   const searchResult = await pRetry(
     async () => {
       const response = await generateText({
-        model: google("gemini-flash-latest"),
+        model: google("gemini-2.5-flash-preview-09-2025"),
         tools: {
           google_search: google.tools.googleSearch({}) as any,
         },
