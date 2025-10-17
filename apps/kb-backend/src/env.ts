@@ -19,6 +19,11 @@ export const env = createEnv({
     RAG_MCP_PORT: z.coerce.number().prefault(10002),
     INTERNET_MCP_PORT: z.coerce.number().prefault(10003),
     DATABASE_URL: z.string(),
+
+    // aggregator site
+    AGGREGATOR_AUTH: z.string(),
+    AGGREGATOR_COMPANY_REPORT_ENDPOINT: z.string(),
+    AGGREGATOR_SECTORS_REPORT_ENDPOINT: z.string(),
   },
   /*
    * Specify what values should be validated by your schemas above.
