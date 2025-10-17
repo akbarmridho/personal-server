@@ -27,6 +27,8 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export type Numeric = ColumnType<string, number | string, number | string>;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Collections {
@@ -61,6 +63,13 @@ export interface Documents {
   updated_at: Generated<Timestamp>;
 }
 
+export interface KvStore {
+  expires_at: Timestamp | null;
+  key: string;
+  updated_at: Generated<Timestamp>;
+  value: Json;
+}
+
 export interface SchemaMigrations {
   version: string;
 }
@@ -69,5 +78,6 @@ export interface DB {
   collections: Collections;
   document_chunks: DocumentChunks;
   documents: Documents;
+  kv_store: KvStore;
   schema_migrations: SchemaMigrations;
 }
