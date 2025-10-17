@@ -312,7 +312,7 @@ export class VoyageEmbeddings {
 
       return result;
     } catch (e) {
-      logger.error(e, "Create embeddings error");
+      logger.error({ err: e }, "Create embeddings error");
       if (e instanceof VoyageAIError) {
         if (
           e.message.toLowerCase().includes("size") ||

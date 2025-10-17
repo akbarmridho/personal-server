@@ -26,6 +26,10 @@ const logLevel = (process.env.LOG_LEVEL || "info") as
 
 export const logger = pino({
   level: logLevel,
+  serializers: {
+    err: pino.stdSerializers.err, // Serialize error objects
+    error: pino.stdSerializers.err, // Serialize error objects
+  },
   transport: {
     targets: [
       {

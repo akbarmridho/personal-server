@@ -74,7 +74,7 @@ export class VectorStore {
           logger.error("Deleted document due to chunk creation failure");
         } catch (deleteError) {
           logger.error(
-            deleteError,
+            { err: deleteError },
             "Failed to delete document after chunk creation failure:",
           );
         }

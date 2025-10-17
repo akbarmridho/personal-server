@@ -102,12 +102,13 @@ export const performBaseSearch = async ({
   return searchResult;
 };
 
-export const performGeneralSearch = ({
+export const performGeneralSearch = async ({
   query,
 }: {
   query: string;
 }): Promise<SearchResult> => {
-  return performBaseSearch({
+  logger.info({ query }, "Performing general search");
+  const result = await performBaseSearch({
     query,
     systemPrompt: `You are an intelligent search exploration agent.  
 Your goal is to perform broad, multi-step reasoning and exploration to find high-quality, diverse information related to the user's query.  
@@ -122,14 +123,25 @@ You should:
 Your output must be written clearly, factual, and well-structured, with reasoning that demonstrates exploration and synthesis rather than shallow lookup.
 `,
   });
+
+  logger.info(
+    {
+      query: query,
+      result: result.result.slice(0, 1000), // 1000 first chars only
+      citations: result.citations,
+    },
+    "General search",
+  );
+
+  return result;
 };
 
-export const performInvestmentSearch = ({
+export const performInvestmentSearch = async ({
   query,
 }: {
   query: string;
 }): Promise<SearchResult> => {
-  return performBaseSearch({
+  const result = await performBaseSearch({
     query,
     systemPrompt: `You are a financial and investment-focused search exploration agent.  
 Your goal is to analyze and summarize information about market trends, stocks, or economic topics mentioned by the user.  
@@ -147,4 +159,15 @@ Your output should read like a concise market intelligence brief:
 3. Cited sources for verification
 `,
   });
+
+  logger.info(
+    {
+      query: query,
+      result: result.result.slice(0, 1000), // 1000 first chars only
+      citations: result.citations,
+    },
+    "Investment search",
+  );
+
+  return result;
 };

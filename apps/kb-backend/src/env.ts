@@ -17,6 +17,7 @@ export const env = createEnv({
     HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
     API_SERVER_PORT: z.coerce.number().prefault(10001),
     RAG_MCP_PORT: z.coerce.number().prefault(10002),
+    INTERNET_MCP_PORT: z.coerce.number().prefault(10003),
     DATABASE_URL: z.string(),
   },
   /*

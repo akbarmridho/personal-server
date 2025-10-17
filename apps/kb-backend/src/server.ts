@@ -6,6 +6,7 @@ import { logger } from "@personal-server/common/utils/logger";
 import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
 import { env } from "./env.js";
+import { setupInternetRoutes } from "./internet/http.js";
 import { setupRagRoutes } from "./rag/http.js";
 
 export const setupHTTPServer = () => {
@@ -22,7 +23,7 @@ export const setupHTTPServer = () => {
       }),
     )
     .onError(({ code, error }) => {
-      logger.error(error, `Error received: ${code}`);
+      logger.error({ error }, `Error received: ${code}`);
       return new Response(error.toString());
     })
     .use(
@@ -36,6 +37,9 @@ export const setupHTTPServer = () => {
 
     // Attach RAG routes under /rag prefix
     .use(setupRagRoutes())
+
+    // attach Internet routes under /internet prefix
+    .use(setupInternetRoutes())
 
     .listen(env.API_SERVER_PORT, ({ hostname, port }) => {
       logger.info(`🦊 Elysia is running at ${hostname}:${port}`);

@@ -189,7 +189,7 @@ export const setupRagRoutes = () =>
 
           return { success: true, ...result };
         } catch (err) {
-          logger.error(err, "Failed to store document");
+          logger.error({ err }, "Failed to store document");
           return { success: false, error: (err as Error).message };
         }
       },
@@ -279,7 +279,7 @@ export const setupRagRoutes = () =>
 
           return { success: true, results };
         } catch (err) {
-          logger.error(err, "Search failed");
+          logger.error({ err }, "Search failed");
           return { success: false, error: (err as Error).message };
         }
       },

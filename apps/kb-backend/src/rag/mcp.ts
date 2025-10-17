@@ -243,7 +243,7 @@ After performing the steps above, call the \`search-knowledge-base\` tool with a
 
         return { type: "text", text: JSON.stringify(returnObj, null, 2) };
       } catch (error) {
-        logger.error(error, "Error in KB search.");
+        logger.error({ error }, "Error in KB search.");
 
         const returnObj = {
           success: false,

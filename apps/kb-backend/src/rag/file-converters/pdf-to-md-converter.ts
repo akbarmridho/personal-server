@@ -177,7 +177,7 @@ export class PdfToMarkdownConverter {
 
       return this.postProcessMarkdown(result.text);
     } catch (error) {
-      logger.error(error, "Error converting PDF to markdown:");
+      logger.error({ error }, "Error converting PDF to markdown:");
       throw error;
     }
   }

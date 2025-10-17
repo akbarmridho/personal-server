@@ -125,16 +125,22 @@ export const fetchUrlContent = async (
       returnFormat,
     });
 
+    let result: string;
     if (readImage && Buffer.isBuffer(raw)) {
       // Process pageshot image buffer with vision model
-      const text = await readImageContent(raw);
-      return text;
+      result = await readImageContent(raw);
+    } else if (typeof raw === "string") {
+      // Return markdown as-is
+      result = raw;
+    } else {
+      throw new Error("Unexpected data type from fetchRawUrlContent");
     }
 
-    // Return markdown as-is
-    if (typeof raw === "string") return raw;
-
-    throw new Error("Unexpected data type from fetchRawUrlContent");
+    logger.info(
+      { url, readImage, result: result.slice(0, 1000) },
+      "Fetched URL content",
+    );
+    return result;
   } catch (err) {
     logger.error({ err, url }, "Failed to fetch and process URL content");
     throw err;
