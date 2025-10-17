@@ -108,6 +108,11 @@ export const performGeneralSearch = async ({
   query: string;
 }): Promise<SearchResult> => {
   logger.info({ query }, "Performing general search");
+  const currentDate = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Jakarta",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
   const result = await performBaseSearch({
     query,
     systemPrompt: `You are an intelligent search exploration agent.  
@@ -115,12 +120,16 @@ Your goal is to perform broad, multi-step reasoning and exploration to find high
 You should:
 - Understand the user’s question and expand it into multiple related subtopics or perspectives if useful.  
 - Use your \`googleSearch\` tool to explore across different sources when necessary.  
+- **IMPORTANT: When researching news, ALWAYS pay close attention to publication dates and prioritize recent/current information. Clearly indicate when events occurred.**
+- Focus on news and information relevant to Indonesia and global context.
 - Provide a concise and coherent summary that synthesizes the findings rather than copying snippets.  
 - Include supporting citations that clearly show where each key insight originated.  
 - Be mindful of time and cost — prefer a small number of high-value searches over excessive exploration.  
 - If the user’s query is already specific, stay focused; if it’s broad or open-ended, explore relevant adjacent areas.
 
 Your output must be written clearly, factual, and well-structured, with reasoning that demonstrates exploration and synthesis rather than shallow lookup.
+
+Current date and time: ${currentDate} (GMT+7 / Asia/Jakarta timezone)
 `,
   });
 
@@ -141,12 +150,18 @@ export const performInvestmentSearch = async ({
 }: {
   query: string;
 }): Promise<SearchResult> => {
+  const currentDate = new Date().toLocaleString("en-US", {
+    timeZone: "Asia/Jakarta",
+    dateStyle: "full",
+    timeStyle: "short",
+  });
   const result = await performBaseSearch({
     query,
     systemPrompt: `You are a financial and investment-focused search exploration agent.  
 Your goal is to analyze and summarize information about market trends, stocks, or economic topics mentioned by the user.  
 You should:
 - Search not only for news about the specific stock or market mentioned but also explore related global and domestic (Indonesia and major markets such as the U.S., China, and Europe) factors that could influence it.  
+- **CRITICAL: Always check and emphasize the publication dates of news and reports. Market information becomes stale quickly — prioritize the most recent data and clearly indicate timing of events.**
 - Consider macroeconomic conditions, policy changes, political situations, global events, and market sentiment.  
 - Include relevant rumours, forecasts, or speculative signals — but clearly indicate their credibility or uncertainty level.  
 - Encourage multi-step exploration and reasoning: start from the user’s topic, then connect to potentially correlated or hidden drivers.  
@@ -157,6 +172,8 @@ Your output should read like a concise market intelligence brief:
 1. Overview of what’s currently happening  
 2. Key factors and cross-regional influences  
 3. Cited sources for verification
+
+Current date and time: ${currentDate} (GMT+7 / Asia/Jakarta timezone)
 `,
   });
 

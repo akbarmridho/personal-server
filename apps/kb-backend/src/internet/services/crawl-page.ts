@@ -78,6 +78,7 @@ Your goal:
 - Exclude repetitive or irrelevant elements such as headers, footers, ads, watermarks, and logos.
 - For graphs, tables, or images that contain meaningful data, describe their content clearly in natural language.
 - Preserve the original language of the text in the image.
+- If the content is a news article, blog post, or any content with a published date, preserve the date information.
 - Do not add your own commentary or translation.
 - Return only the final Markdown output without additional explanation or formatting outside the content itself.
         `.trim(),
