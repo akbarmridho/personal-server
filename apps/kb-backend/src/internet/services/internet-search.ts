@@ -1,17 +1,42 @@
 import {
   type GoogleGenerativeAIProviderMetadata,
-  type GoogleGenerativeAIProviderOptions,
-  GoogleGenerativeAIProviderSettings,
   google,
 } from "@ai-sdk/google";
 import { logger } from "@personal-server/common/utils/logger";
 import { generateText, stepCountIs } from "ai";
+import axios from "axios";
 import pRetry from "p-retry";
 
 export interface SearchResult {
   result: string;
   citations: { url: string; title: string }[];
 }
+
+const resolveRedirect = async (url: string, depth = 0): Promise<string> => {
+  if (depth > 5) return url;
+
+  try {
+    const response = await axios.get(url, {
+      maxRedirects: 0,
+      timeout: 5000,
+      validateStatus: () => true,
+    });
+
+    if (
+      response.status >= 300 &&
+      response.status < 400 &&
+      response.headers.location
+    ) {
+      // Resolve relative URLs
+      const nextUrl = new URL(response.headers.location, url).toString();
+      return resolveRedirect(nextUrl, depth + 1);
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+};
 
 export const performBaseSearch = async ({
   query,
@@ -63,15 +88,15 @@ export const performBaseSearch = async ({
           )
             continue;
 
-          const citationLinks = support.groundingChunkIndices
+          const citationNumbers = support.groundingChunkIndices
             .map((i: number) => {
               const uri = chunks[i]?.web?.uri;
-              return uri ? `[${i + 1}](${uri})` : null;
+              return uri ? `[${i + 1}]` : null;
             })
             .filter(Boolean);
 
-          if (citationLinks.length > 0) {
-            const citationString = citationLinks.join(", ");
+          if (citationNumbers.length > 0) {
+            const citationString = citationNumbers.join(", ");
             annotatedText =
               annotatedText.slice(0, endIndex) +
               citationString +
@@ -81,13 +106,20 @@ export const performBaseSearch = async ({
       }
 
       // --- Extract sources for reference ---
-      const citations =
+      const rawCitations =
         sources
           ?.filter((e) => e.sourceType === "url")
           ?.map((e) => ({
             title: e.title || "",
             url: e.url,
           })) ?? [];
+
+      const citations = await Promise.all(
+        rawCitations.map(async (citation) => ({
+          title: citation.title,
+          url: await resolveRedirect(citation.url),
+        })),
+      );
 
       const result: SearchResult = {
         result: annotatedText,
