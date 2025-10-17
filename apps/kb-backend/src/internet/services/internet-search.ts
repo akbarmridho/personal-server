@@ -9,7 +9,7 @@ import pRetry from "p-retry";
 
 export interface SearchResult {
   result: string;
-  citations: { url: string; title: string }[];
+  citations: { number: number; url: string; title: string }[];
 }
 
 const resolveRedirect = async (url: string, depth = 0): Promise<string> => {
@@ -115,7 +115,8 @@ export const performBaseSearch = async ({
           })) ?? [];
 
       const citations = await Promise.all(
-        rawCitations.map(async (citation) => ({
+        rawCitations.map(async (citation, index) => ({
+          number: index + 1,
           title: citation.title,
           url: await resolveRedirect(citation.url),
         })),
