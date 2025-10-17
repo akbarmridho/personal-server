@@ -64,7 +64,7 @@ const fetchRawUrlContent = async ({
 
 const readImageContent = async (buffer: Buffer): Promise<string> => {
   const response = await generateText({
-    model: openrouter("qwen/qwen3-vl-8b-thinking", {
+    model: openrouter("qwen/qwen3-vl-8b-instruct", {
       models: ["google/gemini-2.5-flash-preview-09-2025"],
     }),
     messages: [
