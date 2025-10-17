@@ -3,12 +3,21 @@ import { logger } from "@personal-server/common/utils/logger";
 import { generateText } from "ai";
 import axios, { type AxiosError } from "axios";
 import pRetry, { AbortError } from "p-retry";
+import sharp from "sharp";
 import z from "zod";
 import { env } from "../../env.js";
 
 interface FetchParams {
   url: string;
   returnFormat: "pageshot" | "markdown";
+}
+
+async function autoCrop(inputBuffer: Buffer): Promise<Buffer> {
+  const image = sharp(inputBuffer).trim({
+    threshold: 20,
+  });
+
+  return await image.toFormat("png").toBuffer();
 }
 
 const fetchRawUrlContent = async ({
@@ -62,7 +71,10 @@ const fetchRawUrlContent = async ({
   }
 };
 
-const readImageContent = async (buffer: Buffer): Promise<string> => {
+const readImageContent = async (rawBuffer: Buffer): Promise<string> => {
+  // crop image first
+  const buffer = await autoCrop(rawBuffer);
+
   const response = await generateText({
     model: openrouter("qwen/qwen3-vl-8b-instruct", {
       models: ["google/gemini-2.5-flash-preview-09-2025"],
