@@ -1,3 +1,4 @@
+// sectors data doesn't change so we keep it in code
 export const sectorsData: {
   sector: string;
   subsector: string;
@@ -145,3 +146,16 @@ export const sectorsData: {
     slug: "transportation",
   },
 ];
+
+export const supportedSubsectors = new Set<string>(
+  sectorsData.map((e) => e.slug),
+);
+
+export const getSectors = () => {
+  const map = new Map<string, { subsector: string; slug: string }[]>();
+  sectorsData.forEach(({ sector, subsector, slug }) => {
+    if (!map.has(sector)) map.set(sector, []);
+    map.get(sector)!.push({ subsector, slug });
+  });
+  return Array.from(map, ([sector, subsectors]) => ({ sector, subsectors }));
+};

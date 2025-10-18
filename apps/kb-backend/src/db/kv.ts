@@ -1,3 +1,4 @@
+import { logger } from "@personal-server/common/utils/logger";
 import { db } from "./db.js";
 import type { Json } from "./types.js";
 
@@ -48,12 +49,26 @@ export class KV {
     key: string,
     factory: () => Promise<Json>,
     expiresAt?: Date,
+    allowStale = false,
   ): Promise<Json> {
     const existing = await KV.get(key);
     if (existing !== null) return existing;
 
-    const value = await factory();
-    await KV.set(key, value, expiresAt);
-    return value;
+    try {
+      const value = await factory();
+      await KV.set(key, value, expiresAt);
+      return value;
+    } catch (error) {
+      if (allowStale) {
+        logger.error({ error }, `Factory error. Reading stale data.`);
+        const stale = await db
+          .selectFrom("kv_store")
+          .select("value")
+          .where("key", "=", key)
+          .executeTakeFirst();
+        if (stale) return stale.value;
+      }
+      throw error;
+    }
   }
 }

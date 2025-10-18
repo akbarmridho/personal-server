@@ -1,27 +1,20 @@
 import { logger } from "@personal-server/common/utils/logger";
 import axios from "axios";
+import dayjs from "dayjs";
 import z from "zod";
 import { KV } from "../../db/kv.js";
 import { env } from "../../env.js";
-import { sectorsData } from "./sectors.js";
-
-const supportedSectors = new Set<string>(sectorsData.map((e) => e.slug));
+import { supportedSubsectors } from "./sectors.js";
+import { normalizeSlug } from "./utils.js";
 
 export const GetSectorsReportParams = z.object({
   subsectors: z
     .string()
     .array()
-    .describe(`Supported slugs: ${Array.from(supportedSectors).join(", ")}`),
+    .describe(
+      `Array of subsector slugs. Supported slugs: ${Array.from(supportedSubsectors).join(", ")}`,
+    ),
 });
-
-const normalizeSlug = (input: string): string => {
-  return input
-    .toLowerCase()
-    .replace(/&amp;/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\s/g, "-");
-};
 
 export const getSectorsReport = async (
   input: z.infer<typeof GetSectorsReportParams>,
@@ -30,21 +23,19 @@ export const getSectorsReport = async (
 > => {
   try {
     const normalizedInput = input.subsectors.map((s) =>
-      supportedSectors.has(s) ? s : normalizeSlug(s),
+      supportedSubsectors.has(s) ? s : normalizeSlug(s),
     );
 
     const invalidSlugs = normalizedInput.filter(
-      (s) => !supportedSectors.has(s),
+      (s) => !supportedSubsectors.has(s),
     );
+
     if (invalidSlugs.length > 0) {
       return {
         success: false,
-        message: `Invalid subsectors. Supported slugs: ${Array.from(supportedSectors).join(", ")}`,
+        message: `Invalid subsectors. Supported slugs: ${Array.from(supportedSubsectors).join(", ")}`,
       };
     }
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
 
     const data = await KV.getOrSet(
       "stock.aggregator.sectors-report",
@@ -66,7 +57,7 @@ export const getSectorsReport = async (
           [key: string]: any;
         }[];
       },
-      tomorrow,
+      dayjs().add(1, "week").toDate(),
     );
 
     const filtered = (data! as any[]).filter((item) =>

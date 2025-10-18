@@ -23,6 +23,7 @@ export const env = createEnv({
     // aggregator site
     AGGREGATOR_AUTH: z.string(),
     AGGREGATOR_COMPANY_REPORT_ENDPOINT: z.string(),
+    AGGREGATOR_COMPANIES_ENDPOINT: z.string(),
     AGGREGATOR_SECTORS_REPORT_ENDPOINT: z.string(),
   },
   /*
