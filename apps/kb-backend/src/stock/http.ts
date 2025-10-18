@@ -65,5 +65,19 @@ export const setupStockRoutes = () =>
           return { success: false, message: (err as Error).message };
         }
       },
-      { body: t.Object({ ticker: t.String() }) },
+      {
+        body: t.Object({
+          ticker: t.String(),
+          fields: t.Object({
+            ownership: t.Boolean(),
+            management: t.Boolean(),
+            news: t.Boolean(),
+            futureOutlook: t.Boolean(),
+            comparePeers: t.Boolean(),
+            dividendHistory: t.Boolean(),
+            financialsHistory: t.Boolean(),
+            valuationHistory: t.Boolean(),
+          }),
+        }),
+      },
     );
