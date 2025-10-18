@@ -171,7 +171,7 @@ export const getCompanyReport = async (
     }
 
     if (!input.fields.valuationHistory) {
-      const fields = ["self_financial_info"];
+      const fields = ["historical_valuation"];
 
       for (const field of fields) {
         delete data![field];
