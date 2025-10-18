@@ -8,6 +8,7 @@ import { pluginGracefulServer } from "graceful-server-elysia";
 import { env } from "./env.js";
 import { setupInternetRoutes } from "./internet/http.js";
 import { setupRagRoutes } from "./rag/http.js";
+import { setupStockRoutes } from "./stock/http.js";
 
 export const setupHTTPServer = () => {
   const app = new Elysia({ adapter: node() })
@@ -40,6 +41,9 @@ export const setupHTTPServer = () => {
 
     // attach Internet routes under /internet prefix
     .use(setupInternetRoutes())
+
+    // attach stock routes under /stock prefix
+    .use(setupStockRoutes())
 
     .listen(env.API_SERVER_PORT, ({ hostname, port }) => {
       logger.info(`🦊 Elysia is running at ${hostname}:${port}`);

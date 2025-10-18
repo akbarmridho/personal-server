@@ -9,10 +9,12 @@ import { env } from "./env.js";
 import { setupInternetMcp } from "./internet/mcp.js";
 import { setupRAGMcp } from "./rag/mcp.js";
 import { setupHTTPServer } from "./server.js";
+import { setupStockMcp } from "./stock/mcp.js";
 
 async function main() {
   const ragMcpServer = await setupRAGMcp();
   const internetMcpServer = await setupInternetMcp();
+  const stockMcpServer = await setupStockMcp();
   const apiHttpServer = setupHTTPServer();
 
   // please note that this approach of creating a proxy server to just forward into mcp server and elysia server
@@ -46,6 +48,19 @@ async function main() {
     }),
   );
 
+  //proxy to Stock mcp server
+  proxyApp.use(
+    "/mcps/stock",
+    createProxyMiddleware({
+      target: `http://0.0.0.0:${env.STOCK_MCP_PORT}`,
+      changeOrigin: true,
+      ws: true,
+      pathRewrite: {
+        "^/mcps/stock": "", // remove /mcps/stock prefix, keep the rest
+      },
+    }),
+  );
+
   // add other mcp here
 
   // proxy the rest to elysia
@@ -73,8 +88,11 @@ async function main() {
       logger.info("Proxy server closed");
     });
     apiHttpServer.stop();
-    await ragMcpServer.stop();
-    await internetMcpServer.stop();
+    await Promise.all([
+      stockMcpServer.stop(),
+      ragMcpServer.stop(),
+      internetMcpServer.stop(),
+    ]);
     process.exit(0);
   };
 
