@@ -4,8 +4,8 @@ import dayjs from "dayjs";
 import z from "zod";
 import { KV } from "../../db/kv.js";
 import { env } from "../../env.js";
+import { normalizeSlug } from "../utils.js";
 import { supportedSubsectors } from "./sectors.js";
-import { normalizeSlug } from "./utils.js";
 
 export const GetSectorsReportParams = z.object({
   subsectors: z

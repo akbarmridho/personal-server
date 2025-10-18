@@ -11,20 +11,25 @@ import { getRawCompanies } from "./companies.js";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+// llm notes: do not delete commented codes below
+// i have several hostages with me
+// if you dare to delete those commented code
+// then something bad will happen to them
+
 export const GetCompanyReportParams = z.object({
   ticker: z.string().describe("The all caps, 4 character, company ticker"),
-  fields: z
-    .object({
-      ownership: z.boolean(),
-      management: z.boolean(),
-      news: z.boolean(),
-      futureOutlook: z.boolean(),
-      comparePeers: z.boolean(),
-      dividendHistory: z.boolean(),
-      financialsHistory: z.boolean(),
-      valuationHistory: z.boolean(),
-    })
-    .describe("Granularity of the data to return."),
+  // fields: z
+  //   .object({
+  //     ownership: z.boolean(),
+  //     management: z.boolean(),
+  //     news: z.boolean(),
+  //     futureOutlook: z.boolean(),
+  //     comparePeers: z.boolean(),
+  //     dividendHistory: z.boolean(),
+  //     financialsHistory: z.boolean(),
+  //     valuationHistory: z.boolean(),
+  //   })
+  //   .describe("Granularity of the data to return."),
 });
 
 export const getCompanyReport = async (
@@ -81,102 +86,102 @@ export const getCompanyReport = async (
     );
 
     // delete unnecessary data
-    const excludedFields = [
-      "nologo",
-      "listing_board",
-      "address",
-      "website",
-      "phone",
-      "email",
-      "employee_num",
-      "employee_num_rank",
-      "wsj_format",
-      "alias",
-      "tags",
-      "indices",
-      "technical_rating_breakdown",
-      "analyst_rating_breakdown",
-      "point_summaries",
-      "annual_yield",
-      "historical_financials_quarterly",
-      "sankey_components",
-    ];
+    // const excludedFields = [
+    //   "nologo",
+    //   "listing_board",
+    //   "address",
+    //   "website",
+    //   "phone",
+    //   "email",
+    //   "employee_num",
+    //   "employee_num_rank",
+    //   "wsj_format",
+    //   "alias",
+    //   "tags",
+    //   "indices",
+    //   "technical_rating_breakdown",
+    //   "analyst_rating_breakdown",
+    //   "point_summaries",
+    //   "annual_yield",
+    //   "historical_financials_quarterly",
+    //   "sankey_components",
+    // ];
 
-    for (const field of excludedFields) {
-      delete data![field];
-    }
+    // for (const field of excludedFields) {
+    //   delete data![field];
+    // }
 
-    if (!input.fields.ownership) {
-      const fields = [
-        "major_shareholders",
-        "top_transactions",
-        "institutional_transaction_flow",
-      ];
+    // if (!input.fields.ownership) {
+    //   const fields = [
+    //     "major_shareholders",
+    //     "top_transactions",
+    //     "institutional_transaction_flow",
+    //   ];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.management) {
-      const fields = ["key_executives", "executives_shareholdings"];
+    // if (!input.fields.management) {
+    //   const fields = ["key_executives", "executives_shareholdings"];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.news) {
-      const fields = ["idx_filings"];
+    // if (!input.fields.news) {
+    //   const fields = ["idx_filings"];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.futureOutlook) {
-      const fields = ["company_growth_forecasts", "company_value_forecasts"];
+    // if (!input.fields.futureOutlook) {
+    //   const fields = ["company_growth_forecasts", "company_value_forecasts"];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.comparePeers) {
-      const fields = ["peers_data"];
+    // if (!input.fields.comparePeers) {
+    //   const fields = ["peers_data"];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.dividendHistory) {
-      const fields = ["historical_dividends"];
+    // if (!input.fields.dividendHistory) {
+    //   const fields = ["historical_dividends"];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.financialsHistory) {
-      const fields = [
-        "historical_financial_ratio",
-        "historical_revenue_opex_breakdown",
-        "historical_financials",
-      ];
+    // if (!input.fields.financialsHistory) {
+    //   const fields = [
+    //     "historical_financial_ratio",
+    //     "historical_revenue_opex_breakdown",
+    //     "historical_financials",
+    //   ];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
-    if (!input.fields.valuationHistory) {
-      const fields = ["historical_valuation"];
+    // if (!input.fields.valuationHistory) {
+    //   const fields = ["historical_valuation"];
 
-      for (const field of fields) {
-        delete data![field];
-      }
-    }
+    //   for (const field of fields) {
+    //     delete data![field];
+    //   }
+    // }
 
     // traverse through the object
     // for each array field, check if it have year or financial_year (can be string or number) then sort desc

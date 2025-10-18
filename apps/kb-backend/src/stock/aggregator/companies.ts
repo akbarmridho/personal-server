@@ -4,8 +4,8 @@ import dayjs from "dayjs";
 import z from "zod";
 import { KV } from "../../db/kv.js";
 import { env } from "../../env.js";
+import { normalizeSlug, withMemoryCache } from "../utils.js";
 import { supportedSubsectors } from "./sectors.js";
-import { normalizeSlug } from "./utils.js";
 
 interface RawCompany {
   ticker: string;
@@ -15,48 +15,49 @@ interface RawCompany {
   companyName: string;
 }
 
-let memoryCache: { data: RawCompany[]; expiresAt: number } | null = null;
+/**
+ * Raw company fetching function (without cache)
+ */
+async function fetchRawCompanies(): Promise<RawCompany[]> {
+  const responseData = await KV.getOrSet(
+    "stock.aggregator.companies",
+    async () => {
+      const response = await axios.get(env.AGGREGATOR_COMPANIES_ENDPOINT, {
+        headers: {
+          ...JSON.parse(env.AGGREGATOR_AUTH),
+          "Content-Type": "application/json",
+        },
+      });
 
-export const getRawCompanies = async (): Promise<RawCompany[]> => {
-  if (memoryCache && Date.now() < memoryCache.expiresAt) {
-    return memoryCache.data;
-  }
+      return response.data;
+    },
+    dayjs().add(1, "week").toDate(),
+    true,
+  );
 
-  const data = (
-    (await KV.getOrSet(
-      "stock.aggregator.companies",
-      async () => {
-        const response = await axios.get(env.AGGREGATOR_COMPANIES_ENDPOINT, {
-          headers: {
-            ...JSON.parse(env.AGGREGATOR_AUTH),
-            "Content-Type": "application/json",
-          },
-        });
-
-        return response.data;
-      },
-      dayjs().add(1, "week").toDate(),
-      true,
-    )) as {
+  return (
+    responseData as {
       sector: string;
       sub_sector: string;
       symbol: string;
       company_name: string;
     }[]
-  ).map((e) => {
-    return {
-      ticker: e.symbol.toUpperCase().replaceAll(".JK", ""),
-      sector: e.sector,
-      subsector: e.sub_sector,
-      subsectorSlug: normalizeSlug(e.sub_sector),
-      companyName: e.company_name,
-    };
-  });
+  ).map((e) => ({
+    ticker: e.symbol.toUpperCase().replaceAll(".JK", ""),
+    sector: e.sector,
+    subsector: e.sub_sector,
+    subsectorSlug: normalizeSlug(e.sub_sector),
+    companyName: e.company_name,
+  }));
+}
 
-  memoryCache = { data, expiresAt: Date.now() + 30 * 60 * 1000 };
-
-  return data;
-};
+/**
+ * Cached version of fetchRawCompanies (30 minutes TTL)
+ */
+export const getRawCompanies = withMemoryCache(
+  fetchRawCompanies,
+  30 * 60 * 1000,
+);
 
 export const GetCompaniesParams = z.union([
   z.object({
@@ -64,7 +65,9 @@ export const GetCompaniesParams = z.union([
       .string()
       .array()
       .describe(
-        `Array of subsector slugs. Supported slugs: ${Array.from(supportedSubsectors).join(", ")}`,
+        `Array of subsector slugs. Supported slugs: ${Array.from(
+          supportedSubsectors,
+        ).join(", ")}`,
       ),
   }),
   z.object({
@@ -92,7 +95,9 @@ export const getCompanies = async (
       if (invalidSlugs.length > 0) {
         return {
           success: false,
-          message: `Invalid subsectors. Supported slugs: ${Array.from(supportedSubsectors).join(", ")}`,
+          message: `Invalid subsectors. Supported slugs: ${Array.from(
+            supportedSubsectors,
+          ).join(", ")}`,
         };
       }
 
@@ -118,4 +123,16 @@ export const getCompanies = async (
     logger.error({ err: error }, "Failed to get companies");
     return { success: false, message: "Failed to get companies" };
   }
+};
+
+export const checkTicker = async (ticker: string): Promise<string> => {
+  const data = await getRawCompanies();
+
+  const normalized = ticker.toUpperCase().replaceAll(".JK", "");
+
+  if (data.map((e) => e.ticker).includes(normalized)) {
+    return normalized;
+  }
+
+  throw new Error(`Ticker ${ticker} not found`);
 };
