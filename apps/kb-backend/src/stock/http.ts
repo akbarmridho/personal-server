@@ -1,12 +1,17 @@
 import { logger } from "@personal-server/common/utils/logger";
 import { Elysia, t } from "elysia";
 import { getCompanies } from "./aggregator/companies.js";
-import { getCompanyReport } from "./aggregator/company-report.js";
 import { getSectors } from "./aggregator/sectors.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";
+import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
+import { getStockFinancials } from "./endpoints/stock/financials.js";
+import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
+import { getStockManagement } from "./endpoints/stock/management.js";
+import { getStockOwnership } from "./endpoints/stock/ownership.js";
+import { stockbitAuth } from "./stockbit/auth.js";
 
 export const setupStockRoutes = () =>
-  new Elysia({ prefix: "/stock", tags: ["Stock"] })
+  new Elysia({ prefix: "/stock-market-id", tags: ["Stock Market (Indonesia)"] })
     .get("/sectors", async ({ set }) => {
       try {
         const data = getSectors();
@@ -17,11 +22,12 @@ export const setupStockRoutes = () =>
         return { success: false, error: (err as Error).message };
       }
     })
-    .post(
+    .get(
       "/sectors/report",
-      async ({ body, set }) => {
+      async ({ query, set }) => {
         try {
-          const result = await getSectorsReport(body);
+          const subsectors = query.subsectors?.split(',') || [];
+          const result = await getSectorsReport({ subsectors });
           if (!result.success) set.status = 400;
           return result;
         } catch (err) {
@@ -30,12 +36,15 @@ export const setupStockRoutes = () =>
           return { success: false, message: (err as Error).message };
         }
       },
-      { body: t.Object({ subsectors: t.Array(t.String()) }) },
+      { query: t.Object({ subsectors: t.String() }) },
     )
-    .post(
-      "/companies",
-      async ({ body, set }) => {
+    .get(
+      "/stock",
+      async ({ query, set }) => {
         try {
+          const body = query.subsectors
+            ? { subsectors: query.subsectors.split(',') }
+            : { tickers: query.tickers!.split(',') };
           const result = await getCompanies(body);
           if (!result.success) set.status = 400;
           return result;
@@ -46,38 +55,134 @@ export const setupStockRoutes = () =>
         }
       },
       {
-        body: t.Union([
-          t.Object({ subsectors: t.Array(t.String()) }),
-          t.Object({ tickers: t.Array(t.String()) }),
-        ]),
+        query: t.Object({
+          subsectors: t.Optional(t.String()),
+          tickers: t.Optional(t.String()),
+        }),
       },
     )
+    .get(
+      "/stock/:ticker/fundamental",
+      async ({ params, set }) => {
+        try {
+          const data = await getCompanyFundamental(params.ticker);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get fundamental failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      { params: t.Object({ ticker: t.String() }) },
+    )
+    .get(
+      "/stock/:ticker/bandarmology",
+      async ({ params, query, set }) => {
+        try {
+          const period = query.period || "1m";
+          const data = await getStockBandarmology(params.ticker, period);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get bandarmology failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ ticker: t.String() }),
+        query: t.Object({
+          period: t.Optional(t.Union([t.Literal("1d"), t.Literal("1w"), t.Literal("1m"), t.Literal("3m"), t.Literal("1y")])),
+        }),
+      },
+    )
+    .get(
+      "/stock/:ticker/financials",
+      async ({ params, query, set }) => {
+        try {
+          const reportType = query.reportType || "income-statement";
+          const statementType = query.statementType || "quarterly";
+          const data = await getStockFinancials({ ticker: params.ticker, reportType, statementType });
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get financials failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ ticker: t.String() }),
+        query: t.Object({
+          reportType: t.Optional(t.Union([t.Literal("income-statement"), t.Literal("balance-sheet"), t.Literal("cash-flow")])),
+          statementType: t.Optional(t.Union([t.Literal("quarterly"), t.Literal("annually"), t.Literal("ttm")])),
+        }),
+      },
+    )
+    .get(
+      "/stock/:ticker/management",
+      async ({ params, set }) => {
+        try {
+          const data = await getStockManagement(params.ticker);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get management failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      { params: t.Object({ ticker: t.String() }) },
+    )
+    .get(
+      "/stock/:ticker/ownership",
+      async ({ params, set }) => {
+        try {
+          const data = await getStockOwnership(params.ticker);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get ownership failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      { params: t.Object({ ticker: t.String() }) },
+    )
     .post(
-      "/company/report",
+      "/stockbit-auth/set",
       async ({ body, set }) => {
         try {
-          const result = await getCompanyReport(body);
-          if (!result.success) set.status = 400;
-          return result;
+          await stockbitAuth.set(body);
+          return { success: true };
         } catch (err) {
-          logger.error({ err }, "Get company report failed");
+          logger.error({ err }, "Set auth failed");
           set.status = 500;
-          return { success: false, message: (err as Error).message };
+          return { success: false, error: (err as Error).message };
         }
       },
       {
         body: t.Object({
-          ticker: t.String(),
-          fields: t.Object({
-            ownership: t.Boolean(),
-            management: t.Boolean(),
-            news: t.Boolean(),
-            futureOutlook: t.Boolean(),
-            comparePeers: t.Boolean(),
-            dividendHistory: t.Boolean(),
-            financialsHistory: t.Boolean(),
-            valuationHistory: t.Boolean(),
-          }),
+          refreshToken: t.String(),
+          refreshExpiredAt: t.String(),
+          accessToken: t.String(),
+          accessExpiredAt: t.String(),
         }),
       },
-    );
+    )
+    .get("/stockbit-auth/test", async ({ set }) => {
+      try {
+        await stockbitAuth.test();
+        return { success: true };
+      } catch (err) {
+        logger.error({ err }, "Test auth failed");
+        set.status = 500;
+        return { success: false, error: (err as Error).message };
+      }
+    })
+    .post("/stockbit-auth/refresh", async ({ set }) => {
+      try {
+        await stockbitAuth.refresh();
+        return { success: true };
+      } catch (err) {
+        logger.error({ err }, "Refresh auth failed");
+        set.status = 500;
+        return { success: false, error: (err as Error).message };
+      }
+    });
