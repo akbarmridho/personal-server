@@ -131,7 +131,7 @@ export const getChartbitData = async (input: {
         },
       );
 
-      const data = await response.data;
+      const data = response.data;
 
       return data as JsonValue;
     },

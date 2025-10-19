@@ -31,7 +31,7 @@ export const getPricePerformance = async (ticker: string) => {
         },
       );
 
-      const data = await response.data;
+      const data = response.data;
 
       return data as JsonValue;
     },

@@ -68,7 +68,7 @@ export const getChartbitData = async (ticker: string): Promise<Seasonality> => {
         },
       );
 
-      const data = await response.data;
+      const data = response.data;
 
       return data as JsonValue;
     },
