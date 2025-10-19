@@ -82,6 +82,21 @@ export async function formatMarkdown(
   }
 }
 
+export async function formatHtml(unformatted: string): Promise<string> {
+  try {
+    const formatted = await prettier.format(unformatted, {
+      parser: "html",
+      plugins: [await import("prettier/plugins/html")],
+      proseWrap: "never",
+    });
+
+    return formatted;
+  } catch (error) {
+    console.error("Error formatting Markdown:", error);
+    throw error;
+  }
+}
+
 export function cleanHtml(html: string) {
   const $ = cheerio.load(html);
 
