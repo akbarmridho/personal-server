@@ -1,19 +1,20 @@
 import { checkTicker } from "../../aggregator/companies.js";
 import { getCompanyReport } from "../../aggregator/company-report.js";
+import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getKeystats } from "../../stockbit/keystats.js";
-import { getPricePerformance } from "../../stockbit/price-performance.js";
 import { normalizeSlug } from "../../utils.js";
 
 export const getCompanyFundamental = async (rawTicker: string) => {
   const ticker = await checkTicker(rawTicker);
 
-  const [companyReport, keystats, pricePerformance] = await Promise.all([
+  const [companyReport, keystats, emittenInfo] = await Promise.all([
     getCompanyReport({ ticker }),
     getKeystats(ticker),
-    getPricePerformance(rawTicker),
+    getEmittenInfo({ ticker }),
   ]);
 
   return {
+    // todo fetch latest data from stockbit instead
     overview: {
       ticker: ticker,
       company_name: companyReport.company_name,
@@ -21,6 +22,24 @@ export const getCompanyFundamental = async (rawTicker: string) => {
       subsector: companyReport.sub_sector,
       subsector_slug: normalizeSlug(companyReport.sub_sector),
       listing_date: companyReport.listing_date,
+    },
+    market: {
+      price: +emittenInfo.price,
+      change: +emittenInfo.change,
+      percentage: emittenInfo.percentage,
+      previous: +emittenInfo.previous,
+      average: +emittenInfo.average,
+      volume: +emittenInfo.volume,
+      bid: {
+        price: +emittenInfo.orderbook?.bid?.price || null,
+        volume: +emittenInfo.orderbook?.bid?.volume || null,
+      },
+      offer: {
+        price: +emittenInfo.orderbook?.offer?.price || null,
+        volume: +emittenInfo.orderbook?.offer?.volume || null,
+      },
+      market_status: emittenInfo.market_hour?.status,
+      time_left: emittenInfo.market_hour?.formatted_time_left,
     },
     forecasts: {
       growth: companyReport.company_growth_forecasts,
@@ -33,6 +52,5 @@ export const getCompanyFundamental = async (rawTicker: string) => {
     // ddm value
     // },
     keystats,
-    pricePerformance,
   };
 };
