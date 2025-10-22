@@ -177,9 +177,15 @@ importers:
       sharp:
         specifier: ^0.34.4
         version: 0.34.4
+      technicalindicators:
+        specifier: ^3.1.0
+        version: 3.1.0
       text-segmentation:
         specifier: ^1.0.3
         version: 1.0.3
+      trading-signals:
+        specifier: ^7.0.0
+        version: 7.0.0
       voyageai:
         specifier: ^0.0.8
         version: 0.0.8
@@ -1035,6 +1041,9 @@ packages:
 
   '@types/node@24.3.0':
     resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
+
+  '@types/node@6.14.13':
+    resolution: {integrity: sha512-J1F0XJ/9zxlZel5ZlbeSuHW2OpabrUAqpFuC2sm2I3by8sERQ8+KCjNKUcq8QHuzpGMWiJpo9ZxeHrqrP2KzQw==}
 
   '@types/pg@8.15.5':
     resolution: {integrity: sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ==}
@@ -2865,6 +2874,9 @@ packages:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
     engines: {node: '>=6'}
 
+  technicalindicators@3.1.0:
+    resolution: {integrity: sha512-f16mOc+Y05hNy/of+UbGxhxQQmxUztCiluhsqC5QLUYz4WowUgKde9m6nIjK1Kay0wGHigT0IkOabpp0+22UfA==}
+
   text-segmentation@1.0.3:
     resolution: {integrity: sha512-iOiPUo/BGnZ6+54OsWxZidGCsdU8YbE4PSpdPinp7DeMtUJNJBoJ/ouUSTJjHkh1KntHaltHl/gDs2FC4i5+Nw==}
 
@@ -2914,6 +2926,9 @@ packages:
   tr46@6.0.0:
     resolution: {integrity: sha512-bLVMLPtstlZ4iMQHpFHTR7GAGj2jxi8Dg0s2h2MafAE4uSWF98FC/3MomU51iQAMf8/qDUbKWf5GxuvvVcXEhw==}
     engines: {node: '>=20'}
+
+  trading-signals@7.0.0:
+    resolution: {integrity: sha512-cMdZDcbwAzzBMk/0KtDal7XcMAnXelsykq+dGSrhfdjTrE6u5yONfa5xrKjxsXtTQiDJLllE8cEhFg/EM1Cx/Q==}
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
@@ -3941,6 +3956,8 @@ snapshots:
   '@types/node@24.3.0':
     dependencies:
       undici-types: 7.10.0
+
+  '@types/node@6.14.13': {}
 
   '@types/pg@8.15.5':
     dependencies:
@@ -6119,6 +6136,10 @@ snapshots:
       readable-stream: 3.6.2
     optional: true
 
+  technicalindicators@3.1.0:
+    dependencies:
+      '@types/node': 6.14.13
+
   text-segmentation@1.0.3:
     dependencies:
       utrie: 1.0.2
@@ -6174,6 +6195,8 @@ snapshots:
   tr46@6.0.0:
     dependencies:
       punycode: 2.3.1
+
+  trading-signals@7.0.0: {}
 
   tslib@2.8.1: {}
 

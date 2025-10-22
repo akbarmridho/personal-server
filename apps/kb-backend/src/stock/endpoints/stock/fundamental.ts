@@ -14,7 +14,6 @@ export const getCompanyFundamental = async (rawTicker: string) => {
   ]);
 
   return {
-    // todo fetch latest data from stockbit instead
     overview: {
       ticker: ticker,
       company_name: companyReport.company_name,
