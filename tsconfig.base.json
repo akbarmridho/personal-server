@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2024",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noUnusedLocals": false,
-    "lib": ["es2022"],
+    "lib": ["ES2024"],
     "noEmit": false,
     "strict": true,
     "allowImportingTsExtensions": false,
