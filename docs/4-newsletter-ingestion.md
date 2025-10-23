@@ -57,9 +57,17 @@ The workflow should ensure:
      `GET /rag/collections/{collection_id}/documents?title={feed_title}`
 
      * If a document with the same title exists, skip ingestion.
-   * If not found, ingest the document into KB Backend using the HTML content.
-   * Run ingestion **sequentially** (one item at a time).
-   * Implement a **retry mechanism** for ingestion failures.
+   * If not found, ingest the document into KB Backend using the HTML content on `POST /rag/documents​` endpoint.
+   * **During ingestion** make sure to add the following metadata in the request body **and** include the document date as a top-level field in the request:
+
+     * Include a top-level field `document_date` whose value is the feed's publication date (or creation timestamp).
+     * Include a `metadata` object that contains at least:
+
+       * `category` — derived from the entry type/source (for example: `stockbit-snips`, `makmur-weekly`, or `algo-research`).
+       * `document_version` — must match the feed date or the entry creation date (the same value as `document_date`).
+     * Ensure that the `document_date` top-level field and `metadata.document_version` are supplied and **match** each other.
+     * Run ingestion **sequentially** (one item at a time).
+     * Implement a **retry mechanism** for ingestion failures.
 
 3. **Notify Completion**
 
