@@ -1,6 +1,7 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
+import { dateToFormatted } from "../utils.js";
 import {
   type BaseStockbitResponse,
   StockbitAuthError,
@@ -111,11 +112,11 @@ export const getInsiderActivity = async (input: {
   maxPage: number;
 }) => {
   const fromFormatted = input.from
-    ? dayjs(input.from).format("YYYY-MM-DD")
-    : dayjs().subtract(3, "months").format("YYYY-MM-DD");
+    ? dateToFormatted(input.from)
+    : dateToFormatted(dayjs().subtract(3, "months").toDate());
   const toFormatted = input.to
-    ? dayjs(input.to).format("YYYY-MM-DD")
-    : dayjs().format("YYYY-MM-DD");
+    ? dateToFormatted(input.to)
+    : dateToFormatted(new Date());
 
   const rawData = await KV.getOrSet(
     `stockbit.insider.${input.ticker}.${fromFormatted}.${toFormatted}`,

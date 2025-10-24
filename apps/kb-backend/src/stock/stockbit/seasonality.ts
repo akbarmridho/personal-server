@@ -48,7 +48,9 @@ export interface Seasonality {
   prob: Record<string, number>;
 }
 
-export const getChartbitData = async (ticker: string): Promise<Seasonality> => {
+export const getStockSeasonality = async (
+  ticker: string,
+): Promise<Seasonality> => {
   const year = dayjs().year();
   const rawData = await KV.getOrSet(
     `stockbit.seasonality.${ticker}.${year}`,

@@ -1,9 +1,14 @@
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import { checkTicker } from "../../aggregator/companies.js";
 import { getMarketDetector } from "../../stockbit/market-detector.js";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const getClosestWorkingDay = (date: dayjs.Dayjs): dayjs.Dayjs => {
-  const day = date.day();
+  const day = date.tz("Asia/Jakarta").day();
   if (day === 0) return date.subtract(2, "day"); // Sunday -> Friday
   if (day === 6) return date.subtract(1, "day"); // Saturday -> Friday
   return date;

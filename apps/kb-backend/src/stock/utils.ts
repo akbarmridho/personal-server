@@ -1,3 +1,14 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+export const dateToFormatted = (date: Date) => {
+  return dayjs(date).tz("Asia/Jakarta").format("YYYY-MM-DD");
+};
+
 /**
  * Function wrapper that adds simple in-memory caching.
  * The cache is unique per wrapped function.

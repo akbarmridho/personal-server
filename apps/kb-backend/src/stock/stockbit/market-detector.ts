@@ -2,6 +2,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonValue } from "../../db/types.js";
+import { dateToFormatted } from "../utils.js";
 import {
   type BaseStockbitResponse,
   StockbitAuthError,
@@ -13,8 +14,8 @@ export const getMarketDetector = async (input: {
   from: Date;
   to: Date;
 }) => {
-  const fromFormatted = dayjs(input.from).format("YYYY-MM-DD");
-  const toFormatted = dayjs(input.to).format("YYYY-MM-DD");
+  const fromFormatted = dateToFormatted(input.from);
+  const toFormatted = dateToFormatted(input.to);
 
   const rawData = await KV.getOrSet(
     `stockbit.marketdetector.${input.ticker}.${fromFormatted}.${toFormatted}`,
