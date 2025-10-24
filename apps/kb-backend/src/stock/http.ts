@@ -3,11 +3,13 @@ import { Elysia, t } from "elysia";
 import { getCompanies } from "./aggregator/companies.js";
 import { getSectors } from "./aggregator/sectors.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";
+import { getIHSGOverview } from "./endpoints/ihsg/overview.js";
 import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
+import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 
 export const setupStockRoutes = () =>
@@ -26,7 +28,7 @@ export const setupStockRoutes = () =>
       "/sectors/report",
       async ({ query, set }) => {
         try {
-          const subsectors = query.subsectors?.split(',') || [];
+          const subsectors = query.subsectors?.split(",") || [];
           const result = await getSectorsReport({ subsectors });
           if (!result.success) set.status = 400;
           return result;
@@ -43,8 +45,8 @@ export const setupStockRoutes = () =>
       async ({ query, set }) => {
         try {
           const body = query.subsectors
-            ? { subsectors: query.subsectors.split(',') }
-            : { tickers: query.tickers!.split(',') };
+            ? { subsectors: query.subsectors.split(",") }
+            : { tickers: query.tickers!.split(",") };
           const result = await getCompanies(body);
           if (!result.success) set.status = 400;
           return result;
@@ -91,7 +93,15 @@ export const setupStockRoutes = () =>
       {
         params: t.Object({ ticker: t.String() }),
         query: t.Object({
-          period: t.Optional(t.Union([t.Literal("1d"), t.Literal("1w"), t.Literal("1m"), t.Literal("3m"), t.Literal("1y")])),
+          period: t.Optional(
+            t.Union([
+              t.Literal("1d"),
+              t.Literal("1w"),
+              t.Literal("1m"),
+              t.Literal("3m"),
+              t.Literal("1y"),
+            ]),
+          ),
         }),
       },
     )
@@ -101,7 +111,11 @@ export const setupStockRoutes = () =>
         try {
           const reportType = query.reportType || "income-statement";
           const statementType = query.statementType || "quarterly";
-          const data = await getStockFinancials({ ticker: params.ticker, reportType, statementType });
+          const data = await getStockFinancials({
+            ticker: params.ticker,
+            reportType,
+            statementType,
+          });
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get financials failed");
@@ -112,8 +126,20 @@ export const setupStockRoutes = () =>
       {
         params: t.Object({ ticker: t.String() }),
         query: t.Object({
-          reportType: t.Optional(t.Union([t.Literal("income-statement"), t.Literal("balance-sheet"), t.Literal("cash-flow")])),
-          statementType: t.Optional(t.Union([t.Literal("quarterly"), t.Literal("annually"), t.Literal("ttm")])),
+          reportType: t.Optional(
+            t.Union([
+              t.Literal("income-statement"),
+              t.Literal("balance-sheet"),
+              t.Literal("cash-flow"),
+            ]),
+          ),
+          statementType: t.Optional(
+            t.Union([
+              t.Literal("quarterly"),
+              t.Literal("annually"),
+              t.Literal("ttm"),
+            ]),
+          ),
         }),
       },
     )
@@ -145,6 +171,30 @@ export const setupStockRoutes = () =>
       },
       { params: t.Object({ ticker: t.String() }) },
     )
+    .get(
+      "/stock/:ticker/technical",
+      async ({ params, set }) => {
+        try {
+          const data = await getStockTechnicals(params.ticker);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get technicals failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      { params: t.Object({ ticker: t.String() }) },
+    )
+    .get("/ihsg/technical", async ({ set }) => {
+      try {
+        const data = await getIHSGOverview();
+        return { success: true, data };
+      } catch (err) {
+        logger.error({ err }, "Get IHSG Overview failed");
+        set.status = 500;
+        return { success: false, error: (err as Error).message };
+      }
+    })
     .post(
       "/stockbit-auth/set",
       async ({ body, set }) => {

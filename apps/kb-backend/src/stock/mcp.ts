@@ -8,11 +8,13 @@ import {
   GetSectorsReportParams,
   getSectorsReport,
 } from "./aggregator/sectors-report.js";
+import { getIHSGOverview } from "./endpoints/ihsg/overview.js";
 import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
+import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 
 export const setupStockMcp = async () => {
   const server = new FastMCP({
@@ -37,7 +39,7 @@ export const setupStockMcp = async () => {
         logger.info({ count: data.length }, "Get sectors completed");
         return {
           type: "text",
-          text: JSON.stringify({ success: true, data }, null, 2),
+          text: JSON.stringify({ success: true, data }),
         };
       } catch (error) {
         logger.error({ error }, "Get sectors failed");
@@ -79,7 +81,7 @@ export const setupStockMcp = async () => {
         );
         return {
           type: "text",
-          text: JSON.stringify(result, null, 2),
+          text: JSON.stringify(result),
         };
       } catch (error) {
         logger.error(
@@ -121,7 +123,7 @@ export const setupStockMcp = async () => {
         );
         return {
           type: "text",
-          text: JSON.stringify(result, null, 2),
+          text: JSON.stringify(result),
         };
       } catch (error) {
         logger.error({ error, args }, "Get companies failed");
@@ -156,7 +158,7 @@ export const setupStockMcp = async () => {
         logger.info({ ticker: args.ticker }, "Get fundamental completed");
         return {
           type: "text",
-          text: JSON.stringify({ success: true, data }, null, 2),
+          text: JSON.stringify({ success: true, data }),
         };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get fundamental failed");
@@ -197,7 +199,7 @@ export const setupStockMcp = async () => {
         logger.info({ ticker: args.ticker }, "Get bandarmology completed");
         return {
           type: "text",
-          text: JSON.stringify({ success: true, data }, null, 2),
+          text: JSON.stringify({ success: true, data }),
         };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get bandarmology failed");
@@ -243,7 +245,7 @@ export const setupStockMcp = async () => {
         logger.info({ ticker: args.ticker }, "Get financials completed");
         return {
           type: "text",
-          text: JSON.stringify({ success: true, data }, null, 2),
+          text: JSON.stringify({ success: true, data }),
         };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get financials failed");
@@ -279,7 +281,7 @@ export const setupStockMcp = async () => {
         logger.info({ ticker: args.ticker }, "Get management completed");
         return {
           type: "text",
-          text: JSON.stringify({ success: true, data }, null, 2),
+          text: JSON.stringify({ success: true, data }),
         };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get management failed");
@@ -315,10 +317,82 @@ export const setupStockMcp = async () => {
         logger.info({ ticker: args.ticker }, "Get ownership completed");
         return {
           type: "text",
-          text: JSON.stringify({ success: true, data }, null, 2),
+          text: JSON.stringify({ success: true, data }),
         };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get ownership failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  success: false,
+                  error: error instanceof Error ? error.message : String(error),
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-stock-technical",
+    description:
+      "Returns technical analysis data for a specific stock ticker including indicators, patterns, and seasonality.",
+    parameters: z.object({ ticker: z.string() }),
+    execute: async (args) => {
+      logger.info({ ticker: args.ticker }, "Executing get-stock-technical");
+      try {
+        const data = await getStockTechnicals(args.ticker);
+        logger.info({ ticker: args.ticker }, "Get technicals completed");
+        return {
+          type: "text",
+          text: JSON.stringify({ success: true, data }),
+        };
+      } catch (error) {
+        logger.error({ error, ticker: args.ticker }, "Get technicals failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  success: false,
+                  error: error instanceof Error ? error.message : String(error),
+                },
+                null,
+                2,
+              ),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-ihsg-overview",
+    description:
+      "Returns IHSG (Indonesia Stock Exchange Composite Index) overview with market data, technical indicators, and seasonality.",
+    parameters: z.object({}),
+    execute: async () => {
+      logger.info("Executing get-ihsg-overview");
+      try {
+        const data = await getIHSGOverview();
+        logger.info("Get IHSG overview completed");
+        return {
+          type: "text",
+          text: JSON.stringify({ success: true, data }),
+        };
+      } catch (error) {
+        logger.error({ error }, "Get IHSG overview failed");
         return {
           content: [
             {
