@@ -13,7 +13,7 @@ import {
   VolumeProfile,
 } from "technicalindicators";
 import type StockData from "technicalindicators/declarations/StockData.js";
-import stockdata from "technicalindicators/declarations/StockData.js";
+import stockdata from "technicalindicators/dist/StockData.js";
 import { ADX, EMA, MACD, OBV, SMA, ZigZag } from "trading-signals";
 import type { ChartbitData } from "./stockbit/chartbit.js";
 
