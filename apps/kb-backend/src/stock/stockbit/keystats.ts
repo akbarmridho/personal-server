@@ -48,7 +48,7 @@ export const getKeystats = async (ticker: string) => {
       }
 
       const response = await axios.get(
-        `https://exodus.stockbit.com/keystats/ratio/v1/${ticker}}?year_limit=10`,
+        `https://exodus.stockbit.com/keystats/ratio/v1/${ticker}?year_limit=10`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,
