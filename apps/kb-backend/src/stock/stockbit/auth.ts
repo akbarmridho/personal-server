@@ -23,7 +23,7 @@ export class StockbitAuth {
   private fetched: boolean = false;
 
   private async ensureFetched() {
-    if (!this.fetched) {
+    if (this.fetched) {
       return;
     }
 
