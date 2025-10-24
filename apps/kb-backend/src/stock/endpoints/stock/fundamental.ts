@@ -2,7 +2,7 @@ import { checkTicker } from "../../aggregator/companies.js";
 import { getCompanyReport } from "../../aggregator/company-report.js";
 import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getKeystats } from "../../stockbit/keystats.js";
-import { normalizeSlug } from "../../utils.js";
+import { normalizeSlug, removeKeysRecursive } from "../../utils.js";
 
 export const getCompanyFundamental = async (rawTicker: string) => {
   const ticker = await checkTicker(rawTicker);
@@ -13,7 +13,7 @@ export const getCompanyFundamental = async (rawTicker: string) => {
     getEmittenInfo({ ticker }),
   ]);
 
-  return {
+  const data = {
     overview: {
       ticker: ticker,
       company_name: companyReport.company_name,
@@ -52,4 +52,6 @@ export const getCompanyFundamental = async (rawTicker: string) => {
     // },
     keystats,
   };
+
+  return removeKeysRecursive(data, ["is_new_update"]);
 };

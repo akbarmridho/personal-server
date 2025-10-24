@@ -123,8 +123,9 @@ export const getChartbitData = async (input: {
         throw new StockbitAuthError("Stockbit auth not found");
       }
 
+      // somehow stockbit swap the from and to date filtering logic. not sure why they did this
       const response = await axios.get(
-        `https://exodus.stockbit.com/chartbit/${input.ticker}/price/daily?from=${fromFormatted}&to=${toFormatted}&limit=0`,
+        `https://exodus.stockbit.com/chartbit/${input.ticker}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

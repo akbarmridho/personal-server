@@ -172,6 +172,22 @@ async function transformFinancialReport(
   return await formatHtml(newHtml.join("\n"));
 }
 
+function sanitizeJson(obj: any): any {
+  if (typeof obj === "string") {
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: sanitize
+    return obj.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeJson);
+  }
+  if (obj && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, sanitizeJson(v)]),
+    );
+  }
+  return obj;
+}
+
 const mapper = {
   reportType: {
     "income-statement": 1,
@@ -208,9 +224,7 @@ export const getFinancials = async (input: {
         },
       );
 
-      const data = response.data;
-
-      return data as JsonValue;
+      return sanitizeJson(response.data) as JsonValue;
     },
     dayjs().add(3, "hour").toDate(),
     true,
