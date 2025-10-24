@@ -1,15 +1,18 @@
-import { IchimokuCloud, VolumeProfile } from "technicalindicators";
-import BearishEngulfingPattern from "technicalindicators/declarations/candlestick/BearishEngulfingPattern.js";
-import BullishEngulfingPattern from "technicalindicators/declarations/candlestick/BullishEngulfingPattern.js";
-import BullishHammerStick from "technicalindicators/declarations/candlestick/BullishHammerStick.js";
-import type CandlestickFinder from "technicalindicators/declarations/candlestick/CandlestickFinder.js";
-import DarkCloudCover from "technicalindicators/declarations/candlestick/DarkCloudCover.js";
-import EveningStar from "technicalindicators/declarations/candlestick/EveningStar.js";
-import MorningStar from "technicalindicators/declarations/candlestick/MorningStar.js";
-import PiercingLine from "technicalindicators/declarations/candlestick/PiercingLine.js";
-import ShootingStar from "technicalindicators/declarations/candlestick/ShootingStar.js";
-import ThreeWhiteSoldiers from "technicalindicators/declarations/candlestick/ThreeWhiteSoldiers.js";
-import TweezerBottom from "technicalindicators/declarations/candlestick/TweezerBottom.js";
+import {
+  bearishengulfingpattern,
+  bullishengulfingpattern,
+  bullishhammerstick,
+  darkcloudcover,
+  eveningstar,
+  IchimokuCloud,
+  morningstar,
+  piercingline,
+  shootingstar,
+  threewhitesoldiers,
+  tweezerbottom,
+  VolumeProfile,
+} from "technicalindicators";
+import type StockData from "technicalindicators/declarations/StockData.js";
 import stockdata from "technicalindicators/declarations/StockData.js";
 import { ADX, EMA, MACD, OBV, SMA, ZigZag } from "trading-signals";
 import type { ChartbitData } from "./stockbit/chartbit.js";
@@ -422,26 +425,26 @@ export function calculateIchimoku(
 
 interface PatternInfo {
   name: string;
-  instance: CandlestickFinder.default;
+  instance: (data: StockData.default) => any;
 }
 
 const ALL_PATTERNS_TO_SCAN: PatternInfo[] = [
   {
     name: "Bullish Engulfing",
-    instance: new BullishEngulfingPattern.default(),
+    instance: bullishengulfingpattern,
   },
-  { name: "Bullish Hammer", instance: new BullishHammerStick.default() },
-  { name: "Morning Star", instance: new MorningStar.default() },
-  { name: "Piercing Line", instance: new PiercingLine.default() },
-  { name: "Tweezer Bottom", instance: new TweezerBottom.default() },
-  { name: "Three White Soldiers", instance: new ThreeWhiteSoldiers.default() },
+  { name: "Bullish Hammer", instance: bullishhammerstick },
+  { name: "Morning Star", instance: morningstar },
+  { name: "Piercing Line", instance: piercingline },
+  { name: "Tweezer Bottom", instance: tweezerbottom },
+  { name: "Three White Soldiers", instance: threewhitesoldiers },
   {
     name: "Bearish Engulfing",
-    instance: new BearishEngulfingPattern.default(),
+    instance: bearishengulfingpattern,
   },
-  { name: "Shooting Star", instance: new ShootingStar.default() },
-  { name: "Evening Star", instance: new EveningStar.default() },
-  { name: "Dark Cloud Cover", instance: new DarkCloudCover.default() },
+  { name: "Shooting Star", instance: shootingstar },
+  { name: "Evening Star", instance: eveningstar },
+  { name: "Dark Cloud Cover", instance: darkcloudcover },
 ];
 
 export interface CandlestickEvent {
@@ -481,7 +484,7 @@ export function scanForRecentPatterns(
     );
 
     for (const pattern of ALL_PATTERNS_TO_SCAN) {
-      if (pattern.instance.hasPattern(stockDataInput)) {
+      if (pattern.instance(stockDataInput)) {
         patternsFoundInScan.push({
           date: currentCandle.date,
           event: pattern.name,
