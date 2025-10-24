@@ -41,7 +41,7 @@ export const getSectorsReport = async (
       "stock.aggregator.sectors-report",
       async () => {
         const response = await axios.get(
-          env.AGGREGATOR_COMPANY_REPORT_ENDPOINT,
+          env.AGGREGATOR_SECTORS_REPORT_ENDPOINT,
           {
             headers: {
               ...JSON.parse(env.AGGREGATOR_AUTH),
