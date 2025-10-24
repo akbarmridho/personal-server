@@ -102,6 +102,9 @@ importers:
       '@t3-oss/env-core':
         specifier: catalog:core
         version: 0.13.8(typescript@5.9.2)(zod@4.1.11)
+      '@thuantan2060/technicalindicators':
+        specifier: ^4.1.3
+        version: 4.1.3
       ai:
         specifier: ^5.0.51
         version: 5.0.51(zod@4.1.11)
@@ -177,9 +180,6 @@ importers:
       sharp:
         specifier: ^0.34.4
         version: 0.34.4
-      technicalindicators:
-        specifier: ^3.1.0
-        version: 3.1.0
       text-segmentation:
         specifier: ^1.0.3
         version: 1.0.3
@@ -981,6 +981,10 @@ packages:
       zod:
         optional: true
 
+  '@thuantan2060/technicalindicators@4.1.3':
+    resolution: {integrity: sha512-+zbT6VhYZflXuSmWmdTjOS1PxPnsqOP2KLxRg+W6cY/xwmS1uvLWeIzJ0WEh3I3Ki24tL3vMgN1GwnN8bB1siQ==}
+    engines: {node: '>=16.0.0'}
+
   '@tokenizer/inflate@0.2.7':
     resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
     engines: {node: '>=18'}
@@ -1030,14 +1034,14 @@ packages:
   '@types/node-forge@1.3.14':
     resolution: {integrity: sha512-mhVF2BnD4BO+jtOp7z1CdzaK4mbuK0LLQYAvdOLqHTavxFNq4zA1EmYkpnFjP8HOUzedfQkRnp0E2ulSAYSzAw==}
 
+  '@types/node@20.19.23':
+    resolution: {integrity: sha512-yIdlVVVHXpmqRhtyovZAcSy0MiPcYWGkoO4CGe/+jpP0hmNuihm4XhHbADpK++MsiLHP5MVlv+bcgdF99kSiFQ==}
+
   '@types/node@22.17.2':
     resolution: {integrity: sha512-gL6z5N9Jm9mhY+U2KXZpteb+09zyffliRkZyZOHODGATyC5B1Jt/7TzuuiLkFsSUMLbS1OLmlj/E+/3KF4Q/4w==}
 
   '@types/node@24.3.0':
     resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
-
-  '@types/node@6.14.13':
-    resolution: {integrity: sha512-J1F0XJ/9zxlZel5ZlbeSuHW2OpabrUAqpFuC2sm2I3by8sERQ8+KCjNKUcq8QHuzpGMWiJpo9ZxeHrqrP2KzQw==}
 
   '@types/pg@8.15.5':
     resolution: {integrity: sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ==}
@@ -2862,9 +2866,6 @@ packages:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
     engines: {node: '>=6'}
 
-  technicalindicators@3.1.0:
-    resolution: {integrity: sha512-f16mOc+Y05hNy/of+UbGxhxQQmxUztCiluhsqC5QLUYz4WowUgKde9m6nIjK1Kay0wGHigT0IkOabpp0+22UfA==}
-
   text-segmentation@1.0.3:
     resolution: {integrity: sha512-iOiPUo/BGnZ6+54OsWxZidGCsdU8YbE4PSpdPinp7DeMtUJNJBoJ/ouUSTJjHkh1KntHaltHl/gDs2FC4i5+Nw==}
 
@@ -3848,6 +3849,10 @@ snapshots:
       typescript: 5.9.2
       zod: 4.1.11
 
+  '@thuantan2060/technicalindicators@4.1.3':
+    dependencies:
+      '@types/node': 20.19.23
+
   '@tokenizer/inflate@0.2.7':
     dependencies:
       debug: 4.4.1
@@ -3915,6 +3920,10 @@ snapshots:
     dependencies:
       '@types/node': 24.3.0
 
+  '@types/node@20.19.23':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@22.17.2':
     dependencies:
       undici-types: 6.21.0
@@ -3922,8 +3931,6 @@ snapshots:
   '@types/node@24.3.0':
     dependencies:
       undici-types: 7.10.0
-
-  '@types/node@6.14.13': {}
 
   '@types/pg@8.15.5':
     dependencies:
@@ -6095,10 +6102,6 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
     optional: true
-
-  technicalindicators@3.1.0:
-    dependencies:
-      '@types/node': 6.14.13
 
   text-segmentation@1.0.3:
     dependencies:

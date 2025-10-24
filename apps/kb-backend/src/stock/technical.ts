@@ -11,9 +11,7 @@ import {
   threewhitesoldiers,
   tweezerbottom,
   VolumeProfile,
-} from "technicalindicators";
-import type StockData from "technicalindicators/declarations/StockData.js";
-import stockdata from "technicalindicators/dist/StockData.js";
+} from "@thuantan2060/technicalindicators";
 import { ADX, EMA, MACD, OBV, SMA, ZigZag } from "trading-signals";
 import type { ChartbitData } from "./stockbit/chartbit.js";
 
@@ -423,9 +421,22 @@ export function calculateIchimoku(
   return allResults.slice(-n);
 }
 
+export class StockData {
+  reversedInput?: boolean;
+  constructor(
+    public open: number[],
+    public high: number[],
+    public low: number[],
+    public close: number[],
+    reversedInput: boolean,
+  ) {
+    this.reversedInput = reversedInput;
+  }
+}
+
 interface PatternInfo {
   name: string;
-  instance: (data: StockData.default) => any;
+  instance: (data: StockData) => any;
 }
 
 const ALL_PATTERNS_TO_SCAN: PatternInfo[] = [
@@ -475,7 +486,7 @@ export function scanForRecentPatterns(
   for (let i = startIndex; i < sortedData.length; i++) {
     const currentCandle = sortedData[i];
 
-    const stockDataInput = new stockdata.default(
+    const stockDataInput = new StockData(
       fullOpen.slice(0, i + 1),
       fullHigh.slice(0, i + 1),
       fullLow.slice(0, i + 1),
