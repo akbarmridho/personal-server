@@ -1,4 +1,5 @@
 import { logger } from "@personal-server/common/utils/logger";
+import { sql } from "kysely";
 import { db } from "./db.js";
 import type { Json } from "./types.js";
 
@@ -32,12 +33,12 @@ export class KV {
       .insertInto("kv_store")
       .values({
         key,
-        value,
+        value: sql`${JSON.stringify(value)}::jsonb`,
         expires_at: expiresAt || null,
       })
       .onConflict((oc) =>
         oc.column("key").doUpdateSet({
-          value,
+          value: sql`${JSON.stringify(value)}::jsonb`,
           expires_at: expiresAt || null,
           updated_at: new Date(),
         }),
