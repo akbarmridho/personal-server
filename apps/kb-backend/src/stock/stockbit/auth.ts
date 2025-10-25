@@ -20,14 +20,12 @@ export class StockbitAuthError extends Error {}
 
 export class StockbitAuth {
   private authData: AuthData | null = null;
-  private fetched: boolean = false;
 
   private async ensureFetched() {
-    if (this.fetched) {
+    if (this.authData !== null) {
       return;
     }
 
-    this.fetched = true;
     const data = await KV.get(key);
 
     if (data === null) {
