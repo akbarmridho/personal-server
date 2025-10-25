@@ -59,8 +59,8 @@ export const getRawCompanies = withMemoryCache(
   30 * 60 * 1000,
 );
 
-export const GetCompaniesParams = z.union([
-  z.object({
+export const GetCompaniesParams = z
+  .object({
     subsectors: z
       .string()
       .array()
@@ -68,12 +68,17 @@ export const GetCompaniesParams = z.union([
         `Array of subsector slugs. Supported slugs: ${Array.from(
           supportedSubsectors,
         ).join(", ")}`,
-      ),
-  }),
-  z.object({
-    tickers: z.string().array().describe("Array of stock ticker symbols"),
-  }),
-]);
+      )
+      .optional(),
+    tickers: z
+      .string()
+      .array()
+      .describe("Array of stock ticker symbols")
+      .optional(),
+  })
+  .refine((data) => data.subsectors || data.tickers, {
+    message: "Either subsectors or tickers must be provided",
+  });
 
 export const getCompanies = async (
   input: z.infer<typeof GetCompaniesParams>,
@@ -83,7 +88,7 @@ export const getCompanies = async (
   try {
     const data = await getRawCompanies();
 
-    if ("subsectors" in input) {
+    if (input.subsectors) {
       const normalizedInput = input.subsectors.map((s) =>
         supportedSubsectors.has(s) ? s : normalizeSlug(s),
       );
@@ -108,17 +113,22 @@ export const getCompanies = async (
         .sort((a, b) => a.ticker.localeCompare(b.ticker));
 
       return { success: true, data: filtered };
+    } else if (input.tickers) {
+      const normalizedTickers = input.tickers.map((e) =>
+        e.toUpperCase().replaceAll(".JK", ""),
+      );
+
+      const filtered = data
+        .filter((item) => normalizedTickers.includes(item.ticker))
+        .sort((a, b) => a.ticker.localeCompare(b.ticker));
+
+      return { success: true, data: filtered };
     }
 
-    const normalizedTickers = input.tickers.map((e) =>
-      e.toUpperCase().replaceAll(".JK", ""),
-    );
-
-    const filtered = data
-      .filter((item) => normalizedTickers.includes(item.ticker))
-      .sort((a, b) => a.ticker.localeCompare(b.ticker));
-
-    return { success: true, data: filtered };
+    return {
+      success: false,
+      message: "Either tickers or subsectors must be set",
+    };
   } catch (error) {
     logger.error({ err: error }, "Failed to get companies");
     return { success: false, message: "Failed to get companies" };
