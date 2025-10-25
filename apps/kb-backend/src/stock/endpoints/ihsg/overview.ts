@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-import { checkTicker } from "../../aggregator/companies.js";
 import { getChartbitData } from "../../stockbit/chartbit.js";
 import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getStockSeasonality } from "../../stockbit/seasonality.js";
@@ -11,6 +10,7 @@ import {
   calculateSMA,
   calculateVolumeProfile,
   calculateZigZag,
+  downsampleToWeekly,
   scanForRecentPatterns,
 } from "../../technical.js";
 
@@ -26,6 +26,8 @@ export const getIHSGOverview = async () => {
     }),
     getEmittenInfo({ ticker }),
   ]);
+
+  const sortedAsc = chartbit.toSorted((a, b) => a.unixdate - b.unixdate);
 
   return {
     market: {
@@ -46,10 +48,13 @@ export const getIHSGOverview = async () => {
       market_status: emittenInfo.market_hour?.status,
       time_left: emittenInfo.market_hour?.formatted_time_left,
     },
-    price_1w: chartbit.toSorted((a, b) => a.unixdate - b.unixdate).slice(-5),
+    price_1w: sortedAsc.slice(-5).reverse(),
     seasonality,
+    zigzag: {
+      period_3y_sample_weekly: calculateZigZag(downsampleToWeekly(sortedAsc)),
+      period_3m_sample_daily: calculateZigZag(sortedAsc.slice(-60)),
+    },
     technical: {
-      zigzag: calculateZigZag(chartbit),
       sma50: calculateSMA(chartbit, 50),
       sma200: calculateSMA(chartbit, 200),
       adx14: calculateADX(chartbit, 14),

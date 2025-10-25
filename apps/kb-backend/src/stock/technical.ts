@@ -21,26 +21,53 @@ export interface ZigZagData {
   type: "peak" | "bottom";
 }
 
-export const calculateZigZag = (data: ChartbitData[]) => {
+export const downsampleToWeekly = (data: ChartbitData[]): ChartbitData[] => {
   const sorted = data.toSorted((a, b) => a.unixdate - b.unixdate);
+  const weeklyData: ChartbitData[] = [];
+  const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
-  const zigzag = new ZigZag({ deviation: 10 });
+  for (let i = 0; i < sorted.length; i++) {
+    const weekStart = sorted[i];
+    const weekEnd = weekStart.unixdate + WEEK_IN_SECONDS;
+    const weekCandles = [weekStart];
 
+    while (i + 1 < sorted.length && sorted[i + 1].unixdate < weekEnd) {
+      weekCandles.push(sorted[++i]);
+    }
+
+    weeklyData.push({
+      ...weekStart,
+      open: weekCandles[0].open,
+      high: Math.max(...weekCandles.map((c) => c.high)),
+      low: Math.min(...weekCandles.map((c) => c.low)),
+      close: weekCandles[weekCandles.length - 1].close,
+      volume: weekCandles.reduce((sum, c) => sum + c.volume, 0),
+      value: weekCandles.reduce((sum, c) => sum + c.value, 0),
+      foreignbuy: weekCandles.reduce((sum, c) => sum + c.foreignbuy, 0),
+      foreignsell: weekCandles.reduce((sum, c) => sum + c.foreignsell, 0),
+      foreignflow: weekCandles.reduce((sum, c) => sum + c.foreignflow, 0),
+      frequency: weekCandles.reduce((sum, c) => sum + c.frequency, 0),
+    });
+  }
+
+  return weeklyData;
+};
+
+export const calculateZigZag = (data: ChartbitData[], deviation = 15) => {
+  const zigzag = new ZigZag({ deviation });
   const result: ZigZagData[] = [];
 
-  for (const each of sorted) {
+  for (const each of data) {
     const pivotPrice = zigzag.add({
       high: each.high,
       low: each.low,
     });
 
     if (pivotPrice !== null) {
-      const type = pivotPrice === each.high ? "peak" : "bottom";
-
       result.push({
         date: each.date,
         price: pivotPrice,
-        type,
+        type: pivotPrice === each.high ? "peak" : "bottom",
       });
     }
   }

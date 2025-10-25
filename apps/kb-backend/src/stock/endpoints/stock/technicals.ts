@@ -10,6 +10,7 @@ import {
   calculateSMA,
   calculateVolumeProfile,
   calculateZigZag,
+  downsampleToWeekly,
   scanForRecentPatterns,
 } from "../../technical.js";
 
@@ -25,11 +26,16 @@ export const getStockTechnicals = async (rawTicker: string) => {
     }),
   ]);
 
+  const sortedAsc = chartbit.toSorted((a, b) => a.unixdate - b.unixdate);
+
   return {
-    price_1w: chartbit.toSorted((a, b) => a.unixdate - b.unixdate).slice(-5),
+    price_1w: sortedAsc.slice(-5).reverse(),
     seasonality,
+    zigzag: {
+      period_3y_sample_weekly: calculateZigZag(downsampleToWeekly(sortedAsc)),
+      period_3m_sample_daily: calculateZigZag(sortedAsc.slice(-60)),
+    },
     technical: {
-      zigzag: calculateZigZag(chartbit),
       sma50: calculateSMA(chartbit, 50),
       sma200: calculateSMA(chartbit, 200),
       adx14: calculateADX(chartbit, 14),
