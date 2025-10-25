@@ -265,6 +265,7 @@ After performing the steps above, call the \`search-knowledge-base\` tool with a
       enableJsonResponse: true,
       stateless: true,
       port: env.RAG_MCP_PORT,
+      host: "0.0.0.0",
     },
   });
 

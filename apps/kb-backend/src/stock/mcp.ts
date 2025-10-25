@@ -419,6 +419,7 @@ export const setupStockMcp = async () => {
       enableJsonResponse: true,
       stateless: true,
       port: env.STOCK_MCP_PORT,
+      host: "0.0.0.0",
     },
   });
 

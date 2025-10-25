@@ -43,7 +43,10 @@ export const setupInternetMcp = async () => {
           citations: result.citations,
         };
 
-        logger.info({ query, citationCount: result.citations.length }, "General search completed");
+        logger.info(
+          { query, citationCount: result.citations.length },
+          "General search completed",
+        );
         return { type: "text", text: JSON.stringify(returnObj, null, 2) };
       } catch (error) {
         logger.error({ error, query }, "General search failed");
@@ -92,7 +95,10 @@ export const setupInternetMcp = async () => {
           citations: result.citations,
         };
 
-        logger.info({ query, citationCount: result.citations.length }, "Investment search completed");
+        logger.info(
+          { query, citationCount: result.citations.length },
+          "Investment search completed",
+        );
         return { type: "text", text: JSON.stringify(returnObj, null, 2) };
       } catch (error) {
         logger.error({ error, query }, "Investment search failed");
@@ -122,7 +128,10 @@ export const setupInternetMcp = async () => {
     description:
       "Fetches and extracts content from a URL. Returns the page content in markdown format. Can optionally use vision model to read page screenshots for complex layouts.",
     parameters: z.object({
-      url: z.string().url().describe("The URL to fetch and extract content from."),
+      url: z
+        .string()
+        .url()
+        .describe("The URL to fetch and extract content from."),
       readImage: z
         .boolean()
         .default(false)
@@ -144,7 +153,10 @@ export const setupInternetMcp = async () => {
           contentLength: content.length,
         };
 
-        logger.info({ url, readImage, contentLength: content.length }, "URL crawl completed");
+        logger.info(
+          { url, readImage, contentLength: content.length },
+          "URL crawl completed",
+        );
         return { type: "text", text: JSON.stringify(returnObj, null, 2) };
       } catch (error) {
         logger.error({ error, url }, "URL crawl failed");
@@ -175,6 +187,7 @@ export const setupInternetMcp = async () => {
       enableJsonResponse: true,
       stateless: true,
       port: env.INTERNET_MCP_PORT,
+      host: "0.0.0.0",
     },
   });
 
