@@ -32,7 +32,10 @@ export const getStockTechnicals = async (rawTicker: string) => {
     price_1w: sortedAsc.slice(-5).reverse(),
     seasonality,
     zigzag: {
-      period_3y_sample_weekly: calculateZigZag(downsampleToWeekly(sortedAsc)),
+      period_3y_sample_weekly: calculateZigZag(
+        downsampleToWeekly(sortedAsc),
+        20,
+      ),
       period_3m_sample_daily: calculateZigZag(sortedAsc.slice(-60)),
     },
     technical: {
