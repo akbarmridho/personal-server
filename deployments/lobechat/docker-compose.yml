@@ -25,7 +25,7 @@ services:
       - "akbarmr.dev:host-gateway"
 
   lobe:
-    image: lobehub/lobe-chat-database:1.133.4
+    image: lobehub/lobe-chat-database:1.142.0
     container_name: lobe-chat
     ports:
       - 8008:3210
