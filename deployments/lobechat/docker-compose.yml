@@ -35,7 +35,6 @@ services:
       NEXT_AUTH_SSO_PROVIDERS: casdoor
       DATABASE_URL: postgresql://postgres:postgres@postgres_main:5432/lobe
       LLM_VISION_IMAGE_USE_BASE64: 1
-      FEATURE_FLAGS: "-check_updates,-welcome_suggest"
     env_file:
       - .env
     restart: unless-stopped
