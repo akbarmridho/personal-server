@@ -3,10 +3,10 @@ import { KV } from "../../db/kv.js";
 import type { JsonObject } from "../../db/types.js";
 
 export interface AuthData {
-  refreshToken: string;
-  refreshExpiredAt: string;
+  // refreshToken: string;
+  // refreshExpiredAt: string;
   accessToken: string;
-  accessExpiredAt: string;
+  // accessExpiredAt: string;
 }
 
 export interface BaseStockbitResponse<T> {
@@ -14,7 +14,7 @@ export interface BaseStockbitResponse<T> {
   data: T;
 }
 
-const key = "stockbit.auth";
+const key = "stockbit.authv2";
 
 export class StockbitAuthError extends Error {}
 
@@ -72,49 +72,49 @@ export class StockbitAuth {
     }
   }
 
-  async refresh() {
-    await this.ensureFetched();
-    if (this.authData === null) {
-      throw new StockbitAuthError("Auth data is not set");
-    }
+  // async refresh() {
+  //   await this.ensureFetched();
+  //   if (this.authData === null) {
+  //     throw new StockbitAuthError("Auth data is not set");
+  //   }
 
-    try {
-      const response = await axios.post(
-        "https://exodus.stockbit.com/login/refresh",
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.authData.refreshToken}`,
-          },
-        },
-      );
+  //   try {
+  //     const response = await axios.post(
+  //       "https://exodus.stockbit.com/login/refresh",
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           Authorization: `Bearer ${this.authData.refreshToken}`,
+  //         },
+  //       },
+  //     );
 
-      const data = response.data as {
-        message: string;
-        data: {
-          access: { token: string; expired_at: string };
-          refresh: { token: string; expired_at: string };
-        };
-      };
+  //     const data = response.data as {
+  //       message: string;
+  //       data: {
+  //         access: { token: string; expired_at: string };
+  //         refresh: { token: string; expired_at: string };
+  //       };
+  //     };
 
-      await this.set({
-        accessToken: data.data.access.token,
-        accessExpiredAt: data.data.access.expired_at,
-        refreshToken: data.data.refresh.token,
-        refreshExpiredAt: data.data.refresh.expired_at,
-      });
+  //     await this.set({
+  //       accessToken: data.data.access.token,
+  //       accessExpiredAt: data.data.access.expired_at,
+  //       refreshToken: data.data.refresh.token,
+  //       refreshExpiredAt: data.data.refresh.expired_at,
+  //     });
 
-      await this.test();
-    } catch (e) {
-      if (e instanceof AxiosError) {
-        if (e.response && e.response.status >= 400 && e.response.status < 500) {
-          throw new StockbitAuthError("Invalid token");
-        }
-      }
+  //     await this.test();
+  //   } catch (e) {
+  //     if (e instanceof AxiosError) {
+  //       if (e.response && e.response.status >= 400 && e.response.status < 500) {
+  //         throw new StockbitAuthError("Invalid token");
+  //       }
+  //     }
 
-      throw e;
-    }
-  }
+  //     throw e;
+  //   }
+  // }
 }
 
 export const stockbitAuth = new StockbitAuth();

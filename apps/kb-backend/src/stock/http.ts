@@ -209,10 +209,10 @@ export const setupStockRoutes = () =>
       },
       {
         body: t.Object({
-          refreshToken: t.String(),
-          refreshExpiredAt: t.String(),
+          // refreshToken: t.String(),
+          // refreshExpiredAt: t.String(),
           accessToken: t.String(),
-          accessExpiredAt: t.String(),
+          // accessExpiredAt: t.String(),
         }),
       },
     )
@@ -225,14 +225,14 @@ export const setupStockRoutes = () =>
         set.status = 500;
         return { success: false, error: (err as Error).message };
       }
-    })
-    .post("/stockbit-auth/refresh", async ({ set }) => {
-      try {
-        await stockbitAuth.refresh();
-        return { success: true };
-      } catch (err) {
-        logger.error({ err }, "Refresh auth failed");
-        set.status = 500;
-        return { success: false, error: (err as Error).message };
-      }
     });
+// .post("/stockbit-auth/refresh", async ({ set }) => {
+//   try {
+//     await stockbitAuth.refresh();
+//     return { success: true };
+//   } catch (err) {
+//     logger.error({ err }, "Refresh auth failed");
+//     set.status = 500;
+//     return { success: false, error: (err as Error).message };
+//   }
+// });
