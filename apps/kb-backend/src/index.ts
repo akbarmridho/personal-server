@@ -29,6 +29,8 @@ async function main() {
       target: `http://0.0.0.0:${env.RAG_MCP_PORT}`,
       changeOrigin: true,
       ws: true,
+      proxyTimeout: 0,
+      timeout: 0,
       pathRewrite: {
         "^/mcps/rag": "", // remove /mcps/rag prefix, keep the rest
       },
@@ -42,6 +44,8 @@ async function main() {
       target: `http://0.0.0.0:${env.INTERNET_MCP_PORT}`,
       changeOrigin: true,
       ws: true,
+      proxyTimeout: 0,
+      timeout: 0,
       pathRewrite: {
         "^/mcps/internet": "", // remove /mcps/internet prefix, keep the rest
       },
@@ -55,6 +59,8 @@ async function main() {
       target: `http://0.0.0.0:${env.STOCK_MCP_PORT}`,
       changeOrigin: true,
       ws: true,
+      proxyTimeout: 0,
+      timeout: 0,
       pathRewrite: {
         "^/mcps/stock": "", // remove /mcps/stock prefix, keep the rest
       },
