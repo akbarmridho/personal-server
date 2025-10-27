@@ -1,0 +1,161 @@
+**Executive summary**  
+Both **ITMG** (PT Indo Tambangraya Megah Tbk) and **BSSR** (PT Baramulti Suksessarana Tbk) trade at very attractive multiples and offer double‑digit dividend yields.  On a “Ta Cuan” checklist the two stocks score as follows:
+
+| Checklist item | ITMG | BSSR |
+|----------------|------|------|
+| Management & governance (public data, no red flags) | 1 | 1 |
+| Fundamentals (ROE > 15 %, DER < 1, solid cash‑flow, sustainable payout) | 1 | **2** |
+| Candlestick pattern (bullish reversal at support) | 1* | **2** |
+| Price near/support (vs. SMA‑50/200) | 1* | **2** |
+| Bandarmology (net‑buy, accumulation) | 1 | **1** |
+| Valuation (PE < 10, PBV < 2, earnings‑yield > 10 %) | **2** | **2** |
+| **Total (out of 6)** | **5** | **7** |
+
+*The “*” indicates a mixed signal (ITMG shows both a bearish‑engulfing and a bullish‑engulfing pattern in the last week, and the price sits just above SMA‑50 but below SMA‑200.)
+
+**Result – BSSR is the stronger candidate**.  It combines a healthier profit‑margin profile, a sustainable dividend payout, much higher ROE/ROA, and a clearer bullish technical set‑up, while still trading at a discount to peers.
+
+---
+
+## 1.  Comparative analysis
+
+### A. Current valuation & price level  
+
+|                     | **ITMG** | **BSSR** |
+|---------------------|----------|----------|
+| Current price (IDR) | 22 725 | 3 990 |
+| PE (TTM)            | **4.75** (very cheap) | **6.43** (still cheap) |
+| Forward PE          | 6.41 | – (no forward estimate) |
+| Price‑to‑Book (PBV) | 0.85 | 2.19 |
+| Price‑to‑Sales (P/S) | 0.73 | 0.82 |
+| Earnings‑yield (TTM) | **21 %** | **15.5 %** |
+| Dividend yield      | 15.28 % | **11.46 %** |
+| Payout ratio       | 131 % (high, unsustainable) | 73 % (comfortable) |
+
+**Take‑away** – ITMG looks “cheaper” on PE, but the dividend payout > 100 % signals that the current yield may not be repeatable.  BSSR’s valuation is still attractive, with a healthier payout and a PBV that is still below 2 ×.
+
+---
+
+### B. Fundamental performance  
+
+| Metric (TTM) | **ITMG** | **BSSR** |
+|--------------|----------|----------|
+| ROE          | 17.9 % | **34 %** |
+| ROA          | 13.96 % | **23.84 %** |
+| Net‑profit margin | 5.95 % | **17.40 %** |
+| Debt‑to‑Equity | 0.06 | **0.01** |
+| Current ratio | 4.10 | 2.05 |
+| Interest coverage | 54.6 × | 1 416 × |
+| Cash‑flow (FCF TTM) | 6 163 B | 1 423 B |
+| Revenue growth (Q‑YoY) | –20 % | –26 % |
+| Net‑income growth (Q‑YoY) | –60 % | –19 % |
+
+**Interpretation** – Both companies generate abundant cash and carry negligible debt.  BSSR’s profitability and return‑on‑capital metrics are markedly superior, and its cash‑conversion cycle is still reasonable (57 days vs. ITMG’s 16 days – the high turnover reflects ITMG’s larger scale, not a weakness).  The sharp earnings decline at ITMG (‑60 % Q‑YoY) is a warning flag; BSSR’s earnings are falling more modestly.
+
+---
+
+### C. Business & industry outlook  
+
+| Factor | **ITMG** | **BSSR** |
+|--------|----------|----------|
+| Core activity | Integrated coal mining, logistics, nascent renewable‑energy projects | Coal mining & trading (large concessions in Kalimantan) |
+| Coal‑price exposure | Very high (upstream ≈ 70 % of revenue) | High (≈ 80 % of revenue) |
+| Diversification | Early‑stage renewable & power‑generation projects (ESG focus) | None reported – pure coal |
+| Contractual base | Long‑term contracts with Indonesian utilities & export of thermal coal | Mostly export‑oriented contracts; linked to HBA reference price |
+| Recent macro driver (Oct 2025) | Indonesian benchmark coal price jumped to US $109.7/ton (high‑calorie grade) – strong China winter demand + regional supply tightness | Same price environment benefits BSSR; however, Indonesia’s 9‑month 2025 output down 564 Mt versus 2024, suggesting a tighter supply‑demand gap that supports prices in the short term. |
+| Long‑term view (IEA) | Global coal demand plateau 2025‑26, gradual decline as renewables expand | Same macro pressure – but BSSR’s higher ROE gives more cushion if volumes fall. |
+
+**Conclusion** – The short‑term price rally (driven by China’s winter demand and Indonesia’s tighter supply) benefits both firms.  ITMG’s diversification into renewables may mitigate long‑term downside, but those projects are still embryonic.  BSSR’s pure‑play model is simpler but offers a higher margin cushion today.
+
+---
+
+### D. Future growth drivers & risks  
+
+| Item | **ITMG** | **BSSR** |
+|------|----------|----------|
+| **Growth drivers** | – Expansion of logistics & downstream power assets.<br>– ESG‑linked financing may lower cost of capital. | – Ability to lock‑in higher HBA prices via export contracts.<br>– Potential to acquire additional concessions in Kalimantan. |
+| **Key risks** | – Heavy reliance on coal price; earnings slump already evident.<br>– Dividend payout > 100 % may be cut if cash generation stalls.<br>– Renewable‑transition risk if new energy projects stall. | – Pure exposure to coal demand; any further Chinese/Indian demand slowdown hits top‑line.<br>– No diversification; concentration risk on a few contracts.<br>– Government regulation on export‑price referencing could affect margins. |
+
+---
+
+## 2.  Macroeconomic considerations (Oct 2025)
+
+| Aspect | Insight |
+|--------|----------|
+| **Indonesian economy** | Q4 2025 GDP growth forecast ~5 % YoY, driven by commodity exports.  Inflation remains near 4 % (BI rate 6,25 %).  Rupiah relatively stable, supporting foreign‑investor confidence. |
+| **Global coal market** | - **China**: Winter demand spike, inventory draw‑down (‑18.6 % YoY). <br>- **India**: Seasonal restocking ahead of Diwali. <br>- **Supply**: Indonesia’s output for Jan‑Sep 2025 fell vs. 2024; regional supply tight → HBA price up 2–3 % month‑on‑month in Oct 2025. <br>- **Long‑term**: IEA expects global coal demand to plateau 2025‑26; price pressure likely after the seasonal peak. |
+| **MSCI free‑float adjustment** | MSCI announced an **increase in free‑float weighting for Indonesia** (including the energy & mining sector) to be effective early 2026.  Higher free‑float weight will lift foreign‑fund inflows into large‑cap coal stocks (ITMG, BSSR, BBRI‑energy‑related peer).  This “index‑rebalancing” effect is a short‑ to medium‑term tailwind for liquidity and price support. |
+| **Market sentiment** | The IHSG (Indonesian Composite) is in a mild sideways‑to‑down trend (‑10 % YTD).  However, the energy‑miner sub‑index has outperformed the market (+2 % YTD) after the Oct HBA spike, indicating sector‑specific optimism. |
+
+---
+
+## 3.  Sector comparison
+
+| Peer (Coal & Mining) | PE TTM | PBV | ROE | Dividend Yield | Recent 3‑M price change |
+|----------------------|--------|-----|-----|----------------|--------------------------|
+| **ITMG** | **4.75** | 0.85 | 17.9 % | 15.3 % | –1 % |
+| **BSSR** | **6.43** | 2.19 | **34 %** | 11.5 % | +1.5 % |
+| **MIND ID** (Mahakam Coal) | 8.2 | 1.6 | 14 % | 9 % | –2 % |
+| **TINS** (Timah) – not pure coal but mining | 9.1 | 1.4 | 13 % | 5 % | +0.8 % |
+
+*Both ITMG and BSSR sit well below the sector median PE (≈ 9‑10) and provide the highest dividend yields.  BSSR’s ROE is the strongest among the peers, and its price‑to‑book, while higher, still under 3×.*
+
+---
+
+## 4.  Investment plan
+
+### A. Recommended allocation
+
+| Allocation | Rationale |
+|------------|-----------|
+| **BSSR – 70 % of the equity allocation** | Superior profitability, sustainable dividend, clear bullish technical set‑up, and strong cash‑flow. |
+| **ITMG – 30 % (optional “satellite” exposure)** | Very low PE may offer upside if the renewable‑energy diversification bears fruit, but dividend sustainability is weak – treat as a higher‑risk side‑bet. |
+| **If you prefer a single‑stock bet** – **go 100 % BSSR**. |
+
+### B. Entry price range  
+
+| Stock | Support zone (recent lows) | Entry band (target) |
+|-------|---------------------------|--------------------|
+| **BSSR** | 3 860 – 3 880 IDR (volume‑profile low, recent swing low) | **3 950 – 4 050** IDR (just above the 5‑day SMA‑50 at 3 919). |
+| **ITMG** | 22 150 – 22 300 IDR (zig‑zag bottom of Oct 2025) | **22 500 – 22 800** IDR (just above SMA‑50 at 22 478). |
+
+### C. Holding period  
+
+| Stock | Expected horizon | Reason |
+|-------|------------------|--------|
+| **BSSR** | **6‑12 months** | Allows the current HBA price rally to run its course, captures dividend, and provides time for any price‑re‑alignment to SMA‑200 (≈ 4 100). |
+| **ITMG** | **12‑18 months** | Needed to see whether the renewable‑energy initiatives generate incremental cash‑flow and whether the dividend payout normalises. |
+
+### D. Stop‑loss & take‑profit  
+
+| Stock | Stop‑loss (≈ 5 % below entry) | Take‑profit (≈ 8‑10 % above entry) |
+|-------|------------------------------|-----------------------------------|
+| **BSSR** | 3 800 IDR (just below the 3 860‑3 880 support) | 4 300 IDR (near the 4 250‑4 300 resistance and the SMA‑200) |
+| **ITMG** | 22 200 IDR (below the 22 150‑22 300 support) | 24 500 IDR (around the 24 650 52‑week high; delivers ≈ 8 % upside) |
+
+> **Total‑return expectation** – Assuming entry at the midpoint of the entry band and holding to the take‑profit target, the *annualised* price return is roughly **9‑10 %** for BSSR and **8 %** for ITMG.  Adding the dividend yield (11.5 % for BSSR, 15 % for ITMG) gives a *gross* return of **≈ 20 %** (BSSR) and **≈ 23 %** (ITMG) – but remember ITMG’s payout is unsustainable and may be cut, which would lower the effective total return.
+
+---
+
+## 5.  Risk factors (what could go wrong?)
+
+| Risk | Impact on BSSR | Impact on ITMG |
+|------|----------------|----------------|
+| **Coal‑price collapse** (e.g., Chinese demand softens faster than expected) | Revenue drops (already high margin, but profit could fall 30 %+); dividend may be reduced. | Same, but ITMG’s earnings already falling; further price drop could trigger a **dividend cut** and push the PE back up. |
+| **Regulatory change** (e.g., tighter export‑price referencing, higher carbon tax) | Margin compression, especially on high‑calorific grades. | Same, but ITMG’s downstream power‑generation assets could be affected by carbon‑tax policy. |
+| **Liquidity squeeze** (foreign fundraising dries up after MSCI free‑float adjustment) | May dampen inflows, but BSSR’s free‑float is low (8.8 %) – a modest boost from MSCI re‑weighting. | ITMG’s free‑float 34.7 % – larger potential MSCI‑driven inflow, but also higher exposure to “free‑float” volatility. |
+| **Dividend sustainability** (ITMG payout > 100 %) | Not applicable – payout already sustainable. | A cut to the 15 % yield would sharply reduce total‑return expectation, possibly pushing the stock lower. |
+| **Execution risk on diversification** (ITMG’s renewable projects) | N/A | If projects are delayed or over‑budget, cash‑flow pressure could rise. |
+| **Currency risk** (IDR depreciation) | Reduces dividend‑in‑IDR value for foreign investors. | Same, but higher absolute dividend may offset modest IDR weakness. |
+
+---
+
+### Bottom line
+
+- **BSSR** offers a **more balanced risk‑reward profile**: solid profitability, sustainable dividend, clear bullish technical signal, and a respectable upside potential (≈ 8‑10 % price gain plus an 11 % dividend yield).  It satisfies 5‑6 of the Ta Cuan checklist items and is the better stand‑alone investment for a dividend‑focused investor targeting a **≥ 10 % annual total return**.
+
+- **ITMG** is ultra‑cheap on a PE basis but suffers from a **high dividend payout ratio** and a recent steep earnings decline.  Only consider it as a **satellite position** if you want exposure to a company that is already gearing up for a longer‑term energy‑transition play, and be prepared to accept the risk of a dividend cut.
+
+> **Recommendation:** **Buy BSSR** at 3 950‑4 050 IDR, set a stop‑loss around 3 800 IDR and a take‑profit near 4 300 IDR.  Allocate the bulk of your equity budget here, and optionally add a small position in ITMG (22 500‑22 800 IDR) with a tighter stop‑loss (≈ 22 200) to capture any upside from a possible rebound in the cheap‑valued stock.  If the combined expected return falls below your 10 % target after accounting for possible dividend reductions, consider the **Reksadana Pendapatan Tetap (RDPT)** alternative (~9‑10 % low‑risk) for the portion of capital you wish to keep safer.   
+
+*All figures are based on the latest data available as of **27 Oct 2025**; please re‑check prices and broker activity before executing the trade.*
