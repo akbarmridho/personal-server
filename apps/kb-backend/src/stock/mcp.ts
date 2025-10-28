@@ -1,5 +1,6 @@
 import { logger } from "@personal-server/common/utils/logger";
 import { FastMCP } from "fastmcp";
+import yaml from "js-yaml";
 import z from "zod";
 import { env } from "../env.js";
 import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
@@ -15,6 +16,9 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+
+// why yaml instead of json?
+// see: https://www.improvingagents.com/blog/best-nested-data-format
 
 export const setupStockMcp = async () => {
   const server = new FastMCP({
@@ -37,24 +41,14 @@ export const setupStockMcp = async () => {
       try {
         const data = getSectors();
         logger.info({ count: data.length }, "Get sectors completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error }, "Get sectors failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -76,13 +70,10 @@ export const setupStockMcp = async () => {
       try {
         const result = await getSectorsReport(args);
         logger.info(
-          { subsectors: args.subsectors, success: result.success },
+          { subsectors: args.subsectors },
           "Get sectors report completed",
         );
-        return {
-          type: "text",
-          text: JSON.stringify(result),
-        };
+        return { type: "text", text: yaml.dump(result) };
       } catch (error) {
         logger.error(
           { error, subsectors: args.subsectors },
@@ -92,14 +83,7 @@ export const setupStockMcp = async () => {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -117,28 +101,15 @@ export const setupStockMcp = async () => {
       logger.info({ args }, "Executing get-companies");
       try {
         const result = await getCompanies(args);
-        logger.info(
-          { args, success: result.success },
-          "Get companies completed",
-        );
-        return {
-          type: "text",
-          text: JSON.stringify(result),
-        };
+        logger.info({ args }, "Get companies completed");
+        return { type: "text", text: yaml.dump(result) };
       } catch (error) {
         logger.error({ error, args }, "Get companies failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -156,24 +127,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getCompanyFundamental(args.ticker);
         logger.info({ ticker: args.ticker }, "Get fundamental completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get fundamental failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -197,24 +158,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getStockBandarmology(args.ticker, args.period);
         logger.info({ ticker: args.ticker }, "Get bandarmology completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get bandarmology failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -243,24 +194,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getStockFinancials(args);
         logger.info({ ticker: args.ticker }, "Get financials completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get financials failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -279,24 +220,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getStockManagement(args.ticker);
         logger.info({ ticker: args.ticker }, "Get management completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get management failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -315,24 +246,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getStockOwnership(args.ticker);
         logger.info({ ticker: args.ticker }, "Get ownership completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get ownership failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -351,24 +272,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getStockTechnicals(args.ticker);
         logger.info({ ticker: args.ticker }, "Get technicals completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, ticker: args.ticker }, "Get technicals failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -387,24 +298,14 @@ export const setupStockMcp = async () => {
       try {
         const data = await getIHSGOverview();
         logger.info("Get IHSG overview completed");
-        return {
-          type: "text",
-          text: JSON.stringify({ success: true, data }),
-        };
+        return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error }, "Get IHSG overview failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
