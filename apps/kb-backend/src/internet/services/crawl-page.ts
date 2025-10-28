@@ -20,7 +20,7 @@ async function autoCrop(inputBuffer: Buffer): Promise<Buffer> {
   return await image.toFormat("png").toBuffer();
 }
 
-const fetchRawUrlContent = async ({
+export const fetchRawUrlContent = async ({
   url,
   returnFormat,
 }: FetchParams): Promise<string | Buffer> => {

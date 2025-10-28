@@ -2,15 +2,17 @@ import { checkTicker } from "../../aggregator/companies.js";
 import { getCompanyReport } from "../../aggregator/company-report.js";
 import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getKeystats } from "../../stockbit/keystats.js";
+import { getForecastData } from "../../trading-view/forecast.js";
 import { normalizeSlug, removeKeysRecursive } from "../../utils.js";
 
 export const getCompanyFundamental = async (rawTicker: string) => {
   const ticker = await checkTicker(rawTicker);
 
-  const [companyReport, keystats, emittenInfo] = await Promise.all([
+  const [companyReport, keystats, emittenInfo, forecast] = await Promise.all([
     getCompanyReport({ ticker }),
     getKeystats(ticker),
     getEmittenInfo({ ticker }),
+    getForecastData(ticker),
   ]);
 
   const data = {
@@ -40,10 +42,13 @@ export const getCompanyFundamental = async (rawTicker: string) => {
       market_status: emittenInfo.market_hour?.status,
       time_left: emittenInfo.market_hour?.formatted_time_left,
     },
-    forecasts: {
-      growth: companyReport.company_growth_forecasts,
-      value: companyReport.company_value_forecasts,
-    },
+    esg_score: companyReport.esg_score || null,
+    forecasts: forecast
+      ? forecast
+      : {
+          growth: companyReport.company_growth_forecasts,
+          value: companyReport.company_value_forecasts,
+        },
     // intrinsics: {
     // final value might not enough and scraping the data is a hassle so let's skip it for now
     // dcf value
