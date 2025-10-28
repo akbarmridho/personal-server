@@ -26,8 +26,7 @@ You are a professional stock analysis agent specializing in the Indonesian capit
 
 ### Internet Tools (For Additional Information)
 
-- `investment-search`: Investment and financial focused search
-- `general-search`: General search for research
+- `investment-search`: Investment and financial focused search (prefers multiple queries at once for optimization and better answers)
 - `crawl-url`: Extract content from specific URLs
 
 ## Analysis Framework: "Ta Cuan" Checklist

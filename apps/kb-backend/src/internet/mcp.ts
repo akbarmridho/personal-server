@@ -1,12 +1,10 @@
 import { logger } from "@personal-server/common/utils/logger";
 import { FastMCP } from "fastmcp";
+import yaml from "js-yaml";
 import z from "zod";
 import { env } from "../env.js";
 import { fetchUrlContent } from "./services/crawl-page.js";
-import {
-  performGeneralSearch,
-  performInvestmentSearch,
-} from "./services/internet-search.js";
+import { performInvestmentSearch } from "./services/internet-search.js";
 
 export const setupInternetMcp = async () => {
   const server = new FastMCP({
@@ -20,77 +18,26 @@ export const setupInternetMcp = async () => {
   });
 
   server.addTool({
-    name: "general-search",
-    description:
-      "Performs broad, multi-step web search to find high-quality, diverse information. Use this for general queries, research, or when you need comprehensive information on any topic.",
-    parameters: z.object({
-      query: z
-        .string()
-        .describe(
-          "The search query. Be specific and include relevant keywords.",
-        ),
-    }),
-    execute: async (args) => {
-      const { query } = args;
-      logger.info({ query }, "Executing general search");
-
-      try {
-        const result = await performGeneralSearch({ query });
-        const returnObj = {
-          success: true,
-          query,
-          result: result.result,
-          citations: result.citations,
-        };
-
-        logger.info(
-          { query, citationCount: result.citations.length },
-          "General search completed",
-        );
-        return { type: "text", text: JSON.stringify(returnObj, null, 2) };
-      } catch (error) {
-        logger.error({ error, query }, "General search failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  query,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
-
-  server.addTool({
     name: "investment-search",
     description:
       "Performs financial and investment-focused search. Analyzes market trends, stocks, economic factors, and provides market intelligence. Use this for queries about stocks, markets, economic conditions, or investment-related topics.",
     parameters: z.object({
-      query: z
+      queries: z
         .string()
+        .array()
         .describe(
-          "The investment or financial query. Include stock symbols, market names, or economic topics.",
+          "The investment or financial queries. Include stock symbols, market names, or economic topics.",
         ),
     }),
     execute: async (args) => {
-      const { query } = args;
-      logger.info({ query }, "Executing investment search");
+      const { queries } = args;
+      logger.info({ queries }, "Executing investment search");
+
+      const query = `Perform research for the following queries:\n${queries.map((q) => `- ${q}`).join("\n")}`;
 
       try {
         const result = await performInvestmentSearch({ query });
         const returnObj = {
-          success: true,
-          query,
           result: result.result,
           citations: result.citations,
         };
@@ -99,22 +46,14 @@ export const setupInternetMcp = async () => {
           { query, citationCount: result.citations.length },
           "Investment search completed",
         );
-        return { type: "text", text: JSON.stringify(returnObj, null, 2) };
+        return { type: "text", text: yaml.dump(returnObj) };
       } catch (error) {
         logger.error({ error, query }, "Investment search failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  query,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
@@ -146,33 +85,22 @@ export const setupInternetMcp = async () => {
       try {
         const content = await fetchUrlContent({ url, readImage });
         const returnObj = {
-          success: true,
-          url,
           readImage,
           content,
-          contentLength: content.length,
         };
 
         logger.info(
           { url, readImage, contentLength: content.length },
           "URL crawl completed",
         );
-        return { type: "text", text: JSON.stringify(returnObj, null, 2) };
+        return { type: "text", text: yaml.dump(returnObj) };
       } catch (error) {
         logger.error({ error, url }, "URL crawl failed");
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(
-                {
-                  success: false,
-                  url,
-                  error: error instanceof Error ? error.message : String(error),
-                },
-                null,
-                2,
-              ),
+              text: error instanceof Error ? error.message : String(error),
             },
           ],
           isError: true,
