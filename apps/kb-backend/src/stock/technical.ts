@@ -12,7 +12,17 @@ import {
   tweezerbottom,
   VolumeProfile,
 } from "@thuantan2060/technicalindicators";
-import { ADX, EMA, MACD, OBV, SMA, ZigZag } from "trading-signals";
+import {
+  ADX,
+  ATR,
+  BollingerBands,
+  EMA,
+  MACD,
+  OBV,
+  RSI,
+  SMA,
+  ZigZag,
+} from "trading-signals";
 import type { ChartbitData } from "./stockbit/chartbit.js";
 
 export interface ZigZagData {
@@ -256,6 +266,102 @@ export function calculateOBV(chartData: ChartbitData[]): OBVResult[] {
       allResults.push({
         date: candle.date,
         obv: obv.getResultOrThrow(),
+      });
+    }
+  }
+
+  return allResults.slice(-20);
+}
+
+export interface RSIResult {
+  date: string;
+  rsi: number;
+}
+
+export function calculateRSI(
+  chartData: ChartbitData[],
+  interval: number = 14,
+): RSIResult[] {
+  const rsi = new RSI(interval);
+  const minDataLength = rsi.getRequiredInputs();
+
+  if (chartData.length < minDataLength) {
+    throw new Error(
+      `RSI needs at least ${minDataLength} data points, but only ${chartData.length} were provided.`,
+    );
+  }
+
+  const sortedData = chartData.toSorted((a, b) => a.unixdate - b.unixdate);
+  const allResults: RSIResult[] = [];
+
+  for (const candle of sortedData) {
+    rsi.add(candle.close);
+
+    if (rsi.isStable) {
+      allResults.push({
+        date: candle.date,
+        rsi: rsi.getResultOrThrow(),
+      });
+    }
+  }
+
+  return allResults.slice(-15);
+}
+
+export function calculateATR(chartData: ChartbitData[], interval: number = 14) {
+  const atr = new ATR(interval);
+  const minDataLength = atr.getRequiredInputs();
+
+  if (chartData.length < minDataLength) {
+    throw new Error(
+      `ATR needs at least ${minDataLength} data points, but only ${chartData.length} were provided.`,
+    );
+  }
+
+  const sliced = chartData.slice(-minDataLength);
+
+  for (const each of sliced) {
+    atr.add(each);
+  }
+
+  return atr.getResult();
+}
+
+export interface BBANDSResult {
+  date: string;
+  lower: number;
+  middle: number;
+  upper: number;
+}
+
+export function calculateBBANDS(
+  chartData: ChartbitData[],
+  interval = 20,
+  deviationMultiplier = 2,
+): BBANDSResult[] {
+  const bbands = new BollingerBands(interval, deviationMultiplier);
+  const minDataLength = bbands.getRequiredInputs();
+
+  if (chartData.length < minDataLength) {
+    throw new Error(
+      `BBANDS needs at least ${minDataLength} data points, but only ${chartData.length} were provided.`,
+    );
+  }
+
+  const sortedData = chartData.toSorted((a, b) => a.unixdate - b.unixdate);
+  const allResults: BBANDSResult[] = [];
+
+  for (const candle of sortedData) {
+    bbands.add(candle.close);
+
+    const data = bbands.getResultOrThrow();
+
+    if (bbands.isStable) {
+      allResults.push({
+        date: candle.date,
+        lower: data.lower,
+        middle: data.middle,
+        upper: data.upper,
       });
     }
   }
