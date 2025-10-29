@@ -10,6 +10,7 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+import { getForexSummary } from "./forex/rates.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 
 export const setupStockRoutes = () =>
@@ -195,6 +196,30 @@ export const setupStockRoutes = () =>
         return { success: false, error: (err as Error).message };
       }
     })
+    .get(
+      "/forex",
+      async ({ params, set }) => {
+        try {
+          const data = await getForexSummary(params.currency);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get forex failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({
+          currency: t.Union([
+            t.Literal("USD"),
+            t.Literal("CNY"),
+            t.Literal("EUR"),
+            t.Literal("JPY"),
+            t.Literal("SGD"),
+          ]),
+        }),
+      },
+    )
     .post(
       "/stockbit-auth/set",
       async ({ body, set }) => {

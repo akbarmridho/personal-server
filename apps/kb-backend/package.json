@@ -61,6 +61,7 @@
         "text-segmentation": "^1.0.3",
         "trading-signals": "^7.0.0",
         "voyageai": "^0.0.8",
+        "yahoo-finance2": "^3.10.0",
         "zod": "^4.1.1"
     },
     "devDependencies": {

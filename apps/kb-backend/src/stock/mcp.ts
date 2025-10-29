@@ -16,6 +16,7 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+import { type ForexData, getForexSummary } from "./forex/rates.js";
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -301,6 +302,51 @@ export const setupStockMcp = async () => {
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error }, "Get IHSG overview failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-forex",
+    description:
+      "Return current and historical forex rates from IDR into various currencies. Available currency: USD, CNY, EUR, JPY, SGD",
+    parameters: z.object({
+      currencies: z
+        .enum(["USD", "CNY", "EUR", "JPY", "SGD"])
+        .array()
+        .describe("The currencies to compare against IDR"),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing get-forex");
+      try {
+        const result: Record<string, ForexData> = {};
+
+        const raw = await Promise.all(
+          args.currencies.map(async (currency) => {
+            return {
+              currency,
+              data: await getForexSummary(currency),
+            };
+          }),
+        );
+
+        for (const each of raw) {
+          result[each.currency] = each.data;
+        }
+
+        logger.info({ args }, "Get forex completed");
+        return { type: "text", text: yaml.dump(result) };
+      } catch (error) {
+        logger.error({ error, args }, "Get forex failed");
         return {
           content: [
             {
