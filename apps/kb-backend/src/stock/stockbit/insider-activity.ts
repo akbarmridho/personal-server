@@ -1,7 +1,6 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
-import { dateToFormatted } from "../utils.js";
 import {
   type BaseStockbitResponse,
   StockbitAuthError,
@@ -107,19 +106,10 @@ function normalizeDate(dateStr) {
 
 export const getInsiderActivity = async (input: {
   ticker: string;
-  from?: Date;
-  to?: Date;
   maxPage: number;
 }) => {
-  const fromFormatted = input.from
-    ? dateToFormatted(input.from)
-    : dateToFormatted(dayjs().subtract(3, "months").toDate());
-  const toFormatted = input.to
-    ? dateToFormatted(input.to)
-    : dateToFormatted(new Date());
-
   const rawData = await KV.getOrSet(
-    `stockbit.insider.${input.ticker}.${fromFormatted}.${toFormatted}`,
+    `stockbit.insider.${input.ticker}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -134,7 +124,7 @@ export const getInsiderActivity = async (input: {
 
       while (true) {
         const response = await axios.get(
-          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.ticker}&date_start=${fromFormatted}&date_end=${toFormatted}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
+          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.ticker}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
           {
             headers: {
               Authorization: `Bearer ${authData.accessToken}`,
