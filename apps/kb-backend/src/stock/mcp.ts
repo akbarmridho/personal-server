@@ -3,7 +3,12 @@ import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
 import { env } from "../env.js";
-import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
+import { vectorStore } from "../rag/storage/store.js";
+import {
+  checkTicker,
+  GetCompaniesParams,
+  getCompanies,
+} from "./aggregator/companies.js";
 import { getSectors } from "./aggregator/sectors.js";
 import {
   GetSectorsReportParams,
@@ -405,6 +410,103 @@ export const setupStockMcp = async () => {
         return { type: "text", text: yaml.dump(result) };
       } catch (error) {
         logger.error({ error, args }, "Get commodity failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-market-news",
+    description:
+      "Retrieve macro/sector news (IHSG, foreign flow, MSCI changes, regulations). Optionally filter by ticker mentions.",
+    parameters: z.object({
+      ticker: z
+        .string()
+        .optional()
+        .describe("Optional ticker to filter news mentioning this ticker"),
+      daysAgo: z.number().optional().describe("Get news from N days ago"),
+      startDate: z
+        .string()
+        .optional()
+        .describe("Start date in YYYY-MM-DD format"),
+      endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing get-market-news");
+      try {
+        const metadata: Record<string, any> = { type: "market" };
+        if (args.ticker) {
+          const validatedTicker = await checkTicker(args.ticker);
+          metadata.mentionedTickers = [validatedTicker];
+        }
+
+        const docs = await vectorStore.getDocuments(1, {
+          daysBack: args.daysAgo,
+          from: args.startDate,
+          to: args.endDate,
+          metadataFilter: metadata,
+          fullContent: true,
+        });
+
+        logger.info({ count: docs.length }, "Get market news completed");
+        return { type: "text", text: yaml.dump(docs) };
+      } catch (error) {
+        logger.error({ error, args }, "Get market news failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-ticker-news",
+    description:
+      "Retrieve news focused on a specific company ticker. Returns news where the ticker is the main subject.",
+    parameters: z.object({
+      ticker: z.string().describe("Ticker symbol (required)"),
+      daysAgo: z.number().optional().describe("Get news from N days ago"),
+      startDate: z
+        .string()
+        .optional()
+        .describe("Start date in YYYY-MM-DD format"),
+      endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing get-ticker-news");
+      try {
+        const validatedTicker = await checkTicker(args.ticker);
+        const metadata = {
+          type: "ticker",
+          primaryTickers: [validatedTicker],
+        };
+
+        const docs = await vectorStore.getDocuments(1, {
+          daysBack: args.daysAgo,
+          from: args.startDate,
+          to: args.endDate,
+          metadataFilter: metadata,
+          fullContent: true,
+        });
+
+        logger.info({ count: docs.length }, "Get ticker news completed");
+        return { type: "text", text: yaml.dump(docs) };
+      } catch (error) {
+        logger.error({ error, args }, "Get ticker news failed");
         return {
           content: [
             {
