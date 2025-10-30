@@ -1,42 +1,30 @@
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import { yf } from "../yf.js";
+import type { PriceSummaryData } from "./forex.js";
 
-export const currencyPair = {
-  USD: "USDIDR=X",
-  CNY: "CNYIDR=X",
-  EUR: "EURIDR=X",
-  JPY: "JPYIDR=X",
-  SGD: "SGDIDR=X",
+export const commoditySymbols = {
+  GOLD: "GC=F",
+  SILVER: "SI=F",
+  OIL_WTI: "CL=F",
+  OIL_BRENT: "BZ=F",
+  COPPER: "HG=F",
+  COAL: "^COAL",
+  NICKEL: "^SPGSIK",
+  CPO: "CL=F",
 } as const;
 
-export interface PriceSummaryData {
-  symbol?: string;
-  name?: string | null;
-  currency?: string;
-  currentPrice?: number;
-  priceChange?: number;
-  priceChangePercent?: number;
-  dayLow?: number;
-  dayHigh?: number;
-  previousClose?: number;
-  fiftyTwoWeekLow?: number;
-  fiftyTwoWeekHigh?: number;
-  fiftyDayAverage?: number;
-  twoHundredDayAverage?: number;
-}
-
-export const getForexSummary = async (
-  target: keyof typeof currencyPair,
+export const getCommoditySummary = async (
+  target: keyof typeof commoditySymbols,
 ): Promise<PriceSummaryData> => {
   const result = await KV.getOrSet(
-    `yf.forex.${target}`,
+    `yf.commodity.${target}`,
     async () => {
-      const data = await yf.quoteSummary(currencyPair[target]);
+      const data = await yf.quoteSummary(commoditySymbols[target]);
 
       return {
         symbol: data.price?.symbol,
-        name: data.price?.shortName,
+        name: data.price?.longName || data.price?.shortName,
         currency: data.price?.currency,
         currentPrice: data.price?.regularMarketPrice,
         priceChange: data.price?.regularMarketChange,
@@ -56,8 +44,3 @@ export const getForexSummary = async (
 
   return result as PriceSummaryData;
 };
-
-// other free options
-// https://fcsapi.com/document/forex-api
-// https://currencylayer.com/
-// https://exchangerate.host/

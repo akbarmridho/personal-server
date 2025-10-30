@@ -16,7 +16,11 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { type ForexData, getForexSummary } from "./other-prices/forex.js";
+import { getCommoditySummary } from "./other-prices/commodity.js";
+import {
+  getForexSummary,
+  type PriceSummaryData,
+} from "./other-prices/forex.js";
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -328,7 +332,7 @@ export const setupStockMcp = async () => {
     execute: async (args) => {
       logger.info({ args }, "Executing get-forex");
       try {
-        const result: Record<string, ForexData> = {};
+        const result: Record<string, PriceSummaryData> = {};
 
         const raw = await Promise.all(
           args.currencies.map(async (currency) => {
@@ -347,6 +351,60 @@ export const setupStockMcp = async () => {
         return { type: "text", text: yaml.dump(result) };
       } catch (error) {
         logger.error({ error, args }, "Get forex failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-commodity",
+    description:
+      "Return current and historical commodity prices in USD. Available commodity: GOLD, SILVER, OIL_WTI, OIL_BRENT, COPPER, COAL, NICKEL, CPO",
+    parameters: z.object({
+      commodities: z
+        .enum([
+          "GOLD",
+          "SILVER",
+          "OIL_WTI",
+          "OIL_BRENT",
+          "COPPER",
+          "COAL",
+          "NICKEL",
+          "CPO",
+        ])
+        .array()
+        .describe("The commodities name"),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing get-forex");
+      try {
+        const result: Record<string, PriceSummaryData> = {};
+
+        const raw = await Promise.all(
+          args.commodities.map(async (commodity) => {
+            return {
+              commodity,
+              data: await getCommoditySummary(commodity),
+            };
+          }),
+        );
+
+        for (const each of raw) {
+          result[each.commodity] = each.data;
+        }
+
+        logger.info({ args }, "Get commodity completed");
+        return { type: "text", text: yaml.dump(result) };
+      } catch (error) {
+        logger.error({ error, args }, "Get commodity failed");
         return {
           content: [
             {

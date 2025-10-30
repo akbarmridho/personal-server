@@ -10,6 +10,7 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+import { getCommoditySummary } from "./other-prices/commodity.js";
 import { getForexSummary } from "./other-prices/forex.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 
@@ -216,6 +217,33 @@ export const setupStockRoutes = () =>
             t.Literal("EUR"),
             t.Literal("JPY"),
             t.Literal("SGD"),
+          ]),
+        }),
+      },
+    )
+    .get(
+      "/commodity",
+      async ({ params, set }) => {
+        try {
+          const data = await getCommoditySummary(params.commodity);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get commodity failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({
+          commodity: t.Union([
+            t.Literal("GOLD"),
+            t.Literal("SILVER"),
+            t.Literal("OIL_WTI"),
+            t.Literal("OIL_BRENT"),
+            t.Literal("COPPER"),
+            t.Literal("COAL"),
+            t.Literal("NICKEL"),
+            t.Literal("CPO"),
           ]),
         }),
       },
