@@ -137,10 +137,14 @@ export const setupRagRoutes = () =>
     .get(
       "/collections/:id/documents",
       async ({ params, query }) => {
-        const docs = await vectorStore.getDocuments(
-          Number(params.id),
-          query.title,
-        );
+        const metadataFilter = normalizeMetadata(query.metadata || {});
+        const docs = await vectorStore.getDocuments(Number(params.id), {
+          title: query.title,
+          daysBack: query.daysBack,
+          from: query.from,
+          to: query.to,
+          metadataFilter: metadataFilter || undefined,
+        });
         return docs;
       },
       {
@@ -149,6 +153,12 @@ export const setupRagRoutes = () =>
         }),
         query: t.Object({
           title: t.Optional(t.String()),
+          daysBack: t.Optional(t.Numeric()),
+          from: t.Optional(t.String()),
+          to: t.Optional(t.String()),
+          metadata: t.Optional(
+            t.Union([t.Record(t.String(), t.Any()), t.String()]),
+          ),
         }),
       },
     )

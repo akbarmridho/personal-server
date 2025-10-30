@@ -110,22 +110,54 @@ export class VectorStore {
   /**
    * Get existing documents in a collection
    */
-  async getDocuments(collectionId: number, title?: string) {
+  async getDocuments(
+    collectionId: number,
+    options?: {
+      title?: string;
+      daysBack?: number;
+      from?: string;
+      to?: string;
+      metadataFilter?: Record<string, any>;
+      fullContent?: boolean;
+    },
+  ) {
     let query = db
       .selectFrom("documents")
-      .select(["id", "title", "summary", "metadata", "document_ts"])
+      .select(["id", "title", "summary", "content", "metadata", "document_ts"])
       .where("collection_id", "=", collectionId.toString());
 
-    if (title) {
-      query = query.where("title", "=", title);
+    if (options?.title) {
+      query = query.where("title", "=", options.title);
     }
 
-    const rows = await query.execute();
+    if (options?.daysBack) {
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - options.daysBack);
+      query = query.where("document_ts", ">=", startDate);
+    } else {
+      if (options?.from) {
+        query = query.where("document_ts", ">=", new Date(options.from));
+      }
+      if (options?.to) {
+        query = query.where("document_ts", "<=", new Date(options.to));
+      }
+    }
 
-    return rows.map((row) => ({
-      ...row,
-      document_ts: row.document_ts.toString(),
-    }));
+    if (options?.metadataFilter) {
+      for (const [key, value] of Object.entries(options.metadataFilter)) {
+        query = query.where("metadata", "@>", JSON.stringify({ [key]: value }));
+      }
+    }
+
+    const rows = await query.orderBy("document_ts", "desc").execute();
+
+    return rows.map(({ content, summary, ...rest }) => {
+      return {
+        ...rest,
+        content: options?.fullContent ? content : summary,
+        document_ts: rest.document_ts.toString(),
+      };
+    });
   }
 
   /**
