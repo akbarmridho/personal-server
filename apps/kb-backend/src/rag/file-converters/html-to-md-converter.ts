@@ -4,66 +4,6 @@ import he from "he";
 import { JSDOM } from "jsdom";
 import * as prettier from "prettier";
 
-/**
- * Extract the most likely title from an HTML document.
- * @param {string} html - The raw HTML string
- * @returns {string|null} - The extracted title or null if not found
- */
-export function extractTitle(html: string): string | null {
-  const $ = cheerio.load(html);
-
-  // 1. Standard <title>
-  const title =
-    $("head > title").first().text().trim() ||
-    $('meta[property="og:title"]').attr("content") ||
-    $('meta[name="twitter:title"]').attr("content");
-
-  if (title) return title;
-
-  // 2. Fallback: check top-level headings
-  const h1 = $("h1").first().text().trim();
-  if (h1) return h1;
-
-  const h2 = $("h2").first().text().trim();
-  if (h2) return h2;
-
-  // 3. Check schema.org JSON-LD if available
-  const ldJson = $('script[type="application/ld+json"]').html();
-  if (ldJson) {
-    try {
-      const data = JSON.parse(ldJson);
-      if (typeof data === "object") {
-        if (Array.isArray(data)) {
-          for (const obj of data) {
-            if (obj.name) return obj.name;
-            if (obj.headline) return obj.headline;
-          }
-        } else {
-          if (data.name) return data.name;
-          if (data.headline) return data.headline;
-        }
-      }
-    } catch {
-      // ignore JSON parse errors
-    }
-  }
-
-  // 4. Fallback: first strong/bold text
-  const strong = $("strong, b").first().text().trim();
-  if (strong) return strong;
-
-  // 5. Last resort: first big texty element
-  const bigCandidate = $("body")
-    .find("p, div, span")
-    .filter((_, el) => $(el).text().trim().length > 20)
-    .first()
-    .text()
-    .trim();
-  if (bigCandidate) return bigCandidate;
-
-  return null;
-}
-
 export async function formatMarkdown(
   unformattedMarkdown: string,
 ): Promise<string> {
@@ -187,8 +127,5 @@ export const htmlToMarkdown = async (raw: string) => {
   processed = cleanHeadings(processed);
   processed = removeEmptyHeadings(processed);
 
-  return {
-    title: extractTitle(raw),
-    content: await formatMarkdown(processed),
-  };
+  return await formatMarkdown(processed);
 };

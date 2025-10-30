@@ -36,6 +36,7 @@ export interface Collections {
   description: string;
   id: Generated<Int8>;
   name: string;
+  embedding: string;
 }
 
 export interface DocumentChunks {

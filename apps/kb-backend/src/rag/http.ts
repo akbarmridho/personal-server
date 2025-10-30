@@ -4,13 +4,11 @@ import { logger } from "@personal-server/common/utils/logger";
 import { Elysia, t } from "elysia";
 import pRetry from "p-retry";
 import { db } from "../db/db.js";
+import { htmlToMarkdown } from "./file-converters/html-to-md-converter.js";
 import { htmlToPdf } from "./file-converters/html-to-pdf.js";
 import { pdfToMarkdownConverter } from "./file-converters/pdf-to-md-converter.js";
 import { retriever } from "./storage/retrieve.js";
 import { vectorStore } from "./storage/store.js";
-
-const EMBEDDING_WEIGHT = 0.7;
-const FULLTEXT_WEIGHT = 0.3;
 
 // --------------------
 // Utility
@@ -56,14 +54,18 @@ export const setupRagRoutes = () =>
             if (type === "markdown") {
               finalContent = body.content;
             } else if (type === "html") {
-              // convert first to markdown via pdf
-              logger.info(
-                "detected html content. converting to pdf then markdown ...",
-              );
-              const pdf = await pRetry(async () => htmlToPdf(body.content), {
-                retries: 3,
-              });
-              finalContent = await pdfToMarkdownConverter.convert(pdf.buffer);
+              if (body.hiresPdfExtract) {
+                // convert first to markdown via pdf
+                logger.info(
+                  "hires detected with html content. converting to pdf then markdown ...",
+                );
+                const pdf = await pRetry(async () => htmlToPdf(body.content!), {
+                  retries: 3,
+                });
+                finalContent = await pdfToMarkdownConverter.convert(pdf.buffer);
+              } else {
+                finalContent = await htmlToMarkdown(body.content!);
+              }
             } else {
               throw new Error("Unknown content type detected");
             }
@@ -88,13 +90,18 @@ export const setupRagRoutes = () =>
 
           const metadata = normalizeMetadata(body.metadata);
 
-          const result = await vectorStore.storeDocument({
-            collection_id: body.collection_id,
-            title: body.title,
-            content: finalContent,
-            document_ts: documentTs,
-            metadata,
-          });
+          const result = await vectorStore.storeDocument(
+            {
+              collection_id: body.collection_id,
+              title: body.title,
+              content: finalContent,
+              document_ts: documentTs,
+              metadata,
+            },
+            {
+              skipSummary: body.skipSummary,
+            },
+          );
 
           return { success: true, ...result };
         } catch (err) {
@@ -103,22 +110,16 @@ export const setupRagRoutes = () =>
         }
       },
       {
-        body: t.Union([
-          t.Object({
-            collection_id: t.Numeric(),
-            title: t.String(),
-            content: t.String(),
-            document_ts: t.Optional(t.String()),
-            metadata: t.Union([t.Record(t.String(), t.Any()), t.String()]),
-          }),
-          t.Object({
-            collection_id: t.Numeric(),
-            title: t.String(),
-            file: t.File(),
-            document_ts: t.Optional(t.String()),
-            metadata: t.Union([t.Record(t.String(), t.Any()), t.String()]),
-          }),
-        ]),
+        body: t.Object({
+          collection_id: t.Numeric(),
+          title: t.String(),
+          file: t.Optional(t.File()),
+          content: t.Optional(t.String()),
+          document_ts: t.Optional(t.String()),
+          metadata: t.Union([t.Record(t.String(), t.Any()), t.String()]),
+          hiresPdfExtract: t.BooleanString({ default: false }),
+          skipSummary: t.BooleanString({ default: false }),
+        }),
       },
     )
 
@@ -218,14 +219,14 @@ export const setupRagRoutes = () =>
               "A hypothetical answer (HYDE) to guide the retrieval process. This improves search quality significantly. Should be 25–50 words that directly answer the query.",
           }),
           embedding_weight: t.Numeric({
-            default: EMBEDDING_WEIGHT,
+            default: 0.7,
             minimum: 0,
             maximum: 1,
             description:
               "Weight for semantic (embedding) search between 0 and 1. Higher values prioritize conceptual matches.",
           }),
           fulltext_weight: t.Numeric({
-            default: FULLTEXT_WEIGHT,
+            default: 0.3,
             minimum: 0,
             maximum: 1,
             description:

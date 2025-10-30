@@ -3,12 +3,29 @@ import { logger } from "@personal-server/common/utils/logger";
 import { generateObject } from "ai";
 import pRetry from "p-retry";
 import { db, upsertDocument } from "../../db/db.js";
-import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
+import {
+  type VoyageEmbeddingModel,
+  VoyageEmbeddings,
+} from "../embeddings/voyage-embeddings.js";
 import {
   DocumentSummarySchema,
   docSummarySystemPrompt,
   docSummaryUserPrompt,
 } from "../prompts/doc-summary-prompt.js";
+
+/**
+ * Returns the first `n` words from a given string.
+ *
+ * @param text - The input string.
+ * @param n - Number of words to take.
+ * @returns The first `n` words as a string.
+ */
+function takeFirstNWords(text: string, n: number): string {
+  if (!text || n <= 0) return "";
+
+  const words = text.trim().split(/\s+/); // Split on any whitespace
+  return words.slice(0, n).join(" ");
+}
 
 interface DocumentInsert {
   collection_id: number;
@@ -29,22 +46,27 @@ interface DocumentChunkInsert {
 export class VectorStore {
   declare FilterType: Record<string, unknown>;
   private readonly upsertBatchSize = 500;
-  private readonly embeddings: VoyageEmbeddings = new VoyageEmbeddings({
-    model: "voyage-context-3",
-  });
+  private readonly embeddings: Map<string, VoyageEmbeddings> = new Map();
 
   /**
    * Store or update a document with chunks
    */
   async storeDocument(
     document: DocumentInsert,
+    options: { skipSummary: boolean },
   ): Promise<{ id: number; isNew: boolean }> {
     const titlePath = document.hierarchy_path
       ? `${document.hierarchy_path}\\${document.title}`
       : document.title;
 
     const contentWithHierarchy = `${titlePath}\n\n${document.content}`;
-    const docSummary = await this.generateSummary(titlePath, document.content);
+
+    const docSummary = await this.generateSummary(
+      document.collection_id,
+      titlePath,
+      document.content,
+      options.skipSummary,
+    );
 
     const { document_id, is_new } = await upsertDocument({
       collection_id_input: document.collection_id,
@@ -57,11 +79,9 @@ export class VectorStore {
     });
 
     try {
-      const embeddedChunks =
-        await this.embeddings.createEmbeddedGFMContextPathChunks(
-          document.content,
-          titlePath,
-        );
+      const embeddedChunks = await this.getEmbedding(
+        await this.getEmbeddingFromCollection(document.collection_id),
+      ).createEmbeddedGFMContextPathChunks(document.content, titlePath);
 
       await this.storeEmbeddedChunks(embeddedChunks, document_id);
     } catch (chunkError) {
@@ -133,8 +153,10 @@ export class VectorStore {
    * @returns An object containing the summary content and its embedding
    */
   private async generateSummary(
+    collection_id: number,
     titlePath: string,
     docContent: string,
+    skipLLMSummary: boolean,
   ): Promise<{ summaryContent: string; summaryEmbedding: number[] }> {
     const formattedPrompt = docSummaryUserPrompt.format({
       titlePath,
@@ -158,11 +180,15 @@ export class VectorStore {
       return response.object.summaryContent;
     };
 
-    const summaryContent = await pRetry(ops, { retries: 3 });
+    const summaryContent = skipLLMSummary
+      ? takeFirstNWords(docContent, 200)
+      : await pRetry(ops, { retries: 3 });
 
     const summary = `${titlePath}\n\n${summaryContent}`;
 
-    const summaryEmbedding = await this.embeddings.embedSingleDocument(summary);
+    const summaryEmbedding = await this.getEmbedding(
+      await this.getEmbeddingFromCollection(collection_id),
+    ).embedSingleDocument(summary);
 
     return { summaryContent, summaryEmbedding };
   }
@@ -187,6 +213,30 @@ export class VectorStore {
         )
         .execute();
     }
+  }
+
+  private getEmbedding(model: string): VoyageEmbeddings {
+    if (this.embeddings.has(model)) {
+      return this.embeddings.get(model)!;
+    }
+
+    const embeddings = new VoyageEmbeddings({
+      model: model as VoyageEmbeddingModel,
+    });
+
+    this.embeddings.set(model, embeddings);
+
+    return embeddings;
+  }
+
+  private async getEmbeddingFromCollection(collection_id: number) {
+    const collection = await db
+      .selectFrom("collections")
+      .where("id", "=", collection_id.toString())
+      .selectAll()
+      .executeTakeFirstOrThrow();
+
+    return collection.embedding;
   }
 }
 
