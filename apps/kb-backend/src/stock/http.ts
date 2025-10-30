@@ -10,7 +10,7 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { getForexSummary } from "./forex/rates.js";
+import { getForexSummary } from "./other-prices/forex.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 
 export const setupStockRoutes = () =>
