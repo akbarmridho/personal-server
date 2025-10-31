@@ -86,7 +86,7 @@ export const Newsletter = z.object({
     ),
 });
 
-export const processNewsletter = async (content: string) => {
+export const processNewsletter = async (filename: string, content: string) => {
   const companies = await getRawCompanies();
   const validTickers = [
     ...companies.map((c) => `${c.ticker} (${c.companyName})`),
@@ -187,11 +187,15 @@ Valid tickers: ${validTickers}
       const { object } = await generateObject({
         model: openrouter("openai/gpt-oss-120b", {
           models: ["qwen/qwen3-30b-a3b-instruct-2507"],
+          provider: {
+            ignore: ["novita/bf16"],
+            quantizations: ["bf16", "fp16", "fp8", "int8"],
+          },
         }),
         system: systemPrompt,
-        prompt: finalContent,
+        prompt: `Filename (contains email date): ${filename}\n\nContent:${finalContent}`,
         schema: Newsletter,
-        temperature: 0.1,
+        temperature: 1,
       });
 
       const allTickers = [

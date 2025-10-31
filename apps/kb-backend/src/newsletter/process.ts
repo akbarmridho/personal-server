@@ -2,9 +2,10 @@ import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
 
 loadDotenv();
 
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { logger } from "@personal-server/common/utils/logger";
+import { remove } from "diacritics";
 import pLimit from "p-limit";
 import TurndownService from "turndown";
 import { formatMarkdown } from "../rag/file-converters/html-to-md-converter.js";
@@ -79,22 +80,20 @@ function removeBoldAndUnderline(content: string): string {
   return content.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1");
 }
 
+function removeTopGainerLoser(content: string): string {
+  return content.replace(
+    /.*Top Gainer[\s\S]*?(?=Hal lain yang lagi (?:_)?hot(?:_)? yang perlu kamu ketahui|$)/i,
+    "",
+  );
+}
+
 async function processNewsletters() {
   const inputDir = join(process.cwd(), "newsletter-raw");
   const outputDir = join(process.cwd(), "newsletter-snips");
 
   const files = await readdir(inputDir);
   const htmlFiles = files.filter((f) => f.endsWith(".html"));
-  
-  const existingFiles = await readdir(outputDir).catch(() => []);
-  const existingMdContents = new Set(
-    await Promise.all(
-      existingFiles
-        .filter((f) => f.endsWith(".md"))
-        .map((f) => readFile(join(outputDir, f), "utf-8"))
-    )
-  );
-  
+
   const limit = pLimit(20);
 
   await Promise.all(
@@ -103,9 +102,22 @@ async function processNewsletters() {
         try {
           logger.info({ file }, "Processing newsletter");
 
+          const outputFilename = file.replace(".html", "");
+          const jsonPath = join(outputDir, `${outputFilename}.json`);
+
+          try {
+            await access(jsonPath);
+            logger.info({ file }, "JSON already exists, skipping");
+            return;
+          } catch {
+            // File doesn't exist, continue processing
+          }
+
           const content = await readFile(join(inputDir, file), "utf-8");
 
           let mdContent = turndownService.turndown(content);
+
+          mdContent = remove(mdContent);
 
           mdContent = await resolveEmailerLinks(mdContent);
 
@@ -141,24 +153,39 @@ async function processNewsletters() {
 
           mdContent = await formatMarkdown(mdContent);
 
-          if (existingMdContents.has(mdContent)) {
-            logger.info({ file }, "Skipping - already exists");
-            return;
-          }
+          mdContent = removeTopGainerLoser(mdContent);
 
           logger.info({ file }, "processing");
 
-          const extracted = await processNewsletter(mdContent);
+          const extracted = await processNewsletter(file, mdContent);
 
-          await writeFile(
-            join(outputDir, `${extracted.publishDate}.json`),
-            JSON.stringify(extracted, null, 2),
-          );
+          for (const news of extracted.marketNews) {
+            news.urls = await Promise.all(
+              news.urls.map(async (e) => {
+                if (e.includes("emailer.stockbit.com")) {
+                  return await resolveRedirect(e);
+                }
 
-          await writeFile(
-            join(outputDir, `${extracted.publishDate}.md`),
-            mdContent,
-          );
+                return e;
+              }),
+            );
+          }
+
+          for (const news of extracted.tickerNews) {
+            news.urls = await Promise.all(
+              news.urls.map(async (e) => {
+                if (e.includes("emailer.stockbit.com")) {
+                  return await resolveRedirect(e);
+                }
+
+                return e;
+              }),
+            );
+          }
+
+          await writeFile(join(outputDir, `${outputFilename}.md`), mdContent);
+
+          await writeFile(jsonPath, JSON.stringify(extracted, null, 2));
 
           logger.info({ file: file }, "Newsletter processed");
         } catch (error) {

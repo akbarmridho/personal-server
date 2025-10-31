@@ -317,8 +317,10 @@ if __name__ == "__main__":
     # Writes email html files
     for key, msg in messages.items():
         msg_id = msg.get("message-id")
-        body_path = os.path.join(outdir, msg_id.replace("/", "-") + ".html")
-        attachment_path = os.path.join(outdir, msg_id.replace("/", "-"))
+        date = email.utils.parsedate_to_datetime(msg.get("date"))
+        filename = date.strftime("%Y-%m-%d_%H-%M-%S")
+        body_path = os.path.join(outdir, filename + ".html")
+        attachment_path = os.path.join(outdir, filename)
 
         # Deletes all previous files (if they exist) for easier append-age later
         try:
