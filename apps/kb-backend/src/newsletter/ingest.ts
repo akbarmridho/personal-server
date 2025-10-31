@@ -7,6 +7,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { logger } from "@personal-server/common/utils/logger";
 import axios from "axios";
+import pLimit from "p-limit";
 import pRetry from "p-retry";
 
 let shouldExit = false;
@@ -40,94 +41,106 @@ async function ingestNews() {
   const files = await readdir(inputDir);
   const jsonFiles = files
     .filter((f) => f.endsWith(".json"))
-    .sort((a, b) => a.localeCompare(b))
-    .slice(0, 5);
+    .sort((a, b) => a.localeCompare(b));
 
-  for (const file of jsonFiles) {
-    if (shouldExit) {
-      logger.info("Exiting gracefully...");
-      break;
-    }
+  const limit = pLimit(10);
+  let completed = 0;
+  const total = jsonFiles.length;
 
-    try {
-      logger.info({ file }, "Processing newsletter");
+  const tasks = jsonFiles.map((file) =>
+    limit(async () => {
+      if (shouldExit) return;
 
-      const content = await readFile(join(inputDir, file), "utf-8");
-      const extracted = JSON.parse(content);
+      try {
+        logger.info({ file }, "Processing newsletter");
 
-      for (const news of extracted.marketNews) {
-        if (shouldExit) break;
+        const content = await readFile(join(inputDir, file), "utf-8");
+        const extracted = JSON.parse(content);
 
-        const title = `${extracted.publishDate}: ${news.title}`;
+        for (const news of extracted.marketNews) {
+          if (shouldExit) break;
 
-        if (await checkExists(title)) {
-          logger.info({ title }, "Skipping existing market news");
-          continue;
+          const title = `${extracted.publishDate}: ${news.title}`;
+
+          if (await checkExists(title)) {
+            logger.info({ title }, "Skipping existing market news");
+            continue;
+          }
+
+          logger.info({ title }, "Ingesting market news");
+          await pRetry(
+            () =>
+              axios.post(`${BASE_URL}/rag/documents`, {
+                collection_id: COLLECTION_ID,
+                title,
+                content: news.content,
+                document_ts: extracted.publishDate,
+                metadata: JSON.stringify({
+                  type: "market",
+                  source: "stockbit-snips",
+                  primaryTickers: news.primaryTickers,
+                  mentionedTickers: news.mentionedTickers,
+                  urls: news.urls,
+                  date: extracted.publishDate,
+                }),
+                skipSummary: true,
+              }),
+            { retries: 3 },
+          );
+
+          logger.info({ title }, "Market news ingested");
         }
 
-        logger.info({ title }, "Ingesting market news");
-        await pRetry(
-          () =>
-            axios.post(`${BASE_URL}/rag/documents`, {
-              collection_id: COLLECTION_ID,
-              title,
-              content: news.content,
-              document_ts: extracted.publishDate,
-              metadata: JSON.stringify({
-                type: "market",
-                source: "stockbit-snips",
-                primaryTickers: news.primaryTickers,
-                mentionedTickers: news.mentionedTickers,
-                urls: news.urls,
-                date: extracted.publishDate,
+        for (const news of extracted.tickerNews) {
+          if (shouldExit) break;
+
+          const title = `${extracted.publishDate}: ${news.title}`;
+
+          if (await checkExists(title)) {
+            logger.info({ title }, "Skipping existing ticker news");
+            continue;
+          }
+
+          logger.info({ title }, "Ingesting ticker news");
+          await pRetry(
+            () =>
+              axios.post(`${BASE_URL}/rag/documents`, {
+                collection_id: COLLECTION_ID,
+                title,
+                content: news.content,
+                document_ts: extracted.publishDate,
+                metadata: JSON.stringify({
+                  type: "ticker",
+                  source: "stockbit-snips",
+                  primaryTickers: news.primaryTickers,
+                  mentionedTickers: news.mentionedTickers,
+                  urls: news.urls,
+                  date: extracted.publishDate,
+                }),
+                skipSummary: true,
               }),
-              skipSummary: true,
-            }),
-          { retries: 3 },
-        );
+            { retries: 3 },
+          );
 
-        logger.info({ title }, "Market news ingested");
-      }
-
-      for (const news of extracted.tickerNews) {
-        if (shouldExit) break;
-
-        const title = `${extracted.publishDate}: ${news.title}`;
-
-        if (await checkExists(title)) {
-          logger.info({ title }, "Skipping existing ticker news");
-          continue;
+          logger.info({ title }, "Ticker news ingested");
         }
 
-        logger.info({ title }, "Ingesting ticker news");
-        await pRetry(
-          () =>
-            axios.post(`${BASE_URL}/rag/documents`, {
-              collection_id: COLLECTION_ID,
-              title,
-              content: news.content,
-              document_ts: extracted.publishDate,
-              metadata: JSON.stringify({
-                type: "ticker",
-                source: "stockbit-snips",
-                primaryTickers: news.primaryTickers,
-                mentionedTickers: news.mentionedTickers,
-                urls: news.urls,
-                date: extracted.publishDate,
-              }),
-              skipSummary: true,
-            }),
-          { retries: 3 },
+        completed++;
+        logger.info(
+          { file, progress: `${completed}/${total}` },
+          "Newsletter processing complete",
         );
-
-        logger.info({ title }, "Ticker news ingested");
+      } catch (error) {
+        completed++;
+        logger.error(
+          { err: error, file, progress: `${completed}/${total}` },
+          "Failed to process newsletter",
+        );
       }
+    }),
+  );
 
-      logger.info({ file }, "Newsletter processing complete");
-    } catch (error) {
-      logger.error({ err: error, file }, "Failed to process newsletter");
-    }
-  }
+  await Promise.all(tasks);
 
   logger.info("Ingestion finished");
 }
