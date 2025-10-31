@@ -51,9 +51,7 @@ export const setupRagRoutes = () =>
 
             const type = detectContentType(body.content);
 
-            if (type === "markdown") {
-              finalContent = body.content;
-            } else if (type === "html") {
+            if (type === "html") {
               if (body.hiresPdfExtract) {
                 // convert first to markdown via pdf
                 logger.info(
@@ -67,7 +65,8 @@ export const setupRagRoutes = () =>
                 finalContent = await htmlToMarkdown(body.content!);
               }
             } else {
-              throw new Error("Unknown content type detected");
+              // just raw content type if not html
+              finalContent = body.content;
             }
           } else if ("file" in body && body.file) {
             if (!body.file.type.includes("pdf")) {
