@@ -156,9 +156,7 @@ export const setupRagRoutes = () =>
           daysBack: t.Optional(t.Numeric()),
           from: t.Optional(t.String()),
           to: t.Optional(t.String()),
-          metadata: t.Optional(
-            t.Union([t.Record(t.String(), t.Any()), t.String()]),
-          ),
+          metadata: t.Optional(t.String()),
         }),
       },
     )
