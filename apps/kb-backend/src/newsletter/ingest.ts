@@ -32,6 +32,7 @@ async function ingestNews() {
           document_ts: extracted.publishDate,
           metadata: JSON.stringify({
             type: "market",
+            source: "stockbit-snips",
             primaryTickers: news.primaryTickers,
             mentionedTickers: news.mentionedTickers,
             urls: news.urls,
@@ -53,6 +54,7 @@ async function ingestNews() {
           document_ts: extracted.publishDate,
           metadata: JSON.stringify({
             type: "ticker",
+            source: "stockbit-snips",
             primaryTickers: news.primaryTickers,
             mentionedTickers: news.mentionedTickers,
             urls: news.urls,

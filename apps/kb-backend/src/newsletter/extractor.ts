@@ -39,32 +39,49 @@ const delistedTickers = [
 ];
 
 export const News = z.object({
-  title: z.string().describe("News headline"),
-  content: z.string().describe("Full news content in plain text"),
-  urls: z
+  title: z
     .string()
-    .array()
     .describe(
-      "News source URLs (news outlets, PDFs, official reports only - exclude internal links and images)",
+      "Exact English translation of the section or article headline. Must correspond to one identifiable section in the newsletter.",
+    ),
+  content: z
+    .string()
+    .describe(
+      "Full translated text of the section, preserving all original facts, figures, and chronology. Do not summarize, paraphrase, or shorten.",
+    ),
+  urls: z
+    .array(z.string())
+    .describe(
+      "List of valid external URLs (IDX, news media, PDFs, KSEI, etc.). Exclude internal or tracking links.",
     ),
   primaryTickers: z
-    .string()
-    .array()
-    .describe("Main ticker subjects (e.g., ['BMRI'])"),
+    .array(z.string())
+    .describe(
+      "Main Indonesian stock tickers that are the primary focus of the news item. Use [] if none.",
+    ),
   mentionedTickers: z
-    .string()
-    .array()
-    .describe("Secondary ticker mentions (e.g., ['BBCA'])"),
+    .array(z.string())
+    .describe(
+      "Secondary Indonesian tickers mentioned in the content. Use [] if none.",
+    ),
 });
 
 export const Newsletter = z.object({
-  publishDate: z.string().describe("Publication date in YYYY-MM-DD format"),
-  marketNews: News.array().describe(
-    "Macro/sector news (IHSG, foreign flow, MSCI changes)",
-  ),
-  tickerNews: News.array().describe(
-    "News focused on specific company tickers (identified by $TICKER or 4-letter uppercase codes)",
-  ),
+  publishDate: z
+    .string()
+    .describe(
+      "Publication date in YYYY-MM-DD format (e.g., '2023-12-28'). Extract directly from the newsletter.",
+    ),
+  marketNews: z
+    .array(News)
+    .describe(
+      "Each item represents a full macroeconomic, policy, or sectoral section (e.g., 'Snips Recap 2023'). Content must preserve all details within that section.",
+    ),
+  tickerNews: z
+    .array(News)
+    .describe(
+      "Each item corresponds to a company-specific section or paragraph containing ticker mentions. Preserve full detail.",
+    ),
 });
 
 export const processNewsletter = async (content: string) => {
@@ -79,53 +96,81 @@ export const processNewsletter = async (content: string) => {
 
   const result = await pRetry(
     async (retryCount) => {
-      const systemPrompt = `Extract financial news from Indonesian newsletter. Group related content into news objects based on document structure.
+      const systemPrompt = `Extract and structure financial news from an Indonesian daily newsletter into a **fully faithful, machine-readable translation**.  
+Do **not summarize, paraphrase, merge, or omit** any facts, figures, or sentences.  
+Your goal is to preserve all original information and structure it cleanly into JSON.
 
-## Rules
+---
 
-1. Group by structure: Use bullets, headings, and paragraphs to identify separate news items
-2. Related sub-bullets belong to parent bullet (merge into one news object)
-3. Extract ALL news items (never skip)
-4. Ticker = \`$CODE\` or uppercase 3-5 letters (BBCA, ASII)
-5. Has ticker → tickerNews, no ticker → marketNews
-6. SKIP daily IHSG percentage movement news (e.g., "IHSG declines 0.78%", "IHSG rises 1.2%")
-7. ONLY Indonesian tickers in primaryTickers/mentionedTickers (must be in valid list). Skip foreign tickers (e.g., US, China stocks)
+## OUTPUT STRUCTURE
 
-## Fields
+Return a JSON object with this schema:
 
-- title: Short headline with ticker if applicable
-- content: Full text in English, no markdown, translate Indonesian
-- urls: Extract from [text](url), exclude emailer.stockbit.com and images
-- primaryTickers: Main Indonesian tickers only (must be in valid list)
-- mentionedTickers: Other Indonesian tickers only (must be in valid list)
-
-## Examples
-
-Input: \`• $BBCA: Bank Central Asia laba Rp15T\`
-Output:
-\`\`\`json
-{
-  "title": "BBCA net profit IDR 15 trillion",
-  "content": "Bank Central Asia (BBCA) recorded net profit of IDR 15 trillion.",
-  "urls": [],
-  "primaryTickers": ["BBCA"],
-  "mentionedTickers": []
+Newsletter = {
+  publishDate: string (YYYY-MM-DD),
+  marketNews: News[],     // macroeconomic, policy, or sectoral updates (grouped by newsletter sections)
+  tickerNews: News[]      // company-specific news with $TICKER or uppercase 3–5 letter codes
 }
-\`\`\`
 
-Input: \`• Bank Indonesia cut rates 25bps\`
-Output:
-\`\`\`json
-{
-  "title": "Bank Indonesia cuts rates 25bps",
-  "content": "Bank Indonesia cut interest rates by 25 basis points.",
-  "urls": [],
-  "primaryTickers": [],
-  "mentionedTickers": []
+News = {
+  title: string,                 // section or article title from the newsletter
+  content: string,               // full English translation of the entire section's text, preserving every detail
+  urls: string[],                // valid external URLs only
+  primaryTickers: string[],      // Indonesian tickers that are the main subject
+  mentionedTickers: string[]     // other Indonesian tickers mentioned secondarily
 }
-\`\`\`
 
-Valid tickers: ${validTickers}`;
+---
+
+## EXTRACTION RULES
+
+### 1️. Structure and granularity
+
+- Treat **each visible section or subheading** in the newsletter as one \`News\` object.
+- For example, “▶️ Snips Recap 2023: Normalisasi Harga Komoditas dan Inflasi” becomes a single \`marketNews\` item, and its content includes everything until the next major section heading.
+- Do **not merge** multiple sections or paragraphs into one \`News\` entry.
+- Preserve **all chronological bullet points, statistics, and month-by-month data** within that section.
+
+### 2️. Ticker separation
+
+- Any paragraph or bullet that includes \`$CODE\` or a 3–5-letter uppercase ticker (e.g., ASII, BBCA) → goes into \`tickerNews\`.
+- Combine sub-bullets about the same ticker into one item only if they belong to the same newsletter section.
+- Each ticker gets its own distinct news object.
+
+### 3️. Inclusion
+
+- Skip daily IHSG movement lines (e.g., “IHSG +0.5% today”) unless part of a larger section recap.
+- Include **all** macro, policy, or corporate events with full detail.
+- Include only **Indonesian tickers** in primary/mentionedTickers (exclude foreign tickers).
+
+### 4️. Content formatting
+
+- Translate Indonesian text to clear English while keeping all quantitative and contextual details.
+- Do not compress or shorten content.
+- Preserve all lists, figures, and chronology.
+- Write as plain text (no markdown or bullet formatting).
+
+### 5️. Titles
+
+- For market news: use the section headline.
+- For ticker news: use a factual headline derived from the paragraph.
+
+### 6️. URLs
+
+- Collect only valid external URLs (IDX, KSEI, news sites).
+- Remove duplicates and internal links (e.g., emailer.stockbit.com).
+
+---
+
+## STYLE GUIDELINES
+
+- Use neutral, factual tone.
+- Preserve chronological and structural fidelity.
+- Output should have approximately the **same length** as the original newsletter text.
+- The result is a **faithful translation + structural mapping**, not a summary.
+
+Valid tickers: ${validTickers}
+`;
 
       let finalContent = content;
 

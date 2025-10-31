@@ -63,7 +63,9 @@ function removeImages(content: string): string {
 }
 
 function removePhotoBySection(content: string): string {
-  return content.replace(/Photo by:[\s\S]*?👋 Stockbitor!/g, "");
+  return content
+    .replace(/Photo by:[\s\S]*?👋 Stockbitor!/g, "")
+    .replace(/Daily Market Performance[\s\S]*?👋 Stockbitor!/g, "");
 }
 
 function removeFooter(content: string): string {
