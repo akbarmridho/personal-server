@@ -98,38 +98,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Higher UMP impact on AMRT",
-      "content": "$AMRT: The analysis ... that ... higher UMP … could ... pressure the profitability of issuers with a high proportion of employee expenses such as AMRT.",
-      "urls": [],
-      "primaryTickers": [
-        "AMRT"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "Higher UMP impact on MAPI",
-      "content": "$MAPI: The analysis ... ... higher UMP ... could ... pressure the profitability of emitt​ … MAPI ... ",
-      "urls": [],
-      "primaryTickers": [
-        "MAPI"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "AADI announces IPO and rights issue",
-      "content": "$AADI: Anak ... Adaro Andalan Indonesia, a subsidiary of Adaro Energy Indonesia (ADRO), plans to issue 778.7 million (10%) new shares at a price range of 4,590-5,900 rupiah per share. The proceeds will be allocated 40% to loans to subsidiaries, 15% to repay part of a loan to PT Adaro Indonesia, and the remainder to repay part of a loan to ADRO. The offering is expected to run from 29 November to 3 December 2024, with an anticipated listing on the Indonesia Stock Exchange on 5 December 2024. In addition, AADI will conduct a shareholders’ rights issue simultaneously with the IPO. The corporate action is part of the spin-off of AADI from ADRO.",
-      "urls": [
-        "https://e-ipo.co.id/id/pipeline/get-propectus-file?id=319&type=summary",
-        "https://stockbit.com/post/16072857"
-      ],
-      "primaryTickers": [
-        "AADI"
-      ],
-      "mentionedTickers": [
-        "ADRO"
-      ]
-    },
-    {
       "title": "BREN purchase of 10 million BREN shares",
       "content": "$BREN: Indirect controller of Barito Renewables Energy, Prajogo Pangestu, bought 10 million BREN shares at an average price of 7,322 rupiah per share on 11 November 2024. The transaction value was about 73.2 billion rupiah, raising his ownership from 0.08954% to 0.09701%.",
       "urls": [
@@ -261,20 +229,6 @@
         "RAJA"
       ],
       "mentionedTickers": []
-    },
-    {
-      "title": "NETV name change to MDTV Media Technologies",
-      "content": "$NETV: Net Visi Media officially ... the company’s ... renamed to MDTV Media Technologies. The decision was approved by shareholders in the extraordinary shareholders’ meeting on 7 November 2024, following the latest ... acquisition of 80.05% of NETV by MD Entertainment (FILM) at a price of 50 rupiah per share on 25 and 29 October 2024.",
-      "urls": [
-        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/a3587a57b9_ea3afe29b6.pdf",
-        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_202410/202410/b39352b206_a2de6b7f7d.pdf"
-      ],
-      "primaryTickers": [
-        "NETV"
-      ],
-      "mentionedTickers": [
-        "FILM"
-      ]
     }
   ]
 }

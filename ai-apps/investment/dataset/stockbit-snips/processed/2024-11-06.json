@@ -273,8 +273,7 @@
       "title": "NSSS Shareholder Transactions",
       "content": "Shareholders of Nusantara Sawit Sejahtera bought 830 million NSSS shares at an average price of IDR 190, raising its stake to 24.55%; another transaction saw PT Mitra Agro Dharma Unggul sell 734.3 million shares at an average price of IDR 190, reducing its stake to 13.91%. Both transactions were disclosed on 29 Oct 2024.",
       "urls": [
-        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/6b60abf706_29b0cbc133.pdf",
-        "https://www.idx.co.id/StaticData/NewsAndNews/ANNOUNMENT...%20(invalid)"
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/6b60abf706_29b0cbc133.pdf"
       ],
       "primaryTickers": [
         "NSSS"
@@ -290,13 +289,6 @@
       "primaryTickers": [
         "FAST"
       ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "Unspecified Unstructured Unclear",
-      "content": "Minister of the ​     …  …  … … … … … … … … … … … … … … … … 外 … … … … … ...",
-      "urls": [],
-      "primaryTickers": [],
       "mentionedTickers": []
     }
   ]
