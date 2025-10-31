@@ -143,7 +143,7 @@ export class VectorStore {
       }
     }
 
-    if (options?.metadataFilter) {
+    if (options?.metadataFilter && Object.keys(options.metadataFilter).length > 0) {
       for (const [key, value] of Object.entries(options.metadataFilter)) {
         query = query.where("metadata", "@>", JSON.stringify({ [key]: value }));
       }

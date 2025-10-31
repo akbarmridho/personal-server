@@ -26,16 +26,15 @@ const BASE_URL = "https://kb.akbarmr.dev";
 
 async function ingestNews() {
   const inputDir = join(process.cwd(), "newsletter-data");
-  const cacheFile = join(inputDir, ".ingest-cache.json");
 
-  let cache: Set<string> = new Set();
-  if (existsSync(cacheFile)) {
-    cache = new Set(JSON.parse(await readFile(cacheFile, "utf-8")));
-    logger.info({ processed: cache.size }, "Loaded cache");
-  }
-
-  const saveCache = async () => {
-    await writeFile(cacheFile, JSON.stringify([...cache], null, 2));
+  const checkExists = async (title: string) => {
+    const res = await axios.get(
+      `${BASE_URL}/rag/collections/${COLLECTION_ID}/documents`,
+      {
+        params: { title },
+      },
+    );
+    return res.data.length > 0;
   };
 
   const files = await readdir(inputDir);
@@ -59,18 +58,19 @@ async function ingestNews() {
       for (const news of extracted.marketNews) {
         if (shouldExit) break;
 
-        const docId = `${file}:market:${news.title}`;
-        if (cache.has(docId)) {
-          logger.info({ title: news.title }, "Skipping processed market news");
+        const title = `${extracted.publishDate}: ${news.title}`;
+
+        if (await checkExists(title)) {
+          logger.info({ title }, "Skipping existing market news");
           continue;
         }
 
-        logger.info({ title: news.title }, "Ingesting market news");
-        const marketResponse = await pRetry(
-          async () => {
-            const res = await axios.post(`${BASE_URL}/rag/documents`, {
+        logger.info({ title }, "Ingesting market news");
+        await pRetry(
+          () =>
+            axios.post(`${BASE_URL}/rag/documents`, {
               collection_id: COLLECTION_ID,
-              title: news.title,
+              title,
               content: news.content,
               document_ts: extracted.publishDate,
               metadata: JSON.stringify({
@@ -82,36 +82,29 @@ async function ingestNews() {
                 date: extracted.publishDate,
               }),
               skipSummary: true,
-            });
-            if (res.status < 200 || res.status >= 300) {
-              logger.error({ status: res.status, data: res.data }, "Bad response");
-              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
-            return res;
-          },
+            }),
           { retries: 3 },
         );
 
-        cache.add(docId);
-        await saveCache();
-        logger.info({ title: news.title }, "Market news ingested");
+        logger.info({ title }, "Market news ingested");
       }
 
       for (const news of extracted.tickerNews) {
         if (shouldExit) break;
 
-        const docId = `${file}:ticker:${news.title}`;
-        if (cache.has(docId)) {
-          logger.info({ title: news.title }, "Skipping processed ticker news");
+        const title = `${extracted.publishDate}: ${news.title}`;
+
+        if (await checkExists(title)) {
+          logger.info({ title }, "Skipping existing ticker news");
           continue;
         }
 
-        logger.info({ title: news.title }, "Ingesting ticker news");
-        const tickerResponse = await pRetry(
-          async () => {
-            const res = await axios.post(`${BASE_URL}/rag/documents`, {
+        logger.info({ title }, "Ingesting ticker news");
+        await pRetry(
+          () =>
+            axios.post(`${BASE_URL}/rag/documents`, {
               collection_id: COLLECTION_ID,
-              title: news.title,
+              title,
               content: news.content,
               document_ts: extracted.publishDate,
               metadata: JSON.stringify({
@@ -123,19 +116,11 @@ async function ingestNews() {
                 date: extracted.publishDate,
               }),
               skipSummary: true,
-            });
-            if (res.status < 200 || res.status >= 300) {
-              logger.error({ status: res.status, data: res.data }, "Bad response");
-              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
-            return res;
-          },
+            }),
           { retries: 3 },
         );
 
-        cache.add(docId);
-        await saveCache();
-        logger.info({ title: news.title }, "Ticker news ingested");
+        logger.info({ title }, "Ticker news ingested");
       }
 
       logger.info({ file }, "Newsletter processing complete");
