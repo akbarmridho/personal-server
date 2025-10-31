@@ -36,6 +36,8 @@ const delistedTickers = [
   "TRUB",
   "TURI",
   "UNTX",
+  "FREN",
+  "MFIN",
 ];
 
 export const News = z.object({
@@ -87,7 +89,7 @@ export const Newsletter = z.object({
 export const processNewsletter = async (content: string) => {
   const companies = await getRawCompanies();
   const validTickers = [
-    ...companies.map((c) => c.ticker),
+    ...companies.map((c) => `${c.ticker} (${c.companyName})`),
     ...delistedTickers,
   ].join(", ");
 
@@ -203,7 +205,10 @@ Valid tickers: ${validTickers}
         ]),
       ];
 
-      const validTickerSet = new Set(companies.map((c) => c.ticker));
+      const validTickerSet = new Set([
+        ...companies.map((c) => c.ticker),
+        ...delistedTickers,
+      ]);
       const invalidTickers = allTickers.filter((t) => !validTickerSet.has(t));
 
       if (invalidTickers.length > 0) {

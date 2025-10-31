@@ -2,7 +2,7 @@ import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
 
 loadDotenv();
 
-import { access, readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { logger } from "@personal-server/common/utils/logger";
 import pLimit from "p-limit";
@@ -80,22 +80,17 @@ function removeBoldAndUnderline(content: string): string {
 }
 
 async function processNewsletters() {
-  const inputDir = join(process.cwd(), "newsletter-data");
+  const inputDir = join(process.cwd(), "newsletter-raw");
+  const outputDir = join(process.cwd(), "newsletter-snips");
+
   const files = await readdir(inputDir);
   const htmlFiles = files.filter((f) => f.endsWith(".html"));
-  const limit = pLimit(5);
+  const limit = pLimit(20);
 
   await Promise.all(
     htmlFiles.map((file) =>
       limit(async () => {
         try {
-          const outputFile = file.replace(".html", ".json");
-          try {
-            await access(join(inputDir, outputFile));
-            logger.info({ file }, "Skipping - JSON already exists");
-            return;
-          } catch {}
-
           logger.info({ file }, "Processing newsletter");
 
           const content = await readFile(join(inputDir, file), "utf-8");
@@ -136,21 +131,26 @@ async function processNewsletters() {
 
           mdContent = await formatMarkdown(mdContent);
 
-          const outmd = file.replace(".html", ".md");
-          await writeFile(join(inputDir, outmd), mdContent, {
-            encoding: "utf-8",
-          });
+          // const outmd = file.replace(".html", ".md");
+          // await writeFile(join(inputDir, outmd), mdContent, {
+          //   encoding: "utf-8",
+          // });
 
           logger.info({ file }, "processing");
 
           const extracted = await processNewsletter(mdContent);
 
           await writeFile(
-            join(inputDir, outputFile),
+            join(outputDir, `${extracted.publishDate}.json`),
             JSON.stringify(extracted, null, 2),
           );
 
-          logger.info({ file: outputFile }, "Newsletter processed");
+          await writeFile(
+            join(outputDir, `${extracted.publishDate}.md`),
+            mdContent,
+          );
+
+          logger.info({ file: file }, "Newsletter processed");
         } catch (error) {
           logger.error({ err: error, file }, "Failed to process newsletter");
         }
