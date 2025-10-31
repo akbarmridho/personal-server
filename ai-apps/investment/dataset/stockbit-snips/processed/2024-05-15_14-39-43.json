@@ -1,0 +1,157 @@
+{
+  "publishDate": "2024-05-15",
+  "marketNews": [
+    {
+      "title": "MSCI Global Index Rebalancing: TPIA Enters, TOWR & SMGR Downgraded",
+      "content": "Morgan Stanley Capital International (MSCI) Indonesia announced the rebalancing of the MSCI Global Standard Index and MSCI Small Cap Index. This change will be effective per the close on May 31, 2024, with an effective date per June 1, 2024. The details are as follows: MSCI Global Standard Index: Entry: TPIA Exit: TOWR, SMGR MSCI Small Cap Index: Entry: GGRM, MIKA, TOWR, SMGR, ULTJ Exit: AUTO, BIPI, BBKP, BJBR, LPKR, ENRG, MNCN, CARE, LSIP Meanwhile, the constituents of the MSCI Micro Cap Index experienced no changes. MSCI will announce the next rebalancing on August 12, 2024, with an effective date of September 2, 2024. Key Takeaway: Issuers entering the above indices will receive inflow, potentially serving as a positive catalyst for their stock price movements. Following this news, stocks entering the MSCI indices closed stronger today, Wednesday (15/5), with TPIA +8.31% and ULTJ +3.45%. On the other hand, stocks downgraded from the Global Standard Index to the Small Cap Index experienced price weakness today, such as TOWR (-3.85%) and SMGR (-2.37%). Based on trends in the last 3 rebalancings, stocks entering the MSCI indices tend to experience price strengthening, rising by an average of +12.4% during the period from announcement to the effective date. Meanwhile, during the same period, stocks exiting the MSCI indices experienced an average price decline of -7.1%.",
+      "urls": [
+        "https://app2.msci.com/eqb/gimi/stdindex/MSCI_May24_STPublicList.pdf",
+        "https://app2.msci.com/eqb/gimi/smallcap/MSCI_May24_SCPublicList.pdf"
+      ],
+      "primaryTickers": [
+        "TPIA"
+      ],
+      "mentionedTickers": [
+        "TOWR",
+        "SMGR",
+        "GGRM",
+        "MIKA",
+        "AUTO",
+        "BIPI",
+        "BBKP",
+        "BJBR",
+        "LPKR",
+        "ENRG",
+        "MNCN",
+        "CARE",
+        "LSIP",
+        "ULTJ"
+      ]
+    },
+    {
+      "title": "US President Biden announces tariff hikes on Chinese imports, including EVs and solar products",
+      "content": "US President Joe Biden officially announced an increase in import tariffs on a number of products imported from China on Tuesday (14/5) local time. Under the new regulation, import duties on electric vehicles originating from China increased from 27.5% to 102.5% effective 2024. Furthermore, import duties on steel and aluminum products as well as lithium batteries and critical minerals imported from China will also rise from 7.5% to 25% effective 2024. BBC reported that a number of analysts assess this tariff hike move is largely symbolic and an effort by Joe Biden to boost his votes ahead of the election.",
+      "urls": [
+        "https://apnews.com/article/biden-china-tariffs-electric-vehicles-evs-solar-2024ba735c47e04a50898a88425c5e2c",
+        "https://www.bbc.com/news/business-69004520"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bank Mandiri Chief Economist projects slower national credit growth in 2024",
+      "content": "Chief Economist of Bank Mandiri ($BMRI), Andry Asmoro, projects that national banking credit growth in 2024 will be in the range of +9-10% YoY. This projection is lower than Bank Indonesia's target (+10-12% YoY), but still in line with the OJK's target (+9-11% YoY). Andry based his projection on tight liquidity among big banks, the receding expectation of a BI Rate cut, entrepreneurs' wait and see attitude ahead of the cabinet announcement, and softening purchasing power of the lower class society. For 2024, BMRI itself targets credit growth of +13-15% YoY.",
+      "urls": [
+        "https://epaper.investor.id/files/2024/05/15/36b05295628c27d6e7aaa7ea1f0f1655.html"
+      ],
+      "primaryTickers": [
+        "BMRI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BPS notes trade surplus narrowed in April 2024, while imports recorded first YoY growth in 11 months",
+      "content": "BPS noted that Indonesia's trade balance surplus narrowed to 3.56 billion US dollars in April 2024 (vs. Apr 2023: 3.94 billion US dollars), but it was still better than the consensus expectation which predicted a surplus of 3.3 billion US dollars. Imports grew by +1.72% YoY in April 2024 (vs. expectation: +4.57% YoY), marking the first growth in the last 11 months. Meanwhile, exports rose by +4.62% YoY (vs. expectation: +8.69% YoY).",
+      "urls": [
+        "https://www.bps.go.id/id/pressrelease/2024/05/15/2338/ekspor-april-2024-mencapai-us-19-62-miliar--turun-12-97-persen-dibanding-maret-2024--impor-april-2024-senilai-us-16-06-miliar--turun-10-60-persen-dibanding-maret-2024--.html"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Venture capital financing remains under pressure, decreasing YoY as of March 2024",
+      "content": "Venture capital financing remains under pressure, with OJK recording that venture capital financing decreased by -10.18% YoY to 16.79 trillion rupiah in March 2024. The asset value of venture capital in March 2024 also contracted by -5.62% YoY to 26.34 trillion rupiah. CEO of PT BNI Modal Ventura, Eddi Danusaputro, stated that the downward trend in venture capital financing is caused by macro volatility, geopolitics, and high interest rates.",
+      "urls": [
+        "https://insight.kontan.co.id/news/investor-selektif-pembiayaan-modal-ventura-merosot"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "CMNP plans rights issue for toll road development",
+      "content": "Citra Marga Nusaphala Persada ($CMNP) plans to hold a rights issue of up to ~2.2 billion new shares with a dilution effect of up to 25%. The exercise price and ratio have not yet been announced. The funds obtained are intended for the development of the Ir. Wiyoto-Wiyono toll road and the construction of the Depok-Antasari toll road project section 3-4. This plan will be discussed in the GMSLB on June 20, 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/29430275bc_649ef9bdf7.pdf"
+      ],
+      "primaryTickers": [
+        "CMNP"
+      ],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "ADRO Final Dividend of IDR 218/Share Declared, Indicating 7.7% Yield",
+      "content": "ADRO: Shareholders of Adaro Energy Indonesia approved the distribution of a final dividend for the 2023 fiscal year amounting to 400 million US dollars, equivalent to 218 rupiah per share assuming an exchange rate of 16,067 US dollar to rupiah. The cum-dividend date and payment date have not yet been announced. Referring to ADRO's share price on Wednesday (15/5) at the level of 2,830 rupiah per share, the indicated dividend yield is 7.7%. Previously, ADRO also distributed an interim dividend of 400 million US dollars in January 2024.",
+      "urls": [],
+      "primaryTickers": [
+        "ADRO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ADMR targets 5.5-6.5 million tons of metallurgical coal sales in 2024, aluminum smelter to operate in 3Q25",
+      "content": "ADMR: Director of Adaro Minerals Indonesia, Heri Gunawan, stated that his company allocates capital expenditure (capex) of 175-250 million US dollars in 2024 for the needs of an aluminum smelter and the increased production capacity of metallurgical coal. In 2024, ADMR targets metallurgical coal production to grow by +7.8-27.5% YoY to 5.5-6.5 million tons, while coal sales are targeted to grow by +8.9-20% YoY to 4.9-5.4 million tons. Meanwhile, ADMR Director, Wito Krisnahadi, stated that the aluminum smelter project will begin operating in 3Q25, with an initial production capacity of 500,000 tons of aluminum ingot per year. Wito mentioned that ADMR has signed memoranda of understanding for aluminum sales with 2 purchasing parties.",
+      "urls": [
+        "https://www.antaranews.com/berita/4103418/admr-bidik-penjualan-54-juta-ton-batu-bara-metalurgi-di-2024",
+        "https://insight.kontan.co.id/news/mou-hyundai-berakhir-adaro-minerals-admr-jajaki-calon-mitra-baru"
+      ],
+      "primaryTickers": [
+        "ADMR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ABMM shareholders approve 2023 final dividend yielding 8%",
+      "content": "ABMM: Shareholders of ABM Investama approved the distribution of a final dividend for the 2023 fiscal year amounting to ~812.2 billion rupiah or 295 rupiah per share. The cum-dividend date and payment date have not yet been announced. Referring to ABMM's share price on Wednesday (15/5) at the level of 3,700 rupiah per share, the indicated dividend yield is 8%.",
+      "urls": [],
+      "primaryTickers": [
+        "ABMM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ELSA shareholders approve 2023 dividend yielding 6.3%",
+      "content": "ELSA: Shareholders of Elnusa approved the distribution of a dividend for the 2023 fiscal year amounting to 201.3 billion rupiah or ~27.6 rupiah per share. The cum-dividend date and payment date have not yet been announced. Referring to ELSA's share price on Wednesday (15/5) at the level of 440 rupiah per share, the indicated dividend yield is 6.3%.",
+      "urls": [],
+      "primaryTickers": [
+        "ELSA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "INTP to distribute 2023 dividend of IDR 90/share, payout ratio decreases to 15.83%",
+      "content": "INTP: Indocement Tunggal Prakarsa will distribute a dividend for the 2023 fiscal year amounting to ~308.8 billion rupiah or 90 rupiah per share. The cum-dividend date in the regular and negotiated market is May 22, 2024, with payment on June 14, 2024. Referring to INTP's share price on Wednesday (15/5) at the level of 6,625 rupiah per share, the indicated dividend yield is 1.3%. The payout ratio from the 2023 fiscal year dividend has decreased because it only reached 15.83% (vs. fiscal year 2022: 30%), along with capex realization exceeding the budget as we have written in the following Stockbit Commentary.",
+      "urls": [
+        "https://epaper.kontan.co.id/v2/player/view/harian/2024-05-15",
+        "https://stockbit.com/post/13128180"
+      ],
+      "primaryTickers": [
+        "INTP"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "DRMA subsidiary commences first export of wiring harness products to US for Hyundai and KIA",
+      "content": "DRMA: Dharma Polimetal's business entity, PT Dharma Kyungshin Indonesia, commenced its inaugural export of wiring harness products for Hyundai and KIA in the US. DRMA President Director, Irianto Santoso, stated that the total value of this export package amounts to 15.8 million US dollars in 2024 and 26.8 million US dollars in 2025. Despite this, DRMA's ownership in PT Dharma Kyungshin Indonesia was only 49% as of 1Q24, so its revenue is not consolidated in the financial statements. Besides exports, Irianto also revealed that DRMA will build a new 200 billion rupiah plant in Cirebon, West Java, targeted to operate in May 2025.",
+      "urls": [
+        "https://epaper.bisnis.com/epaper/detail/page/138544/"
+      ],
+      "primaryTickers": [
+        "DRMA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "HILL shareholders to receive 2023 dividend of IDR 35/share",
+      "content": "HILL: Hillcon will distribute a dividend for the 2023 fiscal year amounting to ~103.2 billion rupiah or 35 rupiah per share. The cum-dividend date in the regular and negotiated market is May 20, 2024, with payment on June 11, 2024. Referring to HILL's share price on Wednesday (15/5) at the level of 3,130 rupiah per share, the indicated dividend yield is 1.1%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/b7273e9315_9a50d0e2c4.pdf"
+      ],
+      "primaryTickers": [
+        "HILL"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

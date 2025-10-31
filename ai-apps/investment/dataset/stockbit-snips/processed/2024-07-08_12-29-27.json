@@ -1,0 +1,171 @@
+{
+  "publishDate": "2024-07-08",
+  "marketNews": [
+    {
+      "title": "US Labor Absorption Slows, Expectations for Fed Rate Cuts Increase",
+      "content": "Initial data on US labor absorption recorded a slowdown in June 2024. Here are the details: Non-farm payrolls [recorded](https://www.bls.gov/news.release/empsit.nr0.htm) a decrease to 206,000 jobs from the revised May 2024 data at 218,000, but this is still higher than the consensus expectation of 190,000. The non-farm payroll data for the April 2024 period was revised down by 57,000 to 108,000 jobs. Meanwhile, the May 2024 data was revised down by 54,000. This downward revision indicates that the US labor market condition is not as strong as previously estimated. The unemployment rate in the US rose to 4.1% (vs. May 2024: 4%), higher than the consensus expectation of 4% and marking the highest level since November 2021. Following this data release, 3 major indices on the US stock exchange strengthened on Friday (5/7), with the Dow Jones strengthening +0.17%, S&P 500 rising +0.54%, and Nasdaq increasing +0.9%. The 10-year US government bond yield also fell -6.9 bps to 4.278%, while the US Dollar Index (DXY) fell -0.24% to the level of 104.88. The slowdown in US labor absorption caused market expectations for a Fed rate cut in September 2024 to increase to 68.2% as of Monday (8/7), according to analysis from the [CME FedWatch Tool](https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html). This figure rose from 59.8% on July 1, 2024. In Indonesia, the rupiah exchange rate against the US dollar strengthened +0.3% to the level of 16,265 on Monday (8/7), with the 10-year Indonesian government bond yield falling -3.6 bps to 7.03%. Meanwhile, the IHSG tended to be flat, weakening -0.03%.",
+      "urls": [
+        "https://www.bls.gov/news.release/empsit.nr0.htm",
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Key Takeaway",
+      "content": "The slight weakening of the IHSG today, Monday (8/7), seems not to reflect the increased risk appetite of investors following the macroeconomic developments above. This is reflected in the more dominant number of stocks moving positively (318) compared to those moving negatively (256) and those unchanged (223), as well as the majority of sectoral index movements being positive today. Furthermore, optimism among market participants was also seen in the significant price increase in several cyclical sectors, such as property, technology, and construction.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bank Indonesia announced that the Consumer Confidence Index in June 2024 fell to 123.3 (vs. May 2024: 125.2). This result was pressured by a decrease in almost all sub-indices, except for the current income sub-index.",
+      "content": "Bank Indonesia [announced](https://www.bi.go.id/id/publikasi/laporan/Documents/SK_Juni_2024.pdf) that the Consumer Confidence Index in June 2024 fell to 123.3 (vs. May 2024: 125.2). This result was pressured by a decrease in almost all sub-indices, except for the current income sub-index.",
+      "urls": [
+        "https://www.bi.go.id/id/publikasi/laporan/Documents/SK_Juni_2024.pdf"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Ministry of Manpower records layoffs (PHK) surge; Employers note a crisis in formal workers",
+      "content": "The Ministry of Manpower recorded that the number of layoffs (PHK) during 5M24 reached 69,472 people, higher than the full-year PHK realization in 2023 (64,855) and 2022 (25,114). This realization was accompanied by an increase in the portion of informal workers from 55.72% in August 2019 to 59.17% in February 2024, while the portion of formal workers decreased from 44.28% in August 2019 to 40.83% in February 2024. [Bisnis](https://epaper.bisnis.com/epaper/detail/page/140933/) reported that business circles do not deny the crisis of formal workers, caused by minimal state support for labor-intensive sectors.",
+      "urls": [
+        "https://epaper.bisnis.com/epaper/detail/page/140933/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Tariff Coordination for Imported Goods; Retail Ceiling Price for Minyakita to be Updated",
+      "content": "Head of the Fiscal Policy Agency of the Ministry of Finance, Febrio Kacaribu, [stated](https://epaper.bisnis.com/epaper/detail/page/140936/) that they are coordinating with the Ministry of Industry and the Ministry of Trade to determine the import duty tariff amount for imported products. Meanwhile, Minister of Trade, Zulkifli Hasan, stated that almost all ready-to-wear imported goods will be subject to import duties above 100%, including beauty products, footwear, ready-made clothing, textiles, and ceramics. Director at the Ministry of Trade, Bambang Wisnubroto, [stated](https://nasional.kontan.co.id/news/het-minyakita-dipastikan-naik-aturan-baru-segera-terbit) that the increase in the retail ceiling price (HET) for Minyakita will be announced next week. Previously, Minister of Trade, Zulkifli Hasan, on several occasions stated that the HET for Minyakita would increase from 14,000 rupiah per liter to 15,700 rupiah per liter. Besides the HET increase for Minyakita, Bambang also stated that the government will change the domestic market obligation (DMO) regulation. Going forward, the DMO for cooking oil will only be in the form of Minyakita, so there will no longer be DMO in the form of bulk cooking oil.",
+      "urls": [
+        "https://epaper.bisnis.com/epaper/detail/page/140936/",
+        "https://nasional.kontan.co.id/news/het-minyakita-dipastikan-naik-aturan-baru-segera-terbit"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BPS Area Sample Frame Estimates National Rice Production Drop for 8M24",
+      "content": "The Central Statistics Agency's Area Sample Frame observation as of May 2024 [estimated](https://investor.id/business/366328/produksi-beras-diramal-anjlok-percepat-perluasan-tanam-padi) that national rice production in 8M24 will fall by -9.52% YoY to 21.39 million tons, with a projected surplus of 0.82 million tons. This projection is based on a projected decrease in milled dry grain of -9.54% YoY to 37.12 million tons, corresponding to an estimated harvested area of rice expected to decrease by -7.52% YoY to 7.24 million hectares.",
+      "urls": [
+        "https://investor.id/business/366328/produksi-beras-diramal-anjlok-percepat-perluasan-tanam-padi"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesian Mining Association Chairman assesses current HBA formula reflects market price",
+      "content": "The Chairman of the Indonesian Mining Experts Association, Rizal Kasli, [assessed](https://epaper.investor.id/files/2024/07/08/47f70acc88bff16f2986588359c3333a.html) that the currently applicable Coal Reference Price (HBA) formula already reflects market prices because it is based on the weighted average price of the previous month. Last week, the Acting Director General of Minerals and Coal of the Ministry of Energy and Mineral Resources, Bambang Suswantono, stated that the government is reviewing the HBA and royalty rates for Special Mining Business Permit (IUPK) holders.",
+      "urls": [
+        "https://epaper.investor.id/files/2024/07/08/47f70acc88bff16f2986588359c3333a.html"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "US Department of Justice: Boeing Agrees to Plead Guilty in Criminal Case",
+      "content": "The US Department of Justice [stated](https://www.reuters.com/business/aerospace-defense/boeing-plead-guilty-us-probe-fatal-737-max-crashes-says-doj-official-2024-07-08/) that Boeing (NYSE:BA) has agreed to plead guilty to charges of criminal conspiracy. The aircraft manufacturer has also agreed to pay a fine of 243.6 million US dollars to settle the investigation into 2 fatal 737 MAX crashes in Indonesia and Ethiopia in 2018 and 2019. By [pleading guilty](https://www.bbc.com/news/articles/cjjjj85z0lno), Boeing will avoid a criminal trial, which was strongly urged by victim families.",
+      "urls": [
+        "https://www.reuters.com/business/aerospace-defense/boeing-plead-guilty-us-probe-fatal-737-max-crashes-says-doj-official-2024-07-08/",
+        "https://www.bbc.com/news/articles/cjjjj85z0lno"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "BBTN Cancels Acquisition of Bank Muamalat, Rumored to Target VICO Subsidiary",
+      "content": "$BBTN: The President Director of Bank Tabungan Negara, Nixon Napitupulu, [stated](https://katadata.co.id/finansial/korporasi/668b90cd96ff8/dirut-btn-kami-tidak-jadi-akuisisi-bank-muamalat) on Monday (8/7) that the company has canceled its plan to acquire PT Bank Muamalat Tbk. Nixon did not elaborate on the reason for BBTN canceling the plan, but Katadata reported that the acquisition plan failed due to poor due diligence results for Bank Muamalat. Katadata also reported that BBTN is re-exploring the acquisition of PT Bank Victoria Syariah, an entity owned 80.2% by Victoria Investama ($VICO) and 19.8% by Bank Victoria International ($BVIC). BBTN's plan to acquire a bank is part of the company's plan to spin off its Sharia business unit, BTN Syariah.",
+      "urls": [
+        "https://katadata.co.id/finansial/korporasi/668b90cd96ff8/dirut-btn-kami-tidak-jadi-akuisisi-bank-muamalat"
+      ],
+      "primaryTickers": [
+        "BBTN"
+      ],
+      "mentionedTickers": [
+        "VICO",
+        "BVIC"
+      ]
+    },
+    {
+      "title": "BBNI launches Wondr by BNI mobile banking app to replace the old platform",
+      "content": "$BBNI: Bank Negara Indonesia announced the launch of its newest mobile banking application, Wondr by BNI. [This application](https://epaper.bisnis.com/epaper/detail/page/140945) will replace the BNI Mobile Banking platform which will be closed in the next 6 months. BBNI hopes Wondr by BNI can help increase community banking activities more holistically.",
+      "urls": [
+        "https://epaper.bisnis.com/epaper/detail/page/140945"
+      ],
+      "primaryTickers": [
+        "BBNI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ADHI Records New Contracts of 10.2 Trillion Rupiah in 1H24, Meeting 27.3% of Target",
+      "content": "$ADHI: Adhi Karya [recorded](https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/729aa80e79_277d79003d.pdf) new contract value of 10.2 trillion rupiah (-37.4% YoY) during 1H24, only fulfilling 27.3% of the 2024 target of 37.4 trillion rupiah. The results were dominated by building projects with a contribution of 50%, followed by water resource projects at 32%, and the rest came from road and bridge projects, property, manufacturing, and EPC.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/729aa80e79_277d79003d.pdf"
+      ],
+      "primaryTickers": [
+        "ADHI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "AKRA Controller Increases Stake via Share Purchase",
+      "content": "$AKRA: The controller of AKR Corporindo, PT Arthakencana Rayatama, purchased 15.9 million AKRA shares at an average price of 1,595.4 rupiah per share between June 28 and July 3, 2024. The total transaction value reached approximately 25.3 billion rupiah. After [this transaction](https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/15a92fb281_ea57e9dae8.pdf), PT Arthakencana Rayatama's ownership in AKRA increased from 61.67% to 61.75%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/15a92fb281_ea57e9dae8.pdf"
+      ],
+      "primaryTickers": [
+        "AKRA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "MPMX Seeks M&A Opportunities and Expands into EV Battery Ecosystem",
+      "content": "$MPMX: GM Corporate Communication & Sustainability of Mitra Pinasthika Mustika, Natalia Lusnita, [stated](https://epaper.bisnis.com/epaper/detail/page/140942/) that the company is looking for merger and acquisition opportunities with companies whose business lines are in line with the company. Natalia could not provide detailed explanations regarding this plan, but she said that the process is underway and the company is conducting due diligence while applying cautious principles. Besides the merger and acquisition plan, MPMX is expanding into the electric vehicle ecosystem through a new business activity in the form of providing electric vehicle charging and battery swapping stations.",
+      "urls": [
+        "https://epaper.bisnis.com/epaper/detail/page/140942/"
+      ],
+      "primaryTickers": [
+        "MPMX"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "HILL Controller Sells Large Block of Shares",
+      "content": "$HILL: The controller of Hillcon, PT Hillcon Equity Management, sold 161.3 million HILL shares at an average price of 2,300 rupiah per share on July 2, 2024. The total transaction value reached approximately 371.1 billion rupiah. After [this transaction](https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/ec842d7a49_2ee4a607fb.pdf), PT Hillcon Equity Management's ownership in HILL decreased from 70.93% to 65.45%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/ec842d7a49_2ee4a607fb.pdf"
+      ],
+      "primaryTickers": [
+        "HILL"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TEBE Shareholder Sells Entire Stake",
+      "content": "$TEBE: The shareholder of Dana Brata Luhur, Hoch Ventures Pte. Ltd., sold 106.7 million TEBE shares at a price of 500 rupiah per share on June 14, 2024. The total transaction value reached approximately 53.4 billion rupiah. After [this transaction](https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/c1e7fb1192_ef38eeb881.pdf), Hoch Ventures Pte. Ltd.'s ownership in TEBE decreased from 8.31% to zero.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202407/c1e7fb1192_ef38eeb881.pdf"
+      ],
+      "primaryTickers": [
+        "TEBE"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ELPI Plans to Add 5 New Barges Using 2024 Capex",
+      "content": "$ELPI: The Corporate Secretary of Pelayaran Nasional Ekalya Purnamasari, Wawan Heri Purnomo, [stated](https://epaper.kontan.co.id/v2/player/view/harian/2024-07-08#page/10) that the company plans to add 5 new barge units through its subsidiary, PT ELPI Nusantara Armada. This addition will utilize the 2024 capex allocation of 1 trillion rupiah. However, the handover of these ships will only take place in 1H25, considering the time required for ordering reaches 9 months.",
+      "urls": [
+        "https://epaper.kontan.co.id/v2/player/view/harian/2024-07-08"
+      ],
+      "primaryTickers": [
+        "ELPI"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

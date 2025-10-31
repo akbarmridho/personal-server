@@ -1,0 +1,188 @@
+{
+  "publishDate": "2025-01-13",
+  "marketNews": [
+    {
+      "title": "US Labor Data Exceeds Expectations, Strengthening the Higher-for-Longer Narrative",
+      "content": "The US Bureau of Labor Statistics recorded that non-farm payroll employment increased by 256,000 in December 2024 (vs. November 2024: 212,000). This result significantly surpassed the consensus expectation of 160,000 and marked the highest growth since March 2024. Meanwhile, the unemployment rate in the US fell to 4.1% in December 2024 (vs. November 2024: 4.2%), better than the consensus expectation of 4.2%. Responding to the strong labor data, market expectations for interest rate cuts decreased. Based on analysis from the CME FedWatch Tool, the probability of the Fed cutting rates by 25 bps until June 2025 dropped to 39% as of Monday (13/1) from 44% the previous week. Meanwhile, the probability of the US interest rate remaining unchanged until June 2025 increased to 51% as of Monday (13/1) from 29% the previous week. US stock markets reacted negatively on Friday (10/1) following this data release, with S&P 500 down -1.54%, Nasdaq down -1.57%, and DJIA down -1.63%. Meanwhile, the dollar index (DXY) strengthened +0.43% to 109.65 and the 10-year US government bond yield rose +7 bps to 4.76%. The decrease in expectations for US interest rate cuts pressured the rupiah exchange rate against the US dollar by -0.56% to 16,275 on Monday (13/1). Meanwhile, the IHSG fell -1.02% to 7,017 and the 10-year government bond yield rose +10 bps to 7.28%, the highest since November 2022. The Head of the Monetary Management and Asset Securitization Department of Bank Indonesia, Edi Susianto, told Bloomberg that they continue to maintain currency stability through intervention in the bond, spot, and domestic non-deliverable forward markets. Key Takeaway: This moment can be utilized by investors to lock in higher bond yields, such as PBS032 (maturing in 1.5 years) which offers a yield of 6.8% per year. Investors can also consider buying quality stocks that are correcting, such as Bank Mandiri ($BMRI) and Bank Central Asia ($BBCA). Meanwhile, the prospect of fewer US interest rate cuts potentially narrows the room for Bank Indonesia to cut rates further. Based on Bloomberg consensus, Bank Indonesia is expected to hold rates at 6% in the Board of Governors Meeting on Wednesday (15/1), although consensus still expects BI Rate cuts by 75 bps until the end of 2025. *This article was first released in Stockbit Commentary on Monday (13/1) morning.",
+      "urls": [
+        "https://www.bls.gov/news.release/pdf/empsit.pdf",
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        "https://www.bloomberg.com/news/articles/2025-01-13/bank-indonesia-pledges-rupiah-defence-after-hot-us-jobs-data",
+        "https://stockbit.com/bonds/PBS032",
+        "https://stockbit.com/post/17026365"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "BMRI",
+        "BBCA"
+      ]
+    },
+    {
+      "title": "Arsari Group Becomes WIFI Investor",
+      "content": "WIFI: An entity of Arsari Group, PT Arsari Sentra Data, announced the purchase of a 45% stake in Solusi Sinergi Digital's controlling company, PT Investasi Sukses Bersama, from Tinawati with an undisclosed transaction value. After this transaction, PT Arsari Sentra Data indirectly owns 22.55% of WIFI shares. In separate transactions, Arwin Rasyid and Fadel Muhammad each announced the purchase of a 27.22% stake in WIFI's shareholder company, PT Media Wiguna Nusantara, from PT Sinergi Investasi Digital with an undisclosed transaction value. After this transaction, Arwin Rasyid and Fadel Muhammad each indirectly own 7.5% of WIFI shares.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/a6972f1a87_da168ee75d.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/31b6d1b5fb_5ceb8424fd.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/f02bb5769f_0d217bacef.pdf"
+      ],
+      "primaryTickers": [
+        "WIFI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Petrosea Clarifies Status Regarding Prajogo Pangestu and RATU's IPO",
+      "content": "PTRO: Petrosea stated in a clarification to the IDX that the company is unaware of information regarding whether Prajogo Pangestu acted as an anchor buyer in the IPO of Raharja Energi Cepu ($RATU). Furthermore, PTRO also mentioned that the company has no plans to expand its project portfolio by participating in managing the oil and gas blocks owned by RATU.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/2f4d604d13_c0123c71ef.pdf"
+      ],
+      "primaryTickers": [
+        "PTRO"
+      ],
+      "mentionedTickers": [
+        "RATU"
+      ]
+    },
+    {
+      "title": "Bumi Resources Minerals Director Purchased BRMS Shares",
+      "content": "BRMS: The Director of Bumi Resources Minerals, Herwin Wahyu Hidayat, purchased approximately 2.3 million BRMS shares at an average price of 430 rupiah per share on January 8, 2025. The total transaction value reached approximately 1 billion rupiah. After this transaction, Herwin Wahyu Hidayat's ownership in BRMS increased from none to 0.0016%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/912580a4f4_a9ad66f263.pdf"
+      ],
+      "primaryTickers": [
+        "BRMS"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indika Energy Selects Macmahon for Awak Mas Gold Project Contract",
+      "content": "INDY: Indika Energy, through its subsidiary PT Masmindo Dwi Area, announced Macmahon Holdings Limited (ASX: MAH) as the mining services contractor for the Awak Mas gold project in South Sulawesi, with a contract value of 463 million Australian dollars for a 7-year term. The contract will commence in mid-2025, with an option for a 5-year extension.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/d9a44a5ea6_932500de4c.pdf"
+      ],
+      "primaryTickers": [
+        "INDY"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PGAS Secures Additional Gas Supply and Collaborates on LNG Utilization",
+      "content": "PGAS: Perusahaan Gas Negara announced an additional gas supply of 4,651 BBtu from the Jabung Block owned by PetroChina International Jabung Ltd., with the gas sale and purchase agreement period effective from January 1, 2025, to December 31, 2026. The additional gas supply is intended to meet the needs of industrial and electricity customers according to the allocation set by the government. In a separate transaction, PGAS also announced a cooperation with a West Papua Regional Owned Enterprise (BUMD) to utilize the LNG allocation owned by PT Padoma Lirik Energy. The volume of LNG to be utilized is ±20 MMSCFD or equivalent to 2 cargoes per year.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/c2c62cf3d5_e103995fc7.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/116fc3b6ac_b5022ad3a2.pdf"
+      ],
+      "primaryTickers": [
+        "PGAS"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "AKRA Controller and Director Increase Share Ownership",
+      "content": "AKRA: The controller of AKR Corporindo, PT Arthakencana Rayatama, purchased 1.5 million AKRA shares at an average price of 1,065.4 rupiah per share on January 7-9, 2025. The total transaction value reached approximately 1.6 billion rupiah. After this transaction, the ownership of PT Arthakencana Rayatama in AKRA increased from 63.611% to 63.619%. In a separate transaction, AKRA Director, Nery Polim, also bought 630,000 AKRA shares at an average price of 1,045 rupiah per share on January 7, 2025. The total transaction value reached approximately 658 million rupiah. After this transaction, Nery Polim's ownership in AKRA increased from 0.005% to 0.008%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/46d7fba9e1_da0b2f1cee.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/0dfc922278_c2979b693a.pdf"
+      ],
+      "primaryTickers": [
+        "AKRA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Hartadinata Abadi Collaborates with Pegadaian for Gold Bullion Ecosystem",
+      "content": "HRTA: Hartadinata Abadi announced a strategic cooperation with PT Pegadaian, aimed at supporting the development of the gold ecosystem in Indonesia and increasing public literacy regarding gold investment. Through this cooperation, HRTA's Emasku product will meet PT Pegadaian’s bullion needs, while supporting the growth of bullion purchases in Indonesia.",
+      "urls": [
+        "https://investasi.kontan.co.id/news/sinergi-hartadinata-hrta-dan-pegadaian-dalam-ekosistem-bullion-emas-di-indonesia?page=all"
+      ],
+      "primaryTickers": [
+        "HRTA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Proposed Board of Directors for XLSmart Telecom Sejahtera Announced",
+      "content": "EXCL: Katadata reported that Axiata Group Berhad and Sinar Mas have announced the proposed board of directors list for XLSmart Telecom Sejahtera, the merged entity of XL Axiata and Smartfren Telecom ($FREN). In the list, Rajeev Sethi is proposed to serve as the President Director (Direktur Utama) of EXCL. Sethi currently serves as the CEO of Robi Axiata, Axiata's subsidiary in Bangladesh. Meanwhile, FREN's Finance Director, Antony Susilo, confirmed to Kontan that he will serve as the Finance Director at EXCL. Antony mentioned that this newest board composition will be submitted for approval at the GMS in March or April 2025.",
+      "urls": [
+        "https://katadata.co.id/finansial/korporasi/6784bbd92b6f5/ceo-robi-axiata-dan-presdir-smartfren-masuk-daftar-direksi-xlsmart",
+        "https://industri.kontan.co.id/news/simak-susunan-direksi-xlsmart-yang-menanti-restu-rups-excl-di-maret-2025"
+      ],
+      "primaryTickers": [
+        "EXCL"
+      ],
+      "mentionedTickers": [
+        "FREN"
+      ]
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "Brent Crude Oil Price Rises Following New US Sanctions on Russian Energy Sector",
+      "content": "The price of Brent oil for the March 2025 contract rose +1.78% to 81.2 US dollars per barrel on Monday (13/1), following the announcement of new sanctions by the US government on Russia's energy sector last weekend. The US government stated that these broader new sanctions will limit Russia's revenue from energy resources and reduce the country's ability to fund the war against Ukraine. The new sanctions target more than 200 entities and individuals involved in the Russian energy sector - including oil companies Gazprom Neft (ME: SIBN) and Surgutneftegas - as well as over 180 oil tankers. The UK government also announced sanctions against Gazprom Neft and Surgutneftegas.",
+      "urls": [
+        "https://home.treasury.gov/news/press-releases/jy2777",
+        "https://www.bbc.com/news/articles/cn8xlj9kkkmo"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Government Reviews Opportunity to Import Oil from Russia Following BRICS Membership",
+      "content": "The Acting Director General of Oil and Gas at the Ministry of Energy and Mineral Resources, Dadan Kusdiana, stated on Friday (10/1) that the government is reviewing the opportunity to purchase oil from Russia. This step will be consolidated with related partners along with Indonesia's full membership in BRICS. From a business perspective, the Chairman of the Investment Committee of the National Oil and Gas Companies Association, Moshe Rizal, assessed that importing oil from Russia could save the state budget billions of dollars annually by utilizing the discounted prices offered by Russia. From a geopolitical side, the Executive Director of the Center for Energy and Mining Law Studies, Bisman Bakhtiar, mentioned that importing oil from Russia could affect Indonesia's diplomatic relations with Western countries, especially the US.",
+      "urls": [
+        "https://industri.kontan.co.id/news/gabung-brics-indonesia-bisa-impor-minyak-dari-rusia"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Excise Tax on Sweetened Packaged Beverages Targeted for Implementation in 2H25",
+      "content": "The Director in the Directorate General of Customs and Excise at the Ministry of Finance, Nirwala Dwi Heryanto, stated on Friday (10/1) that the government plans to implement excise tax on sweetened packaged beverages (MBDK) in 2H25 if the process runs smoothly. Before implementation, the government will first formulate technical regulations through a Government Regulation and a Minister of Finance Regulation, which will regulate the threshold, types of MBDK, and the amount of excise duty rate to be imposed. Previously, in September 2024, the DPR proposed a minimum MBDK excise rate of 2.5% in 2025, which would be gradually increased up to 20%.",
+      "urls": [
+        "https://www.antaranews.com/berita/4576702/cukai-mbdk-ditargetkan-berlaku-semester-ii-batasan-gula-masih-dibahas",
+        "https://snips.stockbit.com/snips-terbaru/dpr-usul-kenaikan-cukai-rokok-lebih-rendah-cukai-mbdk-secara-bertahap"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "China's Import Value Growth Quickens in December 2024 Amid Trade Risks",
+      "content": "China recorded import value growth of +1% YoY to 230.79 billion in December 2024 (vs. Nov 2024: -3.9% YoY), exceeding the consensus expectation of a -1.5% YoY decline and marking the highest level in the last 27 months. This result also marked the first increase in import value since September 2024 and the strongest growth since July 2024, driven by improved demand at year-end and the prospect of US chip import restrictions. Cumulatively throughout 2024, China's import value increased by +1.1% YoY to 2.59 trillion US dollars.",
+      "urls": [
+        "https://www.reuters.com/world/china/chinas-export-growth-quickens-amid-trade-risks-imports-surprise-2025-01-13/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "National Coal Production Expected to Rise in 2025 Driven by Domestic Demand and BRICS Membership",
+      "content": "The Acting Executive Director of the Indonesian Coal Mining Association, Gita Mahyarani, stated on Friday (10/1) that national coal production in 2025 is expected to rise along with increased domestic demand and Indonesia's entry into BRICS. Gita mentioned that Indonesia's inclusion in BRICS will strengthen Indonesian coal exports to China and India, both of which are the largest thermal coal importers from Indonesia and also BRICS members. Throughout 2024, Indonesia produced 831 million tons (+7.8 YoY) of coal with sales of 811.54 million tons (+8% YoY), respectively 17% higher and 8% higher than the 2024 target set by the government. A Director at the Ministry of Energy and Mineral Resources, Julian Ambassadur Shiddiq, stated that the government targets coal production of 740 million tons in 2025, but he did not detail the sales target.",
+      "urls": [
+        "https://industri.kontan.co.id/news/permintaan-naik-produksi-batubara-makin-digenjot-tahun-ini",
+        "https://modi.esdm.go.id/filter?tahun=2025"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Government Plans to Replace IDR 7 Million Subsidy for Electric Motorcycles with VAT Incentive",
+      "content": "The Vice Minister of Industry, Faisol Reza, stated on Friday (10/1) that the government will replace the subsidy program for electric motorcycle purchases of 7 million rupiah per unit with a Value Added Tax borne by the government (PPN DTP) incentive. Nevertheless, Faisol did not specify when this incentive would be given as the government is still discussing the mechanism.",
+      "urls": [
+        "https://industri.kontan.co.id/news/pemerintah-berencana-ubah-program-subsidi-motor-listrik-menjadi-insentif-ppn-dtp"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PT PP Allocates Land for 1 Million Home Cooperation Program with Qatar",
+      "content": "The Corporate Secretary of PT PP ($PTPP), Joko Raharjo, stated that the company will allocate 26 hectares of land in Jabodetabek, West Java, Yogyakarta, and Pekanbaru to support the 1 million home construction cooperation program between Indonesia and Qatar.",
+      "urls": [
+        "https://money.kompas.com/read/2025/01/11/182100026/ptpp-siapkan-26-hektar-lahan-untuk-program-1-juta-rumah-kerja-sama-ri-qatar"
+      ],
+      "primaryTickers": [
+        "PTPP"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

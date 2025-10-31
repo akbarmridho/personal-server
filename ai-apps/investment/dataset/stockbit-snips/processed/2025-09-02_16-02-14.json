@@ -1,0 +1,100 @@
+{
+  "publishDate": "2025-09-02",
+  "marketNews": [
+    {
+      "title": "Gold Price All-Time High, Breaks US$3,500/oz",
+      "content": "The gold price in the spot market hit a new all-time high record of 3,508.73 US dollars per troy ounce in intraday trading today, Tuesday (2/9), although it later weakened to the level of 3,483.76 US dollars per troy ounce as of Tuesday afternoon. This marks a +2.56% increase in gold prices over the last 1 week and +32.7% since the beginning of the year (YTD), simultaneously surpassing the previous all-time high record recorded in April 2025. This gold price rally is driven by several factors, namely: 1) strengthening expectations for a Federal Reserve interest rate cut; 2) the continuation of the de-dollarization trend; and 3) still high geopolitical and macro-economic uncertainty. Based on analysis from CME FedWatch Tool, the probability of an AS interest rate cut at the September 2025 meeting reached 91.8% as of today, up from the level of 87.8% a week ago. Investor concerns regarding the independence of the Fed - following pressure from President Trump on the Fed head and the issue of firing Fed official, Lisa Cook - are also eroding investor confidence in the US dollar. Investors are also concerned that inflation may rise if US interest rate cuts are made due to political pressure. According to the Senior Commodity Strategist at ANZ, Daniel Hynes, current gold demand is increasing, driven by investor concerns over the risk of rising inflation due to interest rate cuts. Amidst the strengthening gold price, the US Dollar Index (DXY) has weakened by -9.3% YTD to the level of 98.37 as of Tuesday (2/9).",
+      "urls": [
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        "https://www.bloomberg.com/news/articles/2025-09-02/gold-hits-record-high-above-3-500-as-rate-cut-bets-fuel-demand",
+        "https://www.ft.com/content/0bae0261-021e-40ea-bea5-ee715c2c4f74"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "ANTM",
+        "BRMS",
+        "MDKA",
+        "PSAB",
+        "ARCI",
+        "HRTA"
+      ]
+    },
+    {
+      "title": "KLBF Plans Share Buyback Up to IDR250 Billion",
+      "content": "1. KLBF: Kalbe Farma plans to execute a share buyback with an allocation of funds up to 250 billion rupiah in the period of September 4 - December 3, 2025. The company did not specify the number of shares to be repurchased or the execution price. This plan does not require AGM approval, in line with the relief granted by the OJK to support capital market stability. 2. BBCA: The President Commissioner of Bank Central Asia, Jahja Setiaatmadja, purchased 62,500 BBCA shares at an average price of 7,975 rupiah per share on September 1, 2025. The total transaction value reached approximately 498 million rupiah. After this transaction, Jahja Setiaatmadja's direct ownership portion in BBCA did not change significantly and remains around 0.03%. 3. BNGA: Bank CIMB Niaga recorded bank-only net profit of 443 billion rupiah in July 2025 (-22% YoY, -28% MoM). This result caused the bank-only net profit for 7M25 to decrease to 3.8 trillion rupiah (-2% YoY), equivalent to 54% of the consensus 2025F consolidation estimate (vs. 7M24: 57% realization of annual consolidated net profit). The decline in net profit in July 2025 was caused by the weakening of Pre-Provision Operating Profit (PPOP) by -4% YoY and a surge in provision expenses by +236% YoY. PPOP also fell -7% YoY during 7M25, even though net profit during 7M25 only dropped slightly (-2% YoY) thanks to a decrease in provision expenses by -25% YoY. Meanwhile, credit growth slowed to +4% YoY as of July 2025 (vs. June 2025: +6% YoY, March 2025: +7% YoY). 4. CITA: Cita Mineral Investindo announced that its business entity, PT Kalimantan Aluminium Industry, has issued new shares worth approximately 1.9 trillion rupiah, aimed at supporting the development of the aluminum smelter project. In this corporate action, CITA injected capital of approximately 237 billion rupiah and its ownership stake in PT Kalimantan Aluminium Industry remained unchanged at 12.5%. Besides CITA, the existing shareholders of PT Kalimantan Aluminium Industry consist of the subsidiary of Alamtri Minerals Indonesia (ADMR), PT Alamtri Indo Aluminium, with an ownership of 65%, and Aumay Mining Pte. Ltd. with an ownership of 22.5%. CITA stated that PT Alamtri Indo Aluminium and Aumay Mining Pte. Ltd. also participated in subscribing to the new shares according to their respective ownership portions. 5. NISP: Bank OCBC NISP recorded bank-only net profit of 445 billion rupiah in July 2025 (-49% YoY, +2% MoM), resulting in the bank-only net profit for 7M25 dropping -8% YoY to 3 trillion rupiah (vs. 1H25: +7% YoY). The decline in net profit in July 2025 was caused by weakening Non-Interest Income by -71% YoY due to a high-base effect from investment gains (2 billion rupiah vs. July 2024: 527 billion rupiah). Meanwhile, net profit during 7M25 was suppressed by provision expenses recorded at 66 billion rupiah (vs. 7M24 provision expense reversal: 491 billion rupiah). Furthermore, the Net Interest Margin (NIM) contracted to 4.1% in 7M25 (vs. 7M24: 4.6%).",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/f72bdd74b8_f11aad3576.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/6575e10c22_46b8e1d0b9.pdf",
+        "https://investor.cimbniaga.co.id/misc/MR/2025/Publikasi-Bulanan-Jul.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/be0ee04dc4_2a283fb9d3.pdf",
+        "https://www.ocbc.id/asset/media/Feature/AboutOCBC/Hubungan-Investor/Informasi-Keuangan/Laporan-Keuangan/Laporan-Keuangan-Bulanan/2025/202507-laporan-keuangan-bulanan_id.pdf"
+      ],
+      "primaryTickers": [
+        "KLBF",
+        "BBCA",
+        "BNGA",
+        "CITA",
+        "NISP"
+      ],
+      "mentionedTickers": [
+        "ADMR"
+      ]
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "DSSA and FirstGen Geothermal Target Joint Venture Formation in Q4 2025",
+      "content": "Bisnis reports that Dian Swastatika Sentosa (DSSA) and PT First Gen Geothermal Indonesia are targeting their joint venture in the geothermal business to be formed in 4Q25. DSSA Directors, Hermawan Tarjono and Alex Susanto, stated that the joint venture will be 50% owned by DSSA's subsidiary, PT DSSR Daya Mas Sakti, and 50% by FirstGen. Nevertheless, information regarding the target commissioning of the geothermal power plant has not been announced. Previously, DSSA explained that the joint venture will focus on the development and management of geothermal resources with a combined potential capacity of around 440 MW in 6 fields located in West Java, Flores, Jambi, West Sumatra, and Central Sulawesi.",
+      "urls": [
+        "https://market.bisnis.com/read/20250902/192/1907808/dssa-dan-firstgen-geothermal-targetkan-perusahaan-jv-terbentuk-kuartal-iv2025"
+      ],
+      "primaryTickers": [
+        "DSSA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PT PP (PTPP) to Diversify Business into Mining Services through PP Presisi (PPRE)",
+      "content": "Kontan reports that PT PP (PTPP) will diversify its business into the mining services segment, specifically in the mine infrastructure sector, through PP Presisi (PPRE). The Corporate Secretary of PTPP, Joko Raharjo, stated that they will focus on bidding for new contracts from large mining permit (IUP) holders, both State-Owned Enterprises and private companies. During 1H25, PTPP's mining services segment recorded revenue of approximately 106.7 billion rupiah, equivalent to about 1.6% of PTPP's total revenue in that period.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2025/09/02"
+      ],
+      "primaryTickers": [
+        "PTPP",
+        "PPRE"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Pyridam Farma (PYFA) Partners with South Korean Company Genewel for Exclusive Distribution in Southeast Asia",
+      "content": "Pyridam Farma (PYFA) announced an exclusive cooperation with Genewel Co. Ltd., a South Korean company known for its development of medical biomaterials, anti-adhesion agents, and advanced wound care technology. Through this cooperation, PYFA obtains exclusive distribution rights for Genewel's flagship products - including Medifoam, Welpass, and Guardix-SG - in Indonesia and Southeast Asian countries. These exclusive rights include full authority to handle marketing authorization registration, import, marketing, sales, and management of sub-distributor networks in the designated region.",
+      "urls": [
+        "https://industri.kontan.co.id/news/perkuat-posisi-di-asia-pacific-pyridam-farma-gandeng-perusahaan-korsel-genewel"
+      ],
+      "primaryTickers": [
+        "PYFA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BUMA Internasional Grup (DOID) Subsidiary Plans to Issue Bonds Up to IDR1.4 Trillion",
+      "content": "BUMA Internasional Grup (DOID) through its subsidiary, PT Bukit Makmur Mandiri Utama, will issue bonds up to 1.4 trillion rupiah, with the proceeds intended for the repayment of a portion of US dollar-denominated senior notes, funding capex for operational expansion, and supporting working capital needs. These bonds will be issued in 3 series consisting of tenors of 370 days, 3 years, and 5 years, but the respective interest rates have not yet been announced. These bonds have obtained an A+ rating from Pefindo and Fitch Ratings. The public offering schedule is on September 30 - October 2, 2025.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2025/09/02"
+      ],
+      "primaryTickers": [
+        "DOID"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "China Manufacturing PMI Rises to 50.5 in August 2025",
+      "content": "S&P Global noted that the China Manufacturing Purchasing Managers' Index (PMI) rose to 50.5 in August 2025 (vs. July 2025: 49.5), exceeding the consensus expectation of 49.5 and marking the highest figure since March 2025. Output grew again following increased new orders and purchasing activity, while the decline in foreign demand eased. Nevertheless, Chinese manufacturers remain cautious regarding staffing levels, with the number of employees contracting for 5 consecutive months. Business sentiment strengthened to its highest level in the last 5 months, supported by optimism about improving economic conditions and rising sales from expansion plans.",
+      "urls": [
+        "http://pmi.spglobal.com/Public/Home/PressRelease/48effcfa297f41e68d9499b39e7485fe"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ]
+}

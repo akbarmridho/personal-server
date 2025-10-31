@@ -98,7 +98,7 @@ export const processNewsletter = async (filename: string, content: string) => {
 
   const result = await pRetry(
     async (retryCount) => {
-      const systemPrompt = `Extract and structure financial news from an Indonesian daily newsletter into a **fully faithful, machine-readable translation**.  
+      const systemPrompt = `Extract and structure financial news from an Indonesian daily newsletter into a **fully faithful, machine-readable translation in english**.  
 Do **not summarize, paraphrase, merge, or omit** any facts, figures, or sentences.  
 Your goal is to preserve all original information and structure it cleanly into JSON.
 
@@ -144,13 +144,15 @@ News = {
 - Skip daily IHSG movement lines (e.g., “IHSG +0.5% today”) unless part of a larger section recap.
 - Include **all** macro, policy, or corporate events with full detail.
 - Include only **Indonesian tickers** in primary/mentionedTickers (exclude foreign tickers).
+- Only include tickers that exist in the valid tickers list provided. If a ticker is not in the list, do not include it in primaryTickers or mentionedTickers.
 
 ### 4️. Content formatting
 
 - Translate Indonesian text to clear English while keeping all quantitative and contextual details.
 - Do not compress or shorten content.
 - Preserve all lists, figures, and chronology.
-- Write as plain text (no markdown or bullet formatting).
+- Write as plain text only: no markdown formatting (no underscores, asterisks for bold/italic, or inline links).
+- URLs belong in the urls property, not in content text.
 
 ### 5️. Titles
 
@@ -185,13 +187,20 @@ Valid tickers: ${validTickers}
       }
 
       const { object } = await generateObject({
-        model: openrouter("openai/gpt-oss-120b", {
-          models: ["qwen/qwen3-30b-a3b-instruct-2507"],
-          provider: {
-            ignore: ["novita/bf16"],
-            quantizations: ["bf16", "fp16", "fp8", "int8"],
+        model: openrouter(
+          "google/gemini-2.5-flash-lite-preview-09-2025",
+          // "openai/gpt-5-nano",
+          // "openai/gpt-oss-120b",
+          // "qwen/qwen3-235b-a22b-2507",
+          {
+            models: ["google/gemini-2.5-flash-lite"],
+
+            // provider: {
+            //   ignore: ["novita"],
+            //   quantizations: ["bf16", "fp16", "fp8", "int8"],
+            // },
           },
-        }),
+        ),
         system: systemPrompt,
         prompt: `Filename (contains email date): ${filename}\n\nContent:${finalContent}`,
         schema: Newsletter,
@@ -260,6 +269,15 @@ Valid tickers: ${validTickers}
       });
       object.tickerNews.forEach((n) => {
         n.urls = n.urls.map(cleanUrl).filter((u) => u);
+      });
+
+      // Post-process: Deduplicate tickers and remove primary from mentioned
+      [...object.marketNews, ...object.tickerNews].forEach((n) => {
+        n.primaryTickers = [...new Set(n.primaryTickers)];
+        const primarySet = new Set(n.primaryTickers);
+        n.mentionedTickers = [
+          ...new Set(n.mentionedTickers.filter((t) => !primarySet.has(t))),
+        ];
       });
 
       return object;

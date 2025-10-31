@@ -1,0 +1,231 @@
+{
+  "publishDate": "2024-09-26",
+  "marketNews": [
+    {
+      "title": "IHSG Minor Evaluation: AMMN Weight Rises, BBRI Falls",
+      "content": "The IDX on September 24, 2024 announced the results of the minor evaluation for the IHSG index for the effective period of October 1-December 31, 2024. This evaluation includes changes in the weights of several stocks in the index, with Amman Mineral Internasional (AMMN) experiencing the most significant weight increase of +1.41 percentage point to reach 5.42%. On the other hand, Bank Rakyat Indonesia (BBRI) experienced the largest weight decrease of -0.96 percentage point to 9%. To determine the weight of a stock in the IHSG, the IDX uses the free float adjusted index and applies a maximum cap of 9%. In the previous evaluation in June 2024, BBRI received a weight increase from 6.75% to 9%. However, the rise in BBRI's stock price over the last 3 months caused its weight to increase to 9.96% before the September 2024 evaluation was conducted. The decrease in BBRI’s weight in the September 2024 evaluation was driven by the application of the 9% maximum cap. Previously, the number of BBRI free float shares calculated in the June 2024 evaluation was 60 billion shares, equivalent to the 9% maximum weight cap at that time. However, the number of BBRI free float shares calculated in the September 2024 evaluation dropped to 54.6 billion shares and had already reached the maximum weight of 9%. Besides AMMN, the issuers experiencing the largest weight increases in the September 2024 evaluation were AMRT (+0.20 percentage point) and BNLI (+0.12 percentage point). On the other hand, the issuers experiencing the largest weight decreases after BBRI were BMRI (-0.10 percentage point) and TLKM (-0.06 percentage point). The next evaluation of the IHSG index will be conducted in December 2024, with an effective period of January 1-March 31, 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/Exchange/Indeks%20Peng-00193%20(1)-No.%20Peng-00193BEI.POP09-2024.pdf",
+        "https://snips.stockbit.com/snips-terbaru/evaluasi-minor-ihsg-bobot-bbri-naik-225"
+      ],
+      "primaryTickers": [
+        "AMMN",
+        "BBRI"
+      ],
+      "mentionedTickers": [
+        "AMRT",
+        "BNLI",
+        "BMRI",
+        "TLKM"
+      ]
+    },
+    {
+      "title": "Key Takeaway",
+      "content": "This weighting can affect investors, especially institutional investors who use the IHSG as a benchmark or passive institutional investors who follow the IHSG index. Since the announcement of the latest index weighting on September 24, 2024, BBRI's stock price has fallen by about -9% as of September 26, 2024, with foreign outflow reaching 4.1 trillion rupiah. As a note, there are still BBRI free float shares that have not been calculated for IHSG weighting. Therefore, if BBRI's weight decreases in the future due to a drop in stock price, BBRI's weighting may rise again.",
+      "urls": [],
+      "primaryTickers": [
+        "BBRI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Government of China Considers Injecting Up to $142 Billion Capital into Major State-Owned Banks",
+      "content": "Bloomberg reported that the Chinese government is considering injecting capital of up to 1 trillion yuan or 142 billion US dollars into a number of its largest state-owned banks. This step is being taken to increase the capacity of these banks to support the struggling Chinese economy. Bloomberg sources stated that the funding would primarily come from the issuance of new special government bonds, although details have not been finalized and are subject to change. If realized, this move would be the first time since the global financial crisis in 2008 that the Chinese government has injected capital into its major banks.",
+      "urls": [
+        "https://www.bloomberg.com/news/articles/2024-09-26/china-weighs-injecting-142-billion-of-capital-into-top-banks"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ESDM Ministry Reviews Plan to Reopen Copper Concentrate Export Permits for Companies That Have Completed Smelter Construction",
+      "content": "Minister of Energy and Mineral Resources, Bahlil Lahadalia, said that the government is studying a plan to reopen copper concentrate export permits for companies that have completed the construction of their smelters. Bahlil mentioned that this plan takes into account that the constructed smelters have not yet been able to operate at full capacity. Bahlil's statement came just a few days after PT Freeport Indonesia and Amman Mineral Internasional (AMMN) inaugurated their respective copper smelters on Monday (22/9). Previously, the government banned concentrate exports starting June 1, 2024, but provided export flexibility until December 31, 2024, for companies currently building smelters with over 50% progress.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2024/09/26"
+      ],
+      "primaryTickers": [
+        "AMMN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ESDM Minister Reviews Green Energy Electricity Export Plan Considering National Interest",
+      "content": "Minister of Energy and Mineral Resources, Bahlil Lahadalia, stated that his ministry is reviewing the plan for exporting green energy electricity, considering national interests. Previously, Indonesia had signed a memorandum of understanding for the export of low-carbon electricity amounting to 3.4 GW to Singapore. This export will be carried out through 5 companies, namely Pacific Medco Solar Energy Power with Consortium Partners, Adaro Green, PacificLight Power Pte. Ltd. and Gallant Venture Ltd, Salim Group, and TBS Energi Utama (TOBA).",
+      "urls": [
+        "https://industri.kontan.co.id/news/menteri-esdm-kaji-ulang-rencana-ekspor-listrik-hijau",
+        "https://www.antaranews.com/berita/4312167/ekspor-listrik-rendah-karbon-ri-ke-singapura-bertambah-jadi-34-gw"
+      ],
+      "primaryTickers": [
+        "TOBA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "IKN Budget from APBN Reaches IDR 96.13 Trillion in 2022-2025, Exceeding Initial Allocation",
+      "content": "Kontan reported that the IKN budget from the State Budget (APBN) reached 96.13 trillion rupiah in 2022-2025, exceeding the initial allocation where the government only planned to use 20% of the total IKN budget or around 93.2 trillion rupiah.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2024/09/26"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "DOID Subsidiary Receives Coal Mining Contract Extension in Australia Valued at A$200 Million per Year",
+      "content": "DOID: Delta Dunia Makmur through its business entity, BUMA Australia Pty. Ltd., received a coal mining contract extension from TEC Coal Pty. Ltd. for the Meandu Mine in Queensland, Australia. This contract extension will run until June 2026 with a value of approximately 200 million Australian dollars per year. Based on the new contract, BUMA Australia will maintain its current operational scale with an annual production of about 35 million bcm and a coal volume of around 7 million tons.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/f79ea991af_2ab74af6e5.pdf"
+      ],
+      "primaryTickers": [
+        "DOID"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "United Tractors Notes Komatsu Heavy Equipment Sales of 435 Units in August 2024",
+      "content": "UNTR: United Tractors recorded sales of 435 units of Komatsu heavy equipment (+18.2% MoM, +8.8% YoY) in August 2024. Cumulatively during 8M24, Komatsu sales reached 2,950 units (-25.3% YoY), equivalent to 65.6% of the 2024 target which was revised up to 4,500 units, with a market share of 28% (vs. 7M24: 28%, 8M23: 31%). From the mining contractor segment, UNTR recorded a coal production volume of 98 million tons (+16.9% YoY) in 8M24, with overburden removal of 809.5 million bcm (+9% YoY).",
+      "urls": [
+        "https://www.unitedtractors.com/wp-content/uploads/2024/01/UNTR-Monthly-Operational-Update-as-of-Aug-2024-R1.pdf"
+      ],
+      "primaryTickers": [
+        "UNTR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bukit Asam Hopes Regulation on Coal Levy and Distribution Scheme through Management Agencies (MIP) Will Be Issued Soon",
+      "content": "PTBA: The Corporate Secretary of Bukit Asam, Niko Chandra, said that the company hopes that the regulation regarding the coal levy and distribution scheme through Management Agencies (MIP) will be issued soon and can have a positive impact on the company's financial performance. Previously, the Director of PTBA, Farida Thamrin, mentioned that the company could record a higher margin if the price difference between the Reference Coal Price (HBA) and the domestic coal selling price widens when MIP is implemented. According to the Director General of Minerals and Coal of the Ministry of ESDM, Tri Winarno, the ministry is currently still awaiting approval from one more ministry/institution before implementing the MIP scheme.",
+      "urls": [
+        "https://industri.kontan.co.id/news/penerapan-skema-pungut-salur-batubara-mendekati-final",
+        "https://www.idxchannel.com/market-news/kabar-baik-untuk-ptba-mitra-instansi-pengelola-batu-bara-tinggal-butuh-satu-paraf-lagi"
+      ],
+      "primaryTickers": [
+        "PTBA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Pertamina Geotermal Energy Starts Exploration Survey in Way Ratai Geothermal Work Area",
+      "content": "PGEO: Bisnis reported that Pertamina Geothermal Energy through its joint venture with Chevron New Energies Holdings Indonesia Ltd., PT Cahaya Anagata Energy, has begun exploration surveys in the Way Ratai geothermal work area (WKP), Lampung, with an exploration commitment cost valued at 28.85 million US dollars. The potential geothermal power plant (PLTP) in the WKP reaches 105 MW and is targeted to operate commercially in 2032. Bisnis reported that PT Cahaya Anagata Energy is projected to agree on a Power Purchase Agreement (PPA) tariff with PLN around 7.59-9.87 cents per kWh.",
+      "urls": [
+        "https://market.bisnis.com/read/20240926/192/1802620/ekspansi-eksplorasi-panas-bumi-pertamina-geothermal-pgeo-berlanjut"
+      ],
+      "primaryTickers": [
+        "PGEO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Astra Agro Lestari to Distribute Interim Dividend for 2024 Fiscal Year Worth ~IDR 161.7 Billion",
+      "content": "AALI: Astra Agro Lestari will distribute an interim dividend for the 2024 fiscal year amounting to approximately 161.7 billion rupiah or 84 rupiah per share. The cum-dividend date in the regular and negotiated market is October 3, 2024, while payment will be made on October 24, 2024. Referring to AALI's stock price on Thursday (26/9) at 6,775 rupiah per share, the indicative dividend yield is 1.2%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/c5213f572d_a927ad6f89.pdf"
+      ],
+      "primaryTickers": [
+        "AALI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indosat Shareholders Approve 1:4 Stock Split Plan, Trading Effective October 14, 2024",
+      "content": "ISAT: Indosat shareholders in the Extraordinary General Meeting of Shareholders (RUPSLB) approved the stock split plan with a ratio of 1:4. Trading of shares with the new nominal value will be effective on October 14, 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/8342e4e5bd_bc521f0392.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202408/46698727aa_859fa56bef.pdf"
+      ],
+      "primaryTickers": [
+        "ISAT"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Green Power Group Announces Plan to Establish 4 Subsidiaries in Electric Vehicle Battery Sector with Total Investment of ~IDR 37.5 Billion",
+      "content": "LABA: Green Power Group announced a plan to establish 4 subsidiaries in the electric vehicle battery sector with a total investment of approximately 37.5 billion rupiah. These companies will engage in the creation of digital battery management system (BMS) technology, manufacturing of product spare parts and mold production, battery exchange networks, and import/export of renewable energy products. To establish these companies, LABA will cooperate with companies from Hong Kong and Zhejiang, China.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/0004e61b5e_2e2d29f3e7.pdf"
+      ],
+      "primaryTickers": [
+        "LABA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "OASA President Director Sells 126.9 Million Shares, Ownership Drops to 48.64%",
+      "content": "OASA: The President Director of Maharaksa Biru Energi, Gafur Sulistyo Umar, sold 126.9 million OASA shares at a price of 157 rupiah per share. The total transaction value reached approximately 19.9 billion rupiah. After this transaction, Gafur Sulistyo Umar's ownership in OASA decreased from 50.64% to 48.64%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/f47b3597ca_daac571ab1.pdf"
+      ],
+      "primaryTickers": [
+        "OASA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Minister of Energy and Mineral Resources States Government is Reviewing Copper Concentrate Export Permit Reopening for Companies that Completed Smelter Construction",
+      "content": "Minister of Energy and Mineral Resources, Bahlil Lahadalia, said that the government is studying a plan to reopen copper concentrate export permits for companies that have completed the construction of their smelters. Bahlil mentioned that this plan takes into account that the constructed smelters have not yet been able to operate at full capacity. Bahlil's statement came just a few days after PT Freeport Indonesia and Amman Mineral Internasional (AMMN) inaugurated their respective copper smelters on Monday (22/9). Previously, the government banned concentrate exports starting June 1, 2024, but provided export flexibility until December 31, 2024, for companies currently building smelters with over 50% progress.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2024/09/26"
+      ],
+      "primaryTickers": [
+        "AMMN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Energy and Mineral Resources Minister Reviews Green Energy Export Plan Considering National Interest",
+      "content": "Minister of Energy and Mineral Resources, Bahlil Lahadalia, stated that his ministry is reviewing the plan for exporting green energy electricity, considering national interests. Previously, Indonesia had signed a memorandum of understanding for the export of low-carbon electricity amounting to 3.4 GW to Singapore. This export will be carried out through 5 companies, namely Pacific Medco Solar Energy Power with Consortium Partners, Adaro Green, PacificLight Power Pte. Ltd. and Gallant Venture Ltd, Salim Group, and TBS Energi Utama (TOBA).",
+      "urls": [
+        "https://industri.kontan.co.id/news/menteri-esdm-kaji-ulang-rencana-ekspor-listrik-hijau",
+        "https://www.antaranews.com/berita/4312167/ekspor-listrik-rendah-karbon-ri-ke-singapura-bertambah-jadi-34-gw"
+      ],
+      "primaryTickers": [
+        "TOBA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "IKN Budget from APBN Reaches IDR 96.13 Trillion in 2022-2025, Exceeding Initial Allocation",
+      "content": "Kontan reported that the IKN budget from the State Budget (APBN) reached 96.13 trillion rupiah in 2022-2025, exceeding the initial allocation where the government only planned to use 20% of the total IKN budget or around 93.2 trillion rupiah.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2024/09/26"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Tempo Inti Media Subsidiary Receives IDR 10 Billion Convertible Loan Investment Funding",
+      "content": "TMPO: Tempo Inti Media's subsidiary, PT Info Media Digital, received investment funding in the form of a convertible loan amounting to 10 billion rupiah from PT Pramana Media Investama. This loan has a maturity period of 24 months with interest not exceeding 8.8%. The loan term can also be extended for another 24 months or as requested for conversion by PT Pramana Media Investama.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/2a50935a6d_0a8abda963.pdf"
+      ],
+      "primaryTickers": [
+        "TMPO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Makmur Berkah Amanda Controller and President Commissioner Purchases ~9.4 Million Shares",
+      "content": "AMAN: The controller and President Commissioner of Makmur Berkah Amanda (AMAN), Johan Tedja Surya, purchased approximately 9.4 million AMAN shares at an average price of 112 rupiah per share on September 20, 2024. The total transaction value reached approximately 1.1 billion rupiah. After this transaction, Johan Tedja Surya's ownership in AMAN increased from 1.61% to 1.85%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202409/54ebf3460d_3a71e237e0.pdf"
+      ],
+      "primaryTickers": [
+        "AMAN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Central Jakarta District Court Rules 4 Bakrie Family Companies into Debt Payment Suspension (PKPU) Status",
+      "content": "The Central Jakarta District Court ruled that 4 companies owned by the Bakrie family - consisting of PT Lativi Mediakarya, Intermedia Capital (MDIA), Visi Media Asia (VIVA), and PT Cakrawala Andalas Televisi - are in a Debt Payment Suspension (PKPU) status. According to the creditor's legal counsel who filed the claim, Marx Andryan, the court granted a deadline of 45 days for these companies to settle their total debt amounting to 8.79 trillion rupiah.",
+      "urls": [
+        "https://katadata.co.id/finansial/korporasi/66f3f1f86c733/ditetapkan-pkpu-empat-usaha-bakrie-dituntut-bayar-utang-rp-8-79-triliun"
+      ],
+      "primaryTickers": [
+        "MDIA",
+        "VIVA"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

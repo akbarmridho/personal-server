@@ -1,0 +1,153 @@
+{
+  "publishDate": "2025-09-12",
+  "marketNews": [
+    {
+      "title": "US Inflation in Line with Expectations, The Fed Rate Cut On-track",
+      "content": "The US Bureau of Labor Statistics noted that the Consumer Price Index (CPI) inflation in the US increased in August 2025 compared to July 2025, although it remained in line with consensus expectations. The growth in US CPI inflation monthly and annually in August 2025 was the fastest inflation increase since January 2025. Here are the details: 1. CPI Inflation MoM: 0.4% (consensus: 0.3%; July 2025: 0.2%) 2. CPI Inflation YoY: 2.9% (consensus: 2.9%; July 2025: 2.7%) 3. Core Inflation MoM: 0.3% (consensus: 0.3%; July 2025: 0.3%) 4. Core Inflation YoY: 3.1% (consensus: 3.1%; July 2025: 3.1%). Meanwhile, in a separate report, initial claims for unemployment benefits (initial jobless claims) increased by 27,000 last week to 263,000, higher than consensus expectations of 235,000. Previously, on September 9, 2025, the US Bureau of Labor Statistics stated that the US economy likely created 911 thousand fewer non-farm payrolls than previous estimates during the 12-month period ending March 2025. This indicates that US job growth had already slowed before the aggressive import tariffs from President Donald Trump. Reuters reported that persistently high inflation amid a weakening labor market is fueling concerns about future US economic uncertainty, particularly regarding stagflation. The weak US labor market reinforces expectations for a Fed rate cut at next week's meeting. Based on analysis from the CME FedWatch Tool as of Friday (12/9), the probability for the Fed to cut rates next week reached 100%, with a 25 bps cut probability at 92.7% and a 50 bps cut probability at 7.3%. Responding to the above US inflation data, the US stock market closed higher with the Dow rising +1.36% to an all-time high of 46,108 on Thursday (11/9), while the S&P 500 and Nasdaq strengthened by +0.85% and +0.72% respectively. On the same day, the yield on 10-year US government bonds fell -2.48 bps to ~4.02%. In Indonesia, the IHSG closed higher by +1.37% on Friday (12/9), with the 10-year Indonesian government bond yield falling -5.1 bps to ~6.33% and the Rupiah against the US Dollar strengthening +0.51% to 16,378. Key Takeaway: The increasing certainty of a Fed rate cut potentially opens room for Bank Indonesia to conduct further rate cuts to help boost economic growth. Bloomberg consensus projects the BI Rate will be at 4.75% by the end of 2025, implying one more rate cut. We assess that the government's success in boosting economic growth back up could become a positive catalyst to reverse the foreign outflow trend. The government is currently preparing new stimulus that investors need to watch for details (magnitude, recipient targets, and duration).",
+      "urls": [
+        "https://www.bls.gov/news.release/cpi.nr0.htm",
+        "https://www.dol.gov/ui/data.pdf",
+        "https://www.reuters.com/business/us-payrolls-benchmark-revision-estimate-suggests-labor-market-weaker-than-2025-09-09/",
+        "https://www.reuters.com/world/us/us-consumer-inflation-accelerates-weekly-jobless-claims-approach-four-year-high-2025-09-11/",
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        "https://stockbit.com/post/20876375"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "BBTN: Details of Liquidity Injection to the Banking System",
+      "content": "Bank Tabungan Negara ($BBTN) stated it will receive 25 trillion Rupiah from the total 200 trillion Rupiah government cash reserves to be distributed to the Indonesian banking system. Meanwhile, Bank Rakyat Indonesia ($BBRI), Bank Mandiri ($BMRI), and Bank Negara Indonesia ($BBNI) will each receive 55 trillion Rupiah, while the remaining 10 trillion Rupiah is allocated for Bank Syariah Indonesia ($BRIS). BBTN added that these funds will be placed in 6-month extendable deposit on call instruments, with an interest/yield of approximately 4%. In a separate occasion, the Director General of the Ministry of Finance, Febrio Kacaribu, stated that this liquidity injection is specifically aimed at encouraging credit distribution in government priority programs, not for reinvestment in the form of SBN or SRBI.",
+      "urls": [
+        "https://www.bloombergtechnoz.com/detail-news/83799/airlangga-minta-dunia-usaha-respons-guyuran-rp200-t-ke-himbara/2"
+      ],
+      "primaryTickers": [
+        "BBTN"
+      ],
+      "mentionedTickers": [
+        "BBRI",
+        "BMRI",
+        "BBNI",
+        "BRIS"
+      ]
+    },
+    {
+      "title": "SIDO Incar New Export Markets from Indochina to Africa",
+      "content": "The Director of Industri Jamu dan Farmasi Sido Muncul, Budiyanto, stated that the company is targeting export sales contribution to rise to the range of 15-17% of total sales within the next five years (vs. 1H25: 9.7% of total sales). To achieve this target, SIDO plans to enter new countries - such as the Indochina region and African countries - and launch new products in export markets. Currently, SIDO is present in 30 countries, with the three main destination countries being Malaysia, the Philippines, and Nigeria.",
+      "urls": [
+        "https://industri.kontan.co.id/news/sido-muncul-sido-incar-negara-ekspor-baru-mulai-dari-indochina-hingga-afrika",
+        "https://investor.sidomuncul.co.id/misc/slides/2025/Company-Update-6M25.pdf"
+      ],
+      "primaryTickers": [
+        "SIDO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ANTM Targets Nickel RKEF Smelter Construction in East Halmahera to Start in September 2025",
+      "content": "The Director of Aneka Tambang, Arianto S. Rudjito, stated that the company targets the construction of the RKEF nickel smelter in Buli, East Halmahera, to commence at the earliest in late September or October 2025. The smelter construction, built jointly with Ningbo Contemporary Brunp Lygend Co. Ltd., is targeted for completion by the end of 2026, with commissioning targeted for 2027. In the initial stage, this smelter is targeted to produce Inickel pig iron of 88,000 tons per year. ANTM holds a 40% stake in this $1.4 billion purification project.",
+      "urls": [
+        "https://industri.kontan.co.id/news/antam-targetkan-konstruksi-smelter-nikel-rkef-halmahera-timur-mulai-september-2025"
+      ],
+      "primaryTickers": [
+        "ANTM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BLOG Accelerates Business Network and Cold Storage Expansion",
+      "content": "The Director of Trimitra Trans Persada, Wanny Wijaya, stated that the company plans to build cold storage facilities in several regions - namely, Batam, Medan, Manado, Bali, and Palembang - although she did not specify the target start dates for construction and operation. The company also estimates that the construction of cold storage facilities in Tangerang and Boyolali can be completed this year, while the construction of cold storage facilities in Makassar and Pontianak can be completed in 1H26. For 2025, BLOG has prepared a capex of around 500 billion Rupiah, with 200 billion Rupiah allocated for warehouse expansion and the remainder for increasing the fleet size. Currently, BLOG operates over 3,300 fleets and 14 cold storage facilities, where the company has 124 operational points across 47 cities in 23 provinces of Indonesia.",
+      "urls": [
+        "https://industri.kontan.co.id/news/trimitra-trans-blog-memacu-ekspansi-jaringan-bisnis-dan-cold-storage"
+      ],
+      "primaryTickers": [
+        "BLOG"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "WIRG Controller Transfers Shares for Internal Strategy",
+      "content": "The controller of Wir Asia, PT WIR Global Kreatif, transferred 467.4 million shares of WIRG at an average price of 170 Rupiah per share on September 10, 2025. The total transaction value reached approximately 79.5 billion Rupiah and was intended for internal strategy. Following this transaction, the direct ownership portion of PT WIR Global Kreatif in WIRG decreased from 9.432% to 5.517%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/1b8bcdf681_19cfae33cf.pdf"
+      ],
+      "primaryTickers": [
+        "WIRG"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "RUIS Subsidiary Sells 5% Stake in Sorik Marapi Geothermal Power for $10.5 Million",
+      "content": "Radiant Utama Interinsco, through its subsidiary, PT Supraco Indonesia (SPC), announced that the transaction value for the sale of a 5% stake in PT Sorik Marapi Geothermal Power to OTP Geothermal Pte. Ltd. and KS Orka Renewables Pte. Ltd. was $10.5 million. The sale transaction to OTP Geothermal, valued at approximately $7.5 million, was settled through debt payment via a set-off mechanism between the purchase price and SPC's debt to OTP Geothermal. Meanwhile, the sale to KS Orka Renewables, valued at approximately $3 million, was paid in full in cash. Previously, RUIS had announced plans for this transaction in July 2025, but at that time, the company had not disclosed the transaction value.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/573f3e2a54_182732a99e.pdf",
+        "https://snips.stockbit.com/snips-terbaru/-sektor-dairy-1h25-cmry-lampaui-ekspektasi-ultj-lemah"
+      ],
+      "primaryTickers": [
+        "RUIS"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Government Prepares New Stimulus Package",
+      "content": "The Coordinating Minister for Economic Affairs, Airlangga Hartarto, stated on Friday (12/9) that President Prabowo Subianto has ordered a new stimulus to boost the economy. According to a Bloomberg report, the stimulus includes: 1) tax incentives for hotels, restaurants, and cafes; 2) extension of food aid programs for 3 months; 3) expanding the scope of work accident, unemployment, and death insurance for online motorcycle taxi drivers; 4) providing an internship program for fresh graduates; and 5) housing assistance. The Coordinating Ministry for Economic Affairs is currently discussing the details of this stimulus, so specifics regarding the amount and duration of the stimulus are not yet known.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Government Seizes Nickel Mining Land from PT Weda Bay Nickel",
+      "content": "Metro TV reported that the government has seized 148 hectares of PT Weda Bay Nickel mining land in North Halmahera, Maluku, due to alleged permit violations. The Ministry of State-Owned Enterprises will manage the area, and fines will be imposed on PT Weda Bay Nickel. Bloomberg reported that this action marks the first crackdown in Indonesia since President Prabowo Subianto pledged to take action against legal violations in the mining sector. According to Bloomberg reports, PT Weda Bay Nickel's mine in North Halmahera, Maluku, has a concession area of 47,000 hectares and produced over 30 million tons of nickel ore in 2024. PT Weda Bay Nickel is owned by Tsingshan Holding Group Co., Eramet SA, and Aneka Tambang ($ANTM). An Eramet spokesperson told Reuters that they do not expect any significant impact on Weda Bay's mining operations.",
+      "urls": [
+        "https://www.youtube.com/watch?v=OOXOohpz6Yk"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "ANTM"
+      ]
+    },
+    {
+      "title": "Agrinas Becomes World's Largest Palm Oil Company by Land Area After Receiving Seized Land",
+      "content": "The government on Friday (12/9) handed over 674,178 hectares of seized palm oil plantation land to the State-Owned Enterprise, PT Agrinas Palma Nusantara, bringing the total land area given to the company to 1.5 million hectares. Reuters reported that this handover solidifies Agrinas' status as the world's largest palm oil company by land area. The Task Force for Forest Area Enforcement stated that Agrinas now has the potential to produce 5.7 million tons of CPO per year. The task force also stated that 1.8 million hectares of land are still undergoing verification for subsequent handover to PT Agrinas Palma Nusantara. Bloomberg reported that PT Agrinas Palma Nusantara - which currently has 17 palm oil processing mills - plans to add new palm oil mills to process palm from its plantations. PT Agrinas Palma Nusantara will also cooperate with Palm Co. to produce Minyakita cooking oil.",
+      "urls": [
+        "https://www.antaranews.com/berita/5104605/satgas-pkh-serahkan-674178-hektare-lahan-kawasan-hutan-ke-pt-agrinas",
+        "https://www.reuters.com/markets/commodities/indonesias-agrinas-adds-sprawling-palm-areas-plans-dozens-more-mills-2025-09-12/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Kalbe Farma ($KLBF) Chairman Buys 900,000 Shares",
+      "content": "The President Commissioner of Kalbe Farma ($KLBF), Ronny Hadiana, purchased 900,000 KLBF shares at an average price of 1,150 Rupiah per share on September 8, 2025. The total transaction value reached approximately 1 billion Rupiah. After this transaction, Ronny Hadiana's direct ownership portion in KLBF did not change significantly and remains around 0.2%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/58bd7d6591_75bef7c8ce.pdf"
+      ],
+      "primaryTickers": [
+        "KLBF"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Ministry of Energy and Mineral Resources Names TIS Petroleum Winner for Perkasa Block Auction",
+      "content": "The Ministry of Energy and Mineral Resources (ESDM) on Friday (12/9) named TIS Petroleum (Asia) Pte. Ltd. as the winner of the auction for the Perkasa oil and gas block, located offshore East Java. The Perkasa Block is estimated to have oil reserves of 228 million barrels or 1.3 trillion cubic feet of gas. The Ministry of ESDM also announced the Gagah block offering in South Sumatra, which is estimated to have oil reserves of 173 million barrels or 1.1 trillion cubic feet of gas.",
+      "urls": [
+        "https://www.reuters.com/business/energy/indonesia-awards-perkasa-block-tis-petroleum-2025-09-12/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "VINS Plans Private Placement to Meet Minimum Equity Requirements",
+      "content": "Victoria Insurance ($VINS) plans to conduct a private placement of up to approximately 146.1 million (10%) shares, with the execution price and potential investors yet to be announced. The proceeds from this corporate action are intended to strengthen the company's capital structure to meet the minimum equity requirement of at least 250 billion Rupiah, which must be fulfilled no later than December 31, 2026. This plan will be discussed at the Extraordinary General Meeting of Shareholders (EGMS) on October 20, 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/c292c13deb_1366f8a70c.pdf"
+      ],
+      "primaryTickers": [
+        "VINS"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

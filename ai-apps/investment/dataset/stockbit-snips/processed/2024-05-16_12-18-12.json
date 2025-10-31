@@ -1,0 +1,168 @@
+{
+  "publishDate": "2024-05-16",
+  "marketNews": [
+    {
+      "title": "US Inflation Eases to 3.4% YoY, In Line with Expectations",
+      "content": "The annual inflation rate in the US dropped to 3.4% YoY in April 2024 (vs. March 2024: 3.5% YoY inflation), in line with consensus expectations and ending the trend of the previous 3 months which consecutively exceeded expectations. On a monthly basis, the inflation rate also slowed to 0.3% MoM (vs. March 2024: 0.4% MoM inflation), lower than the consensus expectation which projected 0.4% MoM inflation. Meanwhile, core inflation leveled down to 0.3% MoM and 3.6% YoY in April 2024 (vs. March 2024: 0.4% MoM and 3.8% YoY inflation), in line with expectations and marking the lowest annual core inflation in the last 3 years. Nevertheless, this annual inflation rate is still above the Fed's target of 2% YoY. All three major US stock indices rose to their highest levels after the inflation data release on Wednesday (15/5) local time, with Nasdaq +1.4%, S&P 500 +1.17%, and DJIA +0.88%. On the same day, the 10-year US government bond yield fell -10 bps to 4.34%. The Indonesian capital market was also positively affected with the IHSG strengthening +0.93%, the 10-year Indonesian government bond yield dropping -5 bps to 6.93%, and the Rupiah exchange rate against the US Dollar strengthening +0.8% to 15,944.",
+      "urls": [
+        "https://www.bls.gov/news.release/cpi.nr0.htm",
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        "https://snips.stockbit.com/snips-terbaru/the-fed-tahan-suku-bunga-proyeksikan-pemangkasan-3x-pada-2024"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "BBNI",
+        "SMRA",
+        "BUKA"
+      ]
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "EXCL and FREN Officially Explore Merger Plan",
+      "content": "The controlling shareholder of XL Axiata, Axiata Group Bhd., along with the controlling shareholder of Smartfren Telecom (FREN), Sinar Mas group, announced that they have signed a non-binding memorandum of understanding to explore the merger plan of EXCL and FREN. Subsequently, the merger of the two issuers will result in a new company entity. This announcement came just 3 weeks after Bloomberg on late April 2024 reported that the merger of EXCL and FREN would be completed in the coming months. The merger of the two issuers will create an entity with total asset value of 133 trillion Rupiah (assuming no consolidation adjustments), the second largest in Indonesia.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/c578e8ce63_2d48d94664.pdf",
+        "https://www.bloomberg.com/news/articles/2024-04-25/axiata-sinar-mas-said-to-move-closer-to-3-5-billion-telco-merger"
+      ],
+      "primaryTickers": [
+        "EXCL",
+        "FREN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Vale Indonesia (INCO) Obtains Extension of Mining Business License until December 28, 2035",
+      "content": "Vale Indonesia announced that it has obtained an extension of its operating permit until December 28, 2035, following the issuance of a Special Mining Operation Permit (IUPK) in the company's name on May 13, 2024. This permit extension is part of the divestment agreement of 14% of INCO shares from Vale SA and Sumitomo Metal Mining Co. to MIND ID. As part of the operating permit extension agreement, INCO is also obliged to complete the construction of a smelter.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/1e99cf5f46_c117eaf9ff.pdf"
+      ],
+      "primaryTickers": [
+        "INCO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indocement Tunggal Prakarsa (INTP) Sales Volume Grows Driven by Java Island Growth",
+      "content": "Indocement Tunggal Prakarsa recorded a cement sales volume growth of +10.4% YoY in April 2024, with its total market share rising to 30.7% (vs. April 2023: 28.2%) due to the consolidation of Semen Grobogan. The sales volume growth was driven by growth from Java Island (+18.3% YoY), with market share increasing to 39.8% (vs. April 2023: 35.3%). Meanwhile, INTP's sales volume outside Java Island decreased by -1.6% YoY, but market share was maintained at 21.7%. National cement industry sales volume increased by +1.5% YoY in April 2024.",
+      "urls": [],
+      "primaryTickers": [
+        "INTP"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Sido Muncul (SIDO) to Distribute Final Dividend for Fiscal Year 2023",
+      "content": "Industri Jamu dan Farmasi Sido Muncul will distribute a final dividend for the 2023 fiscal year amounting to 540 billion Rupiah or 18 Rupiah per share. The cum-dividend date for the regular and negotiation markets is May 27, 2024, with payment on June 6, 2024. Referring to SIDO's stock price on Thursday (16/5) at 715 Rupiah per share, the indicative final dividend yield is 2.5%. Previously, SIDO also distributed an interim dividend of 378 billion Rupiah or 12.6 Rupiah per share in November 2023.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/5faf66560b_8fb02f15aa.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202310/2c2be04505_c80634a4ea.pdf"
+      ],
+      "primaryTickers": [
+        "SIDO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Petrindo Jaya Kreasi (CUAN) Acquires Stake in Coal Mining Companies",
+      "content": "Petrindo Jaya Kreasi announced that it has acquired 100% of the shares of PT Borneo Bangun Banua Bestari (B4) and signed an agreement to acquire 30% of the shares of PT Borneo Bangun Banua (B3). The value of both transactions was not announced. B3 itself is a coal company holding a Mining Business Permit (IUP) with an operational area in Central Kalimantan, while B4 is the owner of 99.9% of B3's shares. CUAN explained that this transaction is in line with the company's plan to add assets, expand its business, and increase coal production capacity.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/44ad77e001_22bbd1380f.pdf"
+      ],
+      "primaryTickers": [
+        "CUAN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Delta Dunia Makmur (DOID) Plans Capital Reduction by Reacquiring Treasury Shares",
+      "content": "Delta Dunia Makmur plans a reduction in its authorized capital by reacquiring 409.9 million treasury shares, equivalent to 5% of the issued and fully paid-up capital. This corporate action is aimed at increasing shareholder value and achieving a more efficient capital structure. After this corporate action, the issued and fully paid-up capital in DOID will decrease from 1.35 trillion Rupiah to 389.4 billion Rupiah. This plan will be discussed at the General Meeting of Shareholders on June 21, 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/5d705d6e9e_e4fd16e337.pdf"
+      ],
+      "primaryTickers": [
+        "DOID"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Wijaya Karya (WIKA) Records New Contract Value Decline in 4M24",
+      "content": "Wijaya Karya recorded a decline in new contract value by -35.2% YoY to 5.68 trillion Rupiah in the first four months of 2024, equivalent to 15.4% of the 2024 target of 37 trillion Rupiah.",
+      "urls": [
+        "https://investasi.kontan.co.id/news/wijaya-karya-wika-kantongi-kontrak-baru-rp-568-triliun-hingga-april-2024"
+      ],
+      "primaryTickers": [
+        "WIKA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Kalbe Farma (KLBF) Shareholders Approve Dividend Distribution for 2023 Fiscal Year",
+      "content": "Kalbe Farma (KLBF) shareholders approved the distribution of dividends for the 2023 fiscal year amounting to 1.4 trillion Rupiah or 31 Rupiah per share. The cum-dividend date and payment date have not been announced. Referring to KLBF's stock price on Thursday (16/5) at 1,445 Rupiah per share, the indicative final dividend yield is 2.1%.",
+      "urls": [
+        "https://market.bisnis.com/read/20240516/192/1766013/kalbe-farma-klbf-tebar-dividen-rp14-triliun-52-dari-laba"
+      ],
+      "primaryTickers": [
+        "KLBF"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Midi Utama Indonesia (MIDI) Shareholders Approve Dividend Distribution for 2023 Fiscal Year",
+      "content": "Midi Utama Indonesia (MIDI) shareholders approved the distribution of dividends for the 2023 fiscal year amounting to approximately 155.5 billion Rupiah or 4.65 Rupiah per share. The cum-dividend date and payment date have not been announced. Referring to MIDI's stock price on Thursday (16/5) at 392 Rupiah per share, the indicative dividend yield is 1.2%.",
+      "urls": [
+        "https://market.bisnis.com/read/20240516/192/1765969/rupst-alfamidi-midi-putuskan-dividen-rp155-miliar"
+      ],
+      "primaryTickers": [
+        "MIDI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bank MNC Internasional (BABP) Plans Private Placement to Raise Capital for Digital Banking and Credit Expansion",
+      "content": "Bank MNC Internasional (BABP) plans to conduct a private placement of up to approximately 4.4 billion (10%) new shares with a dilution effect of up to 9.09%. The implementation price and ratio have not been announced, while the funds raised are intended to increase credit and continue the development of the digital bank MotionBank. This plan will be discussed at the Extraordinary General Meeting of Shareholders on June 21, 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/b3e03dafc8_e07ed16979.pdf"
+      ],
+      "primaryTickers": [
+        "BABP"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Hillcon (HILL) Controller Increases Stake Through Share Purchase",
+      "content": "The controller of Hillcon (HILL), PT Hillcon Equity Management, purchased approximately 15.2 million HILL shares at a price of 3,200 Rupiah per share on May 14, 2024. The total transaction value reached approximately 48.8 billion Rupiah. After this transaction, the ownership of PT Hillcon Equity Management in HILL increased from 40.71% to 41.23%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/ef6245e5b0_c9bdd1de4e.pdf"
+      ],
+      "primaryTickers": [
+        "HILL"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bakrie & Brothers (BNBR) Plans Quasi Reorganization to Eliminate Retained Deficit",
+      "content": "Bakrie & Brothers (BNBR) plans to conduct a quasi reorganization using consolidated financial statements dated December 31, 2023. Through this corporate action, BNBR will eliminate its retained deficit which reached 19.5 trillion Rupiah as of 2023. In exchange, share capital will decrease from approximately 23.7 trillion Rupiah to 4.6 trillion Rupiah, the gap value between the transaction and non-controlling interests will decrease from approximately 519 billion Rupiah to none, and the share premium account will increase from approximately 61.7 billion Rupiah to 120.6 billion Rupiah. BNBR's equity will remain unchanged at approximately 2.7 trillion Rupiah. This plan will be discussed at the Extraordinary General Meeting of Shareholders on June 21, 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/9213513d89_b2ffeef148.pdf"
+      ],
+      "primaryTickers": [
+        "BNBR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Waskita Karya (WSKT) Targets Financial Restructuring Effective in 1H24 and Delays Bond Payments",
+      "content": "SVP Corporate Secretary of Waskita Karya (WSKT), Ermy Puspa Yunita, stated that the company targets the financial restructuring process to be effective in 1H24. Ermy mentioned that WSKT is currently focused on communication with all stakeholders to obtain approval for the restructuring scheme from bondholders and banks. Nevertheless, WSKT on Wednesday (15/5) announced that the company postponed the payment of interest and principal on the Bond III Phase IV Year 2019 Series B, amounting to 1.36 trillion Rupiah. WSKT is currently at risk of delisting after its shares were suspended by the IDX for more than 12 months or since May 8, 2023, due to the postponement of bond interest payments.",
+      "urls": [
+        "https://market.bisnis.com/read/20240516/192/1765998/waskita-wskt-targetkan-restrukturisasi-keuangan-efektif-semester-i2024",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202405/c6b701ab73_8a650e6c80.pdf",
+        "https://investasi.kontan.co.id/news/meneropong-nasib-wskt-di-tengah-potensi-delisting-dari-bursa"
+      ],
+      "primaryTickers": [
+        "WSKT"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

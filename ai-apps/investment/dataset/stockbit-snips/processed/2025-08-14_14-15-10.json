@@ -1,0 +1,130 @@
+{
+  "publishDate": "2025-08-14",
+  "marketNews": [
+    {
+      "title": "Key Takeaway",
+      "content": "This is not the first time the Barito Group has sold a portion of its shares to increase the free float of shares outstanding in the market. Free float market cap (FFMC) itself is an important factor that can influence the weight, flow, and probability of a stock entering global indices such as the MSCI. Assuming ceteris paribus, stocks with larger free floats that have not yet entered a global index may have a greater probability of entering that index. Meanwhile, for stocks already in the index, higher free float can open up opportunities for the related stock to receive weight increases (upweighting). Stocks newly included in an index or experiencing a weight increase potentially receive foreign fund inflows (foreign inflow).",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Other hot things you need to know...",
+      "content": "1. The IHSG closed stronger at +0.49% to the level of 7,931 in today's trading, Thursday (14/8), marking an all-time high closing level, driven by a net foreign inflow of 4.9 trillion rupiah in the last week. The Rupiah exchange rate against the US Dollar also strengthened by +0.52% today to the level of 16,110, marking the highest level since the beginning of 2025 and nearly erasing the year-to-date weakness (-0.05% YTD). 2. The International Energy Agency (IEA) in its monthly report on Wednesday (13/8) projected that oil supply growth will reach 2.5 million barrels per day in 2025 and 1.9 million barrels per day in 2026, which is 370,000 barrels per day and 620,000 barrels per day higher, respectively, than the IEA's previous projections. The upward revision for oil supply projections is based on additional production from OPEC+ which decided to end part of its production cuts sooner than scheduled. On the demand side, the IEA projects world oil demand to increase by only 680,000 barrels per day in 2025 and 700,000 barrels per day in 2026, down 20,000 barrels per day from previous estimates due to persistently suppressed consumer confidence. 3. Reuters reported that the interest of Chinese companies in expanding or establishing businesses in Indonesia is increasing, driven by US import tariffs for Indonesia (19%) being lower compared to China (30%). Although not different from neighboring countries such as Malaysia and Thailand which are also subject to a 19% tariff, Reuters reported that Indonesia has a larger market share advantage compared to neighboring countries. VP Sales & Marketing of PT Suryacipta Swadaya, Abednego Purnomo, told Reuters that the Subang Smartpolitan area is flooded with inquiries from Chinese investors. PT Suryacipta Swadaya itself is the operator of the Subang Smartpolitan area and a subsidiary of Surya Semesta Internusa ($SSIA). 4. The industrial cement sales volume in Indonesia decreased annually to 5.8 million tons in July 2025 (-3.8% YoY, +18% MoM), according to data from Indocement Tunggal Prakarsa ($INTP) management. On a monthly basis, sales volume increased due to seasonality effects in the second half, mainly due to the growing number of working days in July 2025. This result causes the cement industry sales volume in Indonesia during 7M25 to decrease by -3.2% YoY (vs. 7M24 including Grobogan cement: +2.5% YoY), with weaknesses occurring both on the Java Island (-3.1% YoY) and outside Java Island (-3.3% YoY). INTP management expects that the industrial sales volume in 2025 may not exceed the realization in 2024, changing from the previous estimate which expected growth up to +2% YoY. In terms of segmentation, bagged cement sales volume was flat year-on-year during 7M25, with sales contribution increasing to 72% (vs. 7M24: 70%). On the other hand, bulk cement sales volume decreased by -10% YoY, with its contribution to total sales also decreasing to 28% (vs. 7M24: 30%). 5. Cikarang Listrindo ($POWR) announced that the company is currently experiencing a gas supply disruption from its suppliers, namely PT Pertamina EP and Perusahaan Gas Negara ($PGAS). In response, POWR immediately took mitigation steps by utilizing other fuels to ensure the fulfillment of industrial customer energy needs without disruption until the gas supply from PT Pertamina EP and PGAS returns to normal. POWR is also assessing the potential impact of the gas supply disruption on the company's financial condition, and is coordinating with gas suppliers, regulators, and other stakeholders as a mitigation step to maintain the reliability of electricity supply operations.",
+      "urls": [
+        "https://www.iea.org/reports/oil-market-report-august-2025",
+        "https://www.reuters.com/world/china/chinese-investors-eyeing-indonesia-avoid-us-tariffs-tap-local-market-2025-08-14/"
+      ],
+      "primaryTickers": [
+        "INTP",
+        "POWR",
+        "SSIA"
+      ],
+      "mentionedTickers": [
+        "PGAS"
+      ]
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "Barito Renewables Energy ($BREN) Affiliate Sells Shares to Increase Free Float",
+      "content": "A shareholder of Barito Renewables Energy ($BREN) affiliated with the controller, Green Era Pte. Ltd., sold 8.3 million (~0.006%) BREN shares at an average price of 9,126 rupiah per share on August 11-13, 2025, causing its ownership to drop to ~23.597%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202508/fa760d282b_114f550552.pdf"
+      ],
+      "primaryTickers": [
+        "BREN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Petrosea ($PTRO) Shareholder Sells Stake to Increase Free Float",
+      "content": "In a separate transaction, PT Caraka Reksa Optima, a shareholder of Petrosea ($PTRO), sold 240.9 million (2.39%) PTRO shares at an average price of ~2,969 rupiah per share on August 8-13, 2025, resulting in its ownership decreasing to 27.17%. Both transactions are aimed at increasing the free float of outstanding shares.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202508/2690d2adfc_2cceb37e75.pdf"
+      ],
+      "primaryTickers": [
+        "PTRO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Prajogo Pangestu Sells Petrindo Jaya Kreasi ($CUAN) Shares to Boost Free Float",
+      "content": "Previously, Prajogo Pangestu on August 5, 2025, also sold 1 billion (0.89%) shares of Petrindo Jaya Kreasi ($CUAN) at an average price of 1,450 rupiah per share to increase the free float of outstanding shares. After this transaction, the free float portion in CUAN increased from 15.006% as of July 2025 to 15.896%, while the CUAN stock price has risen +11% to the level of 1,610 rupiah as of Thursday's (14/8) market close since August 5, 2025.",
+      "urls": [
+        "https://snips.stockbit.com/snips-terbaru/-tlkm-2q25-earnings-call-the-worst-might-be-over",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202508/3d0a56778f_c538b52dc2.pdf"
+      ],
+      "primaryTickers": [
+        "CUAN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Solusi Sinergi Digital ($WIFI) Mentioned as Potential Buyer for Link Net ($LINK)",
+      "content": "DealStreetAsia reported that the Axiata group is entering the final stage to sell its majority stake in Link Net with an estimated value exceeding US$1 billion, which could be one of the largest digital infrastructure transactions in Southeast Asia this year. Several DealStreetAsia sources stated that Solusi Sinergi Digital ($WIFI) and I Squared Capital are the leading potential buyers. In addition to these two, the Salim group and Sinar Mas are also reportedly interested, but DealStreetAsia could not verify this news. I Squared Capital declined to comment on this issue to DealStreetAsia, while Axiata, Sinar Mas, and WIFI have not provided comments. As of the end of July 2025, Axiata Investments held a 75.42% stake in LINK, while the ownership of XLSMART Telecom Sejahtera ($EXCL) was 19.22%.",
+      "urls": [
+        "https://www.dealstreetasia.com/stories/link-net-sale-axiata-452573",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202508/6a63472710_367b025e1c.pdf"
+      ],
+      "primaryTickers": [
+        "WIFI",
+        "LINK"
+      ],
+      "mentionedTickers": [
+        "EXCL"
+      ]
+    },
+    {
+      "title": "Kalbe Farma ($KLBF) Lowers 2025 Revenue and Net Profit Guidance",
+      "content": "Kalbe Farma management, in an analyst meeting on Thursday (14/8), lowered the revenue and net profit growth guidance for 2025 from +8-10% YoY to +6-8% YoY. This guidance revision primarily considers the weakening revenue of the 'Nutritionals' segment, which fell -3% YoY during 1H25, leading management to revise down the segment's revenue growth target from mid-single digit to low-single digit.",
+      "urls": [],
+      "primaryTickers": [
+        "KLBF"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Mitra Adiperkasa ($MAPI) to Bring Ace Hardware Brand to Indonesia",
+      "content": "Mitra Adiperkasa management, in the 2Q25 earnings call on Wednesday (13/8), stated that the company has signed a cooperation agreement with Ace Hardware Corp. to bring the brand to Indonesia. However, the opening of Ace Hardware stores will most likely not happen this year and will be done gradually.",
+      "urls": [],
+      "primaryTickers": [
+        "MAPI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Dian Swastatika Sentosa ($DSSA) Subsidiary to Triple Solar Cell and Module Production Capacity",
+      "content": "The Ministry of Energy and Mineral Resources announced that Dian Swastatika Sentosa's business entity, PT Trina Mas Agra Indonesia, plans to increase solar cell and module production capacity from 1 GWp per year to 3 GWp in the next 2-3 years. PT Trina Mas Agra Indonesia itself is a collaboration between DSSA's subsidiary, PT Daya Sukses Makmur Selaras, with Trina Solar Co. Ltd. and PLN.",
+      "urls": [
+        "https://www.esdm.go.id/id/media-center/arsip-berita/langkah-awal-realisasi-plts-100-gw-menteri-bahlil-temui-perusahaan-solar-pv-di-tiongkok",
+        "https://snips.stockbit.com/snips-terbaru/keterlibatan-as-di-konflik-israeliran-ditentukan-dalam-2-pekan"
+      ],
+      "primaryTickers": [
+        "DSSA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Vale Indonesia ($INCO) Approved Revised 2025 RKAB for Bahodopi Block, Enabling Saprolite Nickel Ore Shipments",
+      "content": "Head of Corporate Finance and Investor Relations of Vale Indonesia, Andaru Brahmono Adi, told Kontan on Wednesday (13/8) that the company has obtained approval for the revision of the 2025 Work Plan and Budget (RKAB) for the Bahodopi Block. This revision allows the company to ship approximately 2.2 million tons of saprolite nickel ore from the block. Andaru added that the initial shipment from the block has begun and saprolite sales will become an additional contributor to INCO's revenue in 2025. Previously, Bisnis reported that the RKAB revision submitted by INCO allows the company to secure an additional production of ~2 million tons of saprolite nickel ore.",
+      "urls": [
+        "https://industri.kontan.co.id/news/lewat-semester-i-2025-vale-indonesia-inco-telah-serap-capex-us-2245-juta",
+        "https://market.bisnis.com/read/20250516/192/1877454/vale-indonesia-inco-revisi-rkab-bahodopi-target-eksekusi-kuartal-ii2025"
+      ],
+      "primaryTickers": [
+        "INCO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indocement Tunggal Prakarsa ($INTP) Cement Sales Volume Declined in July 2025 Amid Price Discipline",
+      "content": "Indocement Tunggal Prakarsa recorded a decrease in cement sales volume of -8.2% YoY in July 2025, although it rose +21% MoM along with the seasonality effect in the second half. This result caused INTP's cement sales volume to weaken -3.8% YoY during 7M25 (vs. 7M24 including Grobogan cement: +9.9% YoY), with market share decreasing to 29.4% (vs. 7M24: 29.6%, 1H25: 29.5%). INTP management explained that competitors continued product promotion efforts and increased sales of fighting brands, while the company remained disciplined in maintaining prices.",
+      "urls": [],
+      "primaryTickers": [
+        "INTP"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

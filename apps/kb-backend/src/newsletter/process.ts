@@ -155,32 +155,39 @@ async function processNewsletters() {
 
           mdContent = removeTopGainerLoser(mdContent);
 
+          mdContent = await resolveEmailerLinks(mdContent);
+          mdContent = removeStockbitSymbolLinks(mdContent);
+
           logger.info({ file }, "processing");
 
           const extracted = await processNewsletter(file, mdContent);
 
           for (const news of extracted.marketNews) {
-            news.urls = await Promise.all(
-              news.urls.map(async (e) => {
-                if (e.includes("emailer.stockbit.com")) {
-                  return await resolveRedirect(e);
-                }
+            news.urls = (
+              await Promise.all(
+                news.urls.map(async (e) => {
+                  if (e.includes("emailer.stockbit.com")) {
+                    return await resolveRedirect(e);
+                  }
 
-                return e;
-              }),
-            );
+                  return e;
+                }),
+              )
+            ).filter((e) => !e.includes("stockbit.com/symbol"));
           }
 
           for (const news of extracted.tickerNews) {
-            news.urls = await Promise.all(
-              news.urls.map(async (e) => {
-                if (e.includes("emailer.stockbit.com")) {
-                  return await resolveRedirect(e);
-                }
+            news.urls = (
+              await Promise.all(
+                news.urls.map(async (e) => {
+                  if (e.includes("emailer.stockbit.com")) {
+                    return await resolveRedirect(e);
+                  }
 
-                return e;
-              }),
-            );
+                  return e;
+                }),
+              )
+            ).filter((e) => !e.includes("stockbit.com/symbol"));
           }
 
           await writeFile(join(outputDir, `${outputFilename}.md`), mdContent);

@@ -1,0 +1,137 @@
+{
+  "publishDate": "2024-01-02",
+  "marketNews": [
+    {
+      "title": "RI Inflation in 2023 Eased to 2.61%, Below Expectations",
+      "content": "BPS noted that the Consumer Price Index (CPI) inflation in Indonesia in December 2023 eased to a level of 2.61% YoY (vs. November 2023: 2.86% YoY, December 2022: 5.51% YoY), lower than the consensus expectation which projected inflation of 2.72% YoY. This realization is in line with Bank Indonesia's target to keep inflation during 2023 at the 2-4% level. The decline in the annual inflation rate in December 2023 also differs from the trend in recent years, where since 2019 inflation tended to increase at the end of the year. The easing inflation in December 2023 was specifically caused by the high base effect due to the increase in fuel prices at the end of 2022. On a monthly basis, CPI inflation in December 2023 reached 0.41% MoM (vs. November 2023: 0.38% MoM). This realization was lower than the consensus expectation which projected 0.5% MoM inflation, but marked the highest monthly inflation in the last 12 months. Meanwhile, core inflation in December 2023 eased to 1.8% YoY (vs. November 2023: 1.87% YoY), lower than the consensus expectation which projected core inflation at 1.85% YoY. Based on expenditure groups, monthly and annual CPI inflation in December 2023 was driven by food, beverages, and tobacco which experienced inflation of 1.07% MoM and 6.18% YoY. This expenditure group contributed 0.29% to monthly inflation in December 2023, with an annual inflation contribution of 1.6%. Responding to this inflation data release, the IHSG closed stronger by +0.7% at the level of 7,323 on Tuesday (2/1). Key Takeaway: The inflation rate being below expectations provides room for Bank Indonesia to start cutting the benchmark interest rate sooner than anticipated, especially with the Rupiah exchange rate against the US dollar having strengthened to 15,473 per 2 January 2024 and indications of interest rate cuts by The Fed. Currently, the consensus estimates that Bank Indonesia will start cutting interest rates in 3Q24. Interest rate cuts can have a positive impact on sectors sensitive to interest rate changes, such as: Banking: lower cost of fund can increase Net Interest Margin. Property: lower mortgage interest rates can boost property demand. Furthermore, our study also found that the stock prices of property issuers tend to rise when interest rates have reached their peak and begin to be cut. Check the analysis in Mini Unboxing Property.",
+      "urls": [
+        "https://webapi.bps.go.id/download.php?f=hzcgRsuDKc/uJDxtzn/H6ygKuRBVKoZkTTb7zWscST7rFwX2UgFxYZhPOdzXfa5EYmDhcflLJP+C93/BAqQhZKhE4C34EqJI9sOlePA7+/Llc77NIS2Z1occjxOj76FNJTcbiYsoCVEIZA2ftnLd4kEiuUbtKcUbwd4fK+xvqYXpNKJvHZQ0JDJ1QSPFLVvibIXWamOt+Nh26//dKqs6mWCmqa2nGqF9EZYIpxXWcdTbqX0lVT91IUSqbabIsXBeoH9uFrt9GUUsKktOxyPr3BVv5Q/JLMOKro8NZ1WqRrE=",
+        "https://www.bi.go.id/id/statistik/informasi-kurs/jisdor/default.aspx",
+        "https://snips.stockbit.com/snips-terbaru/the-fed-tahan-suku-bunga-proyeksikan-pemangkasan-3x-pada-2024",
+        "https://snips.stockbit.com/unboxing/lesson-from-the-past-property-sector-bullish-during-dovish-outlook"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "ARTO",
+        "GOTO",
+        "BBRI",
+        "BBTN",
+        "PWON",
+        "BSDE",
+        "SMRA"
+      ]
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "ANTM Divests 2 Subsidiaries to Hong Kong CBL",
+      "content": "ANTM: Aneka Tambang sold a 49% stake in its subsidiary, PT Sumberdaya Arindo, to Hong Kong CBL Ltd. (HKCBL) for a transaction value of 416.5 million US dollars. ANTM also divested a 10% stake in its subsidiary, PT Feni Haltim, to HKCBL for 130.2 billion rupiah. In addition to these two transactions, ANTM and HKCBL signed a joint venture agreement for the HPAL project, with ANTM depositing an initial capital of 3 billion rupiah or equivalent to a 30% stake ownership.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/f19b63df6b_fe1a6d0d1e.pdf"
+      ],
+      "primaryTickers": [
+        "ANTM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "United Tractors Injects Capital into Subsidiary DTN",
+      "content": "UNTR: United Tractors injected capital worth approximately 5.72 trillion rupiah to its subsidiary, PT Danusa Tambang Nusantara (DTN), through a share subscription of 571,818 shares. This transaction was intended to meet DTN's working capital financing needs. UNTR's subsidiary, PT Pamapersada Nusantara (PAMA), also injected capital into DTN through a share subscription of 381,212 shares, but with an undisclosed transaction value. After this transaction, UNTR holds a 60% stake in DTN, while the remainder is owned by PAMA.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/6618c0406f_5c4ce6b900.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/024dcf636d_f50082366d.pdf"
+      ],
+      "primaryTickers": [
+        "UNTR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PTPP Bags New Contracts Worth IDR 30.2 Trillion Until November 2023",
+      "content": "PTPP: PTPP recorded new contract value of 30.2 trillion rupiah during 11M23, equivalent to 87.5% of the FY23 target of 34.5 trillion rupiah. This realization was supported by government projects with a portion of 41%, followed by State-Owned Enterprise (BUMN) projects and private projects at 34% and 25% respectively.",
+      "urls": [
+        "https://investasi.kontan.co.id/news/ptpp-kantongi-kontrak-baru-rp-302-triliun-hingga-november-2023"
+      ],
+      "primaryTickers": [
+        "PTPP"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Soechi Lines Controller Sells Shares in SOCI",
+      "content": "SOCI: The controller of Soechi Lines, PT Soechi Group, sold approximately 931.48 million SOCI shares at a price of 180 rupiah per share on December 28, 2023. This transaction valued at 167.67 billion rupiah was for divestment purposes. After this transaction, PT Soechi Group's ownership in SOCI decreased from 79.9% to 66.7%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/d5dd82d984_59b20543ee.pdf"
+      ],
+      "primaryTickers": [
+        "SOCI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "HOKI Obtains Loan from Affiliate for Raw Material Purchase and Operations",
+      "content": "HOKI: Buyung Poetra Sembada obtained a loan worth 130 billion rupiah from its affiliate, PT Buyung Putra Pangan. The loan has a tenor of 5 years with an interest rate of 8.89% per year. The funds will be used by HOKI for raw material purchases and other operational costs.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/d588fef89e_754a8c93e7.pdf"
+      ],
+      "primaryTickers": [
+        "HOKI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Ministry of Finance Imposes 10% Tax on E-Cigarettes Starting January 1, 2024",
+      "content": "The Ministry of Finance implemented an excise tax on electronic cigarettes starting from 1 January 2024 of 10% of the current applicable excise tariff. This measure is aimed at reducing the affordability of electronic cigarette products, where Finance Minister Sri Mulyani stated that long-term e-cigarette consumption has been proven to affect the health of its users.",
+      "urls": [
+        "https://www.bloomberg.com/news/articles/2023-12-30/indonesia-to-impose-new-10-tax-on-e-cigarettes-from-2024",
+        "https://www.reuters.com/markets/asia/indonesia-impose-new-tax-e-cigarettes-jan-1-2023-12-30/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "China Manufacturing PMI Rises to 50.8 in December 2023",
+      "content": "S&P Global noted that the Purchasing Managers' Index (PMI) for China's manufacturing sector rose to 50.8 in December 2023 (vs. November 2023: 50.7), surpassing the consensus expectation of 50.4. This realization marks three consecutive months of manufacturing PMI growth, and is the highest since August 2023.",
+      "urls": [
+        "https://www.pmi.spglobal.com/Public/Home/PressRelease/5f52bb9bc3e34194aa5e6c367d284619"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "UCID Plans to Purchase Production Machine from Controller for Efficiency",
+      "content": "Uni-Charm Indonesia (UCID) plans to purchase one MC12 type machine from its controller, Unicharm Corporation, for 112.44 billion rupiah. The machine will be used to directly produce Charm Safe Night products, thereby achieving cost of goods sold efficiency.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/5c2c3de349_7868c318e1.pdf"
+      ],
+      "primaryTickers": [
+        "UCID"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "IPCM to Distribute Interim Dividend of IDR 20.05 Billion",
+      "content": "Jasa Armada Indonesia (IPCM) will distribute an interim dividend of 20.05 billion rupiah or 3.8 rupiah per share. The cum-dividend date in the regular and negotiation market is January 5, 2024, while payment will be made on January 26, 2024. Referring to the IPCM stock price at the close of trading on Tuesday (2/1) at 284 rupiah per share, the indicative dividend yield is 1.33%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/09cfe906cb_b9337619e7.pdf"
+      ],
+      "primaryTickers": [
+        "IPCM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BSDE Acquires Land from FREN Subsidiary Using Internal Cash",
+      "content": "Bumi Serpong Damai (BSDE) purchased vacant land of approximately 2,134 square meters from Smartfren Telecom's (FREN) subsidiary, PT Smart Telecom, for an amount of 16.4 billion rupiah. The land is located in CBD BSD Lot 12A, South Tangerang. The funding for this transaction was sourced from BSDE's internal cash.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202312/72413c2d5a_40e194661a.pdf"
+      ],
+      "primaryTickers": [
+        "BSDE"
+      ],
+      "mentionedTickers": [
+        "FREN"
+      ]
+    }
+  ]
+}
