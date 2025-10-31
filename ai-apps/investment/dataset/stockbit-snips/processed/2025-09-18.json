@@ -1,0 +1,155 @@
+{
+  "publishDate": "2025-09-18",
+  "marketNews": [
+    {
+      "title": "The Fed Cuts Interest Rate by 25 Bps, Projects Two More Cuts by End of 2025",
+      "content": "The US central bank, the Federal Reserve, on Wednesday (September 17) local time decided to cut the policy interest rate by 25 basis points to a range of 4.00%-4.25%, in line with consensus expectations and marking the first rate cut of the year. In the post-meeting press conference, Fed Chair Jerome Powell said that the move was taken because the latest data showed increasing signs of weakness in the US labor market. Powell also emphasized that the decision was not without risk, noting that US inflation remained high even as the labor market softened. In addition to the rate cut, the Fed updated its economic projections for 2025 and 2026. The new projections show the policy rate expected to fall to a range of 3.5%-3.75% in 2025, compared with the June 2025 projection of 3.75%-4.0%. For 2026, the Fed projects an additional 25-basis-point cut, the same as the June 2025 outlook. The Fed raised its forecast for US real GDP growth to +1.6% in 2025, +1.8% in 2026 and +1.9% in 2027, versus the June 2025 forecasts of +1.4%, +1.6% and +1.8% respectively. Core inflation is projected at 3.1% in 2025 (unchanged from June), declining to 2.6% in 2026 (higher than the June 2025 estimate of 2.4%) and reaching 2.1% in 2027. Unemployment is expected to stay at 4.5% in 2025, then fall to 4.4% in 2026 and 4.3% in 2027. US financial markets reacted in a muted and mixed manner. The Dow Jones Industrial Average rose 0.57% on Wednesday, while the S&P 500 and Nasdaq fell 0.10% and 0.32% respectively. The US dollar index (DXY) gained 0.25% to around 96.9, and the 10-year Treasury yield rose 5.9 basis points to 4.087%. CIO SieberNXT Mark Malek told Reuters that the market reaction reflected profit-taking (sell-on-news) after the Fed’s rate-cut announcement. In Indonesia, the Jakarta Composite Index (IHSG) weakened 0.21% on Thursday (September 18) after reaching an all-time high of 8,025 on Wednesday, following an unexpected rate cut by Bank Indonesia. The 10-year Indonesian government bond yield was flat at 6.28%, and the rupiah depreciated 0.5% to 16,505 per US dollar.",
+      "urls": [
+        "https://www.reuters.com/business/fed-lowers-interest-rates-signals-more-cuts-ahead-miran-dissents-2025-09-17/",
+        "https://finance.yahoo.com/news/fed-signals-2-more-cuts-in-2025-raises-gdp-forecast-for-the-year-183031677.html",
+        "https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20250917.htm",
+        "https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20250618.htm",
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        "https://www.reuters.com/world/china/global-markets-wrapup-7-graphic-2025-09-17/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Key Takeaway",
+      "content": "We see external uncertainty gradually receding as the Fed begins its rate-cut cycle, following the completion of most reciprocal US trade-tariff agreements. Consequently, investors can focus more on domestic issues such as the execution of government stimulus programs and accelerated APBN spending to revive economic growth.",
+      "urls": [
+        "https://snips.stockbit.com/snips-terbaru/-pemerintah-rilis-paket-stimulus-ekonomi-4q25-senilai-rp162-t"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Top Gainer",
+      "content": "$BRPT +16.94%\n$PTRO +14.70%\n$SCMA +14.19%\n$EMTK +10.67%",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Top Loser",
+      "content": "$BBYB -6.18%\n$GGRM -5.97%\n$AMRT -5.56%\n$MAPA -5.17%",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "ITMG plans share buyback up to Rp2.49 trillion",
+      "content": "$ITMG (Indo Tambangraya Megah) announced a share-buyback program of up to 10% of total issued capital, allocating up to IDR 2.49 trillion for the period 4 November 2025 – 4 November 2026. The plan will be discussed at the General Meeting of Shareholders on 3 November 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/450dd8c966_5d12c823fc.pdf"
+      ],
+      "primaryTickers": [
+        "ITMG"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "GOTO secures 4.65 trillion rupiah loan from DBS and UOB",
+      "content": "$GOTO (GoTo Gojek Tokopedia) obtained a four-year term loan of IDR 4.65 trillion from DBS Indonesia and UOB. The funds will be used to repay the remaining loan balance from a facility agreed in November 2022 (outstanding IDR 467 billion as of June 2025) and for general corporate purposes, investments and working-capital needs.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/a8b879ba5f_708bc72558.pdf"
+      ],
+      "primaryTickers": [
+        "GOTO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "HEXA approves 2024 dividend of $21.7 million",
+      "content": "$HEXA (Hexindo Adiperkasa) shareholders approved a 2024 dividend of US$21.7 million, equivalent to US$0.02588 per share or roughly IDR 427 per share (assuming USD/IDR 16,505). This implies a dividend yield of about 7.9% based on HEXA’s closing price of IDR 5,375 on Thursday (September 18). The dividend is payable on the regular market on 24 September 2025, with payment scheduled for 17 October 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/8edfb5b56a_c31d316614.pdf"
+      ],
+      "primaryTickers": [
+        "HEXA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "HGII considers expansion into waste-to-energy sector",
+      "content": "$HGII (Hero Global Investment) CEO Robin Sunyoto said the company is evaluating options to expand into the waste-to-energy sector, which could strengthen the company’s business portfolio and create sustainable revenue growth. The consideration is currently under internal discussion.",
+      "urls": [
+        "https://industri.kontan.co.id/news/musim-kemarau-berakhir-hero-global-hgii-optimistis-capai-target-semester-ii-2025"
+      ],
+      "primaryTickers": [
+        "HGII"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "GMFI plans rights issue of up to 124 billion new shares",
+      "content": "$GMFI (Garuda Maintenance Facility Aero Asia) intends to conduct a rights issue of approximately 124 billion new shares, resulting in a dilution of up to 76.79%. The issue price has not been disclosed. Proceeds will be used for aircraft maintenance capability and operational development. Major shareholder Garuda Indonesia ($GIAA) will transfer all its rights to PT Angkasa Pura Indonesia (API) through a share-sale agreement; API will contribute land valued at about IDR 5.7 trillion (approximately 972,000 square meters). The transaction is expected to improve GMFI’s equity from a negative US$249 million in June 2025 to a positive US$103 million. After the transaction, API will become the largest shareholder of GMFI, while GIAA’s stake will be diluted. The plan will be discussed at the Extraordinary General Meeting of Shareholders on 24 October 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/165889d860_4d680f5f25.pdf"
+      ],
+      "primaryTickers": [
+        "GMFI"
+      ],
+      "mentionedTickers": [
+        "GIAA"
+      ]
+    },
+    {
+      "title": "BEI suspends trading of KOKA shares",
+      "content": "The Indonesia Stock Exchange (BEI) decided to temporarily halt trading of Koka Indonesia ($KOKA) securities in both the regular and cash markets starting from the pre-opening session on 18 September 2025. The suspension follows a breach of the commitment to maintain control as disclosed in the company’s prospectus in September 2023. According to the prospectus, the beneficial owner and controller, Gao Jing, will remain the beneficial owner and controller for at least five years after the registration statement becomes effective.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/bbae76c187_3e4e80575a.pdf",
+        "https://www.e-ipo.co.id/id/pipeline/get-propectus-file?id=267&type="
+      ],
+      "primaryTickers": [
+        "KOKA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "SMKM announces potential acquisition of up to 44.98% stake by Lim Shrimp Org",
+      "content": "$SMKM (Sumber Mas Konstruksi) announced that Lim Shrimp Org Pte. Ltd. intends to acquire up to 44.98% of SMKM shares from PT Vina Nauli Jordania, the current controlling shareholder. The transaction is still under negotiation, and the deal value has not been disclosed. Upon completion, Lim Shrimp Org will be required to make a mandatory tender offer.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/3bda09045a_adde160844.pdf"
+      ],
+      "primaryTickers": [
+        "SMKM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "MEJA announces acquisition of 45% stake by PT Bisnis Bersama Berkah and PT Triple Berkah Bersama",
+      "content": "$MEJA (Harta Djaya Karya) disclosed that PT Bisnis Bersama Berkah and PT Triple Berkah Bersama plan to acquire a 45% stake in MEJA from Richie Adrian Hartanto S. and PT Interra Djaya Karya. After the transaction, the two acquiring parties will become the new controlling shareholders of MEJA and will conduct a mandatory tender offer. The transaction is still under negotiation, and both the deal value and completion date are undisclosed.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202509/ea48a3eeeb_809bb671e1.pdf"
+      ],
+      "primaryTickers": [
+        "MEJA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Garuda Indonesia appoints new CFO from Singapore Airlines",
+      "content": "Bloomberg reported that Danantara has appointed Balagopal Kunduvara, currently Vice President of Financial Services at Singapore Airlines Ltd., as the new Chief Financial Officer of Garuda Indonesia ($GIAA). The appointment aims to improve GIAA’s financial balance sheet and expand its international network. Kunduvara will replace Prasetio, who was dismissed from the CFO and risk-management role during the Extraordinary General Meeting of Shareholders in June 2025. Kunduvara is expected to start working at GIAA in October 2025.",
+      "urls": [
+        "https://market.bisnis.com/read/20250917/192/1912110/garuda-disebut-rekrut-petinggi-singapore-airlines-jadi-direktur-keuangan-baru"
+      ],
+      "primaryTickers": [
+        "GIAA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesian Parliament approves larger 2026 budget",
+      "content": "The Indonesian House of Representatives (DPR) on Thursday (September 18) approved the revised 2026 State Budget (RAPBN) submitted by the government, raising the deficit target to 2.68% of GDP from the initial 2.48% of GDP. The revision also increased the revenue target to IDR 3,153.6 trillion (up from IDR 3,147.7 trillion, a 10% YoY increase over the 2025 outlook) and the expenditure target to IDR 3,842.7 trillion (up from IDR 3,786.5 trillion, an 8.9% YoY increase). Central government spending rose to IDR 3,149.7 trillion (up from IDR 3,136.5 trillion, an 18.3% YoY increase) and transfers to regions increased to IDR 693 trillion (down 19.8% YoY). Finance Minister Purbaya Yudhi Sadewa reaffirmed the commitment to keep the budget deficit below 3% of GDP for the next year.",
+      "urls": [
+        "https://www.reuters.com/markets/asia/indonesian-parliament-set-approve-bigger-2026-budget-prabowo-2025-09-18/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ]
+}

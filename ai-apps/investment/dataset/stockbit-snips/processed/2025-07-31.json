@@ -1,0 +1,125 @@
+{
+  "publishDate": "2025-07-31",
+  "marketNews": [
+    {
+      "title": "Top Gainer",
+      "content": "Top Gainer: UNVR +11.76%; DSNG +10.89%; MAPA +6.98%; AMRT +6.42%.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "UNVR",
+        "DSNG",
+        "MAPA",
+        "AMRT"
+      ]
+    },
+    {
+      "title": "Top Loser",
+      "content": "Top Loser: HMSP -10.66%; TOWR -7.58%; MDKA -7.45%; MBMA -6.80%.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "HMSP",
+        "TOWR",
+        "MDKA",
+        "MBMA"
+      ]
+    },
+    {
+      "title": "Other Hot Topics",
+      "content": "1. The Federal Reserve on Wednesday (30 July) decided to keep the U.S. policy rate at 4.25%-4.5% as expected, citing trade tensions that could slow inflation progress toward the 2% target. The Fed noted low unemployment but still-elevated inflation and observed moderating U.S. economic activity in 1H25. 2. Bloomberg reported that Bank Indonesia intervened in the foreign-exchange market to stabilise the rupiah, using spot purchases, non-deliverable forwards, government bonds and offshore NDFs after the rupiah fell 0.4% to 16,460 per USD on 31 July, the weakest level in a month, amid a hawkish Fed stance. 3. U.S. President Donald Trump announced on Wednesday (30 July) that refined copper will be exempted from a 50% tariff, causing Comex copper futures to plunge more than 22% intraday, the deepest drop in the contract's history, driven by concerns over stockpiling after a surge in U.S. copper imports. 4. The head of Indonesia's Financial Transaction Reports and Analysis Center (PPATK), Natsir Kongah, said that many dormant accounts previously blocked have now been reopened; by May 2025 PPATK had blocked 31 million dormant accounts holding a total of 6 trillion rupiah. The reopening follows summonses to PPATK chief Ivan Yustiavandana and Bank Indonesia governor Perry Warjiyo by President Prabowo Subianto. 5. Summarecon Agung (SMRA) announced that its 1H25 financial statements will be audited due to a planned corporate action, with the audited report to be submitted no later than 30 September 2025. 6. POWR director Yudho Pratikto purchased approximately 12.8 million POWR shares at an average price of 685 rupiah per share on 25 July 2025, a transaction worth about 8.7 billion rupiah, raising his direct ownership from roughly 0.05% to 0.13%.",
+      "urls": [
+        "https://www.federalreserve.gov/monetarypolicy/monetary20250730a.htm",
+        "https://www.bloomberg.com/news/articles/2025-07-31/bank-indonesia-intervenes-as-rupiah-hits-weakest-in-one-month",
+        "https://www.bloomberg.com/news/articles/2025-07-30/trump-s-copper-tariff-surprise-puts-spotlight-on-huge-us-stockpiles",
+        "https://www.kompas.com/jawa-barat/read/2025/07/31/105500088/ppatk-buka-kembali-rekening-dormant-usai-blokir-31-juta-rekening",
+        "https://emitten-announcement.stockbit.com/attachments/f-31928820-0_SMRA_Rencana_Penyampaian_Laporan_Keuangan_31928820_lamp1.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/0d9fa481e2_e2bc0aeee7.pdf"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "SMRA",
+        "POWR"
+      ]
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "BBRI 1H25 Net Profit Down 12% YoY, Below Expectations",
+      "content": "Bank Rakyat Indonesia (BBRI) recorded net profit of 12.6 trillion rupiah in 2Q25 (down 9% YoY, down 8% QoQ). This result makes 1H25 net profit 26.3 trillion rupiah (down 12% YoY), below expectations (45% estimate 2025F consensus versus 49% average of the last two years). The year-over-year decline in net profit for 2Q25 was mainly due to a 41% YoY increase in provision expenses, although Pre-Provision Operating Profit (PPOP) grew 8% YoY. The improvement in PPOP allowed 1H25 PPOP to grow modestly 2% YoY, but provision expenses rose 26% YoY in 1H25, pulling net profit down. Net Interest Income (NII) trend improved: NII grew 8% YoY in 2Q25, driving 1H25 NII up 3% YoY. The NII increase was driven by credit growth and CASA growth, which rose 6% YoY and 11% YoY respectively by June 2025, compared with 5% YoY and 7% YoY in March 2025. The NII improvement was offset by a 3% YoY decline in Non-Interest Income (Non-II) in 2Q25, resulting in Non-II growth of 6% YoY for 1H25. Management attributed the Non-II decline to accounting changes under IFRS 17 that spread insurance premium revenue over the coverage period rather than recognizing it upfront. Asset quality: the micro segment deteriorated. Gross NPL remained at 3% in 2Q25 versus 1Q25, but the micro segment NPL rose to 3.86% in June 2025 from 3.36% in March 2025, while the corporate segment NPL improved to 1.61% from 2.36%. Credit growth for the corporate segment reached 16% YoY in June 2025 versus 13% YoY in March 2025. Micro segment credit growth stayed low at 1.6% YoY in June 2025 versus 1.5% YoY in March 2025, amid ongoing restructuring of the segment. Key takeaway: BBRI expects accelerated government spending and declining interest rates to boost economic growth in 2H25, supporting credit demand and banking liquidity, but will remain cautious, projecting credit growth to the lower end of the 2025 guidance range of 7-9% YoY and Cost of Credit to the upper end of the 3-3.2% range. Regarding the Merah Putih Village Cooperative, BBRI said liquidity for financing the program will be provided by the Ministry of Finance, without further detail.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/20250731141340-54902-0/LF%20BRI_Konsol_30%20Juni%202025%20Released.pdf"
+      ],
+      "primaryTickers": [
+        "BBRI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "UNVR 1H25 Net Profit Down 13% YoY, Market Share Stabilizing",
+      "content": "Unilever Indonesia (UNVR) recorded net profit of 918 billion rupiah in 2Q25 (down 10% YoY, down 26% QoQ). This results in 1H25 net profit of 2.16 trillion rupiah (down 13% YoY), equal to 59% of the 2025F consensus estimate. The year-over-year profit decline was driven by lower revenue and higher financial expenses, but revenue contraction narrowed to -3% YoY in 2Q25 (versus -6% YoY in 1Q25). The improving revenue trend is reflected in UNVR’s market share, which rose to 27.3% volume (up from 26.9% in 1Q25) and 33.1% value (up from 32.8% in 1Q25). Concurrently, UNVR announced a share buyback program of up to 2 trillion rupiah between 31 July and 30 October 2025, with a maximum buyback price of 1,700 rupiah per share.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/20250731063427-55019-0/UNVR%20Q2%202025%20FINAL.pdf"
+      ],
+      "primaryTickers": [
+        "UNVR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "INDF 1H25 Net Profit Surges 51% YoY",
+      "content": "Indofood Sukses Makmur (INDF) posted net profit of 3.11 trillion rupiah in 2Q25 (up 122% YoY, up 14% QoQ), leading to 1H25 net profit of 5.84 trillion rupiah (up 51% YoY), equal to 53% of the 2025F consensus estimate. The profit surge was mainly due to foreign exchange gains reversal. Operating profit was down 4% YoY in 2Q25 but up 1% YoY in 1H25, matching the 47% consensus estimate. Indofood CBP (ICBP) reported net profit of 2.88 trillion rupiah in 2Q25 (up 143% YoY, up 8% QoQ), resulting in 1H25 net profit of 5.54 trillion rupiah (up 56% YoY). The profit increase was driven by improved FX gains. EBIT for ICBP fell 16% YoY in 2Q25 and 5% YoY in 1H25 due to lower gross margins from higher raw material prices. ICBP’s 1H25 EBIT was slightly below the 49% consensus estimate (average 52% over the past two years).",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/20250731190656-54879-0/Indofood%20Sukses%20Makmur%20Tbk_Billingual_30_Juni_2025.pdf"
+      ],
+      "primaryTickers": [
+        "INDF"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "KLBF 1H25 Net Profit Up 9% YoY, In Line With Estimates",
+      "content": "Kalbe Farma (KLBF) recorded net profit of 898 billion rupiah in 2Q25 (up 6% YoY, down 17% QoQ), resulting in 1H25 net profit of 1.98 trillion rupiah (up 9% YoY), in line with the 56% consensus estimate (average 55% over the past two years). Operating profit declined 1% YoY in 2Q25 after a 13% YoY increase in 1Q25, leading to 1H25 operating profit growth of 7% YoY. The slowdown in 2Q25 was caused by revenue growth slowing to 3% YoY (versus 6% YoY in 1Q25) and operating margin falling to 12.9% (from 15.6% in 1Q25 and 13.5% in 2Q24) due to a 13% YoY rise in selling expenses, mainly advertising and promotion. Net profit in 2Q25 was supported by other income, primarily gains from the sale of fixed assets, which made net profit growth outpace operating profit growth.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/20250731120458-55167-0/kalbe%20farma%20tbk_billingual_30_jun_2025_released.pdf"
+      ],
+      "primaryTickers": [
+        "KLBF"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TPIA 2Q25 Net Profit Jump to $1.3 Billion",
+      "content": "Chandra Asri Pacific (TPIA) posted a net profit surge to 1.3 billion US dollars in 2Q25 (versus a net loss of 25.6 million USD in 1Q25 and a loss of 14 million USD in 2Q24). This brings 1H25 net profit to 1.27 billion USD (versus a net loss of 47.5 million USD in 1H24). The 2Q25 profit jump was mainly due to a one-time gain of 1.75 billion USD from the purchase of Aster Chemicals and Energy Pte. Ltd. from Shell on 1 April 2025. Operationally, TPIA recorded an operating loss of 152.2 million USD in 2Q25 (versus an operating loss of 23.2 million USD in 1Q25 and 12.6 million USD in 2Q24), resulting in a 1H25 operating loss of 175.3 million USD (versus an operating loss of 42 million USD in 1H24).",
+      "urls": [
+        "https://emitten-announcement.stockbit.com/attachments/Report_PT_Chandra_Asri_Pacific_Tbk_Juni_2025.pdf"
+      ],
+      "primaryTickers": [
+        "TPIA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "GGRM 1H25 Net Profit Down 87% YoY",
+      "content": "Gudang Garam (GGRM) reported net profit of 13 billion rupiah in 2Q25 (down 96% YoY, down 88% QoQ), leading to 1H25 net profit of only 117 billion rupiah (down 87% YoY), below the 8% consensus estimate. Net profit was pressured by a 10% YoY decline in revenue in 2Q25 (and 11% YoY decline in 1H25), with the largest drop in the SKT segment (-21% YoY in 2Q25, -20% YoY in 1H25). An increased share of the higher-taxed SKM product mix reduced gross margin by 120 basis points YoY in 2Q25 and 160 bps YoY in 1H25, despite no tax rate increase in 2025. Operating margin also fell by 170 bps YoY in 2Q25 and 210 bps YoY in 1H25, causing operating profit to decline about 69% YoY in 2Q25 and 68% YoY in 1H25.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/20250731112311-55293-0/LK%20PT%20Gudang%20Garam%20Tbk%20dan%20Entitas%20Anak%20Juni%202025.pdf"
+      ],
+      "primaryTickers": [
+        "GGRM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TSPC 1H25 Net Profit Down 14% YoY",
+      "content": "Tempo Scan Pacific (TSPC) posted net profit of 293 billion rupiah in 2Q25 (down 28% YoY, down 28% QoQ), resulting in 1H25 net profit of 702 billion rupiah (down 14% YoY), below the 46% consensus estimate from Stockbit. Revenue continued to weaken, falling 3% YoY in 2Q25 and 3% YoY for 1H25. Despite the revenue decline, operating expenses rose 4% YoY in 2Q25 and 8% YoY in 1H25, mainly due to higher advertising and promotion costs (+12% YoY and +11% YoY). Consequently, operating profit margin fell to 11.5% in both 2Q25 and 1H25 (down from 15% in 2Q24 and 14.1% in 1H24), and operating profit declined 16% YoY in 2Q25 and 20% YoY in 1H25.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202507/20250731101610-55100-0/Laporan%20Keuangan%20TSPC%20SM1-25.pdf"
+      ],
+      "primaryTickers": [
+        "TSPC"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

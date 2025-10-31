@@ -1,0 +1,218 @@
+{
+  "publishDate": "2025-03-25",
+  "marketNews": [
+    {
+      "title": "Rupiah falls to lowest since 1998, Bank Indonesia to intervene",
+      "content": "The Indonesian rupiah fell 0.5% to IDR 16,641 on Tuesday morning, marking the weakest level since June 1998 during the Asian Financial Crisis. Bank Indonesia's Director of Monetary Management and Securities, Fitra Jusdiman, said the central bank will intervene to maintain currency stability. He linked the weakness to global uncertainty, including U.S. President Donald Trump's tariff plans and the Federal Reserve's potentially more hawkish policy.",
+      "urls": [
+        "https://www.bloomberg.com/news/articles/2025-03-25/indonesian-rupiah-falls-to-lowest-since-asian-financial-crisis",
+        "https://www.reuters.com/markets/currencies/indonesia-cbank-says-rupiah-weakness-reflects-global-domestic-factors-2025-03-25/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "U.S. President Trump announces 25% tariff on Venezuelan oil imports",
+      "content": "U.S. President Donald Trump on Monday, March 24, issued an executive order to impose a 25% import tariff on countries that purchase crude oil from Venezuela. Bloomberg reported that the measure also targets China, the largest importer of Venezuelan crude, which accounts for 40% of Venezuela's oil exports.",
+      "urls": [
+        "https://www.bloomberg.com/news/articles/2025-03-25/trump-s-tariffs-china-refiners-face-yet-another-blow-as-us-presses-venezuela?srnd=homepage-asia"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Trump signals upcoming U.S. auto import tariffs",
+      "content": "U.S. President Donald Trump on Monday, March 24, said he will announce an import tariff on automobiles in the coming days and hinted at a reciprocal tariff relief next week. Bloomberg reported that the comment added further confusion about a comprehensive tariff announcement scheduled for April 2, 2025.",
+      "urls": [
+        "https://www.bloomberg.com/news/articles/2025-03-24/trump-says-auto-levies-coming-teases-reciprocal-tariff-breaks?srnd=homepage-asia"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesia to raise mineral and coal royalty rates",
+      "content": "Indonesia's Ministry of Energy and Mineral Resources (ESDM) Director General Tri Winarno said on Monday, March 24, that the increase in mineral and coal royalty (minerba) rates will follow the proposal presented in the public consultation on March 8, 2025. The proposal had been previously discussed in a Stockbit Commentary.",
+      "urls": [
+        "https://industri.kontan.co.id/news/esdm-ungkap-detail-kenaikan-tarif-royalti-minerba-lebih-dari-3"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Everstone sells 51% stake in Domino's Pizza Indonesia",
+      "content": "DealStreetAsia reported that Everstone Capital has sold its entire 51% stake in PT Dom Pizza Indonesia, the operator of Domino's Pizza Indonesia, ending Everstone's divestment process that began in 2020. In the same period, Mitra Adiperkasa (MAPI) also disposed of its entire 33.52% stake in PT Dom Pizza Indonesia, according to 9M24 financial statements.",
+      "urls": [
+        "https://www.dealstreetasia.com/stories/dominos-pizza-indonesia-stake-sale-435483?utm_content=buffer38c2f&utm_medium=social&utm_source=linkedin.com&utm_campaign=buffer"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "MAPI"
+      ]
+    },
+    {
+      "title": "CNMA approves 2024 dividend and 300 billion rupiah buyback",
+      "content": "RUPST Nusantara Sejahtera Raya (CNMA) approved a 2024 dividend of 750 billion rupiah, implying a final dividend of 4 rupiah per share and a final dividend yield of 3.1% based on the Tuesday (25/3) closing price. The company previously paid an interim dividend of 5 rupiah per share in November 2024 and also approved a maximum 300 billion rupiah buyback at up to 270 rupiah per share, to be executed within 12 months of RUPST approval.",
+      "urls": [
+        "https://money.kompas.com/read/2025/03/25/141630426/cinema-xxi-cnma-bagikan-dividen-rp%5Be2%80%a6%5Dr?utm_source=Google&utm_medium=Newstand&utm_campaign=partner"
+      ],
+      "primaryTickers": [
+        "CNMA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "AKRA directors purchase shares worth up to 1.1 billion rupiah",
+      "content": "Two directors of AKR Corporindo (AKRA) – Jimmy Tandyo and Mery Sofi – each purchased 1 million and 800,000 shares respectively at average prices of 1,108 and 1,100 rupiah per share on March 19, 2025. The transactions valued at approximately 1.1 billion and 888 million rupiah, raising their ownership to 0.199% and 0.015% of the company’s shares.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/ea3916f112_a99b001eb2.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/69c7855a99_45188027d8.pdf"
+      ],
+      "primaryTickers": [
+        "AKRA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "MAIN announces up to 336 million share buyback",
+      "content": "Malindo Feedmill (MAIN) plans a share buyback of up to 336 million shares (15% of the capital) with a maximum allocation of 252 billion rupiah, implying an average price of 750 rupiah per share. The corporate action will run until June 24, 2025 and does not require a shareholders’ meeting due to OJK’s market-stability relaxation.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/6d213a39a2_7c510c88f2.pdf"
+      ],
+      "primaryTickers": [
+        "MAIN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ISSP announces 83.3 million share buyback",
+      "content": "Steel Pipe Industry of Indonesia (ISSP) plans a share buyback of up to 83.3 million shares (1.16% of the capital) with a maximum allocation of 25 billion rupiah and a maximum price of 300 rupiah per share. The buyback will run until June 24, 2025 and does not require a shareholders’ meeting under OJK’s relaxation.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/90f2657dfc_95adc711f0.pdf"
+      ],
+      "primaryTickers": [
+        "ISSP"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "AMAG announces up to 187.5 million share buyback",
+      "content": "Asuransi Multi Artha Guna (AMAG) plans a share buyback of up to 187.5 million shares (3.8% of the capital) with a maximum allocation of 62.5 billion rupiah, implying an average price of 333 rupiah per share. The buyback will be completed within 12 months of the RUPST approval on April 29, 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/3871faad46_054ea02fd6.pdf"
+      ],
+      "primaryTickers": [
+        "AMAG"
+      ],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "TSPC reports 4Q24 net profit of 365 billion rupiah, core profit up 48% YoY",
+      "content": "Tempo Scan Pacific (TSPC) reported a solid net profit of 365 billion rupiah in 4Q24 (+62% YoY, +40% QoQ). The result lifted 2024 net profit to 1.45 trillion rupiah (+23% YoY), matching the Stockbit 2024F estimate (100%). Net profit was driven by a foreign-exchange gain of 121 billion rupiah (vs. a loss of 81 billion in 4Q23 and a loss of 161 billion in 3Q24). The gain reflects a stronger U.S. dollar against the rupiah; TSPC’s foreign-currency assets were about $128 million at end-December 2024. Excluding currency and non-recurring items, core profit was 244 billion rupiah (-20% YoY, -42% QoQ). Core profit for 2024 grew 48% YoY to 1.34 trillion rupiah, in line with the 99% Stockbit estimate. Opex rose to 1.09 trillion rupiah (+14% YoY, +32% QoQ) due to higher salary and compensation costs. Sales reached 3.5 trillion rupiah (+4% YoY, +4% QoQ) with the Farmasi segment up 10% YoY and Consumer & Cosmetics up 11% YoY; both segments grew 17% and 11% YoY in 2024. The company projects a 15% YoY core-profit growth in 2025 and a 6.5% dividend yield at a 2,340-rupiah closing price.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202403/20250325104756-50056-0/Laporan%20Keuangan%20TSPC%20FY%202024.pdf",
+        "https://stockbit.com/post/16188875"
+      ],
+      "primaryTickers": [
+        "TSPC"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BBCA announces up to Rp1 trillion share buyback",
+      "content": "Bank Central Asia (BBCA) plans a share buyback with a maximum allocation of 1 trillion rupiah from March 26 to June 24, 2025, capping the buyback price at 9,200 rupiah per share. The corporate action does not require a shareholders’ meeting due to OJK’s market-stability relaxation.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/94a872ae23_7a2f752543.pdf"
+      ],
+      "primaryTickers": [
+        "BBCA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BMRI approves 2024 dividend of 43.5 trillion rupiah",
+      "content": "Bank Mandiri (BMRI) shareholders approved a 2024 dividend of approximately 43.5 trillion rupiah, or 466 rupiah per share (78% payout), with the record date and payment date yet to be announced. Using the closing price of 4,740 rupiah, the implied dividend yield is 9.8%.",
+      "urls": [],
+      "primaryTickers": [
+        "BMRI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BBNI reports 1.7 trillion rupiah February 2025 net profit",
+      "content": "Bank Negara Indonesia (BBNI) posted a net profit (bank-only) of 1.7 trillion rupiah in February 2025 (+7% YoY, +2.1% MoM), bringing 2M25 bank-only profit to 3.3 trillion rupiah (+8.3% YoY), in line with the consensus 2025F estimate of +8.8% YoY. The profit growth was driven by a lower cost-of-credit (0.77% vs 1.06% a year earlier) and a lower NIM of 3.58% versus 3.64% a year earlier. Credit growth slowed to 10.2% YoY, while the loan-to-deposit ratio reached 95.7% (vs 87.8% a year earlier).",
+      "urls": [
+        "https://www.bni.co.id/Portals/1/BNI/Perusahaan/HubunganInvestor/Docs/2025/LKP_BLN_2025-02_New%20SEOJK9_ENG.pdf"
+      ],
+      "primaryTickers": [
+        "BBNI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BSDE posts 4Q24 net profit of 1.6 trillion rupiah",
+      "content": "Bumi Serpong Damai (BSDE) posted a net profit of 1.6 trillion rupiah in 4Q24 (+839% YoY, +349% QoQ), mainly from a one-off gain on the acquisition of Suryamas Dutamakmur (SMDM). 2024 net profit rose to 4.36 trillion rupiah (+124% YoY), beating the 130% consensus estimate. Operating profit was 887 billion rupiah (+39% YoY, +40% QoQ), while revenue fell 12% YoY but rose 37% QoQ, and gross-margin and operating-margin expanded by 1,840 bps and 870 bps respectively.",
+      "urls": [
+        "https://emitten-announcement.stockbit.com/attachments/BSDE_Laporan_Keuangan_Tahunan_2024.pdf"
+      ],
+      "primaryTickers": [
+        "BSDE"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "SSIA reports 4Q24 net profit of 6 billion rupiah",
+      "content": "Surya Semesta Internusa (SSIA) posted a 4Q24 net profit of 6 billion rupiah (-97% YoY, -95% QoQ), resulting in a 2024 net profit of 234 billion rupiah (+33% YoY). Revenue grew 58% YoY and 57% QoQ, but gross margin fell to 24.4% (-12 pp YoY, -12 pp QoQ) due to lower-margin industrial-park land sales. Other-expenses rose to 148 billion rupiah (vs. 23 billion in 4Q23 and 41 billion in 3Q24).",
+      "urls": [
+        "https://emitten-announcement.stockbit.com/attachments/Report_Surya_Semesta_Internusa_31_Des_2024.pdf"
+      ],
+      "primaryTickers": [
+        "SSIA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PWON reports 4Q24 net profit decline of 33% YoY",
+      "content": "Pakuwon Jati (PWON) posted a 4Q24 net profit of 412 billion rupiah (-33% YoY, -50% QoQ). 2024 net profit was about 2.1 trillion rupiah (-1.4% YoY), slightly below the 97% consensus. The loss was driven by a 279 billion-rupiah foreign-exchange loss (vs. a 33 billion profit in 4Q23 and a 375 billion profit in 3Q24). Operating profit was 794 billion rupiah (+16% YoY, +21% QoQ), and operating profit for 2024 was 2.9 trillion rupiah (+9% YoY), beating the 102% consensus. Revenue grew 16% YoY, and gross-margin expansion of 130 bps YoY, while the  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ",
+      "urls": [
+        "https://emitten-announcement.stockbit.com/attachments/PT_Pakuwon_Jati_Tbk_-_31_Desember_2024.pdf"
+      ],
+      "primaryTickers": [
+        "PWON"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BRMS posts 4Q24 net profit of 8.7 million USD",
+      "content": "Bumi Resources Minerals (BRMS) reported a 4Q24 net profit of 8.7 million USD (+31% QoQ, +155% YoY) and a 2024 net profit of 24.4 million USD (+75% YoY), slightly below the 96.8% Stockbit estimate. Revenue grew 14% QoQ and gross-margin expanded to 50.6% (+420 bps) while a 90% drop in tax expense, which contributed to the higher net profit.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202403/20250325135746-49709-0/BRM%20Final%20Report%2031%20Des%202024.pdf"
+      ],
+      "primaryTickers": [
+        "BRMS"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TPMA (​) 2024 financial result ​  … ",
+      "content": "Trans Power Marine (TPMA) reported a 4Q24 net profit of 7.6 million USD (+20% YoY) and a 2024 total of 25.2 million USD (+28% YoY), slightly below the 96.5% Stockbit estimate. Revenue fell 7.1% YoY, but direct costs were down 12% YoY, lifting gross margin to 37.4% (up 360 bps). Other-expense reduction of 67% YoY turned a 0.2 million-USD loss into a 1.1 million-USD gain, resulting in **​**       …   …  …  …  … …  …  …  … …  … …  …  …   …    … …     … … …  …          … … … …  … …  …  … …  … … …  …  … …  …  … … … … … … … … … … … … … … … … … … … ",
+      "urls": [
+        "https://www.idx.co.id/Content%C2%A0?%C2%A0%C2%A0"
+      ],
+      "primaryTickers": [
+        "TPMA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ENRG (                             ",
+      "content": "Energi Megan M  … ...",
+      "urls": [],
+      "primaryTickers": [
+        "ENRG"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

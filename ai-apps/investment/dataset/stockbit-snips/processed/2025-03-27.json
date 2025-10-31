@@ -1,0 +1,188 @@
+{
+  "publishDate": "2025-03-27",
+  "marketNews": [
+    {
+      "title": "Compilation of 2024 Emiten Performance: Part 2 (Industrials)",
+      "content": "After releasing the compilation of emiten performance in the consumer-related sector in Stockbit Snips Part 1, we also prepared a compilation of FY24 performance of emiten that are closely related to the industrials sector, including cement, building materials, automotive, utilities, industrial property, and industrial supports. The details of revenue, operating profit, and net profit for each sector are presented. Key Takeaway: Overall, the revenue trend of industrial emiten still shows positive year-on-year growth, both in 4Q24 and FY24. Although total revenue grew only a modest +0.1% YoY in 4Q24 and +2% YoY during FY24, this figure is mainly due to the decline in revenue of the industrial support sector (AKRA). Apart from that, revenue in other sectors grew reasonably well. Regarding operating margin, there is a tendency of margin weakening during FY24, although a sign of recovery appears in 4Q24 for the cement and building materials sectors. Consequently, operating profit tends to grow slower than revenue. Bottom-line, there are several drivers for net profit increase in some sectors, such as lower interest and tax expenses in the utilities sector and asset sales in the automotive sector (AUTO). Highlights of some sectors: Industrial property achieved the relatively best performance during FY24, with revenue and net profit growing +25% YoY and +14% YoY respectively, driven by high industrial land sales (SSIA) to BYD. Industrial support (AKRA) recorded negative performance during FY24 with revenue down -8% YoY and net profit down -20% YoY, mainly due to price normalization in the distribution and oil trading segment and lower land sales of JIIPE. The cement sector continued a significant recovery in 4Q24 with net profit up +39% YoY, mainly driven by margin improvement from lower energy costs. The original compilation can be found at https://snips.stockbit.com/snips-terbaru/kompilasi-kinerja-emiten-2024-part-1.",
+      "urls": [
+        "https://snips.stockbit.com/snips-terbaru/kompilasi-kinerja-emiten-2024-part-1"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "AKRA",
+        "AUTO"
+      ]
+    },
+    {
+      "title": "Bank Indonesia macroprudential head says economy fundamentals remain solid",
+      "content": "Head of the Macroprudential Policy Department at Bank Indonesia, Solikin M. Juhro, said on Wednesday (26/3) that Indonesia's economic fundamentals remain solid and are not as fragile as during the 1998 crisis. His comment came after the rupiah weakened to 16,641 per US dollar on Tuesday (25/3), the weakest level since June 1998. He added that the central bank will continue to monitor and maintain financial stability together with the government.",
+      "urls": [
+        "https://www.bloomberg.com/news/articles/2025-03-26/bi-says-indonesia-far-from-1998-crisis-despite-rupiah-slump"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "US President Trump announces 25% tariff on automobile imports",
+      "content": "US President Donald Trump signed a proclamation on Wednesday (26/3) to impose a 25% tariff on automobile imports starting 3 April 2025, aimed at creating more manufacturing jobs in the United States. The tariff applies not only to completely built-up vehicles but also to parts, including engines, transmissions, powertrain components, and electric components. The tariff on parts will take effect no later than 3 May 2025, and the list of covered components may be expanded in the future.",
+      "urls": [
+        "https://www.whitehouse.gov/presidential-actions/2025/03/adjusting-imports-of-automobiles-and-autombile-parts-into-the-united-states/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesian officials discuss President Prabowo's upcoming investor meeting",
+      "content": "Special Staff of the Coordinating Minister for Economic Affairs, Raden Pardede, said on Thursday (27/3) that President Prabowo Subianto will meet investors after the Idulfitri holiday to correct misperceptions about government policies. Earlier, the Chairman of the National Economic Council, Luhut Pandjaitan, claimed on Wednesday (26/3) that President Prabowo would meet investors and capital market analysts directly to ensure a healthy and competitive investment climate, without providing further details. Meanwhile, the President of the Indonesia Stock Exchange, Iman Rachman, said on Thursday (27/3) that the exchange has not yet received information about President Prabowo's meeting with capital market participants. Since the beginning of the year, the IDX has weakened -8% YTD as of Thursday (27/3), amid negative domestic sentiment and global uncertainty from trade war escalations.",
+      "urls": [
+        "https://www.reuters.com/markets/asia/indonesia-seeks-calm-investors-after-stocks-rupiah-slide-2025-03-27/",
+        "https://www.cnnindonesia.com/ekonomi/20250326193607-92-1213443/luhut-prabowo-akan-bertemu-langsung-investor-analis-pasar-modal",
+        "https://market.bisnis.com/read/20250327/7/1865126/perbaiki-iklim-investasi-prabowo-bakal-gelar-pertemuan-dengan-pelaku-pasar-modal"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Widjaja family offers to buy remaining shares of Sinar Mas Land",
+      "content": "A Widjaja-controlled entity has offered to purchase the remaining public shares of Sinar Mas Land (SGX: A26) listed on the Singapore exchange. The proposal is priced at 0.31 Singapore dollars per share, a 12.7% premium to the last trading price. The Widjaja family already holds 65.75% of Sinar Mas Land through their family trust. They state that the offer gives shareholders an opportunity to exit and reinvest directly into the Widjaja-owned property companies listed on the IDX, such as Bumi Serpong Damai (BSDE) and Puradelta Lestari (DMAS).",
+      "urls": [
+        "https://www.reuters.com/markets/deals/indonesias-widjaja-family-offers-take-sinarmas-land-private-986-million-deal-2025-03-27/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "BSDE",
+        "DMAS"
+      ]
+    },
+    {
+      "title": "Apple announces iPhone 16 availability in Indonesia",
+      "content": "Apple Inc. announced on Wednesday (26/3) that the iPhone 16 series will be available for sale in Indonesia starting 11 April 2025, following the lifting of a sales ban after the company agreed to a investment plan of more than 300 million US dollars in Indonesia. Previously, the government had prohibited the sale of the iPhone 16 in 2024 because Apple failed to meet the local component content (TKDN) requirements.",
+      "urls": [
+        "https://www.reuters.com/technology/apple-says-iphone-16-series-be-available-indonesia-april-11-2025-03-26/",
+        "https://www.reuters.com/technology/indonesia-says-apple-should-soon-be-able-sell-iphone-16s-2025-02-26/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "BMRI announces 2024 dividend cum date April 11 and payment April 23",
+      "content": "BMRI: Bank Mandiri announced that the 2024 dividend cum date on the regular and negotiation markets falls on 11 April 2025, with payment on 23 April 2025. In this week, the BMRI shareholders meeting approved a final dividend for FY2024 of approximately 43.5 trillion rupiah or about 466.2 rupiah per share, corresponding to a 78% dividend payout ratio and indicating a yield of 9% as of Thursday (27/3).",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/3e05164931_ba2f82c41e.pdf"
+      ],
+      "primaryTickers": [
+        "BMRI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BBRI announces 2024 dividend cum date April 10 and payment April 23",
+      "content": "BBRI: Bank Rakyat Indonesia announced that the final dividend cum date on the regular and negotiation markets falls on 10 April 2025, with payment on 23 April 2025. In this week, the BBRI shareholders meeting approved a final dividend for FY2024 of approximately 52 trillion rupiah or 208.4 rupiah per share, corresponding to an 86% dividend payout ratio and indicating a yield of 5.1% as of Thursday (27/3). Previously, BBRI distributed an interim dividend for FY2024 of 135 rupiah per share in January 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/239dfd777e_4741c6de3d.pdf"
+      ],
+      "primaryTickers": [
+        "BBRI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ADMF declares 2024 dividend of 703 rupiah per share, cum date April 11, payment April 25",
+      "content": "ADMF: Adira Dinamika Multi Finance will distribute a FY2024 dividend of 703 billion rupiah or 703 rupiah per share, corresponding to a 50% dividend payout ratio. The dividend cum date on the regular and negotiation markets is 11 April 2025, with payment on 25 April 2025. Based on ADMF's closing price on Thursday (27/3) at 9,200 rupiah per share, the implied dividend yield is 7.6%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/82d065d68a_3ae358ea7b.pdf"
+      ],
+      "primaryTickers": [
+        "ADMF"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BBTN approves 2024 dividend of 53.6 rupiah per share, cum date and payment not announced",
+      "content": "BBTN: Shareholders of Bank Tabungan Negara approved a FY2024 dividend of approximately 751.8 billion rupiah or about 53.6 rupiah per share, corresponding to a 25% dividend payout ratio. The cum date and payment date have not been announced. Based on BBTN's closing price on Thursday (27/3) at 885 rupiah per share, the implied dividend yield is 6.1%. After the shareholders meeting on Wednesday (26/3), President Director BBTN, Nixon L. P. Napitupulu, said that the spin-off of BTN Syariah is targeted to be completed in Q3 2025.",
+      "urls": [
+        "https://www.cnnindonesia.com/ekonomi/20250326192735-78-1213439/btn-tebar-dividen-rp750-m-kepada-pemegang-saham",
+        "https://www.antaranews.com/berita/4738885/spin-off-btn-syariah-ditargetkan-selesai-kuartal-iii-2025"
+      ],
+      "primaryTickers": [
+        "BBTN"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bukalapak completes 220 million share buyback at average 143 rupiah per share",
+      "content": "BUKA: Bukalapak announced that it has completed a buyback of 220 million shares (0.21% of total) on 26 March 2025 at an average price of approximately 143 rupiah per share, totaling about 31.5 billion rupiah. After this transaction, Bukalapak still has remaining funds for share buybacks amounting to about 1.87 trillion rupiah. Previously, Bukalapak announced a buyback plan with funds up to 1.9 trillion rupiah for the period 26 March – 25 June 2025, without specifying the number of shares to be repurchased.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/f787df17b5_803e2a78d8.pdf",
+        "https://snips.stockbit.com/snips-terbaru/kompilasi-kinerja-emiten-2024-part-1"
+      ],
+      "primaryTickers": [
+        "BUKA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Mayora Indah plans 1 trillion rupiah share buyback",
+      "content": "MYOR: Mayora Indah plans a share buyback with a fund allocation of up to 1 trillion rupiah for the period 27 March – 27 June 2025, without detailing the number of shares to be bought. This plan does not require shareholders' meeting approval, following the relaxation granted by OJK to support capital market stability.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/28a5e8e270_90f0bfc50f.pdf"
+      ],
+      "primaryTickers": [
+        "MYOR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Siloam International Hospitals secures 14.5 trillion rupiah syndicated loan and reports 2024 net loss",
+      "content": "SILO: Siloam International Hospitals signed a syndicated loan facility agreement up to 14.5 trillion rupiah from Bank Negara Indonesia (BBNI), Bank CIMB Niaga (BNGA), Bank Central Asia (BBCA), DBS Indonesia, MUFG Bank, and HSBC. The facility consists of a 7-year term loan, a revolving credit facility, and other supporting facilities. SILO explained that the transaction aligns with its business expansion plan and corporate strategy. SILO reported a net profit of 267 billion rupiah in 4Q24 (-24% YoY, -17% QoQ), resulting in a 2024 net profit of 902 billion rupiah (-26% YoY), below expectations (84% of the 2024F consensus). In the earnings call on Thursday (27/3), SILO management said they will wait until after 2Q25 before providing guidance, considering macro-economic volatility.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/f49c12e1d9_4cdfd47f20.pdf",
+        "https://emitten-announcement.stockbit.com/attachments/Siloam_International_Hospitals_GA_31_Des_2024.pdf"
+      ],
+      "primaryTickers": [
+        "SILO"
+      ],
+      "mentionedTickers": [
+        "BBNI",
+        "BNGA",
+        "BBCA"
+      ]
+    },
+    {
+      "title": "CBDK injects capital into subsidiaries Mega Andalan Sukses and Cahaya Gemilang Indah Cemerlang",
+      "content": "CBDK: Bangun Kosambi Sukses announced that it has injected capital into its two subsidiaries, PT Mega Andalan Sukses and PT Cahaya Gemilang Indah Cemerlang, amounting to 308 billion rupiah and 89.6 billion rupiah respectively, through the issuance of new shares fully taken up by the parent company. After the transaction, CBDK's ownership in PT Mega Andalan Sukses and PT Cahaya Gemilang Indah Cemerlang increased from 55.89% to 64.62%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/973f1d27d9_9c32e77577.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/3ecd9e55a1_aa489be39a.pdf"
+      ],
+      "primaryTickers": [
+        "CBDK"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ASII directors Suparno Djasmin and Bambang Permadi Soemantri Brodjonegoro resign",
+      "content": "ASII: Astra International announced that Suparno Djasmin and Bambang Permadi Soemantri Brodjonegoro have submitted their resignations from their positions as director and independent commissioner respectively. Suparno's resignation is related to retirement, while Bambang's resignation is due to his appointment as Dean of the Asian Development Bank Institute.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/e138d55657_744221391e.pdf"
+      ],
+      "primaryTickers": [
+        "ASII"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Petrosea forms joint venture PT Portus Bara Jaya with 162.7 billion rupiah capital",
+      "content": "PTRO: Petrosea, through its subsidiary PT Petrosea Infrastruktur Nusantara, together with PT Lautan Hutan Lestari, formed a joint venture named PT Portus Bara Jaya. The joint venture will support business activities and expand the company's network in the mining services sector. PT Portus Bara Jaya was established with a total paid-in capital of 162.7 billion rupiah, with PT Petrosea Infrastruktur Nusantara holding a 50% ownership stake.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202503/0e582cf3a2_a444bbcff2.pdf"
+      ],
+      "primaryTickers": [
+        "PTRO"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}
