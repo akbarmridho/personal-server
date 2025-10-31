@@ -3,7 +3,7 @@
   "marketNews": [
     {
       "title": "Pemerintah Siapkan Stimulus Ekonomi Jilid 2",
-      "content": "Minister of Coordinating Economic Affairs, Airlangga Hartarto said on Saturday (24/5) that the government is preparing six economic stimulus packages to maintain consumer purchasing power, especially during the school holiday period in June-July 2025. The six stimulus packages – currently being finalized and scheduled to be launched on 5 June 2025 – focus on boosting activity in the transportation, energy, and social assistance sectors. The details are: 1) Discount on train, airline and sea transport tickets during the school holidays; 2) Toll road tariff reduction in June-July 2025 for 110 million users; 3) Electricity tariff discount of 50 % in June-July 2025, targeted at 79.3 million households with electricity capacity up to 1,300 VA; 4) Food card and food assistance to 18.3 million beneficiary families (KPM); 5) Wage subsidy (BSU) for workers earning below IDR 3.5 million or the provincial minimum wage; 6) Discount on occupational accident insurance (JKK) premiums for workers in labor-intensive sectors. The government also urges regional governments to actively create local tourism and entertainment activities to stimulate domestic movement during the school holidays. This is the second stimulus package of the year; the first was released in January-February 2025. Core Indonesia researcher Yusuf Rendy Manilet said the stimulus appears as an emergency measure to prevent a deeper economic slowdown. He explained that household consumption could slow in 2Q25, given the absence of seasonal peaks such as Ramadan or Lebaran. In 1Q25, Indonesia’s economy grew only +4.87 % YoY (vs. 1Q24: +5.11 % YoY, 4Q24: +5.02 % YoY), below the 2025 government target of +5.2 % YoY, with household consumption easing to +4.89 % YoY (vs. 1Q24: +4.91 % YoY).",
+      "content": "Minister of Coordinating Economic Affairs, Airlangga Hartarto said on Saturday (24/5) that the government is preparing six economic stimulus packages to maintain consumer purchasing power, especially during the school holiday period in June-July 2025. The six stimulus packages – currently being finalized and scheduled to be launched on 5 June 2025 – focus on boosting activity in the transportation, energy, and social assistance sectors. The details are: 1) Discount on train, airline and sea transport tickets during the school holidays; 2) Toll road tariff reduction in June-July 2025 for 110 million users; 3) Electricity tariff discount of 50 % in June-July 2025, targeted at 79.3 million households with electricity capacity up to 1,300 VA; 4) Food card and food assistance to 18.3 million beneficiary families (KPM); 5) Wage subsidy (BSU) for workers earning below IDR 3.5 million or the provincial minimum wage; 6) Discount on occupational accident insurance (JKK) premiums for workers in labor-intensive sectors. The government also urges regional governments to actively create local tourism and entertainment activities to stimulate domestic movement during the school holidays. This is the second stimulus package of the year; the first was released in January-February 2025. Core Indonesia researcher Yusuf Rendy Manilet said the stimulus appears as an emergency measure to prevent a deeper economic slowdown. He explained that household consumption could slow in 2Q25, given the absence of seasonal peaks such as Ramadan or Lebaran. In 1Q25, Indonesia’s economy grew only +4.87 % YoY (vs. 1Q24: +5.11 % YoY, 4Q24: +5.02 % YoY), below the 2025 government target of +5.2 % YoY, with household consumption easing to +4.89 % YoY (vs. 1Q24: +4.91 % YoY).",
       "urls": [
         "https://ekon.go.id/publikasi/detail/6389/jaga-momentum-pertumbuhan-ekonomi-nasional-paket-stimulus-ekonomi-kuartal-ii-segera-digulirkan-pemerintah",
         "https://snips.stockbit.com/snips-terbaru/paket-kebijakan-ekonomi-2025",
@@ -33,7 +33,7 @@
     },
     {
       "title": "OJK Sebut PNBN & BCIC Jajaki Kehadiran Investor Strategis",
-      "content": "The Financial Services Authority (OJK) said that several banks are seeking new capital injections and are exploring the presence of strategic investors, including Bank Pan Indonesia, Bank JTrust ($BCIC), and Bank Muamalat. OJK will evaluate and act on any strategic investor proposals in the Indonesian banking sector according to applicable regulations. In March 2025, Reuters reported that DBS Group and CIMB were competing to buy a controlling stake in PNBN, with about 86 % of PNBN shares slated for sale, comprising holdings of the PNBN controlling family, the Gunawan family, and ANZ.",
+      "content": "The Financial Services Authority (OJK) said that several banks are seeking new capital injections and are exploring the presence of strategic investors, including Bank Pan Indonesia, Bank JTrust ($BCIC), and Bank Muamalat. OJK will evaluate and act on any strategic investor proposals in the Indonesian banking sector according to applicable regulations. In March 2025, Reuters reported that DBS Group and CIMB were competing to buy a controlling stake in PNBN, with about 86 % of PNBN shares slated for sale, comprising holdings of the PNBN controlling family, the Gunawan family, and ANZ.",
       "urls": [
         "https://katadata.co.id/finansial/korporasi/6834261293c5a/bank-muamalat-panin-dan-jtrust-disebut-cari-suntikan-dana-ojk-sorot-dampaknya",
         "https://www.reuters.com/markets/deals/dbs-leading-race-buy-controlling-stake-indonesias-panin-bank-sources-say-2025-03-26/"
@@ -54,13 +54,11 @@
       "primaryTickers": [
         "GOTO"
       ],
-      "mentionedTickers": [
-        "GOTO"
-      ]
+      "mentionedTickers": []
     },
     {
       "title": "PBID Dividend Announcement",
-      "content": "Panca Budi Idaman will distribute a 2024 dividend of approximately IDR 412.5 billion (IDR 55 per share), representing about 85 % dividend payout ratio (2023: ~80 %) and implying a 9.9 % dividend yield as of Monday 26/5. The cum-date is the regular market on 4 June 2025, with payment on 19 June 2025.",
+      "content": "Panca Budi Idaman will distribute a 2024 dividend of approximately IDR 412.5 billion (IDR 55 per share), representing about 85 % dividend payout ratio (2023: ~80 %) and implying a 9.9 % dividend yield as of Monday 26/5. The cum-date is the regular market on 4 June 2025, with payment on 19 June 2025.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/3713a7ab48_2db1ab5b86.pdf"
       ],
@@ -71,7 +69,7 @@
     },
     {
       "title": "WIIM Dividend Announcement",
-      "content": "Wismilak Inti Makmur shareholders approved a 2024 dividend of roughly IDR 135 billion (IDR 64.8 per share), corresponding to a ~45 % payout ratio (2023: ~45 %) and a 7.6 % dividend yield as of Monday 26/5. The cum-date and payment date have not been announced.",
+      "content": "Wismilak Inti Makmur shareholders approved a 2024 dividend of roughly IDR 135 billion (IDR 64.8 per share), corresponding to a ~45 % payout ratio (2023: ~45 %) and a 7.6 % dividend yield as of Monday 26/5. The cum-date and payment date have not been announced.",
       "urls": [],
       "primaryTickers": [
         "WIIM"
@@ -79,8 +77,8 @@
       "mentionedTickers": []
     },
     {
-      "title": "INET Announces 1 Million New Homepass Target and Submarine Cable Partnership",
-      "content": "Inti Andalan Prima’s President Director Muhammad Arif said the company targets the addition of 1 million new home-pass in 2025 through its subsidiary PT Internet Anak Bangsa. The target revenue from the new home-pass is IDR 240 billion, with recurring-income revenue of IDR 192 billion. Additionally, INET’s subsidiary PT Pusat Fiber Indonesia signed an indefeasible right-of-use agreement with Ketrosden Triasmitra ($KETR) to utilize a submarine cable system (SKKL) spanning Jakarta to Singapore.",
+      "title": "INET Announces 1 Million New Homepass Target and Submarine Cable Partnership",
+      "content": "Inti Andalan Prima’s President Director Muhammad Arif said the company targets the addition of 1 million new home-pass in 2025 through its subsidiary PT Internet Anak Bangsa. The target revenue from the new home-pass is IDR 240 billion, with recurring-income revenue of IDR 192 billion. Additionally, INET’s subsidiary PT Pusat Fiber Indonesia signed an indefeasible right-of-use agreement with Ketrosden Triasmitra ($KETR) to utilize a submarine cable system (SKKL) spanning Jakarta to Singapore.",
       "urls": [
         "https://epaper.investor.id/files/2025/05/24/1e0a70e503c1ddc09414f150d34efdf5.html"
       ],
@@ -93,7 +91,7 @@
     },
     {
       "title": "AKRA Share Sale by Director Mery Sofi",
-      "content": "AKR Corporindo’s director Mery Sofi sold 800,000 AKRA shares at IDR 1,349 per share on 21 May 2025, amounting to roughly IDR 1.1 billion. After the transaction, Mery’s ownership fell from 0.015 % to 0.011 %.",
+      "content": "AKR Corporindo’s director Mery Sofi sold 800,000 AKRA shares at IDR 1,349 per share on 21 May 2025, amounting to roughly IDR 1.1 billion. After the transaction, Mery’s ownership fell from 0.015 % to 0.011 %.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/fad6cae453_61c456da90.pdf"
       ],
@@ -104,7 +102,7 @@
     },
     {
       "title": "SINI Share Sale by PT Basis Energi Prima",
-      "content": "Singaraja Putra’s shareholder PT Basis Energi Prima sold approximately 57.7 million SINI shares at IDR 3,800 per share on 23 May 2025, raising about IDR 219 billion to increase the free-float. After the transaction, PT Basis Energi Prima’s ownership fell from 12 % to zero.",
+      "content": "Singaraja Putra’s shareholder PT Basis Energi Prima sold approximately 57.7 million SINI shares at IDR 3,800 per share on 23 May 2025, raising about IDR 219 billion to increase the free-float. After the transaction, PT Basis Energi Prima’s ownership fell from 12 % to zero.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/b044de0e90_619ec232fa.pdf"
       ],
@@ -126,7 +124,7 @@
     },
     {
       "title": "IDX Announces Sri-Kehati Index Rebalancing",
-      "content": "The Indonesia Stock Exchange announced a major review of the Sri-Kehati index effective 2 June–28 November 2025. $ASII, $MTEL and $PGEO will be added to the index, while $JPFA, $SCMA and $TLKM will be removed.",
+      "content": "The Indonesia Stock Exchange announced a major review of the Sri-Kehati index effective 2 June–28 November 2025. $ASII, $MTEL and $PGEO will be added to the index, while $JPFA, $SCMA and $TLKM will be removed.",
       "urls": [
         "https://www.idnfinancials.com/id/news/54811/asii-mtel-dan-pgeo-jadi-penghuni-indeks-sri-kehati-3-emiten-keluar"
       ],
@@ -143,7 +141,7 @@
     },
     {
       "title": "FTSE Russell Rebalancing Adds AADI and DAAZ",
-      "content": "FTSE Russell announced a rebalancing for the FTSE Global Equity Index Series effective at the close of trading on 20 June 2025 and effective 23 June 2025. No changes to Large-Cap or Mid-Cap categories. $AADI entered the Small-Cap index and $DAAZ entered the Micro-Cap index, with no constituents removed from either category.",
+      "content": "FTSE Russell announced a rebalancing for the FTSE Global Equity Index Series effective at the close of trading on 20 June 2025 and effective 23 June 2025. No changes to Large-Cap or Mid-Cap categories. $AADI entered the Small-Cap index and $DAAZ entered the Micro-Cap index, with no constituents removed from either category.",
       "urls": [
         "https://investor.id/market/398516/aadi-dan-daaz-masuk-indeks-ftse"
       ],
@@ -155,8 +153,8 @@
       ]
     },
     {
-      "title": "Trump Announces Delay of EU 50 % Tariff",
-      "content": "U.S. President Donald Trump said on Sunday (25/5) that the United States will postpone the 50 % tariff on the European Union from 1 June 2025 to 9 July 2025 to allow more negotiation time. The postponement comes two days after Trump on Friday (23/5) threatened to impose a 50 % tariff on all EU imports due to stalled trade talks.",
+      "title": "Trump Announces Delay of EU 50 % Tariff",
+      "content": "U.S. President Donald Trump said on Sunday (25/5) that the United States will postpone the 50 % tariff on the European Union from 1 June 2025 to 9 July 2025 to allow more negotiation time. The postponement comes two days after Trump on Friday (23/5) threatened to impose a 50 % tariff on all EU imports due to stalled trade talks.",
       "urls": [
         "https://apnews.com/article/donald-trump-trade-tariffs-european-union-f335ba9aa9d0b36cfe483f6f045c9b01",
         "https://apnews.com/article/trump-tariff-apple-iphone-tax-170021e8fad22878d0183b5d48971087"
@@ -165,8 +163,8 @@
       "mentionedTickers": []
     },
     {
-      "title": "Indonesia Announces 69.5 GW New Power Capacity Plan (2025-2034)",
-      "content": "Energy and Mineral Resources Minister Bahlil Lahadalia on Monday (26/5) inaugurated the 2025-2034 electricity supply plan (RUPTL), targeting an additional 69.5 GW of capacity: 42.6 GW (61 %) from new renewable energy, 10.3 GW (15 %) from storage, and 16.6 GW (24 %) from fossil sources (gas and coal). The renewable breakdown is 17.1 GW solar PV, 11.7 GW hydro, 7.2 GW biomass-thermal, 5.2 GW geothermal, 0.9 GW bio-energy, and 0.5 GW nuclear.",
+      "title": "Indonesia Announces 69.5 GW New Power Capacity Plan (2025-2034)",
+      "content": "Energy and Mineral Resources Minister Bahlil Lahadalia on Monday (26/5) inaugurated the 2025-2034 electricity supply plan (RUPTL), targeting an additional 69.5 GW of capacity: 42.6 GW (61 %) from new renewable energy, 10.3 GW (15 %) from storage, and 16.6 GW (24 %) from fossil sources (gas and coal). The renewable breakdown is 17.1 GW solar PV, 11.7 GW hydro, 7.2 GW biomass-thermal, 5.2 GW geothermal, 0.9 GW bio-energy, and 0.5 GW nuclear.",
       "urls": [
         "https://www.antaranews.com/berita/4859021/menteri-esdm-tambah-pembangkit-listrik-sebesar-695-gw-di-ruptl-baru"
       ],
@@ -175,7 +173,7 @@
     },
     {
       "title": "TAYS Share Sale by Lidya Anwar",
-      "content": "Jaya Swarasa Agung shareholder Lidya Anwar sold approximately 49.8 million TAYS shares at IDR 60 per share on 14 May 2025, totaling about IDR 3 billion. After the transaction, her ownership fell from 4.53 % to zero.",
+      "content": "Jaya Swarasa Agung shareholder Lidya Anwar sold approximately 49.8 million TAYS shares at IDR 60 per share on 14 May 2025, totaling about IDR 3 billion. After the transaction, her ownership fell from 4.53 % to zero.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/e32d9bb0e2_485eb9cca9.pdf"
       ],
@@ -186,7 +184,7 @@
     },
     {
       "title": "AIMS Share Sale by PT AIMS Indo Investama",
-      "content": "Artha Mahiya Investama (AIMS) sold about 45.6 million AIMS shares at IDR 292 per share on 26 May 2025, raising roughly IDR 13.3 billion. After the transaction, PT AIMS Indo Investama’s stake fell from 61.07 % to 40.35 %.",
+      "content": "Artha Mahiya Investama (AIMS) sold about 45.6 million AIMS shares at IDR 292 per share on 26 May 2025, raising roughly IDR 13.3 billion. After the transaction, PT AIMS Indo Investama’s stake fell from 61.07 % to 40.35 %.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/761ab44f94_524fefb1cb.pdf"
       ],
@@ -197,7 +195,7 @@
     },
     {
       "title": "BNBR Shares Sold by Bakrie & Brothers",
-      "content": "Bakrie & Brothers ($BNBR) sold approximately 1.8 billion BNBR shares at IDR 75 per share on 22 May 2025, raising about IDR 134 billion. After the transaction, BNBR’s ownership in VKTR fell from 28.5 % to 24.4 %.",
+      "content": "Bakrie & Brothers ($BNBR) sold approximately 1.8 billion BNBR shares at IDR 75 per share on 22 May 2025, raising about IDR 134 billion. After the transaction, BNBR’s ownership in VKTR fell from 28.5 % to 24.4 %.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/1503c4c752_1913c7e392.pdf"
       ],
@@ -248,7 +246,7 @@
     },
     {
       "title": "PBID Dividend Declaration",
-      "content": "Panca Budi Idaman will distribute a 2024 dividend of about IDR 412.5 billion (IDR 55 per share), a ~85 % payout ratio (2023: ~80 %) and a 9.9 % dividend yield as of Monday 26/5. Cum-date is the regular market on 4 June 2025; payment on 19 June 2025.",
+      "content": "Panca Budi Idaman will distribute a 2024 dividend of about IDR 412.5 billion (IDR 55 per share), a ~85 % payout ratio (2023: ~80 %) and a 9.9 % dividend yield as of Monday 26/5. Cum-date is the regular market on 4 June 2025; payment on 19 June 2025.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/3713a7ab48_2db1ab5b86.pdf"
       ],
@@ -259,7 +257,7 @@
     },
     {
       "title": "WIIM Dividend Announcement",
-      "content": "Wismilak Inti Makmur shareholders approved a 2024 dividend of roughly IDR 135 billion (IDR 64.8 per share), about a 45 % payout ratio (2023: ~45 %) and a 7.6 % dividend yield as of Monday 26/5. Cum-date and payment date have not been announced.",
+      "content": "Wismilak Inti Makmur shareholders approved a 2024 dividend of roughly IDR 135 billion (IDR 64.8 per share), about a 45 % payout ratio (2023: ~45 %) and a 7.6 % dividend yield as of Monday 26/5. Cum-date and payment date have not been announced.",
       "urls": [],
       "primaryTickers": [
         "WIIM"
@@ -267,8 +265,8 @@
       "mentionedTickers": []
     },
     {
-      "title": "INET Announces 1 Million New Homepass and Submarine Cable Deal",
-      "content": "Inti Andalan Prima’s President Director Muhammad Arif said the company targets adding 1 million new home-pass in 2025 through its subsidiary PT Internet Anak Bangsa, with a revenue target of IDR 240 billion from the new home-pass and IDR 192 billion from recurring income. The company also signed an indefeasible right-of-use agreement with its subsidiary Ketrosden Triasmitra ($KETR) for a submarine cable system spanning Jakarta to Singapore.",
+      "title": "INET Announces 1 Million New Homepass and Submarine Cable Deal",
+      "content": "Inti Andalan Prima’s President Director Muhammad Arif said the company targets adding 1 million new home-pass in 2025 through its subsidiary PT Internet Anak Bangsa, with a revenue target of IDR 240 billion from the new home-pass and IDR 192 billion from recurring income. The company also signed an indefeasible right-of-use agreement with its subsidiary Ketrosden Triasmitra ($KETR) for a submarine cable system spanning Jakarta to Singapore.",
       "urls": [
         "https://epaper.investor.id/files/2025/05/24/1e0a70e503c1ddc09414f150d34efdf5.html"
       ],
@@ -281,7 +279,7 @@
     },
     {
       "title": "AKRA Share Sale by Director Mery Sofi",
-      "content": "AKR Corporindo director Mery Sofi sold 800,000 AKRA shares at IDR 1,349 per share on 21 May 2025, a total of about IDR 1.1 billion. After the transaction, her stake fell from 0.015 % to 0.011 %.",
+      "content": "AKR Corporindo director Mery Sofi sold 800,000 AKRA shares at IDR 1,349 per share on 21 May 2025, a total of about IDR 1.1 billion. After the transaction, her stake fell from 0.015 % to 0.011 %.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/fad6cae453_61c456da90.pdf"
       ],
@@ -292,7 +290,7 @@
     },
     {
       "title": "SINI Share Sale by PT Basis Energi Prima",
-      "content": "Singaraja Putra shareholder PT Basis Energi Prima sold about 57.7 million SINI shares at IDR 3,800 per share on 23 May 2025, raising roughly IDR 219 billion to increase the free float. After the transaction, PT Basis Energi Prima’s ownership fell from 12 % to zero.",
+      "content": "Singaraja Putra shareholder PT Basis Energi Prima sold about 57.7 million SINI shares at IDR 3,800 per share on 23 May 2025, raising roughly IDR 219 billion to increase the free float. After the transaction, PT Basis Energi Prima’s ownership fell from 12 % to zero.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/b044de0e90_619ec232fa.pdf"
       ],
@@ -303,7 +301,7 @@
     },
     {
       "title": "Persib Bandung Announces 2026 IPO Plan",
-      "content": "Persib Bandung club president Glenn T. Sugita announced that the club plans an IPO on the Indonesia Stock Exchange in 2026, which would make it the second Indonesian football club listed after Bali United (listed via Bali Bintang Sejahtera, $BOLA).",
+      "content": "Persib Bandung club president Glenn T. Sugita announced that the club plans an IPO on the Indonesia Stock Exchange in 2026, which would make it the second Indonesian football club listed after Bali United (listed via Bali Bintang Sejahtera, $BOLA).",
       "urls": [
         "https://bandungraya.ine.id/read/599644/persib-bandung-siap-ipo-pada-2026-maruarar-sirait-dan-pemkot-siap-investasi"
       ],
@@ -314,7 +312,7 @@
     },
     {
       "title": "IDX Announces Sri-Kehati Index Rebalancing",
-      "content": "The IDX announced a major review of the Sri-Kehati index effective 2 June–28 November 2025. $ASII, $MTEL and $PGEO will be added, while $JPFA, $SCMA and $TLKM will be removed.",
+      "content": "The IDX announced a major review of the Sri-Kehati index effective 2 June–28 November 2025. $ASII, $MTEL and $PGEO will be added, while $JPFA, $SCMA and $TLKM will be removed.",
       "urls": [
         "https://www.idnfinancials.com/id/news/54811/asii-mtel-dan-pgeo-jadi-penghuni-indeks-sri-kehati-3-emiten-keluar"
       ],
@@ -331,7 +329,7 @@
     },
     {
       "title": "FTSE Russell Rebalancing Adds AADI and DAAZ",
-      "content": "FTSE Russell announced a rebalancing of the FTSE Global Equity Index Series effective at the close of trading on 20 June 2025 and effective 23 June 2025. No changes to Large-Cap or Mid-Cap categories. $AADI entered the Small-Cap index and $DAAZ entered the Micro-Cap index, with no constituents removed.",
+      "content": "FTSE Russell announced a rebalancing of the FTSE Global Equity Index Series effective at the close of trading on 20 June 2025 and effective 23 June 2025. No changes to Large-Cap or Mid-Cap categories. $AADI entered the Small-Cap index and $DAAZ entered the Micro-Cap index, with no constituents removed.",
       "urls": [
         "https://investor.id/market/398516/aadi-dan-daaz-masuk-indeks-ftse"
       ],
@@ -343,8 +341,8 @@
       ]
     },
     {
-      "title": "Trump Delays EU 50 % Tariff to 9 July 2025",
-      "content": "U.S. President Donald Trump said the United States will postpone the 50 % tariff on the European Union from 1 June 2025 to 9 July 2025 to allow more negotiation time, two days after he threatened a 50 % tariff on all EU imports on 23 May 2025.",
+      "title": "Trump Delays EU 50 % Tariff to 9 July 2025",
+      "content": "U.S. President Donald Trump said the United States will postpone the 50 % tariff on the European Union from 1 June 2025 to 9 July 2025 to allow more negotiation time, two days after he threatened a 50 % tariff on all EU imports on 23 May 2025.",
       "urls": [
         "https://apnews.com/article/donald-trump-trade-tariffs-european-union-f335ba9aa9d0b36cfe483f6f045c9b01",
         "https://apnews.com/article/trump-tariff-apple-iphone-tax-170021e8fad22878d0183b5d48971087"
@@ -353,8 +351,8 @@
       "mentionedTickers": []
     },
     {
-      "title": "Indonesia Announces 69.5 GW New Power Capacity Plan (2025-2034)",
-      "content": "Energy and Mineral Resources Minister Bahlil Lahadalia inaugurated the 2025-2034 electricity supply plan (RUPTL), targeting an additional 69.5 GW of capacity: 42.6 GW (61 %) from new renewable energy, 10.3 GW (15 %) from storage, and 16.6 GW (24 %) from fossil sources (gas and coal). The renewable breakdown is 17.1 GW solar PV, 11.7 GW hydro, 7.2 GW biomass-thermal, 5.2 GW geothermal, 0.9 GW bio-energy, and 0.5 GW nuclear.",
+      "title": "Indonesia Announces 69.5 GW New Power Capacity Plan (2025-2034)",
+      "content": "Energy and Mineral Resources Minister Bahlil Lahadalia inaugurated the 2025-2034 electricity supply plan (RUPTL), targeting an additional 69.5 GW of capacity: 42.6 GW (61 %) from new renewable energy, 10.3 GW (15 %) from storage, and 16.6 GW (24 %) from fossil sources (gas and coal). The renewable breakdown is 17.1 GW solar PV, 11.7 GW hydro, 7.2 GW biomass-thermal, 5.2 GW geothermal, 0.9 GW bio-energy, and 0.5 GW nuclear.",
       "urls": [
         "https://www.antaranews.com/berita/4859021/menteri-esdm-tambah-pembangkit-listrik-sebesar-695-gw-di-ruptl-baru"
       ],
@@ -363,7 +361,7 @@
     },
     {
       "title": "TAYS Share Sale by Lidya Anwar",
-      "content": "Jaya Swarasa Agung shareholder Lidya Anwar sold about 49.8 million TAYS shares at IDR 60 per share on 14 May 2025, amounting to roughly IDR 3 billion. After the transaction, her stake fell from 4.53 % to zero.",
+      "content": "Jaya Swarasa Agung shareholder Lidya Anwar sold about 49.8 million TAYS shares at IDR 60 per share on 14 May 2025, amounting to roughly IDR 3 billion. After the transaction, her stake fell from 4.53 % to zero.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/e32d9bb0e2_485eb9cca9.pdf"
       ],
@@ -374,7 +372,7 @@
     },
     {
       "title": "AIMS Share Sale by PT AIMS Indo Investama",
-      "content": "Artha Mahiya Investama (AIMS) sold about 45.6 million AIMS shares at IDR 292 per share on 26 May 2025, raising roughly IDR 13.3 billion. After the transaction, PT AIMS Indo Investama’s ownership fell from 61.07 % to 40.35 %.",
+      "content": "Artha Mahiya Investama (AIMS) sold about 45.6 million AIMS shares at IDR 292 per share on 26 May 2025, raising roughly IDR 13.3 billion. After the transaction, PT AIMS Indo Investama’s ownership fell from 61.07 % to 40.35 %.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/761ab44f94_524fefb1cb.pdf"
       ],
@@ -385,7 +383,7 @@
     },
     {
       "title": "VKTR Share Sale by Bakrie & Brothers",
-      "content": "Bakrie & Brothers ($BNBR) sold about 1.8 billion BNBR shares at IDR 75 per share on 22 May 2025, raising roughly IDR 134 billion. After the transaction, BNBR’s stake in VKTR fell from 28.5 % to 24.4 %.",
+      "content": "Bakrie & Brothers ($BNBR) sold about 1.8 billion BNBR shares at IDR 75 per share on 22 May 2025, raising roughly IDR 134 billion. After the transaction, BNBR’s stake in VKTR fell from 28.5 % to 24.4 %.",
       "urls": [
         "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202505/1503c4c752_1913c7e392.pdf"
       ],
