@@ -241,14 +241,12 @@ export const getFinancials = async (input: {
   const numPeriods = input.statementType === "annually" ? 3 : 12;
 
   return {
-    markdown: (
-      await htmlToMarkdown(
-        await transformFinancialReport(
-          data.data.html_report,
-          numPeriods,
-          input.reportType,
-        ),
-      )
-    ).content,
+    markdown: await htmlToMarkdown(
+      await transformFinancialReport(
+        data.data.html_report,
+        numPeriods,
+        input.reportType,
+      ),
+    ),
   };
 };
