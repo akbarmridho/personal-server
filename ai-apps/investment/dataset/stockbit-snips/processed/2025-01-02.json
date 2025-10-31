@@ -1,0 +1,287 @@
+{
+  "publishDate": "2025-01-02",
+  "marketNews": [
+    {
+      "title": "Effective VAT for General Goods & Services Remains 11%",
+      "content": "The Government announced on Tuesday (31/12) several important points regarding the increase of Value Added Tax (VAT) effective 1 January 2025. The VAT rate will rise from 11% to 12% only for luxury goods as listed in Ministry of Finance Regulation No. 15/2023 and Ministry of Finance Regulation No. 42/2022. Goods and services that have been exempt from VAT will not change. General goods and services that have been subject to an 11% VAT will not experience an effective increase, so the VAT rate remains 11% of the selling price. Technically, the government does not cancel the 12% VAT rate for general goods and services, but applies a tax base (DPP) equal to 11/12 of the selling price or import value, as regulated in Ministry of Finance Regulation No. 131/2024. This makes the effective VAT on general goods and services stay at 11% of the selling price. For illustration, a general good sold for 10 million rupiah will have a tax base of 9.17 million rupiah (11/12 * 10 million). Applying a 12% VAT on that base yields a total VAT of 1.1 million rupiah, which is exactly 11% of the selling price. Therefore, the effective VAT rate is 11% despite the statutory rate being 12%. The simulation shows that the amount of VAT paid for general goods and services remains unchanged. The announcement also cancels the written statement from the Directorate General of Taxes dated 21 December 2024 that claimed the VAT increase to 12% applied to all goods and services previously taxed at 11%, except for bulk cooking oil 'Minyakita', wheat flour, and industrial sugar. Additionally, the government confirmed that the stimulus package announced on 16 December 2024 will continue to be in effect.",
+      "urls": [
+        "https://jdih.kemenkeu.go.id/api/download/ad276b82-94bd-4197-b409-af33e2842cd6/2024pmkeuangan131.pdf",
+        "https://setkab.go.id/presiden-prabowo-ppn-12-hanya-barang-dan-jasa-mewah/",
+        "https://jdih.pekalongankab.go.id/berkas/1735452643-KETERANGAN%20TERTULIS%20DJP.pdf",
+        "https://snips.stockbit.com/snips-terbaru/paket-kebijakan-ekonomi-2025"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Key Takeaway",
+      "content": "The cancellation of the VAT increase for general goods and services and the continuation of the stimulus package could provide positive sentiment for the consumer sector – especially the lower‑middle segment such as ICBP, MYOR, and TSPC – because it helps preserve purchasing power in the first half of 2025. However, there remains a risk of price increases if some businesses have already raised selling prices and do not roll them back.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "ICBP",
+        "MYOR",
+        "TSPC"
+      ]
+    },
+    {
+      "title": "Indonesia Inflation December 2024",
+      "content": "BPS reported that the consumer price index (CPI) inflation in December 2024 was 1.57% year‑on‑year (vs. November 2024: 1.55% YoY), below the consensus expectation of 1.6% YoY but still within Bank Indonesia's target range of 1.5‑3.5%. This is the lowest annual inflation in Indonesia's history. On a monthly basis, CPI inflation was 0.44% month‑on‑month (vs. November 2024: 0.3% MoM), matching expectations and marking the highest monthly increase in nine months. The monthly rise was driven by food, beverages, and tobacco, which recorded 1.33% MoM, contributing 0.38 percentage points to overall inflation. Core inflation remained stable at 2.26% YoY, staying at the highest level in 16 months but below the consensus expectation of 2.28% YoY.",
+      "urls": [
+        "https://www.bps.go.id/id/pressrelease/2025/01/02/2397/pada-desember-2024-inflasi-year-on-year--y-on-y--adalah-sebesar-1-57-persen-.html"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesia Manufacturing PMI December 2024",
+      "content": "S&P Global reported that Indonesia's manufacturing Purchasing Managers' Index (PMI) rose to 51.2 in December 2024 (vs. November 2024: 49.6), indicating the first expansion in factory activity since June 2024, supported by moderate output growth. New orders in December 2024 increased for the first time in six months, while export sales rose slightly, marking the first increase in almost a year.",
+      "urls": [
+        "https://www.pmi.spglobal.com/Public/Home/PressRelease/b6b2ac37a0f145a4942108750cccf4da"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "China Manufacturing PMI December 2024",
+      "content": "S&P Global reported that China's manufacturing PMI fell to 50.5 in December 2024 (vs. November 2024: 51.5), below the consensus expectation of 51.7, but still indicating three consecutive months of factory expansion. Production growth and new orders slowed, while orders from abroad contracted after a rapid increase in the previous month.",
+      "urls": [
+        "https://www.pmi.spglobal.com/Public/Home/PressRelease/09bff55a7ae040dca42267988f51f400"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesia International Tourist Arrivals November 2024",
+      "content": "BPS reported that international tourist arrivals to Indonesia reached 1.09 million in November 2024 (‑8.4% MoM, +17.3% YoY). This result raised total foreign visitor arrivals during the first 11 months of 2024 by 20.17% YoY to approximately 12.7 million, representing 90.4% of the government's 2024 target of 14 million.",
+      "urls": [
+        "https://www.bps.go.id/id/pressrelease/2025/01/02/2395/kunjungan-wisatawan-mancanegara--wisman--pada-november-2024-mencapai-1-09-juta-kunjungan--naik-17-27-persen-year-on-year--y-on-y--.html"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesia 2024 Budget Deficit Below 2.7% of GDP",
+      "content": "Finance Minister Sri Mulyani said on Thursday (2/1) that the 2024 state budget deficit was below the latest government estimate of 2.7% of GDP. Although she did not disclose the exact figure, she noted that the deficit was close to the original government plan to keep the 2024 deficit at 2.29% of GDP. She added that overall state revenue continued to grow, albeit below target, while state expenditure in 2024 grew by more than 6% YoY due to the election cycle, the new capital city project, and social assistance programs.",
+      "urls": [
+        "https://www.reuters.com/world/asia-pacific/indonesia-says-2024-budget-deficit-lower-than-27-gdp-estimate-2025-01-02/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "US Treasury Debt Limit Early January 2025",
+      "content": "U.S. Treasury Secretary Janet Yellen said on Friday (27/12) that the United States would reach its debt limit between 14 and 23 January 2025. Yellen stated that Congress needs to take an 'extraordinary step' to prevent a U.S. debt default.",
+      "urls": [
+        "https://www.reuters.com/world/us/us-may-hit-new-debt-limit-early-jan-14-yellen-says-2024-12-27/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesian Nickel Production Quota Outlook 2025",
+      "content": "The Advisory Council of the Indonesian Nickel Mining Association (APNI), represented by Djoko Widajatno, expressed hope that the government will not cut the nickel ore production quota in 2025, noting that demand for nickel ore is expected to rise this year due to downstream nickel industry development. APNI projects that nickel ore demand in 2025 will reach 400‑450 million tonnes, an increase of about 60% YoY. Previously, Kontan reported that the Ministry of Energy and Mineral Resources planned to cut the nickel ore quota to 150 million tonnes in 2025, down 44.9% from the 2024 production level of 272 million tonnes.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2025/01/02"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesia Delays B40 Biodiesel Implementation",
+      "content": "Reuters reported on Thursday (2/1) that Indonesia has not yet implemented biodiesel with a 40% crude palm oil (CPO) blend (B40) because industry players are waiting for technical regulations related to its launch. The B40 implementation had been scheduled to take effect on 1 January 2025. Ernest Gunawan, Secretary General of the Indonesian Biofuel Producers Association, said members cannot contract for biodiesel distribution without government rules. Reuters also noted that CPO traders are awaiting the official biodiesel volume allocation to assess how much Indonesian CPO export could be affected. The government previously announced an allocation of 15.62 million kiloliters of palm‑oil‑based fuel for B40 in 2025.",
+      "urls": [
+        "https://www.reuters.com/markets/commodities/indonesias-palm-oil-b40-delay-causes-market-uncertainties-2025-01-02/"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Government Increases Purchase Prices for Rice and Corn",
+      "content": "The Coordinating Minister for Food Affairs, Zulkifli Hasan, said that the government, through Bulog, will purchase all unsold harvests. The government also raised the purchase price for rice from 6,000 rupiah per kilogram to 6,500 rupiah per kilogram and for corn from 5,000 rupiah per kilogram to 5,500 rupiah per kilogram.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2025/01/02"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Indonesia Stock Exchange Targets 2025",
+      "content": "The CEO of the Indonesia Stock Exchange, Iman Rachman, said the exchange aims for an average daily transaction value of 13.5 trillion rupiah in 2025, a 4.7% YoY increase from the 2024 realization of 12.9 trillion rupiah. The exchange also targets a growth in the number of investors to 14.84 million, an increase of 2 million from the current level. Additionally, the exchange plans to host 66 IPO issuers in 2025, higher than the 41 issuers realized in 2024.",
+      "urls": [
+        "https://www.idx.co.id/en/news/press-release/2289"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Aspirasi Hidup Indonesia Rebrands to AZKO",
+      "content": "Aspirasi Hidup Indonesia (ticker ACES) announced the new brand identity AZKO, following the non‑renewal of its license with ACE Hardware International Holdings Ltd. after a 29‑year partnership.",
+      "urls": [
+        "https://www.kawanlamagroup.com/brand/azko"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "DEWA Plans Private Placement to Convert Rp1.1 Trillion Debt at Rp65 per Share",
+      "content": "DEWA: Darma Henwa plans to conduct a private placement of approximately 17.2 billion new shares at a price of 65 rupiah per share to convert debt of about 1.1 trillion rupiah. The dilution effect of this corporate action is estimated at 44%. Two parties will participate in the private placement: PT Madhani Talatah Nusantara and PT Andhesti Tungkas Pratama, which will each hold 29.8% and 14.2% respectively after the placement. Previously, these companies did not own any DEWA shares. The plan will be discussed at the Extraordinary General Meeting of Shareholders on 13 February 2025.",
+      "urls": [
+        "https://emitten-announcement.stockbit.com/attachments/f-31841897-0_DEWA_Pengumuman_RUPS_31841897_lamp3.pdf"
+      ],
+      "primaryTickers": [
+        "DEWA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ERAL Signs Agreement with XPeng Supply Chain for Indonesian Distribution",
+      "content": "ERAL: Sinar Eka Selaras, through its subsidiary PT Era Inovasi Otomotif, signed a cooperation agreement with Shenzhen Xiaopeng Motors Supply Chain Management Co. Ltd. to become the official distributor and sole agent for the XPeng electric car brand in Indonesia. The agreement marks ERAL's expansion into the electric vehicle business.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/9008c2f808_cd14ef0e8a.pdf"
+      ],
+      "primaryTickers": [
+        "ERAL"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "EMTK Increases Stake in SCMA by Purchasing 343.7 Million Shares",
+      "content": "SCMA: Elang Mahkota Teknologi (EMTK) bought approximately 343.7 million SCMA shares at an average price of 160.9 rupiah per share between 18 and 30 December 2024. The total transaction value reached 55.3 billion rupiah. After the transaction, EMTK's ownership in SCMA rose from 61.44% to 61.91%. This purchase is the fifth SCMA share acquisition by EMTK in December 2024, with a total of 690.5 million shares (0.94% of the total) bought during the month.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202501/b2d6e76873_93e5c91070.pdf"
+      ],
+      "primaryTickers": [
+        "SCMA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PTRO Executives Michael and Erwin Ciputra Increase Shareholdings",
+      "content": "PTRO: Petrosea CEO Michael purchased 80,000 PTRO shares at an average price of 25,000 rupiah per share on 20 December 2024, totaling 2 billion rupiah. After the transaction, Michael's ownership rose from 0.0059% to 0.0139%. In a separate transaction, PTRO Commissioner Erwin Ciputra bought 60,000 PTRO shares at an average price of 28,233 rupiah per share on 23 December 2024, totaling approximately 1.7 billion rupiah. After this purchase, Erwin Ciputra's ownership increased from 0.062% to 0.068%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/15b51b76eb_b9a6b12979.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/f15aba6527_903b6c53e9.pdf"
+      ],
+      "primaryTickers": [
+        "PTRO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "LABA Plans Rights Issue and Warrants in 1H25 to Fund Battery Business",
+      "content": "LABA: Green Power Group CEO William Ong said the company plans a rights issue together with warrant issuance in the first half of 2025, targeting fund raising of 100‑150 billion rupiah from the rights issue and 150‑250 billion rupiah from the warrants. The corporate action already has standby buyers and will be followed by existing investors, aiming to develop the electric vehicle battery business. In addition, LABA will increase its debt by 300‑400 billion rupiah. The company targets revenue of 621 billion rupiah and net profit of 40 billion rupiah in 2025. In a separate information disclosure, LABA announced a cooperation with PT Safago New Energy to sell 6,000 battery packs per year until 2029.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/7cda26937e_0e39cccf3e.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/d2c8a5c7b0_64bedfb624.pdf"
+      ],
+      "primaryTickers": [
+        "LABA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "HEAL Plans Two New Hospitals and One Acquisition in 2025",
+      "content": "HEAL: Medikaloka Hermina CEO Hasmoro announced plans to build two new hospitals and acquire at least one hospital during 2025. To realize this plan, HEAL allocated capital expenditure of 1.5 trillion rupiah for 2025 (down from 2 trillion rupiah allocated in 2024). HEAL also sees a positive outlook for the year, targeting revenue and EBITDA growth of approximately 13‑15% in 2025.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2025/01/02"
+      ],
+      "primaryTickers": [
+        "HEAL"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "AMRT Shareholder Budiyanto Sells 31.7 Million Shares",
+      "content": "AMRT: Sumber Alfaria Trijaya Commissioner Budiyanto Djoko Susanto sold approximately 31.7 million AMRT shares at an average price of 2,850 rupiah per share on 27 December 2024, totaling about 90.2 billion rupiah. After the transaction, Budiyanto's ownership decreased from 0.32% to 0.25%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/74f61e59a1_46bc93df13.pdf"
+      ],
+      "primaryTickers": [
+        "AMRT"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BNGA Reports November 2024 Net Profit and Banking Metrics",
+      "content": "BNGA: Bank CIMB Niaga recorded a net profit (bank only) of 435 billion rupiah in November 2024, a decline of 3.5% YoY but an increase of 1% MoM. Consequently, the net profit (bank only) for the first 11 months of 2024 reached 5.9 trillion rupiah, up 4.8% YoY. The monthly Net Interest Margin (NIM) fell to a 2024 low of 3.43% (‑37 bps YoY, ‑26 bps MoM), bringing the 11‑month NIM to 3.81% (‑34 bps YoY). Profitability continued to decline, with Pre‑Provision Operating Profit (PPOP) weakening in November 2024 (‑13% YoY, ‑26% MoM), although the 11‑month PPOP (‑2.4% YoY) did not fall significantly. Conversely, the monthly credit cost (CoC) achieved its best level in 2024 at 0.14% (‑39 bps YoY, ‑31 bps MoM), resulting in an 11‑month CoC of 0.61% (‑31 bps YoY). Meanwhile, loan growth (including sharia financing) reached +7.2% YoY, the highest in 2024.",
+      "urls": [
+        "https://investor.cimbniaga.co.id/misc/MR/2024/Publikasi-Bulanan-Nov.pdf"
+      ],
+      "primaryTickers": [
+        "BNGA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BSSR Announces Interim Dividend 2024",
+      "content": "BSSR: Baramulti Suksessarana plans to distribute an interim dividend for fiscal year 2024 amounting to 25 million US dollars or 154.39 rupiah per share. The cum‑date in the regular market and negotiations is 9 January 2025, with payment on 15 January 2025. Based on BSSR's closing price on Thursday (2/1) at 4,550 rupiah per share, the implied dividend yield is 3.4%. This is the second interim dividend for fiscal year 2024, following an interim dividend of 179.19 rupiah per share announced in November 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/f86aea033b_b2c61149ba.pdf"
+      ],
+      "primaryTickers": [
+        "BSSR"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "NSSS Shareholder Indo Alam Resources Increases Stake",
+      "content": "NSSS: Nusantara Sawit Sejahtera shareholder Indo Alam Resources Pte. Ltd. bought approximately 586.8 million NSSS shares at an average price of 261 rupiah per share on 27 December 2024, totaling about 153 billion rupiah. After the transaction, Indo Alam Resources' ownership rose from 3.45% to 5.91%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/1f28440985_56d71a8c83.pdf"
+      ],
+      "primaryTickers": [
+        "NSSS"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "WIKA Reports New Contract Value and Rating Revision",
+      "content": "WIKA: Wijaya Karya recorded a new contract value of 19.9 trillion rupiah during the first 11 months of 2024, representing 53.8% of the 2024 target of 37 trillion rupiah. WIKA also announced that Pefindo revised the company's rating and securities from idBBB (stable outlook) to idBB (credit watch) because the company has not obtained the quorum approval from bond and sukuk holders for the Sustainable Sukuk II 2022 series due on 16‑17 December 2024. In the related RUPSO, WIKA proposed partial repayment and extension of the remaining principal of the bonds and sukuk due on 18 February 2025.",
+      "urls": [
+        "https://investasi.kontan.co.id/news/wijaya-karya-wika-raih-kontrak-baru-rp-199-triliun-hingga-november-2024",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/8c5892e271_f46ee697d2.pdf"
+      ],
+      "primaryTickers": [
+        "WIKA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Diamond Food Indonesia Shareholders Sell Shares to Increase Free Float",
+      "content": "DMND: Diamond Food Indonesia shareholders Chen Tsen Nan and Kenneth Chen each sold approximately 446 million and 212 million DMND shares respectively at an average price of 765 rupiah per share on 20 December 2024. The transaction values were about 341 billion rupiah and 162 billion rupiah respectively, intended to meet free‑float requirements. After the transactions, Chen Tsen Nan's ownership fell from 39.635% to 34.926% and Kenneth Chen's from 22.107% to 19.872%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/e5c8971e8f_b7c1e60f3a.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/a88d83fc0f_74b3106dd5.pdf"
+      ],
+      "primaryTickers": [
+        "DMND"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "CCSI Plans Rights Issue of Up to 133.3 Million New Shares",
+      "content": "CCSI: Communication Cable Systems Indonesia plans a rights issue of up to approximately 133.3 million new shares at an exercise price of 383 rupiah per share, resulting in a dilution effect of up to 10%. The maximum expected proceeds are about 51.1 billion rupiah, intended to repay part of bank debt. Central Business Alliance Pte. Ltd. will act as a standby buyer in the rights issue. The rights will be cum‑traded in the regular market and negotiations on 6 January 2025, with the rights trading period expected between 10‑16 January 2025.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202412/306c3f723f_0579d72007.pdf"
+      ],
+      "primaryTickers": [
+        "CCSI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Aspirasi Hidup Indonesia Rebrands to AZKO",
+      "content": "ACES: Aspirasi Hidup Indonesia announced the new brand identity AZKO, following the non‑renewal of its license with ACE Hardware International Holdings Ltd. after a 29‑year partnership.",
+      "urls": [
+        "https://www.kawanlamagroup.com/brand/azko"
+      ],
+      "primaryTickers": [
+        "ACES"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

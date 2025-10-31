@@ -1,0 +1,143 @@
+{
+  "publishDate": "2024-11-20",
+  "marketNews": [
+    {
+      "title": "BI Holds Interest Rate, Predicts Slower Fed Cuts",
+      "content": "Bank Indonesia on Wednesday (20 November 2024) decided to keep the BI Rate at 6%, with the deposit facility and lending facility also maintained at 5.25% and 6.75% respectively. The decision was in line with consensus expectations. Governor Perry Warjiyo said the decision aims to strengthen the stability of the rupiah amid geopolitical uncertainty and the global economy, especially as the U.S. dollar strengthens after former President Donald Trump’s victory in the U.S. presidential election. Perry said the rupiah’s weakening against the dollar was mainly driven by the strengthening of the U.S. Dollar Index (DXY) due to the inflationary policy plan promoted by Trump.\n\nPerry also said that the Fed’s rate cuts will be limited as the U.S. economy is still expected to perform well in 2025. He noted that the central bank still expects a Fed cut of –25 basis points in December 2024. However, for 2025, Bank Indonesia now expects a Fed cut of –50 basis points, lower than the previous projection of –75 to –100 basis points. This latest Bank Indonesia projection aligns with market expectations from the CME FedWatch Tool.\n\nAs expectations for Fed cuts recede, Indonesia’s capital markets have experienced outflows. Since the start of November 2024, the Indonesian bond market has seen outflows of IDR 9 trillion as of 13 November 2024, while equity market outflows reached IDR 11 trillion as of 19 November 2024. The foreign outflow has also weakened the rupiah by –0.9% month‑to‑date to IDR 15,858 per US$ on 20 November 2024.\n\nKey Takeaway: To mitigate volatility risk from uncertain interest‑rate direction, investors can lock in high yields on FR bonds – especially short‑term series such as PBS032 – at attractive levels. In addition, the SBN Retail ST013, currently in its offering period, can be an alternative because it carries a floating‑with‑floor coupon.",
+      "urls": [
+        "https://www.bi.go.id/id/publikasi/ruang-media/news-release/Pages/sp_2625424.aspx",
+        "https://snips.stockbit.com/snips-terbaru/indeks-dolar-as-menguat-ke-level-tertinggi-dalam-1-tahun",
+        "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Bank Indonesia: Credit Growth Accelerates to 10.92% YoY in 10M24",
+      "content": "Bank Indonesia reported that credit disbursement growth accelerated to +10.92% year‑on‑year in the first ten months of 2024 (versus +10.85% in the first nine months). Credit growth was driven mainly by investment credit (+13.63% YoY), working‑capital credit (+9.25% YoY) and consumer credit (+11.01% YoY). Sharia financing grew +11.93% YoY and MSME credit grew +4.76% YoY. Bank Indonesia projects overall credit growth for 2024 to stay within the target range of about +10‑12%.",
+      "urls": [
+        "https://www.bi.go.id/id/publikasi/ruang-media/news-release/Pages/sp_2625424.aspx"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Ukraine Uses U.S.-Made Missiles in Attack on Russian Arsenal",
+      "content": "Ukraine launched a U.S.-made missile against a Russian weapons depot on Tuesday (19 November). The strike marks the first time Ukraine has used a U.S.-made long‑range missile to hit a target in Russia. The Russian government said the use of a U.S.-made long‑range missile by Ukraine represents direct U.S. involvement in the conflict with Russia.",
+      "urls": [
+        "https://edition.cnn.com/2024/11/19/europe/ukraine-russia-atacms-biden-strike-intl/index.html",
+        "https://www.bbc.com/news/articles/crr91nn9n79o"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Tax Authority May Cancel VAT Increase to 12%",
+      "content": "The Executive Director of Pratama‑Kreston Tax Research Institute, Prianto Budi Saptono, said the government can still cancel the planned increase of the value‑added tax (VAT) to 12%. He explained that there are at least two ways the government could reverse the increase: either through a government regulation in lieu of law (Perppu) or by submitting a draft government regulation on the 2025 VAT rate together with a draft amendment to the 2025 State Budget Law. The comment came amid public pressure from labor groups and business circles demanding the cancellation or postponement of the VAT hike.",
+      "urls": [
+        "https://epaper.kontan.co.id/mobile/harian/2024/11/20"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BEI Lowers Minimum NAV for ETF‑Linked Mutual Funds to 1 Billion Rupiah",
+      "content": "The Indonesia Stock Exchange (BEI) has revised the minimum net asset value (NAV) for exchange‑traded fund (ETF) mutual funds from IDR 5 billion to IDR 1 billion. The regulation takes effect on 15 November 2025.",
+      "urls": [
+        "https://www.fortuneidn.com/market/tanayastri/bei-perbarui-aturan-etf-reksa-dana-apa-perubahannya"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BOAT: Sugiman Halim Increases Stake to 10.5%",
+      "content": "Shareholder of Newport Marine Services (ticker BOAT), Sugiman Halim, bought 213 million BOAT shares at an average price of IDR 136 per share on 13–14 November 2024. The transaction value was approximately IDR 29.1 billion. After the transaction, Sugiman Halim’s ownership in BOAT rose from 4.4% to 10.5%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/258d8593c0_ac89d10f63.pdf"
+      ],
+      "primaryTickers": [
+        "BOAT"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "CBRE: Herlienna Qisthi Reduces Stake to 3.7%",
+      "content": "Shareholder of Cakra Buana Resources Energi (ticker CBRE), Herlienna Qisthi, sold 174 million CBRE shares at IDR 25 per share on 15 November 2024. The transaction value was about IDR 4.3 billion. After the sale, Herlienna Qisthi’s ownership in CBRE fell from 7.5% to 3.7%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/8ad09f2051_3f0958c73d.pdf"
+      ],
+      "primaryTickers": [
+        "CBRE"
+      ],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "ADRO: Cum Dividend 26 November 2024",
+      "content": "Adaro Energy Indonesia announced that the cum‑date for the 2023 fiscal‑year dividend has been set for 26 November 2024. The dividend payment is scheduled for 6 December 2024, one day after the planned listing of Adaro Andalan Indonesia (ticker AADI). The conversion rate, based on the Bank Indonesia mid‑rate, and the per‑share dividend amount will be announced on 29 November 2024.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/c23f1b41a5_8c52500b04.pdf"
+      ],
+      "primaryTickers": [
+        "ADRO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "RAJA: Plans IPO for PT Raharja Energi Cepu",
+      "content": "Rukun Raharja plans to launch an IPO for its subsidiary PT Raharja Energi Cepu, targeting proceeds of roughly IDR 1.6‑3.2 trillion. The funds are intended to acquire the participation rights in the Cepu Block from ExxonMobil. Company secretary Yuni Pattinasarani declined to comment.",
+      "urls": [
+        "https://insight.kontan.co.id/news/raja-dikabarkan-bakal-boyong-anak-usaha-ipo-di-bei-incar-dana-di-atas-rp-1-triliun"
+      ],
+      "primaryTickers": [
+        "RAJA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "BBNI: Q4 2024 Net Profit and Credit Metrics",
+      "content": "Bank Negara Indonesia reported a net profit (bank‑only) of IDR 1.9 trillion in October 2024 (‑4.6% month‑on‑month, +14% year‑on‑year). The 10‑month net profit (10M24) reached IDR 18.1 trillion (+4.3% YoY). Bank‑only credit grew +8.8% YoY, below the FY24 management guidance of +10‑12%. The loan‑to‑deposit ratio rose to 96.1% (+86 bps MoM, +526 bps YoY). Net interest margin (NIM) rose to 4.3% (+37 bps MoM, +12 bps YoY) in October 2024, but the 10M24 NIM was 3.9% (vs. 4.4% in 10M23) and remains below the FY24 target of ≥4%. Credit cost (CoC) rose to 1.2% (+33 bps MoM, +8 bps YoY); the 10M24 CoC stayed at 1% and matched the FY24 guidance of ±1%.",
+      "urls": [
+        "https://www.bni.co.id/Portals/1/BNI/Perusahaan/HubunganInvestor/Docs/2024/LKP_BLN_2024-10_New-SEOJK9_ENG.pdf"
+      ],
+      "primaryTickers": [
+        "BBNI"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "ACES: October 2024 Same‑Store Sales Growth",
+      "content": "Aspirasi Hidup Indonesia reported same‑store sales growth (SSSG) of +4.8% YoY in October 2024 (versus +8.8% YoY in September 2024 and +5.4% YoY in October 2023). The 10‑month SSSG reached +9.3% YoY (vs. +6.8% YoY in 10M23), above the FY24 management guidance of +8%. The highest regional growth in October 2024 was in the non‑Java region (+5.2% YoY), followed by Java outside Jakarta (+4% YoY) and Jakarta (+2.7% YoY). ACES opened four new stores in October 2024, bringing total new store openings in 10M24 to 15.",
+      "urls": [],
+      "primaryTickers": [
+        "ACES"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "STAA: Share Purchase and Sale Activity on 15 November 2024",
+      "content": "Shareholder of Sumber Tani Agung Resources, PT Pelita Sukses Sejati, bought 389.3 million (3.57%) STAA shares at IDR 875 per share on 15 November 2024, for a total transaction value of IDR 340.6 billion, raising its stake to 6.25%. Meanwhile, two other STAA shareholders, Gani and Lele Tanjung, sold 690.7 million (6.34%) and 408.8 million (3.75%) STAA shares respectively at IDR 875 per share on the same day, with transaction values of IDR 604.4 billion and IDR 357.7 billion, reducing their holdings to 0%.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/aa94c9f61c_957d314b6c.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/ec2c7c091f_bd274470b2.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202411/377ec35120_7a5fb42875.pdf"
+      ],
+      "primaryTickers": [
+        "STAA"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TPIA: Potential Mini‑Hydro Power Plant Acquisition",
+      "content": "Chandra Asri Pacific, through its subsidiary PT Krakatau Chandra Energi, is studying a possible acquisition of a mini‑hydro power plant to increase the company’s generation mix in the near term. The head of the OEM & Services Department at PT Krakatau Chandra Energi, Ermawanto, said the company is still finalising the study for the corporate action. In addition, PT Krakatau Chandra Energi targets to raise its solar‑power capacity from the current 2.2 MWp to 16 MWp by the end of 2025.",
+      "urls": [
+        "https://epaper.bisnis.com/epaper/detail/page/147235/"
+      ],
+      "primaryTickers": [
+        "TPIA"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "publishDate": "2024-01-04",
+  "marketNews": [
+    {
+      "title": "Oil Prices Strengthen Due to Iran Explosion and Libya Protests",
+      "content": "Crude Brent spot price has risen by 4.2% since the close on Tuesday (2/1) to USD 79.35 per barrel. Two main catalysts drove the price increase in the past two days: (1) Explosion in Iran – on Wednesday (3/1) two explosions occurred near the burial site of an Iranian military commander, killing at least 103 people. No group has claimed responsibility; Iranian President Ebrahim Raisi blamed Israel. (2) Closure of Libya's largest oil field – the Sharara Oil Field, producing 300,000 barrels per day, was shut on Wednesday (3/1) by local protesters over high fuel prices and lack of economic opportunities. The escalation of geopolitical tension between Israel and Iran, together with the shutdown of Libya's biggest oil field, raised concerns about a disruption in global crude oil supply. As of November 2023, Iran was the world's 8th largest crude producer with 3.12 million barrels per day (~3% of global output). Libya ranked 19th with 1.2 million barrels per day. The loss of 300,000 barrels per day from Libya could reduce global crude supply by about 0.3%. In response to higher oil prices, oil‑related issuers appreciated on Thursday (4/1): MEDC (+2.61%), ENRG (+2.5%), ELSA (+3.55%), WINS (+3.96%), LEAD (+2.99%). Potential supply disruptions from geopolitical tensions may support oil prices amid weak demand expectations due to a projected slowdown in global economic growth. However, if China's economy does not weaken as much as expected, it could bolster global growth.",
+      "urls": [
+        "https://www.investing.com/currencies/xbr-usd-historical-data",
+        "https://edition.cnn.com/2024/01/03/middleeast/iran-explosions-soleimani-ceremony-intl/index.html",
+        "https://www.reuters.com/markets/commodities/output-libyas-sharara-oilfield-hit-by-protests-engineers-2024-01-03/",
+        "https://www.oecd.org/newsroom/economic-outlook-a-mild-slowdown-in-2024-and-slightly-improved-growth-in-2025.htm",
+        "https://asia.nikkei.com/Economy/China-economists-expect-slower-4.6-growth-in-2024"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": [
+        "MEDC",
+        "ENRG",
+        "ELSA",
+        "WINS",
+        "LEAD"
+      ]
+    },
+    {
+      "title": "ASII Resumes Daihatsu Exports – General Updates",
+      "content": "The Finance Ministry raised excise duties on alcoholic beverages effective 1 January 2024, with rates varying by alcohol content and origin: Category A +10%, local Category B +28.8%, local Category C +26.3%. The Ministry also reported a primary budget surplus of IDR 92.2 trillion for 2023, the first surplus since 2012. The overall 2023 budget showed a deficit of IDR 347.6 trillion (1.65% of GDP), the lowest deficit since 2011 and below the initial target of IDR 598.2 trillion (2.84% of GDP). Reuters reported that Mixue Group, a boba tea producer with 36,000 stores, filed for an IPO on the Hong Kong Stock Exchange on Tuesday (2/1) targeting USD 500 million to USD 1 billion in proceeds. Mixue previously filed for an IPO on the Shenzhen Stock Exchange in 2022 targeting USD 909.87 million, but no further updates were given. U.S. job openings fell by 62,000 to 8.79 million in November 2023, the lowest level since March 2021 and below the consensus estimate of 8.85 million, marking a third consecutive month of decline and indicating a weakening U.S. labor market.",
+      "urls": [
+        "https://emailer.stockbit.com/t/c/90ba9fb7-605b-4463-8bab-dd563b4aede5/018c905c-b4c9-47d2-4402-b795e6644c8b",
+        "https://emailer.stockbit.com/t/c/81aa7eba-f704-4550-9e53-9367e90e66bf/018c905c-b4c9-47d2-4402-b795e6644c8b",
+        "https://emailer.stockbit.com/t/c/3b717c21-4f95-4b7f-a485-4cc3b8541deb/018c905c-b4c9-47d2-4402-b795e6644c8b",
+        "https://www.bls.gov/news.release/jolts.a.htm"
+      ],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "ASII Resumes Daihatsu Exports",
+      "content": "Export of Daihatsu‑branded cars from Astra International’s subsidiary PT Astra Daihatsu Motor (ADM) resumed on 26 December 2023 after receiving confirmation from destination‑country authorities. Previously, exports were halted due to a safety‑test scandal involving Daihatsu Motor in Japan. ADM Vice President Erlan Krisnaring Cahyono explained that production and distribution of Daihatsu vehicles in Indonesia remain normal, and exports have now continued to more than 60 countries.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202401/9359793c93_c1df0596ad.pdf"
+      ],
+      "primaryTickers": [
+        "ASII"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "INCO Divestment of 14% Vale Indonesia Shares to MIND ID",
+      "content": "Katadata reported that the divestment of 14% of Vale Indonesia shares to MIND ID will use a 90‑day average price in the range of IDR 4,500‑5,000 per share, which is 2.5‑13.9% higher than INCO’s closing price of IDR 4,390 on Thursday (4/1). Sources said the price reflects a tough negotiation, with Vale seeking 1.5 times its price‑to‑book value (~IDR 5,900) while the government prefers a price below market. The transaction is expected to be completed in early February 2024. INCO and MIND ID have not commented on the matter.",
+      "urls": [
+        "https://katadata.co.id/lonaolavia/finansial/65953b36a76fa/rumor-pasar-divestasi-vale-dikabarkan-di-rp-4500-5000-per-saham"
+      ],
+      "primaryTickers": [
+        "INCO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "WIIM Announces Share Buyback Sale",
+      "content": "Wismilak Inti Makmur announced that it has sold approximately 3.8 million shares from a buyback program at an average price of IDR 3,411.72 per share during October‑December 2023, raising about IDR 12.93 billion. Previously, WIIM planned to sell 27.9 million buyback shares between 30 October 2023 and 9 October 2024, leaving roughly 24.1 million shares still unsold.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202401/2a0515a235_570ce63ed2.pdf",
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202310/51b1a8937d_86a8f9a018.pdf"
+      ],
+      "primaryTickers": [
+        "WIIM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "AMRT Targets 800 New Stores in 2024",
+      "content": "Sumber Alfaria Trijaya (AMRT) aims to add 800 new stores in 2024, focusing on locations outside major cities and outside Java. At the end of 2023, AMRT operated 19,100 stores, up from 17,813 in 2022.",
+      "urls": [
+        "https://emailer.stockbit.com/t/c/3cbd7e28-622a-4b7e-b186-d780d107d95d/018c905c-b4c9-47d2-4402-b795e6644c8b",
+        "https://insight.kontan.co.id/news/sumber-alfaria-trijaya-amrt-tambah-800-gerai-tahun-ini"
+      ],
+      "primaryTickers": [
+        "AMRT"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PALM Injects IDR 1.86 Trillion Capital into Subsidiary",
+      "content": "Provident Investasi Bersama injected IDR 1.86 trillion into its investment subsidiary PT Suwarna Arta Mandiri (SAM) via a new share issuance, representing 44.61% of PALM’s equity as of 30 June 2023. The transaction is intended to meet SAM’s funding needs.",
+      "urls": [
+        "https://emailer.stockbit.com/t/c/fba741b2-dc4c-4a97-90e4-30d0869a25e1/018c905c-b4c9-47d2-4402-b795e6644c8b"
+      ],
+      "primaryTickers": [
+        "PALM"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "RAJA Acquires 8% Participation in Jabung Oil Block",
+      "content": "Rukun Raharja (RAJA), through its subsidiary PT Raharja Energi Tanjung Jabung, officially acquired an 8% participation right in the Jabung oil block from PT GPI Jabung Indonesia. The transaction value was not disclosed.",
+      "urls": [
+        "https://www.idx.co.id/StaticData/NewsAndAnnouncement/ANNOUNCEMENTSTOCK/From_EREP/202401/ffa420f492_8fff603dbb.pdf"
+      ],
+      "primaryTickers": [
+        "RAJA"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

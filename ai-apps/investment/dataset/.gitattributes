@@ -1,0 +1,4 @@
+# Ignore JSON, Markdown, and HTML files from code statistics
+*.json linguist-detectable=false
+*.md linguist-detectable=false
+*.html linguist-detectable=false

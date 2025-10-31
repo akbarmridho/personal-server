@@ -1,0 +1,105 @@
+{
+  "publishDate": "2024-02-20",
+  "marketNews": [
+    {
+      "title": "IHSG rises 0.77% and market roundup",
+      "content": "Jakarta Composite Index (IHSG) rose 0.77%, SIDO: Strong 4Q23 performance; 2023 net profit exceeds target. News compilation for today.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TikTok alleged violation of Minister of Trade Regulation No. 31/2023 on social commerce",
+      "content": "Minister of Cooperatives and Small Business, Teten Masduki, said that TikTok still violates Minister of Trade Regulation No. 31 of 2023 which prohibits social commerce practices. He noted that TikTok continues to integrate TikTok Shop with social media and that the ministry has coordinated with the Ministry of Trade to follow up on the violation.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "VinFast to establish electric vehicle plant in Indonesia with $200 million investment",
+      "content": "Minister of Industry, Agus Gumiwang Kartasasmita, announced that VinFast will start building an electric vehicle factory in Indonesia in 2024. The plant is targeted to start operations in 2026 with an investment of 200 million US dollars (approximately 3.1 trillion rupiah). It will produce around 50,000 vehicles per year and create between 1,000 and 3,000 jobs.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Astra Honda Motor launches Honda SC e: Concept electric motorcycle at IIMS 2024",
+      "content": "PT Astra Honda Motor (AHM) launched the Honda SC e: Concept electric motorcycle at the Indonesia International Motor Show (IIMS) 2024. This is the third electric motorcycle product from AHM, following the Honda EM1 e: and EM1 e: Plus released at the end of 2023.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PTPP plans treasury stock sale of 14.56 million shares (0.2%) between March 8 and September 8 2024",
+      "content": "PTPP intends to sell treasury shares resulting from a buyback, amounting to 14.56 million shares (0.2% of total). The sale will be carried out by PT BNI Danareksa Sekuritas from March 8 to September 8, 2024.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Ganjar Pranowo urges parties supporting Anies Baswedan-Muhaimin Iskandar to file interpellation motion in DPR",
+      "content": "Presidential candidate number 3, Ganjar Pranowo, called on parties supporting Anies Baswedan-Muhaimin Iskandar to submit a motion for interpellation in the House of Representatives to investigate alleged irregularities in the 2024 presidential election. He said the proposal needs support from other parties to reach the required majority of more than 50% of parliament members.",
+      "urls": [],
+      "primaryTickers": [],
+      "mentionedTickers": []
+    }
+  ],
+  "tickerNews": [
+    {
+      "title": "INCO divestment of 14% Vale Indonesia shares postponed to 26 February 2024",
+      "content": "Deputy Minister of State-Owned Enterprises, Kartika Wirjoatmodjo, said that the agreement to divest 14% of Vale Indonesia shares held by INCO to MIND ID will be signed on 26 February 2024, delayed from the originally planned week. Shareholders have agreed on the transaction price, but the exact amount was not disclosed as it is material public information. The transaction price is disputed: Kontan reported a price of 3,070 rupiah per share on 16 February, while IDN Financials reported a price of 3,750 rupiah per share on 19 February. After the divestment, MIND ID's ownership in INCO will increase to 34%, making it the largest shareholder. Special Staff of the Minister of State-Owned Enterprises, Arya Sinulingga, said the government will restructure the board of commissioners and directors of INCO after the divestment is completed. Last week, INCO announced the resignation of two commissioners.",
+      "urls": [],
+      "primaryTickers": [
+        "INCO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "SIDO reports strong 4Q23 results and 2023 net profit of 951 billion IDR surpassing target",
+      "content": "SIDO (Sido Muncul) recorded a net profit of 951 billion rupiah (down 13.9% YoY) in 2023, exceeding the consensus expectation by 108%. The result was supported by a strong 4Q23 performance, with a net profit of 364 billion rupiah (up 162.9% QoQ, down 5.3% YoY). 4Q23 revenue recovered to 1.2 trillion rupiah (up 70% QoQ, down 3.8% YoY). Quarterly margins improved significantly despite a 43.1% QoQ increase in cost of goods sold and an 8.7% QoQ rise in operating expenses, which were more moderate than the revenue growth.",
+      "urls": [],
+      "primaryTickers": [
+        "SIDO"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "Ace Hardware Indonesia reports January 2024 same store sales growth of 5.6% YoY and opens two new stores",
+      "content": "Ace Hardware Indonesia reported same store sales growth (SSSG) of 5.6% YoY in January 2024 (compared with December 2023: 11.6% YoY, January 2023: 2% YoY), meeting management targets, with indicative sales of 664 billion rupiah. SSSG in January 2024 occurred across all regions: Jakarta (+3.8%), Java outside Jakarta (+5.9%), and outside Java (+6.1%). Ace opened two new stores in January 2024: ACE The Park Pejaten in Jakarta (2,300 square meters) and ACE Banyuwangi in Java outside Jakarta (2,000 square meters). Management forecasts stronger SSSG growth in February 2024, driven by the Chinese New Year.",
+      "urls": [],
+      "primaryTickers": [
+        "ACES"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "PTRO's subsidiary KJP acquires 342.93 million Petrosea shares for 940 billion IDR, becoming controlling shareholder",
+      "content": "Petrindo Jaya Kreasi (CUAN) announced that its subsidiary PT Kreasi Jasa Persada (KJP) has completed the purchase of approximately 342.93 million (34%) Petrosea shares from PT Caraka Reksa Optima. After the transaction, KJP will become the controlling shareholder of PTRO. According to prior information disclosures, KJP bought the 34% stake for 940 billion rupiah, implying a price of 2,741 rupiah per share.",
+      "urls": [],
+      "primaryTickers": [
+        "PTRO"
+      ],
+      "mentionedTickers": [
+        "CUAN"
+      ]
+    },
+    {
+      "title": "AIMS prepares right issue of up to 30% new shares by end of H1 2024",
+      "content": "Corporate Secretary of AIMS, Akbar Indo Makmur Stimec, and Anton Hidayat said the company is preparing a rights issue in the near future. AIMS will offer new shares amounting to 20-30% of the current share capital, expected to be completed by the end of the first half of 2024. Going forward, AIMS plans to expand its business sectors from energy to food and beverage, entertainment, sports, and media. The company is also exploring a capital participation in a football club. Previously, AIMS signed a memorandum of understanding for investment with RANS FC owned by Raffi Ahmad.",
+      "urls": [],
+      "primaryTickers": [
+        "AIMS"
+      ],
+      "mentionedTickers": []
+    },
+    {
+      "title": "TAYS aims to triple sales in West Java and increase outlets to 100,000 within two years",
+      "content": "The President Director of Jaya Swarasa Agung, Alexander Anwar, said the company will expand its domestic market reach, initially focusing on West Java. Sales in West Java are expected to grow 2-3 times in 2024, supported by additional distribution points and regional economic growth. TAYS products are currently available in 30,000 outlets across Indonesia, and the company targets reaching 100,000 outlets within the next two years.",
+      "urls": [],
+      "primaryTickers": [
+        "TAYS"
+      ],
+      "mentionedTickers": []
+    }
+  ]
+}

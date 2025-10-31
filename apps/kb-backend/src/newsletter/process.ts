@@ -85,6 +85,16 @@ async function processNewsletters() {
 
   const files = await readdir(inputDir);
   const htmlFiles = files.filter((f) => f.endsWith(".html"));
+  
+  const existingFiles = await readdir(outputDir).catch(() => []);
+  const existingMdContents = new Set(
+    await Promise.all(
+      existingFiles
+        .filter((f) => f.endsWith(".md"))
+        .map((f) => readFile(join(outputDir, f), "utf-8"))
+    )
+  );
+  
   const limit = pLimit(20);
 
   await Promise.all(
@@ -131,10 +141,10 @@ async function processNewsletters() {
 
           mdContent = await formatMarkdown(mdContent);
 
-          // const outmd = file.replace(".html", ".md");
-          // await writeFile(join(inputDir, outmd), mdContent, {
-          //   encoding: "utf-8",
-          // });
+          if (existingMdContents.has(mdContent)) {
+            logger.info({ file }, "Skipping - already exists");
+            return;
+          }
 
           logger.info({ file }, "processing");
 
