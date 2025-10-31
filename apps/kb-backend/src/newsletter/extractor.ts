@@ -222,7 +222,7 @@ ${validTickers}
       }
 
       const { object } = await generateObject({
-        model: openrouter("openai/gpt-oss-120b:exacto", {
+        model: openrouter("openai/gpt-oss-120b", {
           reasoning: {
             effort: "medium",
           },

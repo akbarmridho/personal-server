@@ -5,6 +5,7 @@ loadDotenv();
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { logger } from "@personal-server/common/utils/logger";
+import pLimit from "p-limit";
 import TurndownService from "turndown";
 import { processNewsletter } from "./extractor.js";
 
@@ -56,54 +57,62 @@ async function processNewsletters() {
   const inputDir = join(process.cwd(), "newsletter-data");
   const files = await readdir(inputDir);
   const htmlFiles = files.filter((f) => f.endsWith(".html"));
+  const limit = pLimit(5);
 
-  for (const file of htmlFiles) {
-    try {
-      const outputFile = file.replace(".html", ".json");
-      try {
-        await access(join(inputDir, outputFile));
-        logger.info({ file }, "Skipping - JSON already exists");
-        continue;
-      } catch {}
+  await Promise.all(
+    htmlFiles.map((file) =>
+      limit(async () => {
+        try {
+          const outputFile = file.replace(".html", ".json");
+          try {
+            await access(join(inputDir, outputFile));
+            logger.info({ file }, "Skipping - JSON already exists");
+            return;
+          } catch {}
 
-      logger.info({ file }, "Processing newsletter");
+          logger.info({ file }, "Processing newsletter");
 
-      const content = await readFile(join(inputDir, file), "utf-8");
+          const content = await readFile(join(inputDir, file), "utf-8");
 
-      let mdContent = turndownService.turndown(content);
+          let mdContent = turndownService.turndown(content);
 
-      mdContent = await resolveEmailerLinks(mdContent);
+          mdContent = await resolveEmailerLinks(mdContent);
 
-      logger.info({ file }, "resolved emailer links");
+          logger.info({ file }, "resolved emailer links");
 
-      mdContent = removeStockbitSymbolLinks(mdContent);
-      mdContent = normalizeToAscii(mdContent);
+          mdContent = removeStockbitSymbolLinks(mdContent);
+          mdContent = normalizeToAscii(mdContent);
 
-      const trimPhrase = "Kutipan menarik dari komunitas Stockbit minggu ini";
-      const trimIndex = mdContent.indexOf(trimPhrase);
-      if (trimIndex !== -1) {
-        mdContent = mdContent.substring(0, trimIndex).trim();
-      }
+          const trimPhrase =
+            "Kutipan menarik dari komunitas Stockbit minggu ini";
+          const trimIndex = mdContent.indexOf(trimPhrase);
+          if (trimIndex !== -1) {
+            mdContent = mdContent.substring(0, trimIndex).trim();
+          }
 
-      mdContent = mdContent.substring(mdContent.indexOf("\n") + 1);
+          mdContent = mdContent.substring(mdContent.indexOf("\n") + 1);
 
-      const outmd = file.replace(".html", ".md");
-      await writeFile(join(inputDir, outmd), mdContent, { encoding: "utf-8" });
+          const outmd = file.replace(".html", ".md");
+          await writeFile(join(inputDir, outmd), mdContent, {
+            encoding: "utf-8",
+          });
 
-      logger.info({ file }, "processing");
+          logger.info({ file }, "processing");
 
-      const extracted = await processNewsletter(mdContent);
+          const extracted = await processNewsletter(mdContent);
 
-      await writeFile(
-        join(inputDir, outputFile),
-        JSON.stringify(extracted, null, 2),
-      );
+          await writeFile(
+            join(inputDir, outputFile),
+            JSON.stringify(extracted, null, 2),
+          );
 
-      logger.info({ file: outputFile }, "Newsletter processed");
-    } catch (error) {
-      logger.error({ err: error, file }, "Failed to process newsletter");
-    }
-  }
+          logger.info({ file: outputFile }, "Newsletter processed");
+        } catch (error) {
+          logger.error({ err: error, file }, "Failed to process newsletter");
+        }
+      }),
+    ),
+  );
 }
 
 processNewsletters();
