@@ -1,12 +1,46 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
+import { logger } from "@personal-server/common/utils/logger";
 import { generateObject } from "ai";
 import pRetry from "p-retry";
 import z from "zod";
 import { getRawCompanies } from "../stock/aggregator/companies.js";
 
+const delistedTickers = [
+  "APOL",
+  "ATPK",
+  "BAEK",
+  "BBNP",
+  "BORN",
+  "BRAU",
+  "CKRA",
+  "CPGT",
+  "CTRP",
+  "CTRS",
+  "DAJK",
+  "DAVO",
+  "FINN",
+  "GMCW",
+  "GREN",
+  "INVS",
+  "ITTG",
+  "JPRS",
+  "LAMI",
+  "NAGA",
+  "RMBA",
+  "SCBD",
+  "SIAP",
+  "SOBI",
+  "SQBB",
+  "TKGA",
+  "TMPI",
+  "TRUB",
+  "TURI",
+  "UNTX",
+];
+
 export const News = z.object({
   title: z.string().describe("News headline"),
-  content: z.string().describe("Full news content in markdown"),
+  content: z.string().describe("Full news content in plain text"),
   urls: z
     .string()
     .array()
@@ -35,181 +69,63 @@ export const Newsletter = z.object({
 
 export const processNewsletter = async (content: string) => {
   const companies = await getRawCompanies();
-  const validTickers = companies.map((c) => c.ticker).join(", ");
+  const validTickers = [
+    ...companies.map((c) => c.ticker),
+    ...delistedTickers,
+  ].join(", ");
 
   let lastError: string | null = null;
   let lastResult: z.infer<typeof Newsletter> | null = null;
 
   const result = await pRetry(
-    async () => {
-      const systemPrompt = `
-You are a strict financial-news JSON extractor.
-Input = markdown text with multiple bullet items (\`•\`).
-Output = **one JSON object** for the entire input with this exact schema:
+    async (retryCount) => {
+      const systemPrompt = `Extract financial news from Indonesian newsletter. Group related content into news objects based on document structure.
 
+## Rules
+
+1. Group by structure: Use bullets, headings, and paragraphs to identify separate news items
+2. Related sub-bullets belong to parent bullet (merge into one news object)
+3. Extract ALL news items (never skip)
+4. Ticker = \`$CODE\` or uppercase 3-5 letters (BBCA, ASII)
+5. Has ticker → tickerNews, no ticker → marketNews
+6. SKIP daily IHSG percentage movement news (e.g., "IHSG declines 0.78%", "IHSG rises 1.2%")
+7. ONLY Indonesian tickers in primaryTickers/mentionedTickers (must be in valid list). Skip foreign tickers (e.g., US, China stocks)
+
+## Fields
+
+- title: Short headline with ticker if applicable
+- content: Full text in English, no markdown, translate Indonesian
+- urls: Extract from [text](url), exclude emailer.stockbit.com and images
+- primaryTickers: Main Indonesian tickers only (must be in valid list)
+- mentionedTickers: Other Indonesian tickers only (must be in valid list)
+
+## Examples
+
+Input: \`• $BBCA: Bank Central Asia laba Rp15T\`
+Output:
 \`\`\`json
 {
-  "publishDate": "YYYY-MM-DD",
-  "marketNews": [],
-  "tickerNews": []
+  "title": "BBCA net profit IDR 15 trillion",
+  "content": "Bank Central Asia (BBCA) recorded net profit of IDR 15 trillion.",
+  "urls": [],
+  "primaryTickers": ["BBCA"],
+  "mentionedTickers": []
 }
 \`\`\`
 
-Each bullet (\`•\`) represents **one independent news item** to be placed in either \`marketNews\` or \`tickerNews\`.
-**Never merge or omit bullets.**
-
----
-
-### **1. Classification Rules (deterministic)**
-
-1. **Ticker classification (requires explicit ticker):**
-
-   * Classify as \`tickerNews\` **only if** the bullet contains **at least one explicit ticker token**, detected as:
-
-     * \`$TICKER\` format (e.g. \`$ASSA\`), **or**
-     * 3–5 character uppercase stock codes (e.g. \`ASSA\`, \`PTBA\`, \`ADMR\`) appearing as standalone words.
-   * Extract those tickers as \`primaryTickers\`.
-     Other uppercase codes mentioned → \`mentionedTickers\`.
-   * If company names appear **without explicit ticker tokens**, classify as \`marketNews\`.
-
-2. **Market classification:**
-
-   * Use \`marketNews\` for macro, regulatory, policy, index, interest rate, GDP, commodity, sector, or general economy news.
-   * Also use \`marketNews\` if **no explicit ticker token** is detected.
-
-3. **Mixed content:**
-
-   * If both macro context and explicit ticker(s) exist → classify as \`tickerNews\` (ticker takes precedence).
-
----
-
-### **2. JSON Object Format (per bullet)**
-
-#### For ticker news
-
+Input: \`• Bank Indonesia cut rates 25bps\`
+Output:
 \`\`\`json
 {
-  "title": "short descriptive headline",
-  "content": "plain text only, full news text",
-  "urls": ["https://..."],
-  "primaryTickers": ["TICKER"],
-  "mentionedTickers": ["TICKER"]
-}
-\`\`\`
-
-#### For market news
-
-\`\`\`json
-{
-  "title": "short descriptive headline",
-  "content": "plain text only, full news text",
-  "urls": ["https://..."],
+  "title": "Bank Indonesia cuts rates 25bps",
+  "content": "Bank Indonesia cut interest rates by 25 basis points.",
+  "urls": [],
   "primaryTickers": [],
   "mentionedTickers": []
 }
 \`\`\`
 
----
-
-### **3. Content Cleaning (strict)**
-
-* \`content\` must be **complete plain text** — no markdown, links, or images.
-
-  * \`[Text](url)\` → keep only \`"Text"\`; put URL in \`urls\`.
-  * Remove \`![](image)\` and any image references entirely.
-  * Strip all markdown syntax (\`#\`, \`>\`, \`*\`, backticks, lists, etc.).
-* Extract all valid URLs into \`urls\`, excluding:
-
-  * Tracking links (e.g. \`emailer.stockbit.com\`)
-  * Image links (\`.jpg\`, \`.png\`, \`.gif\`, \`.webp\`)
-* **Translation rules:**
-
-  * Translate to English if source is non-English.
-  * **Preserve proper nouns:** Keep organization names, government agencies, and official entities in their original language.
-  * For well-known entities, provide both: \`"Original Name (English Translation)"\` on first mention.
-  * Examples:
-    * \`"Badan Gizi Nasional (BGN)"\` → keep as is or \`"Badan Gizi Nasional (BGN, National Nutrition Agency)"
-    * \`"Bank Indonesia"\` → keep as is (widely recognized)
-    * \`"Otoritas Jasa Keuangan (OJK)"\` → \`"Otoritas Jasa Keuangan (OJK, Financial Services Authority)"
-* Never summarize, truncate, or use placeholders (e.g., \`<full text>\`).
-
----
-
-### **4. Output Formatting**
-
-* \`publishDate\` (top level): \`"YYYY-MM-DD"\`
-* Output must be **valid JSON only** — no commentary or markdown.
-* All fields must exist exactly as shown; arrays may be empty.
-
----
-
-### **5. Quick Heuristics**
-
-* Contains \`$TICKER\` or uppercase 3–5 code → \`tickerNews\`.
-* Else → \`marketNews\`.
-* Both macro + ticker → \`tickerNews\`.
-* Don’t infer tickers from names.
-
----
-
-### ✅ **Example 1 — Ticker News**
-
-Input bullet:
-
-\`\`\`
-• ADRO to pay interim dividend of IDR 100 per share for FY2025.
-\`\`\`
-
-Output JSON fragment:
-
-\`\`\`json
-{
-  "publishDate": "2025-10-20",
-  "marketNews": [],
-  "tickerNews": [
-    {
-      "title": "ADRO announces interim dividend of IDR 100 per share",
-      "content": "Adaro Energy (ADRO) announced an interim dividend of IDR 100 per share for fiscal year 2025.",
-      "urls": [],
-      "primaryTickers": ["ADRO"],
-      "mentionedTickers": []
-    }
-  ]
-}
-\`\`\`
-
----
-
-### ✅ **Example 2 — Market News**
-
-Input bullet:
-
-\`\`\`
-• Bank Indonesia expected to cut BI Rate by 25bps to 4.5% this week.
-\`\`\`
-
-Output JSON fragment:
-
-\`\`\`json
-{
-  "publishDate": "2025-10-20",
-  "marketNews": [
-    {
-      "title": "Economists expect BI Rate cut to 4.5%",
-      "content": "Bank Indonesia is expected to lower the BI Rate by 25 basis points to 4.5% this week according to economists' consensus.",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": []
-    }
-  ],
-  "tickerNews": []
-}
-\`\`\`
-
-## Valid Tickers
-
-${validTickers}
-`;
+Valid tickers: ${validTickers}`;
 
       let finalContent = content;
 
@@ -223,13 +139,12 @@ ${validTickers}
 
       const { object } = await generateObject({
         model: openrouter("openai/gpt-oss-120b", {
-          reasoning: {
-            effort: "medium",
-          },
+          models: ["qwen/qwen3-30b-a3b-instruct-2507"],
         }),
         system: systemPrompt,
         prompt: finalContent,
         schema: Newsletter,
+        temperature: 0.1,
       });
 
       const allTickers = [
@@ -247,10 +162,51 @@ ${validTickers}
       const invalidTickers = allTickers.filter((t) => !validTickerSet.has(t));
 
       if (invalidTickers.length > 0) {
-        lastError = `Invalid tickers found: ${invalidTickers.join(", ")}`;
-        lastResult = object;
-        throw new Error(lastError);
+        if (retryCount >= 3) {
+          // Return output on final retry
+        } else {
+          lastError = `Invalid tickers found: ${invalidTickers.join(", ")}`;
+          lastResult = object;
+          logger.error(`[Retry ${retryCount}] ${lastError}`);
+          throw new Error(lastError);
+        }
       }
+
+      // Detect merged ticker news
+      const totalNews = object.marketNews.length + object.tickerNews.length;
+      const hasManyMentioned = [
+        ...object.marketNews,
+        ...object.tickerNews,
+      ].some((n) => n.mentionedTickers.length > 4);
+
+      if (totalNews < 3 && hasManyMentioned) {
+        if (retryCount >= 3) {
+          // Return output on final retry
+        } else {
+          lastError = `Detected merged ticker news with multiple tickers. Split each ticker into separate news objects.`;
+          lastResult = null; // Don't include previous output
+          logger.error(`[Retry ${retryCount}] ${lastError}`);
+          throw new Error(lastError);
+        }
+      }
+
+      // Post-process: Clean URLs
+      const cleanUrl = (url: string) => {
+        try {
+          const parsed = new URL(url);
+          parsed.hash = ""; // Remove text fragments (#:~:text=...)
+          return parsed.toString();
+        } catch {
+          return ""; // Invalid URL
+        }
+      };
+
+      object.marketNews.forEach((n) => {
+        n.urls = n.urls.map(cleanUrl).filter((u) => u);
+      });
+      object.tickerNews.forEach((n) => {
+        n.urls = n.urls.map(cleanUrl).filter((u) => u);
+      });
 
       return object;
     },
