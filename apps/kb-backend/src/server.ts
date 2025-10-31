@@ -23,9 +23,13 @@ export const setupHTTPServer = () => {
         origin: true,
       }),
     )
-    .onError(({ code, error }) => {
-      logger.error({ error }, `Error received: ${code}`);
-      return new Response(error.toString());
+    .onError(({ code, error, set }) => {
+      logger.error(
+        { error, stack: error.stack, code },
+        `Error: ${error.message}`,
+      );
+      set.status = 500;
+      return { error: error.message, code };
     })
     .use(
       swagger({
