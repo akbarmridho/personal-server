@@ -137,6 +137,7 @@ export const setupRagRoutes = () =>
       "/collections/:id/documents",
       async ({ params, query }) => {
         const metadataFilter = normalizeMetadata(query.metadata || {});
+
         const docs = await vectorStore.getDocuments(Number(params.id), {
           title: query.title,
           daysBack: query.daysBack,
@@ -148,7 +149,7 @@ export const setupRagRoutes = () =>
       },
       {
         params: t.Object({
-          id: t.Numeric(),
+          id: t.String(),
         }),
         query: t.Object({
           title: t.Optional(t.String()),
@@ -173,7 +174,7 @@ export const setupRagRoutes = () =>
       },
       {
         params: t.Object({
-          id: t.Numeric(),
+          id: t.String(),
         }),
       },
     )
