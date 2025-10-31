@@ -12,20 +12,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Top Gainer",
-      "content": "Top Gainers: GOTO +7.14%; DSSA +6.14%; HMSP +6.10%; DEWA +5.19%.",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": []
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Losers: JPFA –10.33%; CPIN –5.15%; MYOR –4.68%; ARTO –4.66%.",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": []
-    },
-    {
       "title": "Other Hot Topics to Know",
       "content": "Minister of Economic Affairs Airlangga Hartarto said the government plans to offer more facilities for natural-resource exporters as part of a revision to the foreign-exchange placement rules for natural-resource export earnings (DHE SDA). He did not detail the additional facilities and clarified that the DHE placement rule will not be expanded beyond the natural-resource sector. \n\nSelamat Sempurna (SMSM) plans to distribute an interim dividend for fiscal year 2025 of roughly 230 billion rupiah or 40 rupiah per share, indicating a 2.2% dividend yield as of Thursday (30 Oct). The dividend is payable on 25 Oct 2025, with cum-dividend in the regular market and negotiations on 7 Nov 2025. This is the third interim dividend for 2025 after 35 rupiah per share in August 2025 and 25 rupiah per share in May 2025. \n\nTempo Scan Pacific (TSPC) plans to distribute an interim dividend for fiscal year 2025 of roughly 451 billion rupiah or 100 rupiah per share, indicating a 3.6% dividend yield as of Thursday (30 Oct). Cum-dividend in the regular market and negotiations on 7 Nov 2025, payment on 25 Nov 2025. \n\nNusantara Sejahtera Raya (CNMA) plans to distribute an interim dividend for fiscal year 2025 of 5 rupiah per share, indicating a 4.2% dividend yield as of Thursday (30 Oct). Cum-dividend in the regular market and negotiations on 6 Nov 2025, payment on 28 Nov 2025. \n\nMedco Energi Internasional (MEDC) plans to distribute an interim dividend for fiscal year 2025 of 27.77 rupiah per share, indicating a 2.1% dividend yield as of Thursday (30 Oct). Cum-dividend in the regular market and negotiations on 10 Nov 2025, payment on 28 Nov 2025. \n\nTower Bersama Infrastructure (TBIG) plans to conduct a share buy-back of up to 158 million (0.7%) shares with a fund allocation of up to ~360 billion rupiah for the period 30 Oct 2025-29 Jan 2026 through PT Ciptadana Sekuritas Asia. The plan does not require a shareholders’ meeting approval, following OJK’s relaxation to support market-stability. \n\nLippo Cikarang (LPCK) recorded marketing sales of 1.2 trillion rupiah during 9M25 (+13.7% YoY), equal to 73% of the 2025 target of 1.65 trillion rupiah. Of the total, the house-building segment contributed 60%, commercial 34% and industrial land 6%. \n\nAllo Bank Indonesia (BBHI) plans to conduct a share buy-back with a fund allocation of up to ~119.4 billion rupiah for the period 30 Oct 2025-29 Jan 2026. The plan does not require a shareholders’ meeting approval, following OJK’s relaxation to support market-stability. The allocated funds are the remainder of the buy-back allocation for the periods 30 Apr-29 Jul 2025 and 30 Jul-29 Oct 2025.",
       "urls": [
@@ -148,78 +134,6 @@
       ],
       "primaryTickers": [
         "ERAL"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "GOTO Top Gainer",
-      "content": "GOTO posted ​​​  ​        ​   ​   …  …  …  …  …  …  … … … … … … … … … … … … … … … … … … …  …  …  … … … … … … … … …  … … … … -    … … … -   … … … … … … … … … … … … … … … … - … … … … … … … - … … … -  …  … … …  … … … … -  … … -  … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … - … … … … … … … … … … ",
-      "urls": [],
-      "primaryTickers": [
-        "GOTO"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "DSSA Top Gainer",
-      "content": "DSSA        … … … … … … … …  … …  … … pres… … … - … … … … … … … - … … … … … … … … … … … … … … … … … … … … … - … … … … … … … … … … … ",
-      "urls": [],
-      "primaryTickers": [
-        "DSSA"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "HMSP Top Gainer",
-      "content": "HMSP   … … … … … … … … … … … … … … … … - … … … … … … … … … - … … … … … … … … … … … … … - … … … … … … … … … … ",
-      "urls": [],
-      "primaryTickers": [
-        "HMSP"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "DEWA Top Gainer",
-      "content": "DEWA  … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … … -   … … … … … … … … … ",
-      "urls": [],
-      "primaryTickers": [
-        "DEWA"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "JPFA Top Loser",
-      "content": "JP         …… …    …  … … … … … Em    … … … … … … … ...",
-      "urls": [],
-      "primaryTickers": [
-        "JPFA"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "CPIN Top Loser",
-      "content": "CPIN  … … … … … … … … … … … … … … … … … … … ...",
-      "urls": [],
-      "primaryTickers": [
-        "CPIN"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "MYOR Top Loser",
-      "content": "MYOR  … … … … … … … … … … … … … … … … … … … … ...",
-      "urls": [],
-      "primaryTickers": [
-        "MYOR"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "ARTO Top Loser",
-      "content": "ARTO  … … … … ​ … … … … … … … … ...",
-      "urls": [],
-      "primaryTickers": [
-        "ARTO"
       ],
       "mentionedTickers": []
     },

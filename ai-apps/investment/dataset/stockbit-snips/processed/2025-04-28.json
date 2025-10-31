@@ -2,30 +2,6 @@
   "publishDate": "2025-04-28",
   "marketNews": [
     {
-      "title": "Top Gainers",
-      "content": "The following stocks were the biggest gainers on the day: PTRO (+18.37%), INET (+16.36%), BBYB (+11.02%), RAJA (+10.95%).",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "PTRO",
-        "INET",
-        "BBYB",
-        "RAJA"
-      ]
-    },
-    {
-      "title": "Top Losers",
-      "content": "The following stocks were the biggest losers on the day: SMIL (-14.91%), UNVR (-4.86%), PGEO (-4.15%), UNIQ (-3.57%).",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "SMIL",
-        "UNVR",
-        "PGEO",
-        "UNIQ"
-      ]
-    },
-    {
       "title": "U.S. President Donald Trump says the United States is talking with China on tariff talks",
       "content": "President Donald Trump told Time magazine on Friday, April 25, that the United States government is in talks with China to reach a tariff agreement. Trump also claimed that Chinese President Xi Jinping has contacted him. The statement contradicts the Chinese Ministry of Foreign Affairs, which on the same day urged the United States to stop \"misleading the public.\" Chinese Foreign Ministry spokesperson Guo Jiakun said that the United States and China are not engaged in any negotiations on tariff issues.",
       "urls": [

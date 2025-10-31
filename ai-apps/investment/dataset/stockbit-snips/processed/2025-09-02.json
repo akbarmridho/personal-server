@@ -84,30 +84,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Top Gainers",
-      "content": "Top Gainers: $BSDE (+11,96%), $BRMS (+10,29%), $TKIM (+8,87%), $ANTM (+8,44%).",
-      "urls": [],
-      "primaryTickers": [
-        "BSDE",
-        "BRMS",
-        "TKIM",
-        "ANTM"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "Top Losers",
-      "content": "Top Losers: $AMRT (-2,31%), $TOWR (-1,65%), $TPIA (-1,52%), $ISAT (-1,50%).",
-      "urls": [],
-      "primaryTickers": [
-        "AMRT",
-        "TOWR",
-        "TPIA",
-        "ISAT"
-      ],
-      "mentionedTickers": []
-    },
-    {
       "title": "DSSA and First Gen Geothermal JV Targeted for Q4 2025",
       "content": "Business reported that Dian Swastatika Sentosa (DSSA) and PT First Gen Geothermal Indonesia target their joint venture in the geothermal business to be established in Q4 2025. The JV will be owned 50 % by DSSA’s subsidiary PT DSSR Daya Mas Sakti and 50 % by First Gen. The JV will focus on development and management of geothermal resources with a combined capacity of about 440 MW across six fields located in West Java, Flores, Jambi, West Sumatra, and Central Sulawesi.",
       "urls": [

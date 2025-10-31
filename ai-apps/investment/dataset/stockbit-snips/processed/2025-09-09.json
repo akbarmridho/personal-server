@@ -187,26 +187,6 @@
       "urls": [],
       "primaryTickers": [],
       "mentionedTickers": []
-    },
-    {
-      "title": "Top Gainer              …    ",
-      "content": "Top   …   … ...  …  …  ... …  … ",
-      "urls": [],
-      "primaryTickers": [
-        "INDY"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "Top Loser     ",
-      "content": "Top …    … …  ",
-      "urls": [],
-      "primaryTickers": [
-        "HMSP"
-      ],
-      "mentionedTickers": [
-        "HMSP"
-      ]
     }
   ],
   "tickerNews": [

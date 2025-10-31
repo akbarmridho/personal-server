@@ -35,20 +35,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Top Gainer",
-      "content": "$DEWA +11,92%\n$ENRG +9,09%\n$BFIN +7,69%\n$PTRO +7,59%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": []
-    },
-    {
-      "title": "Top Loser",
-      "content": "$MIKA -5,30%\n$ANTM -4,85%\n$BRMS -4,23%\n$PNLF -3,90%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": []
-    },
-    {
       "title": "Other Hot Topics You Need to Know",
       "content": "1. MSCI announced a review of the Global Standard Index, Small Cap Index, and Micro Cap Index effective 2 June 2025 – 31 August 2025. $MTEL and $MBMA were added to the MSCI Indonesia Small Cap Index, while $HRUM, $INDY, $SMRA, and $WIKA were removed from that index. No changes were made to the MSCI Indonesia Global Standard or MSCI Indonesia Micro Cap indices. The next review will be announced on 12 August 2025 with an effective date of 1 September 2025. 2. Gaikindo reported that national vehicle wholesales in April 2025 reached 51,205 units (+5 percent YoY, -28 percent MoM). The 4-month total fell to 256,368 units (-3 percent YoY), aligning with expectations as it represents 28-34 percent of the 2025 target range of 750,000-900,000 units (4M24: 30 percent of 2024 realization). Gaikindo chairman Jongkie Sugiarto explained that the monthly decline was caused by fewer working days due to the long Eid holiday. 3. Bank Indonesia projected a -2.2 percent YoY and -6.9 percent MoM contraction in Indonesian retail sales for April 2025, reflecting normalized consumer demand after Ramadan and Eid. Retail sales in March 2025 grew +5.5 percent YoY and +13.6 percent MoM, surpassing the Bank Indonesia forecast of +0.5 percent YoY and +8.3 percent MoM. 4. Commodity analysis firm Kpler reported that Indonesia’s thermal coal exports fell by 20 million tonnes to 150 million tonnes in 4M25 (-12 percent YoY), the lowest volume in three years and the worst annual percentage decline since early 2017. The drop was driven by reduced shipments to China (down 14 million tonnes, -20 percent YoY) and India (down 6 million tonnes, -15 percent YoY). 5. Bloomberg reported that the Indonesian government raised the export levy on crude palm oil (CPO) from 7.5 percent to 10 percent effective 17 May 2025 to fund B40 programs and replanting. The levy on crude palm olein increased from 6 percent to 9.5 percent, refined bleached and deodorized palm olein from 4.5 percent to 7.5 percent, and biodiesel from 3 percent to 4.75 percent. 6. The US Bureau of Labor Statistics confirmed that the US CPI for April 2025 was 2.3 percent YoY and 0.2 percent MoM (March: 2.4 percent YoY, -0.1 percent MoM), both below consensus expectations of 2.4 percent YoY and 0.3 percent MoM, marking the lowest annual CPI since February 2021. Core CPI remained unchanged at 2.8 percent YoY, matching consensus and representing the lowest level in four years. 7. The Democratic Republic of Congo is expected to tighten cobalt exports after a four-month ban that ended in February 2025, according to Minister Patrick Luabeya. The country plans to introduce export quotas and may partner with Indonesia to manage global cobalt supply and pricing. 8. Shareholder PT Autum Prima Indonesia sold approximately 24.1 million shares of $SINI at IDR 1,000 per share on 9 May 2025, totaling about IDR 24 billion, to increase the public float. The transaction reduced Autum’s ownership from 35 percent to 30 percent. 9. Intanwijaya International ($INCI) will distribute a 2024 dividend of approximately IDR 7.3 billion, or IDR 35 per share, representing a 28 percent payout ratio and a dividend yield of 5.8 percent. The cum-date is 30 June 2025 on the regular market, with payment on 17 July 2025.",
       "urls": [
@@ -148,78 +134,6 @@
       ],
       "primaryTickers": [
         "AMAR"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "DEWA: Top Gainer with +11.92%",
-      "content": "$DEWA +11,92%",
-      "urls": [],
-      "primaryTickers": [
-        "DEWA"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "ENRG: Top Gainer with +9.09%",
-      "content": "$ENRG +9,09%",
-      "urls": [],
-      "primaryTickers": [
-        "ENRG"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "BFIN: Top Gainer with +7.69%",
-      "content": "$BFIN +7,69%",
-      "urls": [],
-      "primaryTickers": [
-        "BFIN"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "PTRO: Top Gainer with +7.59%",
-      "content": "$PTRO +7,59%",
-      "urls": [],
-      "primaryTickers": [
-        "PTRO"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "MIKA: Top Loser with -5.30%",
-      "content": "$MIKA -5,30%",
-      "urls": [],
-      "primaryTickers": [
-        "MIKA"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "ANTM: Top Loser with -4.85%",
-      "content": "$ANTM -4,85%",
-      "urls": [],
-      "primaryTickers": [
-        "ANTM"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "BRMS: Top Loser with -4.23%",
-      "content": "$BRMS -4,23%",
-      "urls": [],
-      "primaryTickers": [
-        "BRMS"
-      ],
-      "mentionedTickers": []
-    },
-    {
-      "title": "PNLF: Top Loser with -3.90%",
-      "content": "$PNLF -3,90%",
-      "urls": [],
-      "primaryTickers": [
-        "PNLF"
       ],
       "mentionedTickers": []
     },

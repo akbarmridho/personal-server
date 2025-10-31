@@ -116,40 +116,6 @@
       "mentionedTickers": [
         "ARII"
       ]
-    },
-    {
-      "title": "Top Gainer",
-      "content": "Top Gainer – EM... (EMTK) +10.28%; MAPI +7.59%; MAPA +7.52%; BUMI +6.82%.",
-      "urls": [],
-      "primaryTickers": [
-        "EMTK",
-        "MAPI",
-        "MAPA",
-        "BUMI"
-      ],
-      "mentionedTickers": [
-        "EMTK",
-        "MAPI",
-        "MAPA",
-        "BUMI"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Loser – UNVR -8.12%; INDY -5.94%; DSSA -4.98%; AMMN -4.51%.",
-      "urls": [],
-      "primaryTickers": [
-        "UNVR",
-        "INDY",
-        "DSSA",
-        "AMMN"
-      ],
-      "mentionedTickers": [
-        "UNVR",
-        "INDY",
-        "DSSA",
-        "AMMN"
-      ]
     }
   ],
   "tickerNews": [

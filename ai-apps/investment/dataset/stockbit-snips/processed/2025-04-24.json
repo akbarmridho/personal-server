@@ -78,32 +78,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Top Gainer",
-      "content": "Top Gainer – SMIL rose 7.00%, ISAT rose 6.92%, PGEO rose 6.36%, FILM rose 5.93% in the latest session.",
-      "urls": [],
-      "primaryTickers": [
-        "SMIL"
-      ],
-      "mentionedTickers": [
-        "ISAT",
-        "PGEO",
-        "FILM"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Loser – BNGA fell 6.74%, INDY fell 4.95%, PANI fell 4.38%, ARTO fell 4.30% in the latest session.",
-      "urls": [],
-      "primaryTickers": [
-        "BNGA"
-      ],
-      "mentionedTickers": [
-        "INDY",
-        "PANI",
-        "ARTO"
-      ]
-    },
-    {
       "title": "Strategy: “Sell in May and Go Away” in the IHSG",
       "content": "The “Sell in May and Go Away” note reminds investors that selling all stocks when the market looks risky can cause missed gains; the key is strategy and readiness, not panic. – Illusix",
       "urls": [

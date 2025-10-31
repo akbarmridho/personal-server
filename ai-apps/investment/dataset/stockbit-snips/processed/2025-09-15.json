@@ -2,30 +2,6 @@
   "publishDate": "2025-09-15",
   "marketNews": [
     {
-      "title": "Top Gainers",
-      "content": "$BRMS +8.82%; $INCO +7.25%; $PTRO +6.20%; $INDY +6.00%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "BRMS",
-        "INCO",
-        "PTRO",
-        "INDY"
-      ]
-    },
-    {
-      "title": "Top Losers",
-      "content": "$ESSA -2.94%; $INKP -2.89%; $TKIM -2.73%; $BBNI -2.43%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "ESSA",
-        "INKP",
-        "TKIM",
-        "BBNI"
-      ]
-    },
-    {
       "title": "Government stimulus package of ~16.2 trillion rupiah announced",
       "content": "The Coordinating Minister for Economic Affairs, Airlangga Hartarto, said on Monday (15 September) that the government will provide an economic stimulus package of approximately IDR 16.2 trillion in Q4 2025. The package consists of eight programs: (1) graduate internship program; (2) expansion of employer-paid PPh 21 for tourism sector workers; (3) food assistance; (4) accident and death insurance premium assistance for non-wage workers such as online-motorcycle-taxi partners; (5) additional housing benefit services for BPJS Ketenagakerjaan; (6) cash-for-work scheme; (7) acceleration of deregulation of Government Regulation No. 28; (8) pilot urban projects in DKI Jakarta to improve housing quality and provide spaces for the gig economy.",
       "urls": [

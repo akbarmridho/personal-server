@@ -106,30 +106,6 @@
       "mentionedTickers": [
         "HILL"
       ]
-    },
-    {
-      "title": "Top Gainer",
-      "content": "Top Gainer: INET, BTPS, UNVR, RAJA – gains of +19.57%, +17.53%, +17.06%, +12.00% respectively.",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "INET",
-        "BTPS",
-        "UNVR",
-        "RAJA"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Loser: SMIL, KPIG, PGAS, BDKR – declines of -14.77%, -3.94%, -2.54%, -2.33% respectively.",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "SMIL",
-        "KPIG",
-        "PGAS",
-        "BDKR"
-      ]
     }
   ],
   "tickerNews": [

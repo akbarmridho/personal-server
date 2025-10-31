@@ -118,30 +118,6 @@
         "BUAH"
       ],
       "mentionedTickers": []
-    },
-    {
-      "title": "Top Gainer",
-      "content": "Top Gainer: MDKA +13.36% | BRMS +8.77% | ADRO +8.40% | HRUM +7.80%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "MDKA",
-        "BRMS",
-        "ADRO",
-        "HRUM"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Loser: DSSA -3.53% | AMRT -3.37% | TLKM -3.24% | EMTK -2.54%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "DSSA",
-        "AMRT",
-        "TLKM",
-        "EMTK"
-      ]
     }
   ],
   "tickerNews": [

@@ -55,30 +55,6 @@
       ],
       "primaryTickers": [],
       "mentionedTickers": []
-    },
-    {
-      "title": "Top Gainer",
-      "content": "The top gainers on the IDX were: BRMS (+17.12%), BUKA (+7.36%), MIKA (+5.88%) and HMSP (+4.80%).",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "BRMS",
-        "BUKA",
-        "MIKA",
-        "HMSP"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "The top losers on the IDX were: ASRI (-5.59%), AMMN (-4.95%), BBYB (-4.79%) and BSDE (-3.77%).",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "ASRI",
-        "AMMN",
-        "BBYB",
-        "BSDE"
-      ]
     }
   ],
   "tickerNews": [

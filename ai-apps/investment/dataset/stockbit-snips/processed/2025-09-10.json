@@ -29,30 +29,6 @@
       ]
     },
     {
-      "title": "Top Gainers",
-      "content": "$PANI +7.40%, $ARTO +7.11%, $FILM +5.91%, $BRPT +5.12%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "PANI",
-        "ARTO",
-        "FILM",
-        "BRPT"
-      ]
-    },
-    {
-      "title": "Top Losers",
-      "content": "$DSNG -10.99%, $SSIA -4.67%, $ANTM -4.10%, $NCKL -3.95%",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "DSNG",
-        "SSIA",
-        "ANTM",
-        "NCKL"
-      ]
-    },
-    {
       "title": "Other Hot News",
       "content": "1. The Israeli military said on Tuesday (9/9) that it had carried out an attack on a senior Hamas leader in Doha, Qatar. Qatar's foreign ministry strongly condemned the attack, calling it a violation of international law. 2. The U.S. Energy Information Administration (EIA) projected that Brent crude oil prices could fall from $68 per barrel in August 2025 to $59 per barrel on average in Q4 2025 and around $50 per barrel in early 2026, driven by large oil inventories as OPEC+ production increases. 3. U.S. President Donald Trump told EU officials he is willing to impose new tariffs on India and China to pressure Russia to end the war in Ukraine, but Bloomberg reported that Trump would only act if EU countries also impose similar tariffs. 5. China's National Bureau of Statistics reported that China's consumer price index (CPI) fell 0.4% year-on-year in August 2025, below the consensus expectation of a 0.2% decline. Monthly, the CPI was unchanged (0.0% month-on-month) versus an expected 0.1% rise. Core inflation was 0.9% year-on-year, and producer prices fell 2.9% year-on-year.",
       "urls": [

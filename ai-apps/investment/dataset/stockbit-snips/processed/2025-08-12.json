@@ -44,40 +44,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Top Gainer",
-      "content": "Top Gainers: $BBYB +22.22%, $RAJA +18.01%, $ARTO +10.00%, $TLKM +6.35%.",
-      "urls": [],
-      "primaryTickers": [
-        "BBYB",
-        "RAJA",
-        "ARTO",
-        "TLKM"
-      ],
-      "mentionedTickers": [
-        "BBYB",
-        "RAJA",
-        "ARTO",
-        "TLKM"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Losers: $ITMG -4.85%, $MDKA -4.60%, $SCMA -4.03%, $NCKL -4.00%.",
-      "urls": [],
-      "primaryTickers": [
-        "ITMG",
-        "MDKA",
-        "SCMA",
-        "NCKL"
-      ],
-      "mentionedTickers": [
-        "ITMG",
-        "MDKA",
-        "SCMA",
-        "NCKL"
-      ]
-    },
-    {
       "title": "7 Books to Raise Your Investment Analysis Level",
       "content": "Seven books are recommended to elevate your investment analysis, with the note that the books not only add knowledge but also shape thinking and improve the quality of investment decision-making, as quoted by parahitairawan on Stockbit.",
       "urls": [],

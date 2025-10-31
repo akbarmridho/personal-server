@@ -114,30 +114,6 @@
       "mentionedTickers": []
     },
     {
-      "title": "Top Gainer",
-      "content": "Top Gainer: $BRMS (+9.38 %), $RAJA (+5.77 %), $BRPT (+5.63 %), $PTPP (+5.16 %).",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "BRMS",
-        "RAJA",
-        "BRPT",
-        "PTPP"
-      ]
-    },
-    {
-      "title": "Top Loser",
-      "content": "Top Loser: $TPIA (-7.58 %), $ARTO (-6.93 %), $BTPS (-5.70 %), $GOTO (-5.56 %).",
-      "urls": [],
-      "primaryTickers": [],
-      "mentionedTickers": [
-        "TPIA",
-        "ARTO",
-        "BTPS",
-        "GOTO"
-      ]
-    },
-    {
       "title": "Persib Bandung Announces 2026 IPO Plan",
       "content": "Persib Bandung club president Glenn T. Sugita announced on Saturday (24/5) that the club is planning an IPO on the Indonesia Stock Exchange in 2026. If realized, Persib would become the second Indonesian football club listed on the exchange after Bali United, which listed through Bali Bintang Sejahtera ($BOLA).",
       "urls": [

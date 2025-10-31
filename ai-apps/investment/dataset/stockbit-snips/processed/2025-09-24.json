@@ -203,40 +203,6 @@
         "SPMA"
       ],
       "mentionedTickers": []
-    },
-    {
-      "title": "Top Gainer 24 September 2025",
-      "content": "Top Gainer: $TINS (+22.18%); $MNCN (+13.43%); $BRPT (+11.87%); $ENRG (+6.57%).",
-      "urls": [],
-      "primaryTickers": [
-        "TINS",
-        "MNCN",
-        "BRPT",
-        "ENRG"
-      ],
-      "mentionedTickers": [
-        "TINS",
-        "MNCN",
-        "BRPT",
-        "ENRG"
-      ]
-    },
-    {
-      "title": "Top Loser 24 September 2025",
-      "content": "Top Loser: $GGRM (-7.59%); $FILM (-7.02%); $MDKA (-6.94%); $SSIA (-6.70%).",
-      "urls": [],
-      "primaryTickers": [
-        "GGRM",
-        "FILM",
-        "MDKA",
-        "SSIA"
-      ],
-      "mentionedTickers": [
-        "GGRM",
-        "FILM",
-        "MDKA",
-        "SSIA"
-      ]
     }
   ]
 }
