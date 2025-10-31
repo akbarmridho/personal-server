@@ -42,7 +42,8 @@ export const processNewsletter = async (content: string) => {
 
   const result = await pRetry(
     async () => {
-      let systemPrompt = "Extract and translate financial news content. Read each news chunk to classify as 'market' (macro/indices/foreign flow/regulatory) or 'ticker' (focused on specific companies). For ticker news, extract primaryTickers (main subjects) and mentionedTickers (secondary references) from ticker symbols ($TICKER or 4-letter uppercase). Include only source URLs (news outlets, PDFs, reports). Translate to English if needed. Extract publishDate in YYYY-MM-DD format.";
+      let systemPrompt =
+        "Extract financial news from markdown. Each bullet point (•) is a SEPARATE news item - do NOT combine them. Classify as 'market' (macro/indices/foreign flow/regulatory) or 'ticker' (company-specific). For ticker news: extract primaryTickers (main subjects) and mentionedTickers (secondary) from $TICKER or 4-letter codes. CRITICAL: The 'content' field MUST contain the complete, full text from the source - NEVER use placeholders like '<Full translated content ...>' or summaries. Write out every single word and detail. Include only external source URLs (exclude emailer.stockbit.com tracking links). Translate to English if needed. Extract publishDate in YYYY-MM-DD format. Skip: daily performance, top gainers, top losers. Ticker news MUST have primaryTickers. Each bullet = one news object.";
 
       systemPrompt += `\n\nValid tickers: ${validTickers}`;
 
@@ -55,7 +56,7 @@ export const processNewsletter = async (content: string) => {
       }
 
       const { object } = await generateObject({
-        model: openrouter("openai/gpt-oss-120b"),
+        model: openrouter("openai/gpt-oss-120b:exacto"),
         system: systemPrompt,
         prompt: content,
         schema: Newsletter,

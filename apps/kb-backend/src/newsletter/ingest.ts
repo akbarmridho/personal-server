@@ -2,23 +2,25 @@ import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
 
 loadDotenv();
 
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { logger } from "@personal-server/common/utils/logger";
 import axios from "axios";
-import { processNewsletter } from "./extractor.js";
 
-const COLLECTION_ID = 1;
-const BASE_URL = "http://localhost:3000";
-
-const contents: string[] = [];
+const COLLECTION_ID = 3;
+const BASE_URL = "https://kb.akbarmr.dev";
 
 async function ingestNews() {
-  for (const content of contents) {
+  const inputDir = join(process.cwd(), "newsletter-data");
+  const files = await readdir(inputDir);
+  const jsonFiles = files.filter((f) => f.endsWith(".json"));
+
+  for (const file of jsonFiles) {
     try {
-      logger.info("Processing newsletter content");
+      logger.info({ file }, "Ingesting newsletter");
 
-      const extracted = await processNewsletter(content);
-
-      logger.info({ date: extracted.publishDate }, "Extracted newsletter data");
+      const content = await readFile(join(inputDir, file), "utf-8");
+      const extracted = JSON.parse(content);
 
       for (const news of extracted.marketNews) {
         logger.info({ title: news.title }, "Ingesting market news");
@@ -62,9 +64,9 @@ async function ingestNews() {
         logger.info({ title: news.title }, "Ticker news ingested");
       }
 
-      logger.info("Newsletter processing complete");
+      logger.info({ file }, "Newsletter ingestion complete");
     } catch (error) {
-      logger.error({ err: error }, "Failed to process newsletter");
+      logger.error({ err: error, file }, "Failed to ingest newsletter");
     }
   }
 }
