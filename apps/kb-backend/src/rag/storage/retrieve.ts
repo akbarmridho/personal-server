@@ -1,6 +1,7 @@
 import { parseDate } from "@personal-server/common/utils/date";
 import { logger } from "@personal-server/common/utils/logger";
 import { db, matchDocumentsHierarchical } from "../../db/db.js";
+import { removeKeysRecursive } from "../../stock/utils.js";
 import {
   type VoyageEmbeddingModel,
   VoyageEmbeddings,
@@ -241,7 +242,10 @@ export class HierarchicalRetriever {
       end_ts: end_date,
     };
 
-    logger.debug(params, "search func params");
+    logger.debug(
+      removeKeysRecursive(params, ["query_embedding", "hyde_embedding"]),
+      "search func params",
+    );
 
     // Call the database function with updated parameters including metadata filter
     const searches = await matchDocumentsHierarchical(params);
@@ -269,7 +273,7 @@ export class HierarchicalRetriever {
     const groupedByDocId = new Map<number, DocumentMapped[]>();
 
     searches.forEach((item) => {
-      const docId = item.document_id;
+      const docId = Number(item.document_id);
       if (!groupedByDocId.has(docId)) {
         groupedByDocId.set(docId, []);
       }
@@ -279,7 +283,7 @@ export class HierarchicalRetriever {
           pageContent: item.content,
           metadata: {
             id: item.id,
-            documentId: item.document_id,
+            documentId: Number(item.document_id),
             similarity: item.similarity,
           },
         });
@@ -330,12 +334,33 @@ export class HierarchicalRetriever {
         const totalChunks = maxChunkIndexValue + 1;
         const percentage = uniqueChunkIndexes.size / totalChunks;
 
+        logger.debug(
+          {
+            documentId,
+            uniqueChunks: uniqueChunkIndexes.size,
+            totalChunks,
+            percentage,
+            majorityThreshold,
+            willFetchFull: percentage >= majorityThreshold,
+          },
+          "Checking full document threshold",
+        );
+
         // If we have >= threshold percentage, fetch full document
         if (percentage >= majorityThreshold) {
           documentsNeedingFullContent.add(documentId);
         }
       }
     }
+
+    logger.debug(
+      {
+        documentsNeedingFullContent: Array.from(documentsNeedingFullContent),
+        shouldUseFullDocumentWhenMajority,
+        majorityThreshold,
+      },
+      "Documents needing full content",
+    );
 
     // Fetch full document content if needed
     const documentContentMap = new Map<number, string>();
