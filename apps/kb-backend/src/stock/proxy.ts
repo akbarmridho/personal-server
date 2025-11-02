@@ -1,31 +1,18 @@
 import axios from "axios";
+import { HttpProxyAgent } from "http-proxy-agent";
 import { fetch as nativeFetch } from "node-fetch-native";
-import { createProxy } from "node-fetch-native/proxy";
-import { SocksProxyAgent } from "socks-proxy-agent";
+import { createFetch } from "node-fetch-native/proxy";
 import { env } from "../env.js";
 
-export const stockProxyAgent = env.STOCK_SOCKS_PROXY_URL
-  ? new SocksProxyAgent(env.STOCK_SOCKS_PROXY_URL)
+export const stockProxyAgent = env.STOCK_HTTP_PROXY_URL
+  ? new HttpProxyAgent(env.STOCK_HTTP_PROXY_URL)
   : null;
 
-export const proxiedFetch = (
-  input: string | URL | globalThis.Request,
-  init?: RequestInit,
-): Promise<Response> => {
-  let opts = {
-    ...init,
-  };
-
-  if (env.STOCK_SOCKS_PROXY_URL) {
-    const nativeFetchProxy = createProxy({ url: env.STOCK_SOCKS_PROXY_URL });
-    opts = {
-      ...opts,
-      ...nativeFetchProxy,
-    };
-  }
-
-  return nativeFetch(input, opts);
-};
+export const proxiedFetch = env.STOCK_HTTP_PROXY_URL
+  ? createFetch({
+      url: env.STOCK_HTTP_PROXY_URL,
+    })
+  : nativeFetch;
 
 export const proxiedAxios = stockProxyAgent
   ? axios.create({
