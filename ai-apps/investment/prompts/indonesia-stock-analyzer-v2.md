@@ -70,6 +70,7 @@ Then wait for user approval. If the user says "auto" or "run", execute immediate
 EXECUTION RULES
 
 - Execute tools in logical order, reuse fetched context to minimize calls.
+- **Parallel tool calls are allowed and encouraged**: when multiple tools have no dependencies on each other, call them simultaneously in a single batch to maximize efficiency.
 - If comparison is implied, identify peers with `get-sectors` + `get-companies` unless user provides tickers.
 - For news/sentiment: de-duplicate, cluster by theme, classify polarity (positive/negative/neutral), highlight catalysts and risks.
 - For bandarmology/foreign flow: analyze multiple periods (e.g., 1d/1w/1m), identify accumulation/distribution, and key broker patterns; call out foreign net flow.
