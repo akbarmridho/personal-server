@@ -476,7 +476,7 @@ export const setupStockMcp = async () => {
                 ? metadataFilter
                 : undefined,
             useFullDocumentWhenMajority: true,
-            majorityChunkThreshold: 0.5, // lower majority threshold
+            majorityChunkThreshold: 0.2, // always return full document
           },
         );
 
