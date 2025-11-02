@@ -76,6 +76,7 @@ export class VectorStore {
       summary_embedding_input: docSummary.summaryEmbedding,
       hierarchy_path_input: document.hierarchy_path,
       metadata_input: document.metadata,
+      document_ts_input: document.document_ts,
     });
 
     try {
@@ -143,7 +144,10 @@ export class VectorStore {
       }
     }
 
-    if (options?.metadataFilter && Object.keys(options.metadataFilter).length > 0) {
+    if (
+      options?.metadataFilter &&
+      Object.keys(options.metadataFilter).length > 0
+    ) {
       for (const [key, value] of Object.entries(options.metadataFilter)) {
         query = query.where("metadata", "@>", JSON.stringify({ [key]: value }));
       }
