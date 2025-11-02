@@ -1,7 +1,7 @@
-import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonValue } from "../../db/types.js";
+import { proxiedAxios } from "../proxy.js";
 import { dateToFormatted } from "../utils.js";
 import {
   type BaseStockbitResponse,
@@ -26,7 +26,7 @@ export const getMarketDetector = async (input: {
         throw new StockbitAuthError("Stockbit auth not found");
       }
 
-      const response = await axios.get(
+      const response = await proxiedAxios.get(
         `https://exodus.stockbit.com/marketdetectors/${input.ticker}?from=${fromFormatted}&to=${toFormatted}&transaction_type=TRANSACTION_TYPE_NET&market_board=MARKET_BOARD_REGULER&investor_type=INVESTOR_TYPE_ALL&limit=25`,
         {
           headers: {

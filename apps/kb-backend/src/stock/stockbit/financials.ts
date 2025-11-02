@@ -1,4 +1,3 @@
-import axios from "axios";
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
@@ -7,6 +6,7 @@ import {
   formatHtml,
   htmlToMarkdown,
 } from "../../rag/file-converters/html-to-md-converter.js";
+import { proxiedAxios } from "../proxy.js";
 import {
   type BaseStockbitResponse,
   StockbitAuthError,
@@ -215,7 +215,7 @@ export const getFinancials = async (input: {
         throw new StockbitAuthError("Stockbit auth not found");
       }
 
-      const response = await axios.get(
+      const response = await proxiedAxios.get(
         `https://exodus.stockbit.com/findata-view/company/financial?symbol=${input.ticker}&data_type=1&report_type=${mapper.reportType[input.reportType]}&statement_type=${mapper.statementType[input.statementType]}`,
         {
           headers: {

@@ -1,6 +1,6 @@
-import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
+import { proxiedAxios } from "../proxy.js";
 import {
   type BaseStockbitResponse,
   StockbitAuthError,
@@ -123,7 +123,7 @@ export const getInsiderActivity = async (input: {
       const maxPage = input.maxPage ? input.maxPage : 5;
 
       while (true) {
-        const response = await axios.get(
+        const response = await proxiedAxios.get(
           `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.ticker}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
           {
             headers: {

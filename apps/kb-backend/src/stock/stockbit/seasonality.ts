@@ -1,7 +1,7 @@
-import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonObject, JsonValue } from "../../db/types.js";
+import { proxiedAxios } from "../proxy.js";
 import { StockbitAuthError, stockbitAuth } from "./auth.js";
 
 export interface Seasonality {
@@ -61,7 +61,7 @@ export const getStockSeasonality = async (
         throw new StockbitAuthError("Stockbit auth not found");
       }
 
-      const response = await axios.get(
+      const response = await proxiedAxios.get(
         `https://exodus.stockbit.com/seasonality/${ticker}?year=${year}&back_year=5`,
         {
           headers: {

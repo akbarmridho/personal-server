@@ -1,7 +1,7 @@
-import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonValue } from "../../db/types.js";
+import { proxiedAxios } from "../proxy.js";
 import { dateToFormatted } from "../utils.js";
 import {
   type BaseStockbitResponse,
@@ -124,7 +124,7 @@ export const getChartbitData = async (input: {
       }
 
       // somehow stockbit swap the from and to date filtering logic. not sure why they did this
-      const response = await axios.get(
+      const response = await proxiedAxios.get(
         `https://exodus.stockbit.com/chartbit/${input.ticker}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
         {
           headers: {

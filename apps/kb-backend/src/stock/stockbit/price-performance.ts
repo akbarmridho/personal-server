@@ -1,7 +1,7 @@
-import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonValue } from "../../db/types.js";
+import { proxiedAxios } from "../proxy.js";
 import { StockbitAuthError, stockbitAuth } from "./auth.js";
 
 export interface PricePerformance {
@@ -22,7 +22,7 @@ export const getPricePerformance = async (ticker: string) => {
         throw new StockbitAuthError("Stockbit auth not found");
       }
 
-      const response = await axios.get(
+      const response = await proxiedAxios.get(
         `https://exodus.stockbit.com/company-price-feed/price-performance/${ticker}`,
         {
           headers: {

@@ -1,6 +1,7 @@
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { KV } from "../../db/kv.js";
 import type { JsonObject } from "../../db/types.js";
+import { proxiedAxios } from "../proxy.js";
 
 export interface AuthData {
   // refreshToken: string;
@@ -55,7 +56,7 @@ export class StockbitAuth {
     }
 
     try {
-      await axios.get("https://exodus.stockbit.com/emitten/IHSG/info", {
+      await proxiedAxios.get("https://exodus.stockbit.com/emitten/IHSG/info", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.authData.accessToken}`,

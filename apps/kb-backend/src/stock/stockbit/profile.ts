@@ -1,7 +1,7 @@
-import axios from "axios";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonObject, JsonValue } from "../../db/types.js";
+import { proxiedAxios } from "../proxy.js";
 import { removeKeysRecursive } from "../utils.js";
 import { StockbitAuthError, stockbitAuth } from "./auth.js";
 
@@ -15,7 +15,7 @@ export const getStockProfile = async (ticker: string) => {
         throw new StockbitAuthError("Stockbit auth not found");
       }
 
-      const response = await axios.get(
+      const response = await proxiedAxios.get(
         `https://exodus.stockbit.com/emitten/${ticker}/profile`,
         {
           headers: {
