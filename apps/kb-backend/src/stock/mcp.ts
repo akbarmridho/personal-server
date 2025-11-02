@@ -21,11 +21,14 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+import { getWeeklyMoodData } from "./news-summary/weekly-mood.js";
 import { getCommoditySummary } from "./other-prices/commodity.js";
 import {
   getForexSummary,
   type PriceSummaryData,
 } from "./other-prices/forex.js";
+
+const investmentNewsCollectionId = 3;
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -448,13 +451,16 @@ export const setupStockMcp = async () => {
           metadata.mentionedTickers = [validatedTicker];
         }
 
-        const docs = await vectorStore.getDocuments(1, {
-          daysBack: args.daysAgo,
-          from: args.startDate,
-          to: args.endDate,
-          metadataFilter: metadata,
-          fullContent: true,
-        });
+        const docs = await vectorStore.getDocuments(
+          investmentNewsCollectionId,
+          {
+            daysBack: args.daysAgo,
+            from: args.startDate,
+            to: args.endDate,
+            metadataFilter: metadata,
+            fullContent: true,
+          },
+        );
 
         logger.info({ count: docs.length }, "Get market news completed");
         return { type: "text", text: yaml.dump(docs) };
@@ -495,18 +501,49 @@ export const setupStockMcp = async () => {
           primaryTickers: [validatedTicker],
         };
 
-        const docs = await vectorStore.getDocuments(1, {
-          daysBack: args.daysAgo,
-          from: args.startDate,
-          to: args.endDate,
-          metadataFilter: metadata,
-          fullContent: true,
-        });
+        const docs = await vectorStore.getDocuments(
+          investmentNewsCollectionId,
+          {
+            daysBack: args.daysAgo,
+            from: args.startDate,
+            to: args.endDate,
+            metadataFilter: metadata,
+            fullContent: true,
+          },
+        );
 
         logger.info({ count: docs.length }, "Get ticker news completed");
         return { type: "text", text: yaml.dump(docs) };
       } catch (error) {
         logger.error({ error, args }, "Get ticker news failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-weekly-mood",
+    description:
+      "Returns weekly market mood summaries sorted by date descending.",
+    parameters: z.object({
+      count: z.number().describe("Number of weekly mood entries to retrieve"),
+    }),
+    execute: async (args) => {
+      logger.info({ count: args.count }, "Executing get-weekly-mood");
+      try {
+        const data = await getWeeklyMoodData(args.count);
+        logger.info({ count: data.length }, "Get weekly mood completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, args }, "Get weekly mood failed");
         return {
           content: [
             {

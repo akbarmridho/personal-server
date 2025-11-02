@@ -10,6 +10,7 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+import { mergeWeeklyMoodData } from "./news-summary/weekly-mood.js";
 import { getCommoditySummary } from "./other-prices/commodity.js";
 import { getForexSummary } from "./other-prices/forex.js";
 import { stockbitAuth } from "./stockbit/auth.js";
@@ -278,7 +279,30 @@ export const setupStockRoutes = () =>
         set.status = 500;
         return { success: false, error: (err as Error).message };
       }
-    });
+    })
+    .post(
+      "/weekly-mood/merge",
+      async ({ body, set }) => {
+        try {
+          await mergeWeeklyMoodData(body.data);
+          return { success: true };
+        } catch (err) {
+          logger.error({ err }, "Merge weekly mood failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        body: t.Object({
+          data: t.Array(
+            t.Object({
+              date: t.String(),
+              content: t.String(),
+            }),
+          ),
+        }),
+      },
+    );
 // .post("/stockbit-auth/refresh", async ({ set }) => {
 //   try {
 //     await stockbitAuth.refresh();
