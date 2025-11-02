@@ -500,14 +500,11 @@ export const setupStockMcp = async () => {
     name: "get-market-summary",
     description:
       "Returns weekly market mood summaries and recent market news from the last 10 days.",
-    parameters: z.object({
-      count: z.number().describe("Number of weekly mood entries to retrieve"),
-    }),
     execute: async (args) => {
-      logger.info({ count: args.count }, "Executing get-market-summary");
+      logger.info("Executing get-market-summary");
       try {
         const [weeklyMood, recentNews] = await Promise.all([
-          getWeeklyMoodData(args.count),
+          getWeeklyMoodData(8),
           vectorStore.getDocuments(investmentNewsCollectionId, {
             from: dayjs().subtract(10, "day").format("YYYY-MM-DD"),
             to: dayjs().format("YYYY-MM-DD"),
