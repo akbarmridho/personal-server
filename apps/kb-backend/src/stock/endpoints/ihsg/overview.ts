@@ -4,9 +4,12 @@ import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getStockSeasonality } from "../../stockbit/seasonality.js";
 import {
   calculateADX,
+  calculateATR,
+  calculateBBANDS,
   calculateIchimoku,
   calculateMACD,
   calculateOBV,
+  calculateRSI,
   calculateSMA,
   calculateVolumeProfile,
   calculateZigZag,
@@ -48,24 +51,34 @@ export const getIHSGOverview = async () => {
       market_status: emittenInfo.market_hour?.status,
       time_left: emittenInfo.market_hour?.formatted_time_left,
     },
-    price_1w: sortedAsc.slice(-5).reverse(),
-    seasonality,
-    zigzag: {
-      period_3y_sample_weekly: calculateZigZag(
-        downsampleToWeekly(sortedAsc),
-        20,
-      ),
-      period_3m_sample_daily: calculateZigZag(sortedAsc.slice(-60)),
+    price: {
+      recent_weekly: sortedAsc.slice(-5).reverse(),
+      seasonality,
+      zigzag: {
+        weekly_3y: calculateZigZag(downsampleToWeekly(sortedAsc), 20),
+        daily_3m: calculateZigZag(sortedAsc.slice(-60)),
+      },
     },
     technical: {
-      sma50: calculateSMA(chartbit, 50),
-      sma200: calculateSMA(chartbit, 200),
-      adx14: calculateADX(chartbit, 14),
-      macd_12_26_9: calculateMACD(chartbit, 12, 26, 9),
-      obv: calculateOBV(chartbit),
-      volume_profile_3m: calculateVolumeProfile(chartbit, "3m"),
-      ichimoku_cloud: calculateIchimoku(chartbit),
-      candlestick_patterns: scanForRecentPatterns(chartbit),
+      trend: {
+        sma50: calculateSMA(chartbit, 50),
+        sma200: calculateSMA(chartbit, 200),
+        ichimoku_cloud: calculateIchimoku(chartbit),
+      },
+      momentum: {
+        adx14: calculateADX(chartbit, 14),
+        macd_12_26_9: calculateMACD(chartbit, 12, 26, 9),
+        rsi14: calculateRSI(chartbit, 14),
+      },
+      volume: {
+        obv: calculateOBV(chartbit),
+        volume_profile_3m: calculateVolumeProfile(chartbit, "3m"),
+      },
+      volatility: {
+        atr14: calculateATR(chartbit, 14),
+        bollinger_bands_20_2: calculateBBANDS(chartbit),
+      },
     },
+    candlestick_patterns: scanForRecentPatterns(chartbit),
   };
 };
