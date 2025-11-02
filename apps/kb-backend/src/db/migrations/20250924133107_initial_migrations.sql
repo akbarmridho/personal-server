@@ -267,7 +267,7 @@ BEGIN
             AND (
                 (1 - (d.summary_embedding <=> query_embedding)) > similarity_threshold
                 OR
-                d.content &@~ query_text
+                d.content &@* query_text
             )
         LIMIT doc_search_limit
     ),
@@ -287,7 +287,7 @@ BEGIN
             -- Semantic score (cosine similarity using hyde embedding)
             (1 - (c.embedding <=> hyde_embedding))::double precision AS semantic_score,
             -- Keyword score (0 if no match, otherwise raw PGroonga score)
-            CASE WHEN c.content &@~ query_text THEN
+            CASE WHEN c.content &@* query_text THEN
                 pgroonga_score(c.tableoid, c.ctid)::double precision
             ELSE 0::double precision END AS keyword_raw_score
         FROM document_chunks c
@@ -298,7 +298,7 @@ BEGIN
           -- but ensures chunks that didn't match the *document* filter criteria can still be included
           -- if they individually match the *chunk* filter criteria.
           AND ((1 - (c.embedding <=> hyde_embedding)) > similarity_threshold
-               OR c.content &@~ query_text)
+               OR c.content &@* query_text)
     ),
 
     -- Get score statistics for normalization

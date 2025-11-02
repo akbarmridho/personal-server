@@ -1,7 +1,10 @@
 import { parseDate } from "@personal-server/common/utils/date";
 import { logger } from "@personal-server/common/utils/logger";
 import { db, matchDocumentsHierarchical } from "../../db/db.js";
-import { VoyageEmbeddings } from "../embeddings/voyage-embeddings.js";
+import {
+  type VoyageEmbeddingModel,
+  VoyageEmbeddings,
+} from "../embeddings/voyage-embeddings.js";
 
 // Extended search parameters
 export interface HierachicalSearchParams {
@@ -89,7 +92,7 @@ export class HierarchicalRetriever {
   private defaultSimilarityThreshold: number;
   private useFullDocumentWhenMajority: boolean;
   private majorityChunkThreshold: number;
-  private embeddings = new VoyageEmbeddings();
+  private readonly embeddings: Map<string, VoyageEmbeddings> = new Map();
 
   constructor(args: RetrieverArgs) {
     this.docSearchLimit = args.docSearchLimit ?? 128;
@@ -101,6 +104,30 @@ export class HierarchicalRetriever {
     this.defaultSimilarityThreshold = args.defaultSimilarityThreshold ?? 0.3;
     this.useFullDocumentWhenMajority = args.useFullDocumentWhenMajority ?? true;
     this.majorityChunkThreshold = args.majorityChunkThreshold ?? 0.75; // Default to 75%
+  }
+
+  private getEmbedding(model: string): VoyageEmbeddings {
+    if (this.embeddings.has(model)) {
+      return this.embeddings.get(model)!;
+    }
+
+    const embeddings = new VoyageEmbeddings({
+      model: model as VoyageEmbeddingModel,
+    });
+
+    this.embeddings.set(model, embeddings);
+
+    return embeddings;
+  }
+
+  private async getEmbeddingFromCollection(collection_id: number) {
+    const collection = await db
+      .selectFrom("collections")
+      .where("id", "=", collection_id.toString())
+      .selectAll()
+      .executeTakeFirstOrThrow();
+
+    return collection.embedding;
   }
 
   /**
@@ -156,8 +183,13 @@ export class HierarchicalRetriever {
       { query, hydeDoc, collection_id, searchParams },
       "hierarchicalSearch",
     );
+
+    const embeddings = this.getEmbedding(
+      await this.getEmbeddingFromCollection(collection_id),
+    );
+
     const [queryEmbedding, hydeEmbedding] =
-      await this.embeddings.embedMultipleQueries([query, hydeDoc]);
+      await embeddings.embedMultipleQueries([query, hydeDoc]);
 
     // Continue with existing implementation - these params remain the same
     const embeddingWeight =
