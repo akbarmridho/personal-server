@@ -419,7 +419,7 @@ export const setupStockMcp = async () => {
         .enum(["market", "ticker"])
         .optional()
         .describe(
-          "Filter by news type: 'market' for macro/sector news, 'ticker' for company-specific news",
+          "Filter by news type: 'market' for macro/sector news, 'ticker' for company-specific news. Leave it empty for both.",
         ),
       daysAgo: z.number().optional().describe("Get news from N days ago"),
       startDate: z
