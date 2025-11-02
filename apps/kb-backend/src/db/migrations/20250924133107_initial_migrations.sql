@@ -209,7 +209,8 @@ BEGIN
     RETURN QUERY
     -- Stage 1: Find candidate documents (no scoring, just filtering)
     -- Uses indexes: idx_documents_summary_embedding (HNSW), idx_documents_content_pgroonga
-    WITH document_candidates AS MATERIALIZED (
+    -- Split into vector and keyword searches to ensure proper index usage
+    WITH vector_docs AS (
         SELECT
             d.id AS doc_id
         FROM documents d
@@ -264,17 +265,70 @@ BEGIN
             )
             -- Simple boolean filter: match either vector similarity OR text search.
             -- The planner will attempt to use indexes for both parts of the OR.
+            AND (1 - (d.summary_embedding <=> query_embedding)) > similarity_threshold
+    ),
+    
+    keyword_docs AS (
+        SELECT d.id AS doc_id
+        FROM documents d
+        WHERE d.collection_id = collection_id_input
+            AND (exclude_document_ids IS NULL OR NOT (d.id = ANY(exclude_document_ids)))
+            AND (start_ts IS NULL OR d.document_ts >= start_ts)
+            AND (end_ts IS NULL OR d.document_ts <= end_ts)
             AND (
-                (1 - (d.summary_embedding <=> query_embedding)) > similarity_threshold
+                metadata_filter IS NULL
                 OR
-                d.content &@* query_text
+                (
+                    (SELECT bool_and(
+                        CASE
+                            WHEN d.metadata->key IS NULL THEN 
+                                NOT strict_metadata_matching
+                            WHEN jsonb_typeof(d.metadata->key) = 'boolean' AND jsonb_typeof(value) = 'string' THEN
+                                CASE 
+                                    WHEN (value#>>'{}'= 'true' AND (d.metadata->key)::boolean = true) OR
+                                         (value#>>'{}'= 'false' AND (d.metadata->key)::boolean = false) THEN true
+                                    ELSE false
+                                END
+                            WHEN jsonb_typeof(d.metadata->key) = 'string' AND jsonb_typeof(value) = 'boolean' THEN
+                                CASE 
+                                    WHEN ((d.metadata->>key) = 'true' AND value::boolean = true) OR
+                                         ((d.metadata->>key) = 'false' AND value::boolean = false) THEN true
+                                    ELSE false
+                                END
+                            WHEN jsonb_typeof(value) = 'array' THEN
+                                (d.metadata->key IS NOT NULL AND 
+                                 (
+                                     (jsonb_typeof(d.metadata->key) != 'array' AND
+                                      d.metadata->>key = ANY(ARRAY(SELECT jsonb_array_elements_text(value))))
+                                     OR
+                                     (jsonb_typeof(d.metadata->key) = 'array' AND
+                                      d.metadata->key ?| ARRAY(SELECT jsonb_array_elements_text(value)))
+                                 )
+                                )
+                            ELSE
+                                d.metadata->key IS NOT NULL AND d.metadata->key @> value
+                        END
+                    ) FROM jsonb_each(metadata_filter))
+                )
             )
+            -- Keyword score (0 if no match, otherwise raw PGroonga score)
+            AND d.content &@* query_text
+    ),
+
+    document_candidates AS MATERIALIZED (
+        SELECT DISTINCT combined_docs.doc_id
+        FROM (
+            SELECT doc_id FROM vector_docs
+            UNION ALL
+            SELECT doc_id FROM keyword_docs
+        ) AS combined_docs
         LIMIT doc_search_limit
     ),
 
     -- Stage 2: Score chunks from candidate documents
-    -- Uses indexes: idx_document_chunks_embedding (HNSW), idx_document_chunks_content_pgroonga
-    chunk_scores AS MATERIALIZED (
+    -- Split into vector and keyword searches to safely use pgroonga_score
+    
+    vector_chunks AS (
         SELECT
             c.id,
             c.content,
@@ -286,19 +340,54 @@ BEGIN
             c.max_chunk_index,
             -- Semantic score (cosine similarity using hyde embedding)
             (1 - (c.embedding <=> hyde_embedding))::double precision AS semantic_score,
-            -- Keyword score (0 if no match, otherwise raw PGroonga score)
-            CASE WHEN c.content &@* query_text THEN
-                pgroonga_score(c.tableoid, c.ctid)::double precision
-            ELSE 0::double precision END AS keyword_raw_score
+            0::double precision AS keyword_raw_score
         FROM document_chunks c
         JOIN documents d ON c.document_id = d.id
-        -- Only join chunks whose documents were selected in Stage 1
         WHERE c.document_id IN (SELECT doc_id FROM document_candidates)
+          AND (1 - (c.embedding <=> hyde_embedding)) > similarity_threshold
+    ),
           -- Filter chunks based on similarity OR text match. This might re-evaluate some conditions,
           -- but ensures chunks that didn't match the *document* filter criteria can still be included
           -- if they individually match the *chunk* filter criteria.
-          AND ((1 - (c.embedding <=> hyde_embedding)) > similarity_threshold
-               OR c.content &@* query_text)
+    keyword_chunks AS (
+        SELECT
+            c.id,
+            c.content,
+            d.title,
+            d.metadata,
+            d.hierarchy_path,
+            c.document_id,
+            c.chunk_index,
+            c.max_chunk_index,
+            (1 - (c.embedding <=> hyde_embedding))::double precision AS semantic_score,
+            pgroonga_score(c.tableoid, c.ctid)::double precision AS keyword_raw_score
+        FROM document_chunks c
+        JOIN documents d ON c.document_id = d.id
+        WHERE c.document_id IN (SELECT doc_id FROM document_candidates)
+          AND c.content &@* query_text
+    ),
+
+    chunk_scores AS MATERIALIZED (
+        SELECT 
+            combined_chunks.id,
+            combined_chunks.content,
+            combined_chunks.title,
+            combined_chunks.metadata,
+            combined_chunks.hierarchy_path,
+            combined_chunks.document_id,
+            combined_chunks.chunk_index,
+            combined_chunks.max_chunk_index,
+            MAX(combined_chunks.semantic_score) AS semantic_score,
+            MAX(combined_chunks.keyword_raw_score) AS keyword_raw_score
+        FROM (
+            SELECT * FROM vector_chunks
+            UNION ALL
+            SELECT * FROM keyword_chunks
+        ) AS combined_chunks
+        GROUP BY 
+            combined_chunks.id, combined_chunks.content, combined_chunks.title, 
+            combined_chunks.metadata, combined_chunks.hierarchy_path, 
+            combined_chunks.document_id, combined_chunks.chunk_index, combined_chunks.max_chunk_index
     ),
 
     -- Get score statistics for normalization
