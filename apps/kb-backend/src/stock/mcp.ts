@@ -1,4 +1,5 @@
 import { logger } from "@personal-server/common/utils/logger";
+import dayjs from "dayjs";
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
@@ -408,86 +409,78 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "search-news",
     description:
-      "Search investment news using semantic search or filtering. Covers market news (IHSG, regulations, foreign flow) and company-specific news. Use query for semantic search, ticker for filtering, or newsType to filter by type.",
+      "Search investment news using semantic search. Covers market news (IHSG, regulations, foreign flow) and company-specific news.",
     parameters: z.object({
-      query: z.string().optional().describe("Semantic search query"),
-      ticker: z
-        .string()
-        .optional()
-        .describe("Filter by ticker symbol (for company-specific news)"),
-      newsType: z
-        .enum(["market", "ticker"])
-        .optional()
-        .describe(
-          "Filter by news type: 'market' for macro/sector news, 'ticker' for company-specific news. Leave it empty for both.",
-        ),
-      daysAgo: z.number().optional().describe("Get news from N days ago"),
+      query: z.string().describe("Semantic search query"),
+      hydeQuery: z.string().describe("Hypothetical answer for search"),
       startDate: z
         .string()
         .optional()
         .describe("Start date in YYYY-MM-DD format"),
       endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
+      metadata: z
+        .object({
+          type: z
+            .enum(["market", "ticker"])
+            .optional()
+            .describe(
+              "Filter by news type: 'market' for macro/sector news, 'ticker' for company-specific news. Leave it empmty for any match.",
+            ),
+          primaryTickers: z
+            .string()
+            .array()
+            .optional()
+            .describe("Filter by primary ticker symbols"),
+          mentionedTickers: z
+            .string()
+            .array()
+            .optional()
+            .describe("Filter by mentioned ticker symbols"),
+        })
+        .optional()
+        .describe("Metadata filters for news"),
     }),
     execute: async (args) => {
       logger.info({ args }, "Executing search-news");
       try {
-        // Semantic search path
-        if (args.query) {
-          const metadataFilter: Record<string, any> = {};
-          if (args.ticker) {
-            const validatedTicker = await checkTicker(args.ticker);
-            metadataFilter.primaryTickers = [validatedTicker];
+        const metadataFilter: Record<string, any> = {};
+
+        if (args.metadata) {
+          if (args.metadata.type) {
+            metadataFilter.type = args.metadata.type;
           }
-          if (args.newsType) {
-            metadataFilter.type = args.newsType;
+          if (args.metadata.primaryTickers) {
+            const validated = await Promise.all(
+              args.metadata.primaryTickers.map((t) => checkTicker(t)),
+            );
+            metadataFilter.primaryTickers = validated;
           }
-
-          const results = await retriever.hierarchicalSearch(
-            args.query,
-            args.query,
-            investmentNewsCollectionId,
-            {
-              start_date: args.startDate,
-              end_date: args.endDate,
-              metadataFilter:
-                Object.keys(metadataFilter).length > 0
-                  ? metadataFilter
-                  : undefined,
-            },
-          );
-
-          logger.info({ count: results.length }, "Search news completed");
-          return { type: "text", text: yaml.dump(results) };
-        }
-
-        // Filter-only path
-        const metadata: Record<string, any> = {};
-        if (args.ticker) {
-          const validatedTicker = await checkTicker(args.ticker);
-          metadata.type = "ticker";
-          metadata.primaryTickers = [validatedTicker];
-        } else if (args.newsType) {
-          metadata.type = args.newsType;
-          if (args.newsType === "market" && args.ticker) {
-            const validatedTicker = await checkTicker(args.ticker);
-            metadata.mentionedTickers = [validatedTicker];
+          if (args.metadata.mentionedTickers) {
+            const validated = await Promise.all(
+              args.metadata.mentionedTickers.map((t) => checkTicker(t)),
+            );
+            metadataFilter.mentionedTickers = validated;
           }
         }
 
-        const docs = await vectorStore.getDocuments(
+        const results = await retriever.hierarchicalSearch(
+          args.query,
+          args.hydeQuery,
           investmentNewsCollectionId,
           {
-            daysBack: args.daysAgo,
-            from: args.startDate,
-            to: args.endDate,
+            start_date: args.startDate,
+            end_date: args.endDate,
             metadataFilter:
-              Object.keys(metadata).length > 0 ? metadata : undefined,
-            fullContent: true,
+              Object.keys(metadataFilter).length > 0
+                ? metadataFilter
+                : undefined,
+            useFullDocumentWhenMajority: true,
+            majorityChunkThreshold: 0.5, // lower majority threshold
           },
         );
 
-        logger.info({ count: docs.length }, "Search news completed");
-        return { type: "text", text: yaml.dump(docs) };
+        logger.info({ count: results.length }, "Search news completed");
+        return { type: "text", text: yaml.dump(results) };
       } catch (error) {
         logger.error({ error, args }, "Search news failed");
         return {
@@ -504,20 +497,35 @@ export const setupStockMcp = async () => {
   });
 
   server.addTool({
-    name: "get-weekly-mood",
+    name: "get-market-summary",
     description:
-      "Returns weekly market mood summaries sorted by date descending.",
+      "Returns weekly market mood summaries and recent market news from the last 10 days.",
     parameters: z.object({
       count: z.number().describe("Number of weekly mood entries to retrieve"),
     }),
     execute: async (args) => {
-      logger.info({ count: args.count }, "Executing get-weekly-mood");
+      logger.info({ count: args.count }, "Executing get-market-summary");
       try {
-        const data = await getWeeklyMoodData(args.count);
-        logger.info({ count: data.length }, "Get weekly mood completed");
+        const [weeklyMood, recentNews] = await Promise.all([
+          getWeeklyMoodData(args.count),
+          vectorStore.getDocuments(investmentNewsCollectionId, {
+            from: dayjs().subtract(10, "day").format("YYYY-MM-DD"),
+            to: dayjs().format("YYYY-MM-DD"),
+            metadataFilter: { type: "market" },
+            fullContent: true,
+          }),
+        ]);
+
+        const newsFiltered = recentNews.slice(0, 30); // limit to 30 just in case
+
+        const data = { weeklyMood, recentNews: newsFiltered };
+        logger.info(
+          { moodCount: weeklyMood.length, newsCount: newsFiltered.length },
+          "Get market summary completed",
+        );
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, args }, "Get weekly mood failed");
+        logger.error({ error, args }, "Get market summary failed");
         return {
           content: [
             {
