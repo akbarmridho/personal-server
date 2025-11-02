@@ -354,9 +354,9 @@ export function calculateBBANDS(
   for (const candle of sortedData) {
     bbands.add(candle.close);
 
-    const data = bbands.getResultOrThrow();
-
     if (bbands.isStable) {
+      const data = bbands.getResultOrThrow();
+
       allResults.push({
         date: candle.date,
         lower: data.lower,

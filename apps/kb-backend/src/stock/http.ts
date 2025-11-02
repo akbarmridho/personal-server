@@ -10,7 +10,10 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { mergeWeeklyMoodData } from "./news-summary/weekly-mood.js";
+import {
+  getWeeklyMoodData,
+  mergeWeeklyMoodData,
+} from "./news-summary/weekly-mood.js";
 import { getCommoditySummary } from "./other-prices/commodity.js";
 import { getForexSummary } from "./other-prices/forex.js";
 import { stockbitAuth } from "./stockbit/auth.js";
@@ -200,9 +203,9 @@ export const setupStockRoutes = () =>
     })
     .get(
       "/forex",
-      async ({ params, set }) => {
+      async ({ query, set }) => {
         try {
-          const data = await getForexSummary(params.currency);
+          const data = await getForexSummary(query.currency);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get forex failed");
@@ -211,7 +214,7 @@ export const setupStockRoutes = () =>
         }
       },
       {
-        params: t.Object({
+        query: t.Object({
           currency: t.Union([
             t.Literal("USD"),
             t.Literal("CNY"),
@@ -224,9 +227,9 @@ export const setupStockRoutes = () =>
     )
     .get(
       "/commodity",
-      async ({ params, set }) => {
+      async ({ query, set }) => {
         try {
-          const data = await getCommoditySummary(params.commodity);
+          const data = await getCommoditySummary(query.commodity);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get commodity failed");
@@ -235,7 +238,7 @@ export const setupStockRoutes = () =>
         }
       },
       {
-        params: t.Object({
+        query: t.Object({
           commodity: t.Union([
             t.Literal("GOLD"),
             t.Literal("SILVER"),
@@ -280,6 +283,28 @@ export const setupStockRoutes = () =>
         return { success: false, error: (err as Error).message };
       }
     })
+    .get(
+      "/weekly-mood",
+      async ({ set }) => {
+        try {
+          return { success: true, data: await getWeeklyMoodData(100) };
+        } catch (err) {
+          logger.error({ err }, "Get weekly mood failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        body: t.Object({
+          data: t.Array(
+            t.Object({
+              date: t.String(),
+              content: t.String(),
+            }),
+          ),
+        }),
+      },
+    )
     .post(
       "/weekly-mood/merge",
       async ({ body, set }) => {
