@@ -26,7 +26,7 @@ const COLLECTION_ID = 3;
 const BASE_URL = "https://kb.akbarmr.dev";
 
 async function ingestNews() {
-  const inputDir = join(process.cwd(), "newsletter-data");
+  const inputDir = join(process.cwd(), "newsletter-snips");
 
   const checkExists = async (title: string) => {
     const res = await axios.get(
