@@ -29,6 +29,7 @@ import {
   getForexSummary,
   type PriceSummaryData,
 } from "./other-prices/forex.js";
+import { removeKeysRecursive } from "./utils.js";
 
 const investmentNewsCollectionId = 3;
 
@@ -479,8 +480,23 @@ export const setupStockMcp = async () => {
           },
         );
 
-        logger.info({ count: results.length }, "Search news completed");
-        return { type: "text", text: yaml.dump(results) };
+        const metadataFiltered = results.map((r) => {
+          return {
+            ...r,
+            metadata: removeKeysRecursive(r.metadata, [
+              "primaryTickers",
+              "mentionedTickers",
+              "source",
+              "type",
+            ]),
+          };
+        });
+
+        logger.info(
+          { count: metadataFiltered.length },
+          "Search news completed",
+        );
+        return { type: "text", text: yaml.dump(metadataFiltered) };
       } catch (error) {
         logger.error({ error, args }, "Search news failed");
         return {
@@ -513,7 +529,17 @@ export const setupStockMcp = async () => {
           }),
         ]);
 
-        const newsFiltered = recentNews.slice(0, 30); // limit to 30 just in case
+        const newsFiltered = recentNews.slice(0, 30).map((e) => {
+          return {
+            content: e.content,
+            metadata: removeKeysRecursive(e.metadata, [
+              "primaryTickers",
+              "mentionedTickers",
+              "source",
+              "type",
+            ]),
+          };
+        }); // limit to 30 just in case
 
         const data = { weeklyMood, recentNews: newsFiltered };
         logger.info(
