@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 
 export interface WeeklyMoodData {
@@ -16,7 +17,9 @@ export const getWeeklyMoodData = async (
 
   const data = result as any as WeeklyMoodData[];
 
-  return data.sort((a, b) => b.date.localeCompare(a.date)).slice(0, count);
+  return data
+    .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf())
+    .slice(0, count);
 };
 
 export const mergeWeeklyMoodData = async (
@@ -30,8 +33,8 @@ export const mergeWeeklyMoodData = async (
     dataMap.set(d.date, d);
   });
 
-  const merged = Array.from(dataMap.values()).sort((a, b) =>
-    b.date.localeCompare(a.date),
+  const merged = Array.from(dataMap.values()).sort(
+    (a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf(),
   );
 
   await KV.set(`weekly-mood`, merged as any);
