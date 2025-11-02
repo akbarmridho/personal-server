@@ -1,256 +1,98 @@
-# Long-Term Investment Plan — {{TICKER}} ({{COMPANY_NAME}})
+# Investment Plan — {{TICKER}} {{COMPANY_NAME}}
 
-- Sector / Subsector: {{SECTOR}} / {{SUBSECTOR}}
-- Exchange: BEI (IDX) — Currency: IDR
-- Market Cap: {{MARKET_CAP}}
-- Last Updated: {{LAST_UPDATED}}
-- Data Freshness: {{DATA_CUTOFF_OR_TIME_WINDOW}}
+- Last Updated: {{YYYY-MM-DD}}
 
----
+## 1) Executive Snapshot
 
-## 1) Executive Summary
+- Thesis (one line): {{CORE_REASON_TO_OWN}}
+- Edge / Uniqueness: {{YOUR_ANGLE_OR_MARKET_MISPRICING}}
+- Why Now: {{CATALYST_OR_TIMING_REASON}}
+- Horizon & Conviction: {{TIMEFRAME}} | {{LOW/MED/HIGH}}
+- Top Catalysts: {{CATALYST_1}}; {{CATALYST_2}}; {{CATALYST_3}}
+- Top Risks: {{RISK_1}}; {{RISK_2}}; {{RISK_3}}
 
-- One-liner Thesis: {{ONE_SENTENCE_THESIS}}
-- Edge/Reason to Own: {{WHAT_YOU_SEE_THAT_MARKET_MISPRICES}}
-- Time Horizon: {{HOLDING_PERIOD}} (e.g., 12–36 months)
-- Return Objective: {{TARGET_RETURN}} (e.g., annualized or absolute)
-- Conviction: {{LOW/MED/HIGH}} (1–5)
-- Key Catalysts: {{CATALYST_1}}, {{CATALYST_2}}, {{CATALYST_3}}
-- Key Risks: {{RISK_1}}, {{RISK_2}}, {{RISK_3}}
+## 2) Business & Differentiators (Brief)
 
----
+- What it does (1–2 lines): {{BUSINESS_SUMMARY}}
+- Differentiators/Moat: {{COST/BRAND/SCALE/ASSET/REGULATORY/TECH}}
+- Key Segments (optional): {{SEGMENT_1}}; {{SEGMENT_2}}; {{SEGMENT_3}}
 
-## 2) Company Profile
+## 3) Fundamentals — “Story” (Brief)
 
-- Business Description: {{WHAT_THE_COMPANY_DOES}}
-- Segments & Revenue Mix:
+- Narrative (1–3 lines): {{QUALITY/GROWTH/CASHFLOW/BALANCE_SHEET_STORY}}
+- Snapshot:
 
-  | Segment | Revenue % | Growth Trend | Notes |
+  | Metric | Latest | Trend | Note |
   |---|---:|---|---|
-  | {{SEGMENT_1}} | {{%}} | {{UP/DOWN/STABLE}} | {{NOTES}} |
-  | {{SEGMENT_2}} | {{%}} | {{UP/DOWN/STABLE}} | {{NOTES}} |
+  | Revenue Growth | {{%}} | {{UP/DOWN/STABLE}} | {{DRIVER_OR_RISK}} |
+  | Net Margin | {{%}} | {{UP/DOWN/STABLE}} |  |
+  | ROE | {{%}} | {{UP/DOWN/STABLE}} |  |
+  | DER | {{x}} | {{UP/DOWN/STABLE}} |  |
+  | FCF (TTM) | {{IDR bn}} | {{UP/DOWN/STABLE}} | {{CAPEX/WORKING_CAPITAL_NOTE}} |
+  | Dividend Yield | {{%}} | {{UP/DOWN/STABLE}} | {{POLICY_NOTE}} |
 
-- Geographic Mix (if relevant):
+## 4) Technical & Flow — “Story” (Brief)
 
-  | Region | Revenue % | FX Exposure | Notes |
-  |---|---:|---|---|
-  | {{REGION}} | {{%}} | {{USD/CNY/JPY/etc}} | {{NOTES}} |
-
-- Customers/Channels: {{KEY_CUSTOMERS_OR_CHANNELS}}
-- Competitive Advantage/Moat: {{MOAT_ELEMENTS}}
-- Ownership & Governance (summary): {{MAJOR_SHAREHOLDERS}}, {{FREE_FLOAT}}, {{INSIDER_ACTIVITY}}
-- Management Snapshot: {{CEO/BOARD}}, {{TRACK_RECORD}}, {{CAPITAL_ALLOCATION_STYLE}}
-
----
-
-## 3) Industry & Macro Context
-
-- Industry Structure & Competitive Landscape: {{INDUSTRY_STRUCTURE}}
-- Growth Drivers & Headwinds: {{DRIVER_1}}, {{DRIVER_2}}, {{HEADWIND_1}}
-- Regulatory Considerations (Indonesia): {{REGULATORY_POINTS}}
-- FX/Commodity Sensitivity:
-  - FX: {{USD/CNY/EUR/JPY/SGD}} — Tailwind/Headwind rationale: {{WHY}}
-  - Commodities: {{COAL/NICKEL/CPO/OIL/etc}} — Linkage: {{WHY}}
-- Positioning vs Peers: {{QUALITY/COST/BRAND/TECH POSITIONING}}
-
----
-
-## 4) Fundamentals & Financial Quality
-
-- Investment “Story” in Fundamentals (narrative): {{FUNDAMENTAL_STORY}}
-- Financial Snapshot:
-
-  | Metric | Latest/TTM | 3Y Avg | 5Y Trend | Notes |
-  |---|---:|---:|---|---|
-  | Revenue Growth | {{%}} | {{%}} | {{UP/DOWN/STABLE}} | {{NOTES}} |
-  | Gross Margin | {{%}} | {{%}} | {{UP/DOWN/STABLE}} |  |
-  | EBITDA Margin | {{%}} | {{%}} | {{UP/DOWN/STABLE}} |  |
-  | Net Margin | {{%}} | {{%}} | {{UP/DOWN/STABLE}} |  |
-  | ROE | {{%}} | {{%}} | {{UP/DOWN/STABLE}} |  |
-  | ROA | {{%}} | {{%}} | {{UP/DOWN/STABLE}} |  |
-  | DER (Debt/Equity) | {{x}} | {{x}} | {{UP/DOWN/STABLE}} |  |
-  | Interest Coverage | {{x}} | {{x}} | {{UP/DOWN/STABLE}} |  |
-  | Current Ratio | {{x}} | {{x}} | {{UP/DOWN/STABLE}} |  |
-  | Operating Cash Flow | {{IDR}} | {{IDR}} | {{UP/DOWN/STABLE}} |  |
-  | Capex | {{IDR}} | {{IDR}} | {{UP/DOWN/STABLE}} |  |
-  | Dividend Payout | {{%}} | {{%}} | {{UP/DOWN/STABLE}} |  |
-
-- Capital Allocation: {{DIVIDENDS/BUYBACKS/CAPEX/M&A}}, rationale: {{NOTES}}
-- Accounting/Quality Notes: {{RECURRING_VS_NONRECURRING}}, {{WORKING_CAPITAL_DYNAMICS}}
-
----
-
-## 5) Valuation
-
-- Current Multiples (vs peers/history):
-
-  | Metric | Current | 5Y Range | 5Y Median | Peer Median | Notes |
-  |---|---:|---:|---:|---:|---|
-  | PER | {{x}} | {{x–x}} | {{x}} | {{x}} |  |
-  | PBV | {{x}} | {{x–x}} | {{x}} | {{x}} |  |
-  | EV/EBITDA | {{x}} | {{x–x}} | {{x}} | {{x}} |  |
-  | Dividend Yield | {{%}} | {{%–%}} | {{%}} | {{%}} |  |
-
-- Valuation Narrative: {{WHY_CHEAP/EXPENSIVE}}, {{WHAT_MUST_BE_TRUE}}
-- Target Price Framework:
-
-  | Scenario | Assumptions | Valuation Basis | Target Price | Upside/Downside |
-  |---|---|---|---:|---:|
-  | Bear | {{ASSUMPTIONS}} | {{e.g., PBV 1.2x}} | {{IDR}} | {{%}} |
-  | Base | {{ASSUMPTIONS}} | {{e.g., PER 12x}} | {{IDR}} | {{%}} |
-  | Bull | {{ASSUMPTIONS}} | {{e.g., EV/EBITDA 6x}} | {{IDR}} | {{%}} |
-
-- Margin of Safety: {{ADEQUATE/INADEQUATE}} — Rationale: {{NOTES}}
-
----
-
-## 6) Technical Profile (Multi-timeframe)
-
-- Investment “Story” in Technicals (narrative): {{TECHNICAL_STORY}}
-- Trend & Structure:
-  - Higher Timeframe (weekly/monthly): {{UP/DOWN/SIDEWAYS}}, key levels: {{LEVELS}}
-  - Daily: {{UP/DOWN/SIDEWAYS}}, key levels: {{LEVELS}}
-- Key Levels:
+- Narrative (1–2 lines): {{TREND/STRUCTURE/CONTEXT}}
+- Levels:
 
   | Type | Level | Notes |
   |---|---:|---|
   | Support | {{IDR}} | {{WHY}} |
   | Resistance | {{IDR}} | {{WHY}} |
-  | Moving Avg Confluence | {{IDR}} | {{MAs}} |
 
-- Momentum/Volume: {{RSI/MACD/VOLUME_DYNAMICS}} (keep minimal, focus on context)
-- Seasonality/Patterns (if any): {{NOTES}}
+- Flow/Bandarmology:
+  - Foreign Net Flow (1D/1W/1M): {{BUY/SELL + INTENSITY}}
+  - Broker Highlights: {{ACCUMULATORS}} vs {{DISTRIBUTORS}}
 
----
+## 5) News, Sentiment & Outlook (Focused)
 
-## 7) Flow & Bandarmology
+- Sentiment Summary (last {{DAYS}} days): {{POSITIVE/NEGATIVE/NEUTRAL}}; momentum {{IMPROVING/WEAKENING/STABLE}}; confidence {{LOW/MED/HIGH}}
+- Key Themes:
 
-- Foreign Net Flow: {{1D/1W/1M}} summary: {{NET_BUY/SELL}}, intensity: {{HIGH/MED/LOW}}
-- Broker Activity Highlights: {{ACCUMULATING_BROKERS}}, {{DISTRIBUTING_BROKERS}}
-- Accumulation/Distribution Narrative: {{FLOW_STORY}}
-- Snapshot:
-
-  | Window | Foreign Net | Top Net Buyers | Top Net Sellers | Notes |
-  |---|---:|---|---|---|
-  | 1D | {{IDR}} | {{BROKERS}} | {{BROKERS}} | {{NOTES}} |
-  | 1W | {{IDR}} | {{BROKERS}} | {{BROKERS}} | {{NOTES}} |
-  | 1M | {{IDR}} | {{BROKERS}} | {{BROKERS}} | {{NOTES}} |
-
----
-
-## 8) News, Sentiment, and Catalysts
-
-- Sentiment Summary (last {{DAYS}} days): {{POSITIVE/NEGATIVE/NEUTRAL}} — themes: {{THEMES}}
-- Key Headlines/Developments:
-  - {{HEADLINE_1}} — {{IMPACT}}
-  - {{HEADLINE_2}} — {{IMPACT}}
-  - {{HEADLINE_3}} — {{IMPACT}}
-- Rumours (unverified): {{RUMOUR}} — confidence: {{LOW/MED}}
-- Upcoming Catalysts & Dates:
-
-  | Event | Date/Window | Expected Impact | Actionable Plan |
+  | Theme | Direction | Stock Impact | Sources |
   |---|---|---|---|
-  | Earnings | {{DATE}} | {{IMPACT}} | {{ACTION}} |
-  | Corporate Action | {{DATE}} | {{IMPACT}} | {{ACTION}} |
-  | Macro/Regulatory | {{DATE}} | {{IMPACT}} | {{ACTION}} |
+  | {{THEME_1}} | {{+ / − / ?}} | {{IMPACT_NOTE}} | {{OUTLETS/LINKS}} |
+  | {{THEME_2}} | {{+ / − / ?}} | {{IMPACT_NOTE}} | {{OUTLETS/LINKS}} |
 
----
+- Headlines (most material):
 
-## 9) Risks
+  | Date | Headline | Impact | Confidence |
+  |---|---|---|---|
+  | {{YYYY-MM-DD}} | {{TITLE}} | {{+/−/Neutral}} | {{LOW/MED/HIGH}} |
 
-- Thesis Risks (idiosyncratic): {{RISK_1}}, {{RISK_2}}, {{RISK_3}}
-- Macro/External Risks: {{FX/COMMODITY/MACRO/REGULATORY}}
-- Early Warning Indicators to Monitor:
-  - {{KPI_OR_DATA_POINT}} — threshold/trigger: {{VALUE_OR_CONDITION}}
-  - {{KPI_OR_DATA_POINT}} — threshold/trigger: {{VALUE_OR_CONDITION}}
-- Risk Mitigations/Hedges: {{WHAT_YOU_WILL_DO_IF_TRIGGERS_HIT}}
-- Risk Rating: {{LOW/MED/HIGH}}
+- Rumours (unverified): {{RUMOUR_SHORT}} — confidence: {{LOW/MED}}
+- Forward Outlook (12–24 months): {{2–3_LINE_VIEW_ON_GROWTH/REGULATION/FX_OR_COMMODITY_LINKS/MGMT_GUIDANCE/PIPELINE}}
+- What to watch next: {{ITEM_1}}; {{ITEM_2}}; {{ITEM_3}}
 
----
+## 6) Valuation (Brief)
 
-## 10) Position & Execution Plan
+- Narrative (1–2 lines): {{CHEAP/FAIR/EXPENSIVE_VS_HISTORY/PEERS + WHY}}
+- Multiples:
 
+  | Metric | Current | 5Y Range | Peer Median | Note |
+  |---|---:|---:|---:|---|
+  | PER | {{x}} | {{x–x}} | {{x}} | {{GROWTH_QUALITY_NOTE}} |
+  | PBV | {{x}} | {{x–x}} | {{x}} | {{ROE_CONTEXT}} |
+  | EV/EBITDA | {{x}} | {{x–x}} | {{x}} | {{CAPEX/CYCLE_NOTE}} |
+  | Div Yield | {{%}} | {{%–%}} | {{%}} | {{SUSTAINABILITY}} |
+
+## 7) Scenarios & Execution Plan (Risks + Positioning Combined)
+
+| Scenario | Probability | Narrative & Key Risks | Triggers/Signals | Entry Zone | Stop | Targets | Sizing/Actions |
+|---|---:|---|---|---:|---:|---:|---|
+| Bear | {{%}} | {{WHAT_GOES_WRONG / KEY_RISKS}} | {{NEGATIVE_SIGNALS/INVALIDATIONS}} | {{IDR_RANGE}} | {{IDR_OR_%}} | {{IDR_LEVELS}} | {{REDUCE/AVOID/HEDGE}} |
+| Base | {{%}} | {{MOST_LIKELY_PATH}} | {{CONFIRMATIONS}} | {{IDR_RANGE}} | {{IDR_OR_%}} | {{IDR_LEVELS}} | {{CORE_SIZE/DCA_RULES}} |
+| Bull | {{%}} | {{UPSIDE_DRIVERS}} | {{POSITIVE_SIGNALS}} | {{IDR_RANGE}} | {{IDR_OR_%}} | {{IDR_LEVELS}} | {{ADD/LET_RUN}} |
+
+Notes:
+
+- Invalidation (thesis breaks if): {{EVENTS/METRICS}}
 - Position Type: {{CORE/LONG-TERM/OPPORTUNISTIC}}
-- Sizing Plan: {{%_OF_PORTFOLIO}}, scaling rules: {{DCA/ADD_ON_DIP/ETC}}
-- Entry Strategy:
-  - Primary Entry Zone: {{IDR_RANGE}} (why: {{LEVELS/CATALYSTS}})
-  - Alternative Entries: {{IDR_RANGE}} (if: {{CONDITIONS}})
-  - Execution Mode: {{LIMIT/MARKET/ALGO}}, liquidity notes: {{ADV/VOL}}
-- Exit & Stop Rules:
-  - Hard Stop (risk control): {{IDR_OR_%}} (placement rationale)
-  - Thesis Breakers: {{EVENTS_OR_METRICS}} → exit/reevaluate
-  - Profit Taking: {{PARTIALS_AT_LEVELS}}; trailing/targets: {{METHOD}}
-- Time-based Rules:
-  - Reassessment Date: {{DATE}}
-  - If no catalyst progress by {{DATE}}, reduce/exit?
 
----
+## 8) Key Catalysts & Dates
 
-## 11) Monitoring Dashboard
-
-- Review Cadence: {{WEEKLY/MONTHLY/QUARTERLY}}
-- KPIs to Track:
-
-  | KPI | Target/Threshold | Data Source | Frequency |
-  |---|---|---|---|
-  | {{KPI_1}} | {{VALUE}} | {{SOURCE}} | {{FREQ}} |
-  | {{KPI_2}} | {{VALUE}} | {{SOURCE}} | {{FREQ}} |
-
-- Alerts/Automation:
-  - Price Alerts: {{LEVELS}}
-  - News/Filings Alerts: {{KEYWORDS}}
-  - Flow Alerts: {{FOREIGN_NET_FLOW_LEVELS}}
-- Watchlist Items / To-Do:
-  - [ ] {{TASK_1}}
-  - [ ] {{TASK_2}}
-
----
-
-## 12) Scenarios & Actions
-
-| Scenario | Probability | Narrative | Price Range | Action Plan |
-|---|---:|---|---:|---|
-| Bear | {{%}} | {{WHAT_GOES_WRONG}} | {{IDR_RANGE}} | {{HEDGE/REDUCE/EXIT}} |
-| Base | {{%}} | {{MOST_LIKELY_PATH}} | {{IDR_RANGE}} | {{HOLD/ADD_ON_DIP}} |
-| Bull | {{%}} | {{UPSIDE_DRIVERS}} | {{IDR_RANGE}} | {{ADD/LET_RUN}} |
-
----
-
-## 13) Peer Snapshot (Optional)
-
-| Ticker | PER | PBV | ROE | DER | Div Yield | Notes |
-|---|---:|---:|---:|---:|---:|---|
-| {{PEER_1}} | {{x}} | {{x}} | {{%}} | {{x}} | {{%}} | {{EDGE_OR_RISK}} |
-| {{PEER_2}} | {{x}} | {{x}} | {{%}} | {{x}} | {{%}} |  |
-| {{PEER_3}} | {{x}} | {{x}} | {{%}} | {{x}} | {{%}} |  |
-
----
-
-## 14) Assumptions & Data Notes
-
-- Key Assumptions: {{ASSUMPTION_1}}, {{ASSUMPTION_2}}
-- Data Windows: Fundamentals ({{PERIOD}}), Technicals ({{PERIOD}}), Flow ({{PERIOD}}), News ({{PERIOD}})
-- Sources: {{TOOLS/APIs/URLs}}
-- Limitations: {{DATA_GAPS_OR_QUALITY_NOTES}}
-
----
-
-## 15) Decision Log & Changelog
-
-- {{DATE}} — {{DECISION/UPDATE}} — Rationale: {{WHY}} — New Price: {{IDR}}
-- {{DATE}} — {{DECISION/UPDATE}} — Rationale: {{WHY}} — New Price: {{IDR}}
-
----
-
-## 16) Final Checklist (before/after entry)
-
-- [ ] Thesis clear and falsifiable
-- [ ] Valuation offers margin of safety
-- [ ] Entry aligned with levels/flow/catalysts
-- [ ] Risks identified with triggers/mitigations
-- [ ] Sizing and stops defined
-- [ ] Monitoring plan and alerts set
-
----
-
-Disclaimer: This document is for educational purposes and not investment advice. Do your own research and consider your risk tolerance.
+| Event | Date/Window | Expected Impact | Action |
+|---|---|---|---|
+| {{EARNINGS/PRODUCT/REGULATION}} | {{DATE}} | {{+/− / UNCLEAR}} | {{WHAT_YOU_WILL_DO}} |
+| {{EVENT}} | {{DATE}} | {{IMPACT}} | {{ACTION}} |
