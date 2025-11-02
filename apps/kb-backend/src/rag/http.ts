@@ -28,7 +28,7 @@ function normalizeMetadata(metadata: unknown): Record<string, any> | null {
     obj = metadata;
   }
 
-  return Object.keys(obj).length > 1 ? obj : null;
+  return Object.keys(obj).length >= 1 ? obj : null;
 }
 
 // --------------------
