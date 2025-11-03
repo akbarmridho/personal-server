@@ -412,8 +412,13 @@ export const setupStockMcp = async () => {
     description:
       "Search investment news using semantic search. Covers market news (IHSG, regulations, foreign flow) and company-specific news.",
     parameters: z.object({
-      query: z.string().describe("Semantic search query"),
-      hydeQuery: z.string().describe("Hypothetical answer for search"),
+      queries: z
+        .object({
+          query: z.string().describe("Semantic search query"),
+          hydeQuery: z.string().describe("Hypothetical answer for search"),
+        })
+        .array()
+        .describe("Array of query and hydeQuery pairs"),
       startDate: z
         .string()
         .optional()
@@ -423,20 +428,33 @@ export const setupStockMcp = async () => {
     execute: async (args) => {
       logger.info({ args }, "Executing search-news");
       try {
-        const results = await retriever.hierarchicalSearch(
-          args.query,
-          args.hydeQuery,
-          investmentNewsCollectionId,
-          {
-            start_date: args.startDate,
-            end_date: args.endDate,
-            useFullDocumentWhenMajority: true,
-            majorityChunkThreshold: 0.2, // always return full document
-          },
+        const allResults = await Promise.all(
+          args.queries.map((q) =>
+            retriever.hierarchicalSearch(
+              q.query,
+              q.hydeQuery,
+              investmentNewsCollectionId,
+              {
+                start_date: args.startDate,
+                end_date: args.endDate,
+                useFullDocumentWhenMajority: true,
+                majorityChunkThreshold: 0.2,
+                similarityThreshold: 0.45,
+              },
+            ),
+          ),
         );
 
-        const metadataFiltered = results.map((r) => {
-          return {
+        const seen = new Set<number>();
+        const deduplicated = allResults.flat().filter((r) => {
+          const key = r.documentId;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+
+        const metadataFiltered = deduplicated
+          .map((r) => ({
             ...r,
             metadata: removeKeysRecursive(r.metadata, [
               "primaryTickers",
@@ -444,8 +462,8 @@ export const setupStockMcp = async () => {
               "source",
               "type",
             ]),
-          };
-        });
+          }))
+          .slice(0, 10);
 
         logger.info(
           { count: metadataFiltered.length },

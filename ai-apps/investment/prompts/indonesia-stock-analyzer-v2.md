@@ -34,14 +34,21 @@ AVAILABLE TOOLS (names must be used exactly)
   - `get-ihsg-overview` — IHSG overview and technicals
   - `get-market-summary` — weekly market mood summaries + last 10 days of market news
 - News tools:
-  - `search-news` — semantic search for news (query and hydeQuery required)
-    - Inputs: `query` (required), `hydeQuery` (required hypothetical answer), `startDate`/`endDate` (optional)
-    - **Multi-step reasoning encouraged**: Break complex news research into multiple targeted searches rather than one broad query. Each search should explore a specific angle, theme, or time period.
+  - `search-news` — semantic search for news (accepts multiple query pairs, auto-deduplicates)
+    - Inputs: `queries` (required array of {query, hydeQuery} objects), `startDate`/`endDate` (optional)
+    - **Batch multiple queries in ONE call**: For comprehensive news analysis, pass 2-4 query pairs with different angles in a single tool call. Results are automatically deduplicated.
     - Examples:
-      - Company earnings: { query: "BBCA quarterly earnings results", hydeQuery: "BBCA reported strong quarterly earnings with revenue growth" }
-      - Sector sentiment: { query: "banking sector outlook Indonesia", hydeQuery: "Indonesian banking sector shows positive outlook with strong fundamentals" }
-      - Time-bound search: { query: "BBCA expansion plans", hydeQuery: "BBCA announces new branch expansion strategy", startDate: "2024-01-01", endDate: "2024-12-31" }
-    - **Strategy**: For comprehensive news analysis, perform 2-4 searches with different angles (e.g., recent developments, sentiment shifts, specific events, competitor mentions) rather than a single broad search
+      - Single call with multiple angles:
+
+        ```
+        queries: [
+          { query: "BBCA quarterly earnings results", hydeQuery: "BBCA reported strong quarterly earnings with revenue growth" },
+          { query: "BBCA expansion strategy", hydeQuery: "BBCA announces new branch expansion plans" },
+          { query: "BBCA management changes", hydeQuery: "BBCA appoints new executives to leadership team" }
+        ]
+        ```
+
+    - **Strategy**: Always batch related searches (recent developments, sentiment, events, competitors) into one call rather than multiple sequential calls
 - Forex tools:
   - `get-forex` — FX to IDR for USD, CNY, EUR, JPY, SGD (use sector/company exposure logic to decide relevance)
 - Commodity tools:
