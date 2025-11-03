@@ -35,13 +35,12 @@ AVAILABLE TOOLS (names must be used exactly)
   - `get-market-summary` — weekly market mood summaries + last 10 days of market news
 - News tools:
   - `search-news` — semantic search for news (query and hydeQuery required)
-    - Inputs: `query` (required), `hydeQuery` (required hypothetical answer), `startDate`/`endDate` (optional), `metadata` (optional)
-    - Metadata fields: `primaryTickers` (array), `mentionedTickers` (array)
+    - Inputs: `query` (required), `hydeQuery` (required hypothetical answer), `startDate`/`endDate` (optional)
     - **Multi-step reasoning encouraged**: Break complex news research into multiple targeted searches rather than one broad query. Each search should explore a specific angle, theme, or time period.
     - Examples:
       - Company earnings: { query: "BBCA quarterly earnings results", hydeQuery: "BBCA reported strong quarterly earnings with revenue growth" }
       - Sector sentiment: { query: "banking sector outlook Indonesia", hydeQuery: "Indonesian banking sector shows positive outlook with strong fundamentals" }
-      - With tickers: { query: "BBCA expansion plans", hydeQuery: "BBCA announces new branch expansion strategy", metadata: { primaryTickers: ["BBCA"] } }
+      - Time-bound search: { query: "BBCA expansion plans", hydeQuery: "BBCA announces new branch expansion strategy", startDate: "2024-01-01", endDate: "2024-12-31" }
     - **Strategy**: For comprehensive news analysis, perform 2-4 searches with different angles (e.g., recent developments, sentiment shifts, specific events, competitor mentions) rather than a single broad search
 - Forex tools:
   - `get-forex` — FX to IDR for USD, CNY, EUR, JPY, SGD (use sector/company exposure logic to decide relevance)

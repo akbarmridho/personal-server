@@ -419,51 +419,10 @@ export const setupStockMcp = async () => {
         .optional()
         .describe("Start date in YYYY-MM-DD format"),
       endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
-      metadata: z
-        .object({
-          type: z
-            .enum(["market", "ticker"])
-            .optional()
-            .describe(
-              "Filter by news type: 'market' for macro/sector news, 'ticker' for company-specific news. Leave it empmty for any match.",
-            ),
-          primaryTickers: z
-            .string()
-            .array()
-            .optional()
-            .describe("Filter by primary ticker symbols"),
-          mentionedTickers: z
-            .string()
-            .array()
-            .optional()
-            .describe("Filter by mentioned ticker symbols"),
-        })
-        .optional()
-        .describe("Metadata filters for news"),
     }),
     execute: async (args) => {
       logger.info({ args }, "Executing search-news");
       try {
-        const metadataFilter: Record<string, any> = {};
-
-        if (args.metadata) {
-          if (args.metadata.type) {
-            metadataFilter.type = args.metadata.type;
-          }
-          if (args.metadata.primaryTickers) {
-            const validated = await Promise.all(
-              args.metadata.primaryTickers.map((t) => checkTicker(t)),
-            );
-            metadataFilter.primaryTickers = validated;
-          }
-          if (args.metadata.mentionedTickers) {
-            const validated = await Promise.all(
-              args.metadata.mentionedTickers.map((t) => checkTicker(t)),
-            );
-            metadataFilter.mentionedTickers = validated;
-          }
-        }
-
         const results = await retriever.hierarchicalSearch(
           args.query,
           args.hydeQuery,
@@ -471,10 +430,6 @@ export const setupStockMcp = async () => {
           {
             start_date: args.startDate,
             end_date: args.endDate,
-            metadataFilter:
-              Object.keys(metadataFilter).length > 0
-                ? metadataFilter
-                : undefined,
             useFullDocumentWhenMajority: true,
             majorityChunkThreshold: 0.2, // always return full document
           },
