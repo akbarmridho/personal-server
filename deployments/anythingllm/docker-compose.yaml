@@ -8,12 +8,15 @@ services:
       - .env
     volumes:
       - anythingllm_data:/app/server/storage
+      - ./mcp.json:/app/server/storage/plugins/anythingllm_mcp_servers.json:ro
     environment:
-      # This tells the application inside the container where to find its storage.
       - STORAGE_DIR=/app/server/storage
     restart: unless-stopped
     networks:
       - personal_network
+    extra_hosts:
+      - "personal-01:host-gateway"
+      - "akbarmr.dev:host-gateway"
 
 volumes:
   anythingllm_data:

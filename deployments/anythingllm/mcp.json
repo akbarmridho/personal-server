@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "indonesia-stock-market": {
+      "type": "streamable",
+      "url": "https://kb.akbarmr.dev/mcps/stock/mcp"
+    },
+    "indonesia-internet-search": {
+      "type": "streamable",
+      "url": "https://kb.akbarmr.dev/mcps/internet/mcp"
+    }
+  }
+}
