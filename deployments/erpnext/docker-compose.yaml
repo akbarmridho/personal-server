@@ -57,7 +57,7 @@ services:
     networks:
       - personal_network
     ports:
-      - "8080:8080"
+      - "8014:8080"
     restart: unless-stopped
     volumes:
       - sites:/home/frappe/frappe-bench/sites

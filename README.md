@@ -72,3 +72,7 @@ docker network create personal_network
 ### AnythingLLM
 
 - `8013` Anything LLM.
+
+### ERPNext
+
+- `8014` ERPNext.
