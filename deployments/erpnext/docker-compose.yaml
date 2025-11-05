@@ -15,7 +15,7 @@ services:
     container_name: erpnext_configurator
     command:
       - |
-        ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g db_name $$DB_NAME; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT;
+        ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT;
     depends_on:
       erpnext_redis:
         condition: service_started
@@ -25,7 +25,9 @@ services:
     environment:
       DB_HOST: postgres_main
       DB_PORT: "5432"
-      DB_NAME: erpnext
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      ADMIN_PASSWORD: admin
       REDIS_CACHE: erpnext_redis:6379/0
       REDIS_QUEUE: erpnext_redis:6379/1
       SOCKETIO_PORT: "9000"
@@ -35,6 +37,7 @@ services:
     restart: on-failure
     volumes:
       - sites:/home/frappe/frappe-bench/sites
+
   frontend:
     container_name: erpnext_frontend
     command:
