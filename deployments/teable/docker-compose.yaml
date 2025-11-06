@@ -1,6 +1,7 @@
 services:
   teable:
-    image: teableio/teable:429ff52a6c75fd9a6cef40f3f745c8a6a8b27bbaf6df3dfd53e68d72058a1fe0
+    hostname: teable
+    image: ghcr.io/teableio/teable:9caaaa85caed4fe4bfd791401e00fb0e3f2d3a7c
     restart: unless-stopped
     ports:
       - "8015:3000"
