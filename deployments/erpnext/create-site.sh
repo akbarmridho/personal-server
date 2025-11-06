@@ -46,10 +46,12 @@ docker compose exec backend bench set-config -g root_password "$DB_ROOT_PASSWORD
 
 echo "Creating site: $SITE_NAME"
 docker compose exec backend bench new-site \
-    --mariadb-user-host-login-scope=% \
     --db-type postgres \
     --admin-password "$ADMIN_PASSWORD" \
     "$SITE_NAME"
+
+echo "Installing ERPNext app..."
+docker compose exec backend bench --site "$SITE_NAME" install-app erpnext
 
 echo ""
 echo "Site created successfully!"
