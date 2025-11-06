@@ -1,0 +1,22 @@
+services:
+  grist:
+    image: gristlabs/grist-oss
+    container_name: grist
+    ports:
+      - "8016:8484"
+    environment:
+      GRIST_BOOT_KEY: admin
+    env_file:
+      - .env
+    volumes:
+      - grist:/persist
+    networks:
+      - personal_network
+    restart: unless-stopped
+
+volumes:
+  grist:
+
+networks:
+  personal_network:
+    external: true
