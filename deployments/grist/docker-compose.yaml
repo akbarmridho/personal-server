@@ -1,11 +1,9 @@
 services:
   grist:
-    image: gristlabs/grist-oss
+    image: gristlabs/grist-oss:1.7.5
     container_name: grist
     ports:
       - "8016:8484"
-    environment:
-      GRIST_BOOT_KEY: admin
     env_file:
       - .env
     volumes:
