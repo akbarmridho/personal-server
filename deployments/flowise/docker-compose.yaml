@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
 
   flowise_server:
-    image: flowiseai/flowise:3.0.8
+    image: flowiseai/flowise:3.0.10
     container_name: flowise_server
     restart: unless-stopped
     ports:
@@ -35,7 +35,7 @@ services:
     entrypoint: /bin/sh -c "sleep 3; flowise start"
 
   flowise_worker:
-    image: flowiseai/flowise-worker:3.0.8
+    image: flowiseai/flowise-worker:3.0.10
     container_name: flowise_worker
     restart: unless-stopped
     volumes:
