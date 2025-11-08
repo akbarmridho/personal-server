@@ -7,6 +7,9 @@ services:
       - "8016:8484"
     volumes:
       - grist:/persist
+    extra_hosts:
+      - "personal-01:host-gateway"
+      - "akbarmr.dev:host-gateway"
     networks:
       - personal_network
     restart: unless-stopped
@@ -25,6 +28,9 @@ services:
       # - ${COMPOSE_PORT_HTTPS:-9443}:9443
     networks:
       - personal_network
+    extra_hosts:
+      - "personal-01:host-gateway"
+      - "akbarmr.dev:host-gateway"
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
@@ -39,6 +45,9 @@ services:
       - .env
     networks:
       - personal_network
+    extra_hosts:
+      - "personal-01:host-gateway"
+      - "akbarmr.dev:host-gateway"
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
