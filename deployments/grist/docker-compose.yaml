@@ -16,48 +16,48 @@ services:
     env_file:
       - .env
 
-  authentik_server:
-    command: server
-    hostname: authentik_server
-    image: ghcr.io/goauthentik/server:2025.10.1
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - 8017:9000
-      # - ${COMPOSE_PORT_HTTPS:-9443}:9443
-    networks:
-      - personal_network
-    extra_hosts:
-      - "personal-01:host-gateway"
-      - "akbarmr.dev:host-gateway"
-    volumes:
-      - authentik_media:/media
-      - authentik_templates:/templates
+  # authentik_server:
+  #   command: server
+  #   hostname: authentik_server
+  #   image: ghcr.io/goauthentik/server:2025.10.1
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - 8017:9000
+  #     # - ${COMPOSE_PORT_HTTPS:-9443}:9443
+  #   networks:
+  #     - personal_network
+  #   extra_hosts:
+  #     - "personal-01:host-gateway"
+  #     - "akbarmr.dev:host-gateway"
+  #   volumes:
+  #     - authentik_media:/media
+  #     - authentik_templates:/templates
 
-  authentik_worker:
-    command: worker
-    hostname: authentik_worker
-    image: ghcr.io/goauthentik/server:2025.10.1
-    restart: unless-stopped
-    user: root
-    env_file:
-      - .env
-    networks:
-      - personal_network
-    extra_hosts:
-      - "personal-01:host-gateway"
-      - "akbarmr.dev:host-gateway"
-    volumes:
-      - authentik_media:/media
-      - authentik_templates:/templates
-      - authentik_certs:/certs
+  # authentik_worker:
+  #   command: worker
+  #   hostname: authentik_worker
+  #   image: ghcr.io/goauthentik/server:2025.10.1
+  #   restart: unless-stopped
+  #   user: root
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - personal_network
+  #   extra_hosts:
+  #     - "personal-01:host-gateway"
+  #     - "akbarmr.dev:host-gateway"
+  #   volumes:
+  #     - authentik_media:/media
+  #     - authentik_templates:/templates
+  #     - authentik_certs:/certs
 
 volumes:
   grist:
-  authentik_media:
-  authentik_templates:
-  authentik_certs:
+  # authentik_media:
+  # authentik_templates:
+  # authentik_certs:
 
 networks:
   personal_network:

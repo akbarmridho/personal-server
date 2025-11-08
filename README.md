@@ -84,3 +84,4 @@ docker network create personal_network
 ### Grist
 
 - `8016` Teable.
+- `8017` Authentik.
