@@ -15,9 +15,4 @@ export default defineConfig({
     chunkSizeWarningLimit: 10000,
   },
   plugins: [kottster({ schema }), react()],
-  resolve: {
-    alias: {
-      "@": "/app",
-    },
-  },
 });
