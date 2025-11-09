@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": [
+    "**/app/**/*.ts",
+    "**/app/**/*.tsx",
+    "**/_server/**/*.ts",
+    "**/_server/**/*.tsx",
+    "**/.client/**/*.ts",
+    "**/.client/**/*.tsx"
+  ],
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["@types/node", "vite/client"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "target": "ES2022",
+    "strict": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "noEmit": true
+  }
+}
