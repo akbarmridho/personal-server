@@ -6,7 +6,6 @@ CREATE TABLE product_categories (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
-    deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -16,32 +15,41 @@ CREATE TABLE products (
     category_id INTEGER REFERENCES product_categories(id) ON DELETE RESTRICT,
     name TEXT NOT NULL,
     description TEXT,
-    deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE product_variants (
     id SERIAL PRIMARY KEY,
-    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
     cost_price INTEGER NOT NULL CHECK (cost_price >= 0),
     sell_price INTEGER NOT NULL CHECK (sell_price >= 0),
     stock INTEGER DEFAULT 0 CHECK (stock >= 0),
-    deleted_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE transactions (
+    id SERIAL PRIMARY KEY,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE product_activities (
     id SERIAL PRIMARY KEY,
-    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
-    variant_id INTEGER NOT NULL REFERENCES product_variants(id) ON DELETE RESTRICT,
+    transaction_id INTEGER REFERENCES transactions(id) ON DELETE CASCADE,
+    product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
+    variant_id INTEGER REFERENCES product_variants(id) ON DELETE SET NULL,
+    product_name TEXT NOT NULL,
+    variant_name TEXT NOT NULL,
     type activity_type NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity >= 1),
-    cost_total INTEGER CHECK (cost_total >= 0),
-    revenue_total INTEGER CHECK (revenue_total >= 0),
+    unit_cost INTEGER NOT NULL CHECK (unit_cost >= 0),
+    unit_revenue INTEGER NOT NULL CHECK (unit_revenue >= 0),
+    cost_adjustment INTEGER DEFAULT 0,
+    revenue_adjustment INTEGER DEFAULT 0,
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -127,11 +135,9 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER adjust_stock_after_activity_delete AFTER DELETE ON product_activities
 FOR EACH ROW EXECUTE FUNCTION adjust_stock_on_activity_delete();
 
-CREATE INDEX idx_product_categories_deleted ON product_categories(deleted_at);
 CREATE INDEX idx_products_category ON products(category_id);
-CREATE INDEX idx_products_deleted ON products(deleted_at);
 CREATE INDEX idx_variants_product ON product_variants(product_id);
-CREATE INDEX idx_variants_deleted ON product_variants(deleted_at);
+CREATE INDEX idx_activities_transaction ON product_activities(transaction_id);
 CREATE INDEX idx_activities_product ON product_activities(product_id);
 CREATE INDEX idx_activities_variant ON product_activities(variant_id);
 CREATE INDEX idx_activities_type ON product_activities(type);
@@ -152,6 +158,7 @@ DROP FUNCTION IF EXISTS adjust_stock_on_activity();
 DROP FUNCTION IF EXISTS prevent_stock_update();
 DROP FUNCTION IF EXISTS update_updated_at_column();
 DROP TABLE IF EXISTS product_activities;
+DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS product_variants;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS product_categories;
