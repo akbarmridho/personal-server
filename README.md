@@ -68,3 +68,7 @@ docker network create personal_network
 ### Heimdall
 
 - `8012` Heimdall.
+
+### Inventory Tracker
+
+- `8013` Postgrest Inventory Tracker.

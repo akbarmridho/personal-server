@@ -37,7 +37,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
       POSTGRES_CLUSTER: "TRUE"
-      POSTGRES_EXTRA_OPTS: ""   # must be empty or some pg_dumpall-compatible option
+      POSTGRES_EXTRA_OPTS: "" # must be empty or some pg_dumpall-compatible option
       SCHEDULE: "@daily"
     volumes:
       - /root/filen-sync/postgres_backup:/backups
