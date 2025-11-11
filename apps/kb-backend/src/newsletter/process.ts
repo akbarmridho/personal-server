@@ -1,14 +1,14 @@
-import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
+import { loadDotenv } from "../utils/load-dotenv.js";
 
 loadDotenv();
 
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { logger } from "@personal-server/common/utils/logger";
 import { remove } from "diacritics";
 import pLimit from "p-limit";
 import TurndownService from "turndown";
 import { formatMarkdown } from "../rag/file-converters/html-to-md-converter.js";
+import { logger } from "../utils/logger.js";
 import { processNewsletter } from "./extractor.js";
 
 const turndownService = new TurndownService();

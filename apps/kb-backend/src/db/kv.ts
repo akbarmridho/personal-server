@@ -1,5 +1,5 @@
-import { logger } from "@personal-server/common/utils/logger";
 import { sql } from "kysely";
+import { logger } from "../utils/logger.js";
 import { db } from "./db.js";
 import type { Json } from "./types.js";
 

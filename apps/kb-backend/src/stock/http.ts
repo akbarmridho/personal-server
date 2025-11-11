@@ -1,5 +1,5 @@
-import { logger } from "@personal-server/common/utils/logger";
 import { Elysia, t } from "elysia";
+import { logger } from "../utils/logger.js";
 import { getCompanies } from "./aggregator/companies.js";
 import { getSectors } from "./aggregator/sectors.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";

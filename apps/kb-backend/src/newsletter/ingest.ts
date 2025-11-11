@@ -1,14 +1,13 @@
-import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
+import { loadDotenv } from "../utils/load-dotenv.js";
 
 loadDotenv();
 
-import { existsSync } from "node:fs";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { logger } from "@personal-server/common/utils/logger";
 import axios from "axios";
 import pLimit from "p-limit";
 import pRetry from "p-retry";
+import { logger } from "../utils/logger.js";
 
 let shouldExit = false;
 

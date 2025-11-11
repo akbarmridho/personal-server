@@ -2,10 +2,10 @@ import {
   type GoogleGenerativeAIProviderMetadata,
   google,
 } from "@ai-sdk/google";
-import { logger } from "@personal-server/common/utils/logger";
 import { generateText, stepCountIs } from "ai";
 import axios from "axios";
 import pRetry from "p-retry";
+import { logger } from "../../utils/logger.js";
 
 export interface SearchResult {
   result: string;

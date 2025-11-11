@@ -1,9 +1,9 @@
-import { logger } from "@personal-server/common/utils/logger";
 import axios from "axios";
 import dayjs from "dayjs";
 import z from "zod";
 import { KV } from "../../db/kv.js";
 import { env } from "../../env.js";
+import { logger } from "../../utils/logger.js";
 import { normalizeSlug } from "../utils.js";
 import { supportedSubsectors } from "./sectors.js";
 

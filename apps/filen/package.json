@@ -4,13 +4,12 @@
     "description": "Filen network and webdav custom integration.",
     "main": "index.js",
     "scripts": {
-        "build": "turbo run compile --filter={./}",
-        "compile": "tsc",
+        "build": "tsc",
         "format": "biome format --write src",
         "lint": "biome lint src",
         "check": "biome check src",
         "check:apply": "biome check --apply src",
-        "ts-run": "turbo run compile --filter=... --filter=!{./} && node --import @swc-node/register/esm-register",
+        "ts-run": "node --import @swc-node/register/esm-register",
         "run": "pm2 start ecosystem.config.js"
     },
     "keywords": [],
@@ -25,13 +24,16 @@
         "@filen/sdk": "^0.3.11",
         "@filen/sync": "^0.2.1",
         "@filen/webdav": "^0.3.1",
-        "@personal-server/common": "workspace:*",
-        "@t3-oss/env-core": "catalog:core",
+        "@dotenvx/dotenvx": "^1.49.0",
+        "@t3-oss/env-core": "^0.13.8",
+        "dayjs": "^1.11.18",
+        "pino": "^9.7.0",
+        "pino-pretty": "^13.0.0",
         "totp-generator": "^1.0.0",
         "zod": "^4.1.1"
     },
     "devDependencies": {
         "@types/node": "^22.16.4",
-        "typescript": "catalog:core"
+        "typescript": "^5.9.2"
     }
 }

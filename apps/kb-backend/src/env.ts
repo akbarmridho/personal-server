@@ -1,6 +1,6 @@
-import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
+import { loadDotenv } from "./utils/load-dotenv.js";
 
 loadDotenv();
 

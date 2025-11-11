@@ -1,7 +1,7 @@
 import { SyncWorker } from "@filen/sync";
 import type { SyncPair } from "@filen/sync/dist/types.js";
-import { logger } from "@personal-server/common/utils/logger";
 import { env } from "../utils/env.js";
+import { logger } from "../utils/logger.js";
 import { filen } from "./client.js";
 
 export const setupSync = async () => {

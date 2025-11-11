@@ -1,11 +1,11 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { logger } from "@personal-server/common/utils/logger";
 import { generateText } from "ai";
 import axios, { type AxiosError } from "axios";
 import pRetry, { AbortError } from "p-retry";
 import sharp from "sharp";
 import z from "zod";
 import { env } from "../../env.js";
+import { logger } from "../../utils/logger.js";
 
 interface FetchParams {
   url: string;

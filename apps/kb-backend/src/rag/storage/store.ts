@@ -1,8 +1,8 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { logger } from "@personal-server/common/utils/logger";
 import { generateObject } from "ai";
 import pRetry from "p-retry";
 import { db, upsertDocument } from "../../db/db.js";
+import { logger } from "../../utils/logger.js";
 import {
   type VoyageEmbeddingModel,
   VoyageEmbeddings,

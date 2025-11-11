@@ -2,13 +2,13 @@ import { logger as elysiaLogger } from "@bogeychan/elysia-logger";
 import { cors } from "@elysiajs/cors";
 import { node } from "@elysiajs/node";
 import { swagger } from "@elysiajs/swagger";
-import { logger } from "@personal-server/common/utils/logger";
 import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
 import { env } from "./env.js";
 import { setupInternetRoutes } from "./internet/http.js";
 import { setupRagRoutes } from "./rag/http.js";
 import { setupStockRoutes } from "./stock/http.js";
+import { logger } from "./utils/logger.js";
 
 export const setupHTTPServer = () => {
   const app = new Elysia({ adapter: node() })

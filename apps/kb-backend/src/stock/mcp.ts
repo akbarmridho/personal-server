@@ -1,4 +1,3 @@
-import { logger } from "@personal-server/common/utils/logger";
 import dayjs from "dayjs";
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
@@ -6,11 +5,8 @@ import z from "zod";
 import { env } from "../env.js";
 import { retriever } from "../rag/storage/retrieve.js";
 import { vectorStore } from "../rag/storage/store.js";
-import {
-  checkTicker,
-  GetCompaniesParams,
-  getCompanies,
-} from "./aggregator/companies.js";
+import { logger } from "../utils/logger.js";
+import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
 import { getSectors } from "./aggregator/sectors.js";
 import {
   GetSectorsReportParams,

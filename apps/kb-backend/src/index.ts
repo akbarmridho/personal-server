@@ -1,8 +1,7 @@
-import { loadDotenv } from "@personal-server/common/utils/load-dotenv";
+import { loadDotenv } from "./utils/load-dotenv.js";
 
 loadDotenv();
 
-import { logger } from "@personal-server/common/utils/logger";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { env } from "./env.js";
@@ -10,6 +9,7 @@ import { setupInternetMcp } from "./internet/mcp.js";
 import { setupRAGMcp } from "./rag/mcp.js";
 import { setupHTTPServer } from "./server.js";
 import { setupStockMcp } from "./stock/mcp.js";
+import { logger } from "./utils/logger.js";
 
 async function main() {
   const ragMcpServer = await setupRAGMcp();

@@ -1,5 +1,5 @@
-import { logger } from "@personal-server/common/utils/logger";
 import { VoyageAIClient, VoyageAIError } from "voyageai";
+import { logger } from "../../utils/logger.js";
 import { estimateEmbeddingTokenCount } from "../counter.js";
 import {
   type ChunkerOptions,

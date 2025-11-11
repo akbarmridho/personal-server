@@ -10,7 +10,7 @@ export const filen = new FilenSDK({
   tmpPath: path.join(tmpdir(), "filen-sdk"),
   email: env.FILEN_EMAIL,
   password: env.FILEN_PASSWORD,
-  twoFactorCode: generateTOTP(),
+  twoFactorCode: await generateTOTP(),
 });
 
 await filen.login({});

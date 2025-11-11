@@ -1,8 +1,8 @@
-import { logger } from "@personal-server/common/utils/logger";
 import { FastMCP } from "fastmcp";
 import z from "zod";
 import { db } from "../db/db.js";
 import { env } from "../env.js";
+import { logger } from "../utils/logger.js";
 import { retriever } from "./storage/retrieve.js";
 
 const EMBEDDING_WEIGHT = 0.7;

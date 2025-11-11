@@ -1,5 +1,5 @@
-import { logger } from "@personal-server/common/utils/logger";
 import { Elysia, t } from "elysia";
+import { logger } from "../utils/logger.js";
 import { fetchUrlContent } from "./services/crawl-page.js";
 import {
   performGeneralSearch,

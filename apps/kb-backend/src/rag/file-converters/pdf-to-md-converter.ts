@@ -1,7 +1,7 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { logger } from "@personal-server/common/utils/logger";
 import { generateText } from "ai";
 import pRetry from "p-retry";
+import { logger } from "../../utils/logger.js";
 
 const pdfToMdSystemPrompt = `
 You are an advanced AI document processing tool. Your task is to convert a PDF document into a clean, well-structured Markdown document while preserving the original layout and hierarchy as faithfully as possible.

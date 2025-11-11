@@ -1,6 +1,6 @@
 import { WebDAVServer } from "@filen/webdav";
-import { logger } from "@personal-server/common/utils/logger";
 import { env } from "../utils/env.js";
+import { logger } from "../utils/logger.js";
 import { filen } from "./client.js";
 
 export const setupWebdav = async () => {

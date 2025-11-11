@@ -1,9 +1,9 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
-import { logger } from "@personal-server/common/utils/logger";
 import { generateObject } from "ai";
 import pRetry from "p-retry";
 import z from "zod";
 import { getRawCompanies } from "../stock/aggregator/companies.js";
+import { logger } from "../utils/logger.js";
 
 const delistedTickers = [
   "APOL",

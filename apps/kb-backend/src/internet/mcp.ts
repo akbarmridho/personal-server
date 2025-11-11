@@ -1,8 +1,8 @@
-import { logger } from "@personal-server/common/utils/logger";
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
 import { env } from "../env.js";
+import { logger } from "../utils/logger.js";
 import { fetchUrlContent } from "./services/crawl-page.js";
 import { performInvestmentSearch } from "./services/internet-search.js";
 
