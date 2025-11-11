@@ -68,24 +68,3 @@ docker network create personal_network
 ### Heimdall
 
 - `8012` Heimdall.
-
-### AnythingLLM
-
-- `8013` Anything LLM.
-
-### ERPNext
-
-- `8014` ERPNext.
-
-### Teable
-
-- `8015` Teable.
-
-### Grist
-
-- `8016` Teable.
-- `8017` Authentik.
-
-### Appsmith
-
-- `8018` Appsmith.
