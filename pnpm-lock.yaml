@@ -271,9 +271,18 @@ importers:
       '@kottster/server':
         specifier: 3.4.5
         version: 3.4.5(@kottster/common@3.4.5)(better-sqlite3@12.4.1)(pg@8.16.3)(vite@6.4.1(@types/node@22.17.2)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6))
-      '@personal-server/common':
-        specifier: workspace:*
-        version: link:../../packages/common
+      '@mantine/core':
+        specifier: ^8.3.7
+        version: 8.3.7(@mantine/hooks@8.3.7(react@19.2.0))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@mantine/hooks':
+        specifier: ^8.3.7
+        version: 8.3.7(react@19.2.0)
+      '@mantine/modals':
+        specifier: ^8.3.7
+        version: 8.3.7(@mantine/core@8.3.7(@mantine/hooks@8.3.7(react@19.2.0))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@mantine/hooks@8.3.7(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@mantine/notifications':
+        specifier: ^8.3.7
+        version: 8.3.7(@mantine/core@8.3.7(@mantine/hooks@8.3.7(react@19.2.0))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@mantine/hooks@8.3.7(react@19.2.0))(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       knex:
         specifier: ^3.1.0
         version: 3.1.0(better-sqlite3@12.4.1)(pg@8.16.3)
