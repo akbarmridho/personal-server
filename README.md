@@ -85,3 +85,7 @@ docker network create personal_network
 
 - `8016` Teable.
 - `8017` Authentik.
+
+### Appsmith
+
+- `8018` Appsmith.
