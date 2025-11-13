@@ -1,3 +1,4 @@
+import "@dotenvx/dotenvx/config";
 import type { NetworkDrive } from "@filen/network-drive";
 import type { SyncWorker } from "@filen/sync";
 import type { WebDAVServer } from "@filen/webdav";

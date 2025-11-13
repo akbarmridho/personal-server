@@ -1,7 +1,4 @@
-import { loadDotenv } from "./utils/load-dotenv.js";
-
-loadDotenv();
-
+import "@dotenvx/dotenvx/config";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { env } from "./env.js";

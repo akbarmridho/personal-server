@@ -1,7 +1,3 @@
-import { loadDotenv } from "../utils/load-dotenv.js";
-
-loadDotenv();
-
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import axios from "axios";

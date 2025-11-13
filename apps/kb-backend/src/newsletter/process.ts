@@ -1,7 +1,3 @@
-import { loadDotenv } from "../utils/load-dotenv.js";
-
-loadDotenv();
-
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { remove } from "diacritics";

@@ -1,8 +1,6 @@
+import "@dotenvx/dotenvx/config";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
-import { loadDotenv } from "./utils/load-dotenv.js";
-
-loadDotenv();
 
 export const env = createEnv({
   /*
