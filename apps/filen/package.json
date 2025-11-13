@@ -33,6 +33,7 @@
         "zod": "^4.1.1"
     },
     "devDependencies": {
+        "@biomejs/biome": "2.2.2",
         "@types/node": "^22.16.4",
         "typescript": "^5.9.2",
         "@swc-node/register": "^1.10.10"
