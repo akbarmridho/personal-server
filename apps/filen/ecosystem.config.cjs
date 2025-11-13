@@ -7,6 +7,8 @@ module.exports = {
       autorestart: false,
       max_memory_restart: "2048M",
       min_uptime: 5000,
+      combine_logs: true,
+      time: true,
       max_restarts: 5,
       restart_delay: 2000,
       watch: false,
