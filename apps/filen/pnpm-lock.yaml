@@ -36,8 +36,8 @@ importers:
         specifier: ^13.0.0
         version: 13.1.2
       totp-generator:
-        specifier: ^1.0.0
-        version: 1.1.0
+        specifier: ^2.0.0
+        version: 2.0.0
       zod:
         specifier: ^4.1.1
         version: 4.1.12
@@ -630,6 +630,9 @@ packages:
   jsonfile@6.2.0:
     resolution: {integrity: sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==}
 
+  jssha@3.3.1:
+    resolution: {integrity: sha512-VCMZj12FCFMQYcFLPRm/0lOBbLi8uM2BhXPTqw3U4YAfs4AZfiApOoBLoN8cQE60Z50m1MYMTQVCfgF/KaCVhQ==}
+
   lodash.clonedeep@4.5.0:
     resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
 
@@ -938,9 +941,8 @@ packages:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
 
-  totp-generator@1.1.0:
-    resolution: {integrity: sha512-v0vrIlUst47S9OGr6h7fij7CfG+cRFau+rsdvAB1LYdvhED8DgxbXCr4fjUvkF1bcLB//ngXxixAn9TOmH2e0w==}
-    deprecated: Deprecated in favor for 2.0.0
+  totp-generator@2.0.0:
+    resolution: {integrity: sha512-YXqrJupB/w762T4PrI9qLg5ekb0Of1MRerIW5wh3GRRkH/mgSROw5Gale0gidtc4CfTsNNyZFStS7H4uXJgL2Q==}
 
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
@@ -1673,6 +1675,8 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
+  jssha@3.3.1: {}
+
   lodash.clonedeep@4.5.0: {}
 
   math-intrinsics@1.1.0: {}
@@ -1979,7 +1983,9 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
-  totp-generator@1.1.0: {}
+  totp-generator@2.0.0:
+    dependencies:
+      jssha: 3.3.1
 
   type-is@1.6.18:
     dependencies:
