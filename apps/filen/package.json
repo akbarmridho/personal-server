@@ -34,6 +34,7 @@
     },
     "devDependencies": {
         "@types/node": "^22.16.4",
-        "typescript": "^5.9.2"
+        "typescript": "^5.9.2",
+        "@swc-node/register": "^1.10.10"
     }
 }
