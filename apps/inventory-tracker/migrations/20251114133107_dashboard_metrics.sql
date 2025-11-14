@@ -67,12 +67,12 @@ BEGIN
             AND pa.type = 'Refund'
         ),
         'total_sales', (
-            SELECT COALESCE(SUM(
+            SELECT COALESCE(CAST(SUM(
                 CASE
                     WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
-            ), 0)
+            ) AS NUMERIC), 0)
             FROM product_activities pa
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
@@ -80,12 +80,12 @@ BEGIN
             AND pa.type = 'Sales'
         ),
         'total_refunded', (
-            SELECT COALESCE(SUM(
+            SELECT COALESCE(CAST(SUM(
                 CASE
                     WHEN pa.type = 'Refund' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
-            ), 0)
+            ) AS NUMERIC), 0)
             FROM product_activities pa
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
@@ -93,12 +93,12 @@ BEGIN
             AND pa.type = 'Refund'
         ),
         'total_cost_of_sales', (
-            SELECT COALESCE(SUM(
+            SELECT COALESCE(CAST(SUM(
                 CASE
                     WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_cost
                     ELSE 0
                 END
-            ), 0)
+            ) AS NUMERIC), 0)
             FROM product_activities pa
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
@@ -106,19 +106,19 @@ BEGIN
             AND pa.type = 'Sales'
         ),
         'net_profit', (
-            SELECT COALESCE(SUM(
+            SELECT COALESCE(CAST(SUM(
                 CASE
                     WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                     WHEN pa.type = 'Refund' THEN -(pa.quantity * pa.unit_revenue)
                     ELSE 0
                 END
-            ), 0) - COALESCE(SUM(
+            ) AS NUMERIC), 0) - COALESCE(CAST(SUM(
                 CASE
                     WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_cost
                     WHEN pa.type = 'Refund' THEN pa.quantity * pa.unit_cost
                     ELSE 0
                 END
-            ), 0)
+            ) AS NUMERIC), 0)
             FROM product_activities pa
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
@@ -127,12 +127,12 @@ BEGIN
         ),
         'total_sales_today', CASE
             WHEN include_today THEN (
-                SELECT COALESCE(SUM(
+                SELECT COALESCE(CAST(SUM(
                     CASE
                         WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                         ELSE 0
                     END
-                ), 0)
+                ) AS NUMERIC), 0)
                 FROM product_activities pa
                 -- CRITICAL: Use Asia/Jakarta timezone for today's calculation
                 WHERE (pa.created_at AT TIME ZONE 'Asia/Jakarta')::DATE = jakarta_today
@@ -141,12 +141,12 @@ BEGIN
             ELSE 0
         END,
         'total_sales_period', (
-            SELECT COALESCE(SUM(
+            SELECT COALESCE(CAST(SUM(
                 CASE
                     WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
-            ), 0)
+            ) AS NUMERIC), 0)
             FROM product_activities pa
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
@@ -185,12 +185,12 @@ BEGIN
     SELECT
         -- CRITICAL: Group by Asia/Jakarta date
         DATE_TRUNC('day', pa.created_at AT TIME ZONE 'Asia/Jakarta')::DATE as date,
-        COALESCE(SUM(
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 ELSE 0
             END
-        ), 0) as sales,
+        ) AS NUMERIC), 0) as sales,
         COUNT(DISTINCT t.id) as transactions
     FROM product_activities pa
     LEFT JOIN transactions t ON pa.transaction_id = t.id
@@ -231,24 +231,24 @@ BEGIN
         p.id as product_id,
         p.name as product_name,
         pc.name as category_name,
-        COALESCE(SUM(
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity
                 ELSE 0
             END
-        ), 0) as total_sales,
+        ) AS NUMERIC), 0) as total_sales,
         COALESCE(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity
                 ELSE 0
             END
         ), 0)::INTEGER as total_quantity,
-        COALESCE(SUM(
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 ELSE 0
             END
-        ), 0) as revenue
+        ) AS NUMERIC), 0) as revenue
     FROM products p
     LEFT JOIN product_categories pc ON p.category_id = pc.id
     LEFT JOIN product_variants pv ON p.id = pv.product_id
@@ -287,18 +287,18 @@ BEGIN
     SELECT
         pc.id as category_id,
         pc.name as category_name,
-        COALESCE(SUM(
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity
                 ELSE 0
             END
-        ), 0) as total_sales,
-        COALESCE(SUM(
+        ) AS NUMERIC), 0) as total_sales,
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 ELSE 0
             END
-        ), 0) as revenue,
+        ) AS NUMERIC), 0) as revenue,
         COUNT(DISTINCT p.id) as product_count
     FROM product_categories pc
     LEFT JOIN products p ON pc.id = p.category_id
@@ -365,27 +365,27 @@ BEGIN
     SELECT
         -- CRITICAL: Group by Asia/Jakarta date
         DATE_TRUNC('day', pa.created_at AT TIME ZONE 'Asia/Jakarta')::DATE as date,
-        COALESCE(SUM(
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 WHEN pa.type = 'Refund' THEN -(pa.quantity * pa.unit_revenue)
                 ELSE 0
             END
-        ), 0) as revenue,
-        COALESCE(SUM(
+        ) AS NUMERIC), 0) as revenue,
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_cost
                 WHEN pa.type = 'Refund' THEN pa.quantity * pa.unit_cost
                 ELSE 0
             END
-        ), 0) as cost,
-        COALESCE(SUM(
+        ) AS NUMERIC), 0) as cost,
+        COALESCE(CAST(SUM(
             CASE
                 WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue - pa.quantity * pa.unit_cost
                 WHEN pa.type = 'Refund' THEN -(pa.quantity * pa.unit_revenue) - pa.quantity * pa.unit_cost
                 ELSE 0
             END
-        ), 0) as profit,
+        ) AS NUMERIC), 0) as profit,
         COUNT(DISTINCT t.id) as transactions
     FROM product_activities pa
     LEFT JOIN transactions t ON pa.transaction_id = t.id

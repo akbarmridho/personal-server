@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { CategoryPerformanceChart } from "@/components/dashboard/CategoryPerformanceChart";
 import { FinancialChart } from "@/components/dashboard/FinancialChart";
+import { InteractiveSalesTrendChart } from "@/components/dashboard/InteractiveSalesTrendChart";
 import { LowStockList } from "@/components/dashboard/LowStockList";
 import { MetricsCards } from "@/components/dashboard/MetricsCards";
-import { InteractiveSalesTrendChart } from "@/components/dashboard/InteractiveSalesTrendChart";
 import { TopProductsChart } from "@/components/dashboard/TopProductsChart";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { getCurrentDateJakarta } from "@/lib/date-utils";
@@ -40,7 +40,13 @@ function DashboardPage() {
           <MetricsCards metrics={metrics} />
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <InteractiveSalesTrendChart data={financial.map(item => ({ date: item.date, sales: item.revenue, cost: item.cost }))} />
+            <InteractiveSalesTrendChart
+              data={financial.map((item) => ({
+                date: item.date,
+                sales: item.revenue,
+                cost: item.cost,
+              }))}
+            />
             <FinancialChart data={financial} />
           </div>
 

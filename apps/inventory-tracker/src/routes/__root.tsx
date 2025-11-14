@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 
 export const Route = createRootRoute({
   component: () => (
-    <AppLayout title="Inventori Barang">
+    <AppLayout>
       <div className="container mx-auto">
         <Outlet />
       </div>

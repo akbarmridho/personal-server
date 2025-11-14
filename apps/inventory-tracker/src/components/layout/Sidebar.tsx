@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { FolderTree, History, LayoutDashboard, Package } from "lucide-react";
-import { ModeToggle } from "@/components/ModeToggle";
+import { ThemeSwitch } from "@/components/ui/theme-switch";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,6 @@ export function Sidebar({ className }: SidebarProps) {
     >
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-bold">Inventori Barang</h1>
-        <ModeToggle />
       </div>
       <nav className="flex flex-col gap-1">
         {navigation.map((item) => (
@@ -42,6 +41,9 @@ export function Sidebar({ className }: SidebarProps) {
           </Link>
         ))}
       </nav>
+      <div className="mt-auto">
+        <ThemeSwitch />
+      </div>
     </aside>
   );
 }

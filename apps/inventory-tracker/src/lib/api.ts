@@ -92,18 +92,22 @@ export const categoriesAPI = {
     searchParams.set("offset", String((page - 1) * pageSize));
 
     // Add count for pagination info
-    searchParams.set("prefer", "count=exact");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Prefer: "count=exact",
+    };
 
     const response = await fetch(
       `${API_BASE}/product_categories?${searchParams}`,
       {
-        headers: { "Content-Type": "application/json" },
+        headers,
       },
     );
 
     const data = await handleResponse<ProductCategory[]>(response);
     const totalCount = parseInt(
       response.headers.get("content-range")?.split("/")[1] || "0",
+      10,
     );
 
     return {
@@ -236,15 +240,19 @@ export const productsAPI = {
     searchParams.set("offset", String((page - 1) * pageSize));
 
     // Add count for pagination info
-    searchParams.set("prefer", "count=exact");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Prefer: "count=exact",
+    };
 
     const response = await fetch(`${API_BASE}/products?${searchParams}`, {
-      headers: { "Content-Type": "application/json" },
+      headers,
     });
 
     const data = await handleResponse<ProductWithRelations[]>(response);
     const totalCount = parseInt(
       response.headers.get("content-range")?.split("/")[1] || "0",
+      10,
     );
 
     return {
@@ -444,18 +452,22 @@ export const activitiesAPI = {
     searchParams.set("offset", String((page - 1) * pageSize));
 
     // Add count for pagination info
-    searchParams.set("prefer", "count=exact");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Prefer: "count=exact",
+    };
 
     const response = await fetch(
       `${API_BASE}/product_activities?${searchParams}`,
       {
-        headers: { "Content-Type": "application/json" },
+        headers,
       },
     );
 
     const data = await handleResponse<ProductActivityWithRelations[]>(response);
     const totalCount = parseInt(
       response.headers.get("content-range")?.split("/")[1] || "0",
+      10,
     );
 
     return {

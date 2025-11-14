@@ -150,7 +150,6 @@ function ActivitiesPage() {
       {/* Main Content */}
       <div className="flex-1">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Aktivitas</h1>
           <p className="text-muted-foreground mt-1">
             Riwayat transaksi dan aktivitas stok
           </p>

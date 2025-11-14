@@ -1,9 +1,21 @@
-"use client";
-
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,20 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency } from "@/lib/date-utils";
 import type { ProductWithRelations } from "@/types/database";
 import { StockActions } from "./StockActions";
@@ -80,7 +78,7 @@ export function EnhancedProductTable({
     if (selectedRows.size === filteredProducts.length) {
       setSelectedRows(new Set());
     } else {
-      setSelectedRows(new Set(filteredProducts.map(p => p.id)));
+      setSelectedRows(new Set(filteredProducts.map((p) => p.id)));
     }
   };
 
@@ -98,7 +96,7 @@ export function EnhancedProductTable({
 
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   const totalPages = Math.ceil(filteredProducts.length / pageSize);
@@ -134,7 +132,7 @@ export function EnhancedProductTable({
             className="pl-10"
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -146,48 +144,54 @@ export function EnhancedProductTable({
             <DropdownMenuContent align="end">
               <DropdownMenuCheckboxItem
                 checked={columnVisibility.name}
-                onCheckedChange={(checked) => 
-                  setColumnVisibility(prev => ({ ...prev, name: checked }))
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, name: checked }))
                 }
               >
                 Nama Produk
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={columnVisibility.category}
-                onCheckedChange={(checked) => 
-                  setColumnVisibility(prev => ({ ...prev, category: checked }))
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({
+                    ...prev,
+                    category: checked,
+                  }))
                 }
               >
                 Kategori
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={columnVisibility.stock}
-                onCheckedChange={(checked) => 
-                  setColumnVisibility(prev => ({ ...prev, stock: checked }))
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, stock: checked }))
                 }
               >
                 Total Stok
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={columnVisibility.value}
-                onCheckedChange={(checked) => 
-                  setColumnVisibility(prev => ({ ...prev, value: checked }))
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, value: checked }))
                 }
               >
                 Nilai Total
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={columnVisibility.actions}
-                onCheckedChange={(checked) => 
-                  setColumnVisibility(prev => ({ ...prev, actions: checked }))
+                onCheckedChange={(checked) =>
+                  setColumnVisibility((prev) => ({ ...prev, actions: checked }))
                 }
               >
                 Aksi
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+
+          <Select
+            value={pageSize.toString()}
+            onValueChange={(value) => setPageSize(Number(value))}
+          >
             <SelectTrigger className="w-20">
               <SelectValue />
             </SelectTrigger>
@@ -207,22 +211,34 @@ export function EnhancedProductTable({
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox
-                  checked={selectedRows.size === filteredProducts.length && filteredProducts.length > 0}
+                  checked={
+                    selectedRows.size === filteredProducts.length &&
+                    filteredProducts.length > 0
+                  }
                   onCheckedChange={toggleAllRows}
                   aria-label="Select all"
                 />
               </TableHead>
               {columnVisibility.name && <TableHead>Produk</TableHead>}
               {columnVisibility.category && <TableHead>Kategori</TableHead>}
-              {columnVisibility.stock && <TableHead className="text-right">Total Stok</TableHead>}
-              {columnVisibility.value && <TableHead className="text-right">Nilai Total</TableHead>}
-              {columnVisibility.actions && <TableHead className="text-right">Aksi</TableHead>}
+              {columnVisibility.stock && (
+                <TableHead className="text-right">Total Stok</TableHead>
+              )}
+              {columnVisibility.value && (
+                <TableHead className="text-right">Nilai Total</TableHead>
+              )}
+              {columnVisibility.actions && (
+                <TableHead className="text-right">Aksi</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-gray-500 py-8">
+                <TableCell
+                  colSpan={6}
+                  className="text-center text-gray-500 py-8"
+                >
                   {search
                     ? "Tidak ada produk yang ditemukan"
                     : "Belum ada produk"}
@@ -281,7 +297,10 @@ export function EnhancedProductTable({
                         </TableCell>
                       )}
                       {columnVisibility.value && (
-                        <TableCell onClick={() => toggleRow(product.id)} className="text-right">
+                        <TableCell
+                          onClick={() => toggleRow(product.id)}
+                          className="text-right"
+                        >
                           {formatCurrency(totalValue)}
                         </TableCell>
                       )}
@@ -307,11 +326,21 @@ export function EnhancedProductTable({
                               <TableHeader>
                                 <TableRow>
                                   <TableHead>Nama Varian</TableHead>
-                                  <TableHead className="text-right">Harga Beli</TableHead>
-                                  <TableHead className="text-right">Harga Jual</TableHead>
-                                  <TableHead className="text-right">Stok</TableHead>
-                                  <TableHead className="text-right">Nilai</TableHead>
-                                  <TableHead className="text-right">Aksi</TableHead>
+                                  <TableHead className="text-right">
+                                    Harga Beli
+                                  </TableHead>
+                                  <TableHead className="text-right">
+                                    Harga Jual
+                                  </TableHead>
+                                  <TableHead className="text-right">
+                                    Stok
+                                  </TableHead>
+                                  <TableHead className="text-right">
+                                    Nilai
+                                  </TableHead>
+                                  <TableHead className="text-right">
+                                    Aksi
+                                  </TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -319,7 +348,9 @@ export function EnhancedProductTable({
                                   <TableRow key={variant.id}>
                                     <TableCell>
                                       <div>
-                                        <div className="font-medium">{variant.name}</div>
+                                        <div className="font-medium">
+                                          {variant.name}
+                                        </div>
                                         {variant.description && (
                                           <div className="text-sm text-gray-500">
                                             {variant.description}
@@ -339,7 +370,9 @@ export function EnhancedProductTable({
                                       {variant.stock}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                      {formatCurrency(variant.stock * variant.sell_price)}
+                                      {formatCurrency(
+                                        variant.stock * variant.sell_price,
+                                      )}
                                     </TableCell>
                                     <TableCell className="text-right">
                                       <Button
@@ -395,7 +428,9 @@ export function EnhancedProductTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
             disabled={currentPage === totalPages}
           >
             Selanjutnya
