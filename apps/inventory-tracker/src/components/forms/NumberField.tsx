@@ -10,6 +10,7 @@ interface NumberFieldProps {
   required?: boolean;
   disabled?: boolean;
   min?: number;
+  max?: number;
 }
 
 export function NumberField({
@@ -21,6 +22,7 @@ export function NumberField({
   required,
   disabled,
   min = 0,
+  max,
 }: NumberFieldProps) {
   return (
     <div className="space-y-2">
@@ -36,6 +38,7 @@ export function NumberField({
         className={error ? "border-red-500" : ""}
         disabled={disabled}
         min={min}
+        max={max}
       />
       {error && <p className="text-sm text-red-500">{error}</p>}
     </div>
