@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertCircle, Plus } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { CategoryForm } from "@/components/categories/CategoryForm";
 import { CategoryTable } from "@/components/categories/CategoryTable";
 import { DeleteCategoryDialog } from "@/components/categories/DeleteCategoryDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { useCategories } from "@/hooks/useCategories";
 import type { CategoryFormData } from "@/lib/validations";
 import type { ProductCategory } from "@/types/database";
@@ -33,11 +32,6 @@ function CategoriesPage() {
     useState<ProductCategory | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const handleCreate = () => {
-    setSelectedCategory(null);
-    setActionError(null);
-    setFormOpen(true);
-  };
 
   const handleEdit = (category: ProductCategory) => {
     setSelectedCategory(category);
@@ -78,17 +72,7 @@ function CategoriesPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Kategori</h1>
-          <p className="text-muted-foreground">Kelola kategori produk</p>
-        </div>
-        <Button onClick={handleCreate}>
-          <Plus />
-          Tambah Kategori
-        </Button>
-      </div>
+    <div className="space-y-6">
 
       {error && (
         <Alert variant="destructive">
