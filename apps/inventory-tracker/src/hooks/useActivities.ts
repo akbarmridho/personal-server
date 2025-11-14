@@ -1,13 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { activitiesAPI } from "@/lib/api";
+import type { QueryParams } from "@/types/api";
 import type { CreateProductActivity } from "@/types/database";
 
-export function useActivities() {
+export function useActivities(params?: QueryParams) {
   const queryClient = useQueryClient();
 
   const activitiesQuery = useQuery({
-    queryKey: ["activities"],
-    queryFn: activitiesAPI.list,
+    queryKey: ["activities", params],
+    queryFn: () => activitiesAPI.list(params),
+    staleTime: 120_000,
   });
 
   const createMutation = useMutation({
@@ -29,7 +31,11 @@ export function useActivities() {
   });
 
   return {
-    activities: activitiesQuery.data || [],
+    activities: activitiesQuery.data?.data || [],
+    totalCount: activitiesQuery.data?.totalCount || 0,
+    currentPage: activitiesQuery.data?.currentPage || 1,
+    pageSize: activitiesQuery.data?.pageSize || 20,
+    totalPages: activitiesQuery.data?.totalPages || 0,
     isLoading: activitiesQuery.isLoading,
     error: activitiesQuery.error,
     createActivity: (data: CreateProductActivity) =>

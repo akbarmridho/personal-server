@@ -3,7 +3,9 @@ import type {
   DashboardMetrics,
   FinancialAnalytics,
   LowStockAlert,
+  PaginatedResponse,
   PostgRESTError,
+  QueryParams,
   SalesTrend,
   TopProduct,
 } from "@/types/api";
@@ -60,14 +62,57 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 // Categories API
 export const categoriesAPI = {
-  list: async (): Promise<ProductCategory[]> => {
+  list: async (
+    params?: QueryParams,
+  ): Promise<PaginatedResponse<ProductCategory>> => {
+    const searchParams = new URLSearchParams();
+
+    // Add select and ordering
+    searchParams.set("select", "*");
+
+    // Add sorting
+    if (params?.sort) {
+      searchParams.set(
+        "order",
+        `${params.sort.column}.${params.sort.direction}`,
+      );
+    } else {
+      searchParams.set("order", "name.asc");
+    }
+
+    // Add filtering
+    if (params?.filter?.search) {
+      searchParams.set("name", `ilike.*${params.filter.search}*`);
+    }
+
+    // Add pagination
+    const pageSize = params?.pageSize || 10;
+    const page = params?.page || 1;
+    searchParams.set("limit", String(pageSize));
+    searchParams.set("offset", String((page - 1) * pageSize));
+
+    // Add count for pagination info
+    searchParams.set("prefer", "count=exact");
+
     const response = await fetch(
-      `${API_BASE}/product_categories?order=name.asc`,
+      `${API_BASE}/product_categories?${searchParams}`,
       {
         headers: { "Content-Type": "application/json" },
       },
     );
-    return handleResponse<ProductCategory[]>(response);
+
+    const data = await handleResponse<ProductCategory[]>(response);
+    const totalCount = parseInt(
+      response.headers.get("content-range")?.split("/")[1] || "0",
+    );
+
+    return {
+      data,
+      totalCount,
+      currentPage: page,
+      pageSize,
+      totalPages: Math.ceil(totalCount / pageSize),
+    };
   },
 
   getById: async (id: number): Promise<ProductCategory> => {
@@ -118,14 +163,97 @@ export const categoriesAPI = {
 
 // Products API
 export const productsAPI = {
-  list: async (): Promise<ProductWithRelations[]> => {
-    const response = await fetch(
-      `${API_BASE}/products?select=*,product_categories(*),product_variants(*)&order=name.asc`,
-      {
-        headers: { "Content-Type": "application/json" },
-      },
+  list: async (
+    params?: QueryParams,
+  ): Promise<PaginatedResponse<ProductWithRelations>> => {
+    const searchParams = new URLSearchParams();
+
+    // Add select with relations
+    searchParams.set("select", "*,product_categories(*),product_variants(*)");
+
+    // Add sorting
+    if (params?.sort) {
+      searchParams.set(
+        "order",
+        `${params.sort.column}.${params.sort.direction}`,
+      );
+    } else {
+      searchParams.set("order", "name.asc");
+    }
+
+    // Add filtering
+    if (params?.filter?.search) {
+      // Search across product name and category name
+      searchParams.set(
+        "or",
+        `(name.ilike.*${params.filter.search}*,product_categories.name.ilike.*${params.filter.search}*)`,
+      );
+    }
+
+    if (params?.filter?.categoryIds && params.filter.categoryIds.length > 0) {
+      searchParams.set(
+        "category_id",
+        `in.(${params.filter.categoryIds.join(",")})`,
+      );
+    }
+
+    // Stock level filtering
+    if (params?.filter?.stockLevel) {
+      switch (params.filter.stockLevel) {
+        case "out":
+          searchParams.set("product_variants.stock", "eq.0");
+          break;
+        case "low":
+          searchParams.set("product_variants.stock", "lt.10");
+          searchParams.set("product_variants.stock", "gt.0");
+          break;
+        case "normal":
+          searchParams.set("product_variants.stock", "gte.10");
+          break;
+      }
+    }
+
+    // Price range filtering
+    if (params?.filter?.priceRange) {
+      if (params.filter.priceRange.min) {
+        searchParams.set(
+          "product_variants.sell_price",
+          `gte.${params.filter.priceRange.min}`,
+        );
+      }
+      if (params.filter.priceRange.max) {
+        searchParams.set(
+          "product_variants.sell_price",
+          `lte.${params.filter.priceRange.max}`,
+        );
+      }
+    }
+
+    // Add pagination
+    const pageSize = params?.pageSize || 10;
+    const page = params?.page || 1;
+    searchParams.set("limit", String(pageSize));
+    searchParams.set("offset", String((page - 1) * pageSize));
+
+    // Add count for pagination info
+    searchParams.set("prefer", "count=exact");
+
+    const response = await fetch(`${API_BASE}/products?${searchParams}`, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await handleResponse<ProductWithRelations[]>(response);
+    const totalCount = parseInt(
+      response.headers.get("content-range")?.split("/")[1] || "0",
     );
-    return handleResponse<ProductWithRelations[]>(response);
+
+    return {
+      data,
+      totalCount,
+      currentPage: page,
+      pageSize,
+      totalPages: Math.ceil(totalCount / pageSize),
+    };
   },
 
   getById: async (id: number): Promise<ProductWithRelations> => {
@@ -269,14 +397,74 @@ export const transactionsAPI = {
 
 // Product Activities API
 export const activitiesAPI = {
-  list: async (): Promise<ProductActivityWithRelations[]> => {
+  list: async (
+    params?: QueryParams,
+  ): Promise<PaginatedResponse<ProductActivityWithRelations>> => {
+    const searchParams = new URLSearchParams();
+
+    // Add select with relations
+    searchParams.set("select", "*,transactions(*)");
+
+    // Add sorting
+    if (params?.sort) {
+      searchParams.set(
+        "order",
+        `${params.sort.column}.${params.sort.direction}`,
+      );
+    } else {
+      searchParams.set("order", "created_at.desc");
+    }
+
+    // Add filtering
+    if (params?.filter?.search) {
+      // Search across product name and variant name
+      searchParams.set(
+        "or",
+        `(product_name.ilike.*${params.filter.search}*,variant_name.ilike.*${params.filter.search}*)`,
+      );
+    }
+
+    if (
+      params?.filter?.activityTypes &&
+      params.filter.activityTypes.length > 0
+    ) {
+      searchParams.set("type", `in.(${params.filter.activityTypes.join(",")})`);
+    }
+
+    // Date range filtering
+    if (params?.filter?.dateRange) {
+      searchParams.set("created_at", `gte.${params.filter.dateRange.start}`);
+      searchParams.set("created_at", `lte.${params.filter.dateRange.end}`);
+    }
+
+    // Add pagination
+    const pageSize = params?.pageSize || 20;
+    const page = params?.page || 1;
+    searchParams.set("limit", String(pageSize));
+    searchParams.set("offset", String((page - 1) * pageSize));
+
+    // Add count for pagination info
+    searchParams.set("prefer", "count=exact");
+
     const response = await fetch(
-      `${API_BASE}/product_activities?select=*,transactions(*)&order=created_at.desc`,
+      `${API_BASE}/product_activities?${searchParams}`,
       {
         headers: { "Content-Type": "application/json" },
       },
     );
-    return handleResponse<ProductActivityWithRelations[]>(response);
+
+    const data = await handleResponse<ProductActivityWithRelations[]>(response);
+    const totalCount = parseInt(
+      response.headers.get("content-range")?.split("/")[1] || "0",
+    );
+
+    return {
+      data,
+      totalCount,
+      currentPage: page,
+      pageSize,
+      totalPages: Math.ceil(totalCount / pageSize),
+    };
   },
 
   getById: async (id: number): Promise<ProductActivityWithRelations> => {

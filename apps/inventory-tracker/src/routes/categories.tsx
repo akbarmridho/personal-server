@@ -15,7 +15,6 @@ export const Route = createFileRoute("/categories")({
 
 function CategoriesPage() {
   const {
-    categories,
     isLoading,
     error,
     createCategory,
@@ -96,7 +95,6 @@ function CategoriesPage() {
         </div>
       ) : (
         <CategoryTable
-          categories={categories}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

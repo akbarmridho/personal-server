@@ -28,6 +28,7 @@ export interface ProductVariant {
   cost_price: number;
   sell_price: number;
   stock: number;
+  min_stock_level?: number;
   created_at: string;
   updated_at: string;
 }
@@ -96,6 +97,7 @@ export interface CreateProductVariant {
   cost_price: number;
   sell_price: number;
   stock?: number;
+  min_stock_level?: number;
 }
 
 export interface UpdateProductVariant {
@@ -103,6 +105,7 @@ export interface UpdateProductVariant {
   description?: string;
   cost_price?: number;
   sell_price?: number;
+  min_stock_level?: number;
 }
 
 export interface CreateTransaction {

@@ -11,7 +11,12 @@
         "serve": "vite preview",
         "seed": "pnpm ts-run scripts/seed-database.ts",
         "seed:reset": "pnpm ts-run scripts/seed-database.ts reset",
-        "ts-run": "node --import @swc-node/register/esm-register"
+        "ts-run": "node --import @swc-node/register/esm-register",
+        "lint": "biome lint .",
+        "lint:fix": "biome lint --write .",
+        "format": "biome format .",
+        "format:write": "biome format --write .",
+        "check": "biome check ."
     },
     "dependencies": {
         "@faker-js/faker": "^10.1.0",

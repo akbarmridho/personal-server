@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,57 +10,59 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useCategories } from "@/hooks/useCategories";
 import { PAGINATION } from "@/lib/constants";
 import { formatDate } from "@/lib/date-utils";
+import type { QueryParams } from "@/types/api";
 import type { ProductCategory } from "@/types/database";
 import { CategoryActions } from "./CategoryActions";
 
 interface CategoryTableProps {
-  categories: ProductCategory[];
   onEdit: (category: ProductCategory) => void;
   onDelete: (category: ProductCategory) => void;
 }
 
-export function CategoryTable({
-  categories,
-  onEdit,
-  onDelete,
-}: CategoryTableProps) {
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<"name" | "created_at">("name");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+export function CategoryTable({ onEdit, onDelete }: CategoryTableProps) {
+  const [params, setParams] = useState<QueryParams>({
+    page: 1,
+    pageSize: PAGINATION.DEFAULT_PAGE_SIZE,
+    sort: { column: "name", direction: "asc" },
+    filter: { search: "" },
+  });
 
-  const pageSize = PAGINATION.DEFAULT_PAGE_SIZE;
+  const {
+    categories,
+    isLoading,
+    totalCount,
+    currentPage,
+    pageSize,
+    totalPages
+  } = useCategories(params);
 
-  const filteredAndSorted = useMemo(() => {
-    const result = categories.filter((cat) =>
-      cat.name.toLowerCase().includes(search.toLowerCase()),
-    );
+  const handleSearchChange = (search: string) => {
+    setParams((prev) => ({
+      ...prev,
+      filter: { ...prev.filter, search },
+      page: 1, // Reset to first page when searching
+    }));
+  };
 
-    result.sort((a, b) => {
-      const aVal = sortBy === "name" ? a.name : a.created_at;
-      const bVal = sortBy === "name" ? b.name : b.created_at;
-      const comparison = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-      return sortOrder === "asc" ? comparison : -comparison;
-    });
+  const handlePageChange = (page: number) => {
+    setParams((prev) => ({ ...prev, page }));
+  };
 
-    return result;
-  }, [categories, search, sortBy, sortOrder]);
-
-  const totalPages = Math.ceil(filteredAndSorted.length / pageSize);
-  const paginatedData = filteredAndSorted.slice(
-    (page - 1) * pageSize,
-    page * pageSize,
-  );
-
-  const toggleSort = (column: "name" | "created_at") => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(column);
-      setSortOrder("asc");
-    }
+  const handleSort = (column: "name" | "created_at") => {
+    setParams((prev) => ({
+      ...prev,
+      sort: {
+        column,
+        direction:
+          prev.sort?.column === column && prev.sort?.direction === "asc"
+            ? "desc"
+            : "asc",
+      },
+      page: 1, // Reset to first page when sorting
+    }));
   };
 
   return (
@@ -70,11 +72,8 @@ export function CategoryTable({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Cari kategori..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            value={params.filter?.search || ""}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -86,36 +85,48 @@ export function CategoryTable({
             <TableRow>
               <TableHead
                 className="cursor-pointer select-none"
-                onClick={() => toggleSort("name")}
+                onClick={() => handleSort("name")}
               >
-                Nama {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+                Nama{" "}
+                {params.sort?.column === "name" &&
+                  (params.sort?.direction === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead>Deskripsi</TableHead>
               <TableHead>Jumlah Produk</TableHead>
               <TableHead
                 className="cursor-pointer select-none"
-                onClick={() => toggleSort("created_at")}
+                onClick={() => handleSort("created_at")}
               >
                 Dibuat{" "}
-                {sortBy === "created_at" && (sortOrder === "asc" ? "↑" : "↓")}
+                {params.sort?.column === "created_at" &&
+                  (params.sort?.direction === "asc" ? "↑" : "↓")}
               </TableHead>
               <TableHead className="w-[100px]">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.length === 0 ? (
+            {isLoading ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
                   className="text-center text-muted-foreground"
                 >
-                  {search
+                  Memuat data...
+                </TableCell>
+              </TableRow>
+            ) : categories?.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center text-muted-foreground"
+                >
+                  {params.filter?.search
                     ? "Tidak ada kategori yang ditemukan"
                     : "Belum ada kategori"}
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedData.map((category) => (
+              categories?.map((category: ProductCategory) => (
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -142,16 +153,20 @@ export function CategoryTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Menampilkan {(page - 1) * pageSize + 1}-
-            {Math.min(page * pageSize, filteredAndSorted.length)} dari{" "}
-            {filteredAndSorted.length} kategori
+            Menampilkan{" "}
+            {(currentPage - 1) * pageSize + 1}-
+            {Math.min(
+              currentPage * pageSize,
+              totalCount,
+            )}{" "}
+            dari {totalCount} kategori
           </p>
           <div className="flex gap-2">
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setPage(page - 1)}
-              disabled={page === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
             >
               <ChevronLeft />
               Sebelumnya
@@ -159,8 +174,8 @@ export function CategoryTable({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setPage(page + 1)}
-              disabled={page === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
             >
               Selanjutnya
               <ChevronRight />

@@ -156,7 +156,7 @@ function ActivitiesPage() {
           </p>
         </div>
 
-        <ActivityTable activities={activities} isLoading={isLoading} />
+        <ActivityTable isLoading={isLoading} />
       </div>
 
       {/* Sidebar Forms */}

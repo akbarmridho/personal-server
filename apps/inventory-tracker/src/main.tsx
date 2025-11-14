@@ -2,13 +2,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { routeTree } from "./routeTree.gen.ts";
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 
-// Create a new router instance
+// Create a new router instance with global error boundary
 const router = createRouter({
   routeTree,
   context: {},
@@ -16,6 +16,9 @@ const router = createRouter({
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
+  defaultErrorComponent: ({ error, reset }) => (
+    <GlobalErrorBoundary error={error} reset={reset} />
+  ),
 });
 
 // Register the router instance for type safety
@@ -39,13 +42,11 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <RouterProvider router={router} />
-          </ThemeProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </QueryClientProvider>
     </StrictMode>,
   );
 }

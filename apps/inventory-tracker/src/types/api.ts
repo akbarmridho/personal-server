@@ -57,6 +57,45 @@ export interface FinancialAnalytics {
   transactions: number;
 }
 
+// Server-side pagination and filtering interfaces
+export interface PaginationParams {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface SortParams {
+  column: string;
+  direction: "asc" | "desc";
+}
+
+export interface FilterParams {
+  search?: string;
+  categoryIds?: number[];
+  stockLevel?: "low" | "normal" | "out";
+  activityTypes?: string[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+}
+
+export interface QueryParams extends PaginationParams {
+  sort?: SortParams;
+  filter?: FilterParams;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 // PostgREST error response
 export interface PostgRESTError {
   message: string;

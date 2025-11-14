@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,25 +10,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useProducts } from "@/hooks/useProducts";
 import { formatCurrency } from "@/lib/date-utils";
+import type { QueryParams } from "@/types/api";
 import type { ProductWithRelations } from "@/types/database";
 import { StockActions } from "./StockActions";
 
 interface ProductTableProps {
-  products: ProductWithRelations[];
   onAddStock: (variantId: number) => void;
   onEdit: (product: ProductWithRelations) => void;
   onDelete: (product: ProductWithRelations) => void;
 }
 
 export function ProductTable({
-  products,
   onAddStock,
   onEdit,
   onDelete,
 }: ProductTableProps) {
-  const [search, setSearch] = useState("");
+  const [params, setParams] = useState<QueryParams>({
+    page: 1,
+    pageSize: 10,
+    sort: { column: "name", direction: "asc" },
+    filter: { search: "" },
+  });
+
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  const {
+    products,
+    isLoading,
+    totalCount,
+    currentPage,
+    pageSize,
+    totalPages
+  } = useProducts(params);
 
   const toggleRow = (productId: number) => {
     const newExpanded = new Set(expandedRows);
@@ -40,17 +55,31 @@ export function ProductTable({
     setExpandedRows(newExpanded);
   };
 
-  const filteredProducts = products.filter((product) => {
-    const searchLower = search.toLowerCase();
-    const matchesProduct = product.name.toLowerCase().includes(searchLower);
-    const matchesCategory = product.product_categories?.name
-      .toLowerCase()
-      .includes(searchLower);
-    const matchesVariant = product.product_variants?.some((v) =>
-      v.name.toLowerCase().includes(searchLower),
-    );
-    return matchesProduct || matchesCategory || matchesVariant;
-  });
+  const handleSearchChange = (search: string) => {
+    setParams((prev) => ({
+      ...prev,
+      filter: { ...prev.filter, search },
+      page: 1, // Reset to first page when searching
+    }));
+  };
+
+  const handleSort = (column: string) => {
+    setParams((prev) => ({
+      ...prev,
+      sort: {
+        column,
+        direction:
+          prev.sort?.column === column && prev.sort?.direction === "asc"
+            ? "desc"
+            : "asc",
+      },
+      page: 1, // Reset to first page when sorting
+    }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setParams((prev) => ({ ...prev, page }));
+  };
 
   const getTotalStock = (product: ProductWithRelations) => {
     return product.product_variants?.reduce((sum, v) => sum + v.stock, 0) || 0;
@@ -78,8 +107,8 @@ export function ProductTable({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Cari produk, kategori, atau varian..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={params.filter?.search || ""}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -90,24 +119,51 @@ export function ProductTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-10"></TableHead>
-              <TableHead>Produk</TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("name")}
+              >
+                Produk{" "}
+                {params.sort?.column === "name" &&
+                  (params.sort?.direction === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead>Kategori</TableHead>
-              <TableHead className="text-right">Total Stok</TableHead>
-              <TableHead className="text-right">Nilai Total</TableHead>
+              <TableHead
+                className="text-right cursor-pointer select-none"
+                onClick={() => handleSort("stock")}
+              >
+                Total Stok{" "}
+                {params.sort?.column === "stock" &&
+                  (params.sort?.direction === "asc" ? "↑" : "↓")}
+              </TableHead>
+              <TableHead
+                className="text-right cursor-pointer select-none"
+                onClick={() => handleSort("value")}
+              >
+                Nilai Total{" "}
+                {params.sort?.column === "value" &&
+                  (params.sort?.direction === "asc" ? "↑" : "↓")}
+              </TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
+            {isLoading ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-gray-500">
-                  {search
+                  Memuat data...
+                </TableCell>
+              </TableRow>
+            ) : products?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-gray-500">
+                  {params.filter?.search
                     ? "Tidak ada produk yang ditemukan"
                     : "Belum ada produk"}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => {
+              products?.map((product: ProductWithRelations) => {
                 const isExpanded = expandedRows.has(product.id);
                 const totalStock = getTotalStock(product);
                 const totalValue = getTotalValue(product);
@@ -188,7 +244,7 @@ export function ProductTable({
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {product.product_variants.map((variant) => (
+                                {product.product_variants.map((variant: any) => (
                                   <TableRow key={variant.id}>
                                     <TableCell>
                                       <div>
@@ -243,9 +299,39 @@ export function ProductTable({
         </Table>
       </div>
 
-      <div className="text-sm text-gray-500">
-        Menampilkan {filteredProducts.length} dari {products.length} produk
-      </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            Menampilkan{" "}
+            {(currentPage - 1) * pageSize + 1}-
+            {Math.min(
+              currentPage * pageSize,
+              totalCount,
+            )}{" "}
+            dari {totalCount} produk
+          </p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft />
+              Sebelumnya
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Selanjutnya
+              <ChevronRight />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/products")({
 });
 
 function ProductsPage() {
-  const { products, isLoading, error } = useProducts();
+  const { isLoading, error } = useProducts();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
@@ -184,7 +184,6 @@ function ProductsPage() {
         <div className="text-center py-12 text-gray-500">Memuat data...</div>
       ) : (
         <ProductTable
-          products={products}
           onAddStock={handleAddStock}
           onEdit={handleEdit}
           onDelete={handleDelete}

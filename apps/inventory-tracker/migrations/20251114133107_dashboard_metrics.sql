@@ -39,20 +39,16 @@ BEGIN
         'total_products', (
             SELECT COUNT(DISTINCT p.id)
             FROM products p
-            WHERE p.deleted_at IS NULL
         ),
         'total_categories', (
             SELECT COUNT(*)
             FROM product_categories
-            WHERE deleted_at IS NULL
         ),
         'low_stock_items', (
             SELECT COUNT(DISTINCT pv.id)
             FROM product_variants pv
             JOIN products p ON pv.product_id = p.id
-            WHERE pv.stock <= COALESCE(pv.min_stock_level, 10)
-            AND p.deleted_at IS NULL
-            AND pv.deleted_at IS NULL
+            WHERE pv.stock <= 10
         ),
         'total_transactions', (
             SELECT COUNT(DISTINCT t.id)
@@ -68,12 +64,12 @@ BEGIN
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE t.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
             AND t.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-            AND pa.activity_type = 'refund'
+            AND pa.type = 'Refund'
         ),
         'total_sales', (
             SELECT COALESCE(SUM(
                 CASE
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                    WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
             ), 0)
@@ -81,12 +77,12 @@ BEGIN
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
             AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-            AND pa.activity_type = 'sale'
+            AND pa.type = 'Sales'
         ),
         'total_refunded', (
             SELECT COALESCE(SUM(
                 CASE
-                    WHEN pa.activity_type = 'refund' THEN pa.quantity * pa.unit_revenue
+                    WHEN pa.type = 'Refund' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
             ), 0)
@@ -94,12 +90,12 @@ BEGIN
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
             AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-            AND pa.activity_type = 'refund'
+            AND pa.type = 'Refund'
         ),
         'total_cost_of_sales', (
             SELECT COALESCE(SUM(
                 CASE
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_cost
+                    WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_cost
                     ELSE 0
                 END
             ), 0)
@@ -107,19 +103,19 @@ BEGIN
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
             AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-            AND pa.activity_type = 'sale'
+            AND pa.type = 'Sales'
         ),
         'net_profit', (
             SELECT COALESCE(SUM(
                 CASE
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
-                    WHEN pa.activity_type = 'refund' THEN -(pa.quantity * pa.unit_revenue)
+                    WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
+                    WHEN pa.type = 'Refund' THEN -(pa.quantity * pa.unit_revenue)
                     ELSE 0
                 END
             ), 0) - COALESCE(SUM(
                 CASE
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_cost
-                    WHEN pa.activity_type = 'refund' THEN pa.quantity * pa.unit_cost
+                    WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_cost
+                    WHEN pa.type = 'Refund' THEN pa.quantity * pa.unit_cost
                     ELSE 0
                 END
             ), 0)
@@ -127,27 +123,27 @@ BEGIN
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
             AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-            AND pa.activity_type IN ('sale', 'refund')
+            AND pa.type IN ('Sales', 'Refund')
         ),
         'total_sales_today', CASE
             WHEN include_today THEN (
                 SELECT COALESCE(SUM(
                     CASE
-                        WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                        WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                         ELSE 0
                     END
                 ), 0)
                 FROM product_activities pa
                 -- CRITICAL: Use Asia/Jakarta timezone for today's calculation
                 WHERE (pa.created_at AT TIME ZONE 'Asia/Jakarta')::DATE = jakarta_today
-                AND pa.activity_type = 'sale'
+                AND pa.type = 'Sales'
             )
             ELSE 0
         END,
         'total_sales_period', (
             SELECT COALESCE(SUM(
                 CASE
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                    WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
             ), 0)
@@ -155,7 +151,7 @@ BEGIN
             -- CRITICAL: Use Asia/Jakarta timezone with user date range
             WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
             AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-            AND pa.activity_type = 'sale'
+            AND pa.type = 'Sales'
         ),
         'query_start_date', start_date,
         'query_end_date', end_date,
@@ -191,7 +187,7 @@ BEGIN
         DATE_TRUNC('day', pa.created_at AT TIME ZONE 'Asia/Jakarta')::DATE as date,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 ELSE 0
             END
         ), 0) as sales,
@@ -201,7 +197,7 @@ BEGIN
     -- CRITICAL: Filter using Asia/Jakarta timezone with user date range
     WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
     AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-    AND pa.activity_type = 'sale'
+    AND pa.type = 'Sales'
     GROUP BY DATE_TRUNC('day', pa.created_at AT TIME ZONE 'Asia/Jakarta')
     ORDER BY date;
 END;
@@ -237,19 +233,19 @@ BEGIN
         pc.name as category_name,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity
+                WHEN pa.type = 'Sales' THEN pa.quantity
                 ELSE 0
             END
         ), 0) as total_sales,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity
+                WHEN pa.type = 'Sales' THEN pa.quantity
                 ELSE 0
             END
         ), 0)::INTEGER as total_quantity,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 ELSE 0
             END
         ), 0) as revenue
@@ -257,9 +253,6 @@ BEGIN
     LEFT JOIN product_categories pc ON p.category_id = pc.id
     LEFT JOIN product_variants pv ON p.id = pv.product_id
     LEFT JOIN product_activities pa ON pv.id = pa.variant_id
-    WHERE p.deleted_at IS NULL
-    AND pc.deleted_at IS NULL
-    AND pv.deleted_at IS NULL
     -- CRITICAL: Use Asia/Jakarta timezone with user date range
     AND pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
     AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
@@ -296,13 +289,13 @@ BEGIN
         pc.name as category_name,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity
+                WHEN pa.type = 'Sales' THEN pa.quantity
                 ELSE 0
             END
         ), 0) as total_sales,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
                 ELSE 0
             END
         ), 0) as revenue,
@@ -311,9 +304,6 @@ BEGIN
     LEFT JOIN products p ON pc.id = p.category_id
     LEFT JOIN product_variants pv ON p.id = pv.product_id
     LEFT JOIN product_activities pa ON pv.id = pa.variant_id
-    WHERE pc.deleted_at IS NULL
-    AND p.deleted_at IS NULL
-    AND pv.deleted_at IS NULL
     -- CRITICAL: Use Asia/Jakarta timezone with user date range
     AND (pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
          AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
@@ -340,15 +330,12 @@ BEGIN
         p.name as product_name,
         pv.name as variant_name,
         pv.stock as current_stock,
-        COALESCE(pv.min_stock_level, threshold) as min_stock_level,
+        threshold as min_stock_level,
         pc.name as category_name
     FROM product_variants pv
     JOIN products p ON pv.product_id = p.id
     LEFT JOIN product_categories pc ON p.category_id = pc.id
-    WHERE pv.stock <= COALESCE(pv.min_stock_level, threshold)
-    AND p.deleted_at IS NULL
-    AND pv.deleted_at IS NULL
-    AND pc.deleted_at IS NULL
+    WHERE pv.stock <= threshold
     ORDER BY pv.stock ASC;
 END;
 $$ LANGUAGE plpgsql;
@@ -380,22 +367,22 @@ BEGIN
         DATE_TRUNC('day', pa.created_at AT TIME ZONE 'Asia/Jakarta')::DATE as date,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
-                WHEN pa.activity_type = 'refund' THEN -(pa.quantity * pa.unit_revenue)
+                WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue
+                WHEN pa.type = 'Refund' THEN -(pa.quantity * pa.unit_revenue)
                 ELSE 0
             END
         ), 0) as revenue,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_cost
-                WHEN pa.activity_type = 'refund' THEN pa.quantity * pa.unit_cost
+                WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_cost
+                WHEN pa.type = 'Refund' THEN pa.quantity * pa.unit_cost
                 ELSE 0
             END
         ), 0) as cost,
         COALESCE(SUM(
             CASE
-                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue - pa.quantity * pa.unit_cost
-                WHEN pa.activity_type = 'refund' THEN -(pa.quantity * pa.unit_revenue) - pa.quantity * pa.unit_cost
+                WHEN pa.type = 'Sales' THEN pa.quantity * pa.unit_revenue - pa.quantity * pa.unit_cost
+                WHEN pa.type = 'Refund' THEN -(pa.quantity * pa.unit_revenue) - pa.quantity * pa.unit_cost
                 ELSE 0
             END
         ), 0) as profit,
@@ -405,7 +392,7 @@ BEGIN
     -- CRITICAL: Filter using Asia/Jakarta timezone with user date range
     WHERE pa.created_at AT TIME ZONE 'Asia/Jakarta' >= jakarta_start_date
     AND pa.created_at AT TIME ZONE 'Asia/Jakarta' < jakarta_end_date
-    AND pa.activity_type IN ('sale', 'refund')
+    AND pa.type IN ('Sales', 'Refund')
     GROUP BY DATE_TRUNC('day', pa.created_at AT TIME ZONE 'Asia/Jakarta')
     ORDER BY date;
 END;

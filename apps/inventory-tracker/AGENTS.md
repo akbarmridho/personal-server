@@ -298,8 +298,11 @@ pnpm build            # Build for production
 pnpm exec tsc --noEmit  # Type checking
 pnpm migrate          # Database migrations
 pnpm seed             # Seed database
-pnpm biome check      # Linting
-pnpm biome format --write  # Format code
+pnpm lint             # Run Biome linter
+pnpm lint:fix         # Run Biome linter and fix issues
+pnpm format           # Check code formatting with Biome
+pnpm format:write     # Format code with Biome
+pnpm check            # Run Biome check (lint + format)
 ```
 
 ## Common Pitfalls to Avoid
