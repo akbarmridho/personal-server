@@ -8,6 +8,7 @@ export interface ProductCategory {
   description: string | null;
   created_at: string;
   updated_at: string;
+  product_count?: number;
 }
 
 export interface Product {

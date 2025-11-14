@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 // Category validation schemas
 export const categorySchema = z.object({
