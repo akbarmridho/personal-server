@@ -1,5 +1,5 @@
 {
-  "projectName": "my-app",
+  "projectName": "inventory-tracker",
   "mode": "file-router",
   "typescript": true,
   "tailwind": true,

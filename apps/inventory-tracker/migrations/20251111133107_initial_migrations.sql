@@ -42,6 +42,7 @@ CREATE TABLE product_activities (
     transaction_id INTEGER REFERENCES transactions(id) ON DELETE CASCADE,
     product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
     variant_id INTEGER REFERENCES product_variants(id) ON DELETE SET NULL,
+    category_id INTEGER REFERENCES product_categories(id) ON DELETE SET NULL,
     product_name TEXT NOT NULL,
     variant_name TEXT NOT NULL,
     type activity_type NOT NULL,

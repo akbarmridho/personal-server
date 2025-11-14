@@ -1,4 +1,24 @@
 {
+  "biome.enabled": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "prettier.enable": false,
+  "eslint.enable": false,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
   "files.watcherExclude": {
     "**/routeTree.gen.ts": true
   },
