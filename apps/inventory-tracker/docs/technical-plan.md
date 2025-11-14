@@ -220,32 +220,58 @@ export const activitySchema = z.object({
   })).min(1, 'Minimal satu item diperlukan'),
 });
 
-#### 4. Date Utilities with dayjs
+#### 4. Date Utilities with dayjs (CRITICAL: Asia/Jakarta Timezone)
 ```typescript
 // lib/date-utils.ts
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/id';
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.locale('id');
+dayjs.tz.setDefault('Asia/Jakarta'); // CRITICAL: Set default timezone
 
 export const formatDate = (date: string | Date) => {
-  return dayjs(date).format('DD MMM YYYY');
+  return dayjs(date).tz('Asia/Jakarta').format('DD MMM YYYY');
 };
 
 export const formatDateTime = (date: string | Date) => {
-  return dayjs(date).format('DD MMM YYYY HH:mm');
+  return dayjs(date).tz('Asia/Jakarta').format('DD MMM YYYY HH:mm');
 };
 
 export const formatRelativeTime = (date: string | Date) => {
-  return dayjs(date).fromNow();
+  return dayjs(date).tz('Asia/Jakarta').fromNow();
 };
 
 export const isToday = (date: string | Date) => {
-  return dayjs(date).isSame(dayjs(), 'day');
+  return dayjs(date).tz('Asia/Jakarta').isSame(dayjs().tz('Asia/Jakarta'), 'day');
+};
+
+// CRITICAL: Get current date in Asia/Jakarta timezone for calculations
+export const getCurrentDateJakarta = () => {
+  return dayjs().tz('Asia/Jakarta');
+};
+
+// CRITICAL: Convert UTC date to Asia/Jakarta for comparisons
+export const toJakartaTime = (date: string | Date) => {
+  return dayjs(date).tz('Asia/Jakarta');
+};
+
+// CRITICAL: Get start/end of day in Asia/Jakarta timezone
+export const getStartOfDayJakarta = (date?: string | Date) => {
+  const targetDate = date ? dayjs(date).tz('Asia/Jakarta') : dayjs().tz('Asia/Jakarta');
+  return targetDate.startOf('day');
+};
+
+export const getEndOfDayJakarta = (date?: string | Date) => {
+  const targetDate = date ? dayjs(date).tz('Asia/Jakarta') : dayjs().tz('Asia/Jakarta');
+  return targetDate.endOf('day');
 };
 ```
 
@@ -322,7 +348,8 @@ export function SalesTrendChart({ data, onDateFilterChange }: SalesTrendChartPro
   const handleFilterChange = (filter: 'daily' | 'weekly' | 'monthly' | 'custom') => {
     setSelectedFilter(filter);
     
-    const endDate = dayjs();
+    // CRITICAL: Use Asia/Jakarta timezone for all date calculations
+    const endDate = dayjs().tz('Asia/Jakarta');
     let startDate: dayjs.Dayjs;
     
     switch (filter) {
@@ -340,6 +367,7 @@ export function SalesTrendChart({ data, onDateFilterChange }: SalesTrendChartPro
         return;
     }
     
+    // CRITICAL: Send dates in Asia/Jakarta timezone to backend
     onDateFilterChange(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
   };
 
@@ -648,11 +676,13 @@ VITE_ENABLE_ANALYTICS=true
 ### 3. VM Deployment Process
 
 1. **Build the application**
+
    ```bash
    pnpm build
    ```
 
 2. **Deploy to VM using Vite Preview**
+
    ```bash
    # Start preview server on VM
    pnpm preview --host 0.0.0.0 --port 4173

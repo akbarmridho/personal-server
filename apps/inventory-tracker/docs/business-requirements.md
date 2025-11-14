@@ -260,3 +260,12 @@ Track all inventory movements and transactions for audit and analysis purposes.
 
 1. Only one user so no need for authentication and role or permissions. Auth is handled at API gateway level.
 2. The UI is in Indonesia language since the user don't know English and not tech savvy.
+3. **CRITICAL: Timezone Configuration** - The user is located in GMT+7 (Asia/Jakarta) timezone. All time-based calculations, date filters, sales analytics, and dashboard metrics MUST be calculated based on Asia/Jakarta timezone, NOT UTC. This includes:
+   - Daily/weekly/monthly sales reports
+   - Transaction date filtering
+   - Dashboard metrics calculations
+   - Chart date ranges
+   - Low stock alerts based on date thresholds
+   - Any date comparisons or aggregations
+
+   **Failure to implement proper timezone handling will result in incorrect business metrics and financial calculations.**
