@@ -2,7 +2,7 @@
 
 -- Custom RPC functions for dashboard analytics
 
--- Function 1: Get dashboard metrics (total products, categories, low stock, inventory value)
+-- Function 1: Get dashboard metrics (total products, categories, low stock, sales analytics)
 CREATE OR REPLACE FUNCTION get_dashboard_metrics()
 RETURNS JSON AS $$
 DECLARE
@@ -27,16 +27,72 @@ BEGIN
             AND p.deleted_at IS NULL
             AND pv.deleted_at IS NULL
         ),
-        'total_inventory_value', (
-            SELECT COALESCE(SUM(pv.stock * pv.cost_price), 0)
-            FROM product_variants pv
-            JOIN products p ON pv.product_id = p.id
-            WHERE p.deleted_at IS NULL
-            AND pv.deleted_at IS NULL
+        'total_transactions', (
+            SELECT COUNT(DISTINCT t.id)
+            FROM transactions t
+            WHERE t.created_at >= date_trunc('month', CURRENT_DATE)
+        ),
+        'total_refunded_transactions', (
+            SELECT COUNT(DISTINCT t.id)
+            FROM transactions t
+            JOIN product_activities pa ON t.id = pa.transaction_id
+            WHERE t.created_at >= date_trunc('month', CURRENT_DATE)
+            AND pa.activity_type = 'refund'
+        ),
+        'total_sales', (
+            SELECT COALESCE(SUM(
+                CASE
+                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                    ELSE 0
+                END
+            ), 0)
+            FROM product_activities pa
+            WHERE pa.created_at >= date_trunc('month', CURRENT_DATE)
+            AND pa.activity_type = 'sale'
+        ),
+        'total_refunded', (
+            SELECT COALESCE(SUM(
+                CASE
+                    WHEN pa.activity_type = 'refund' THEN pa.quantity * pa.unit_revenue
+                    ELSE 0
+                END
+            ), 0)
+            FROM product_activities pa
+            WHERE pa.created_at >= date_trunc('month', CURRENT_DATE)
+            AND pa.activity_type = 'refund'
+        ),
+        'total_cost_of_sales', (
+            SELECT COALESCE(SUM(
+                CASE
+                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_cost
+                    ELSE 0
+                END
+            ), 0)
+            FROM product_activities pa
+            WHERE pa.created_at >= date_trunc('month', CURRENT_DATE)
+            AND pa.activity_type = 'sale'
+        ),
+        'net_profit', (
+            SELECT COALESCE(SUM(
+                CASE
+                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                    WHEN pa.activity_type = 'refund' THEN -(pa.quantity * pa.unit_revenue)
+                    ELSE 0
+                END
+            ), 0) - COALESCE(SUM(
+                CASE
+                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_cost
+                    WHEN pa.activity_type = 'refund' THEN pa.quantity * pa.unit_cost
+                    ELSE 0
+                END
+            ), 0)
+            FROM product_activities pa
+            WHERE pa.created_at >= date_trunc('month', CURRENT_DATE)
+            AND pa.activity_type IN ('sale', 'refund')
         ),
         'total_sales_today', (
             SELECT COALESCE(SUM(
-                CASE 
+                CASE
                     WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
@@ -47,7 +103,7 @@ BEGIN
         ),
         'total_sales_month', (
             SELECT COALESCE(SUM(
-                CASE 
+                CASE
                     WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
                     ELSE 0
                 END
@@ -62,67 +118,42 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function 2: Get sales trends for charts
-CREATE OR REPLACE FUNCTION get_sales_trends(period TEXT DEFAULT 'week')
+-- Function 2: Get sales trends for charts with custom date range
+CREATE OR REPLACE FUNCTION get_sales_trends(start_date DATE DEFAULT NULL, end_date DATE DEFAULT NULL)
 RETURNS TABLE (
     date DATE,
     sales NUMERIC,
     transactions INTEGER
 ) AS $$
+DECLARE
+    default_start_date DATE;
+    default_end_date DATE;
 BEGIN
-    IF period = 'week' THEN
-        RETURN QUERY
-        SELECT 
-            DATE_TRUNC('day', pa.created_at)::DATE as date,
-            COALESCE(SUM(
-                CASE 
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
-                    ELSE 0
-                END
-            ), 0) as sales,
-            COUNT(DISTINCT t.id) as transactions
-        FROM product_activities pa
-        LEFT JOIN transactions t ON pa.transaction_id = t.id
-        WHERE pa.created_at >= CURRENT_DATE - INTERVAL '7 days'
-        AND pa.activity_type = 'sale'
-        GROUP BY DATE_TRUNC('day', pa.created_at)
-        ORDER BY date;
-    ELSIF period = 'month' THEN
-        RETURN QUERY
-        SELECT 
-            DATE_TRUNC('day', pa.created_at)::DATE as date,
-            COALESCE(SUM(
-                CASE 
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
-                    ELSE 0
-                END
-            ), 0) as sales,
-            COUNT(DISTINCT t.id) as transactions
-        FROM product_activities pa
-        LEFT JOIN transactions t ON pa.transaction_id = t.id
-        WHERE pa.created_at >= CURRENT_DATE - INTERVAL '30 days'
-        AND pa.activity_type = 'sale'
-        GROUP BY DATE_TRUNC('day', pa.created_at)
-        ORDER BY date;
-    ELSE
-        -- Default to week
-        RETURN QUERY
-        SELECT 
-            DATE_TRUNC('day', pa.created_at)::DATE as date,
-            COALESCE(SUM(
-                CASE 
-                    WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
-                    ELSE 0
-                END
-            ), 0) as sales,
-            COUNT(DISTINCT t.id) as transactions
-        FROM product_activities pa
-        LEFT JOIN transactions t ON pa.transaction_id = t.id
-        WHERE pa.created_at >= CURRENT_DATE - INTERVAL '7 days'
-        AND pa.activity_type = 'sale'
-        GROUP BY DATE_TRUNC('day', pa.created_at)
-        ORDER BY date;
-    END IF;
+    -- Set default date range if not provided (last 7 days)
+    default_end_date := CURRENT_DATE;
+    default_start_date := CURRENT_DATE - INTERVAL '7 days';
+    
+    -- Use provided dates or defaults
+    start_date := COALESCE(start_date, default_start_date);
+    end_date := COALESCE(end_date, default_end_date);
+    
+    RETURN QUERY
+    SELECT
+        DATE_TRUNC('day', pa.created_at)::DATE as date,
+        COALESCE(SUM(
+            CASE
+                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                ELSE 0
+            END
+        ), 0) as sales,
+        COUNT(DISTINCT t.id) as transactions
+    FROM product_activities pa
+    LEFT JOIN transactions t ON pa.transaction_id = t.id
+    WHERE pa.created_at::DATE >= start_date
+    AND pa.created_at::DATE <= end_date
+    AND pa.activity_type = 'sale'
+    GROUP BY DATE_TRUNC('day', pa.created_at)
+    ORDER BY date;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -226,7 +257,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         pv.id as variant_id,
         p.name as product_name,
         pv.name as variant_name,
@@ -244,18 +275,68 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Grant execute permissions to authenticated users (adjust as needed)
-GRANT EXECUTE ON FUNCTION get_dashboard_metrics() TO authenticated;
-GRANT EXECUTE ON FUNCTION get_sales_trends(TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_top_products(INTEGER) TO authenticated;
-GRANT EXECUTE ON FUNCTION get_category_performance() TO authenticated;
-GRANT EXECUTE ON FUNCTION get_low_stock_alerts(INTEGER) TO authenticated;
+-- Function 6: Get financial analytics for charts
+CREATE OR REPLACE FUNCTION get_financial_analytics(start_date DATE DEFAULT NULL, end_date DATE DEFAULT NULL)
+RETURNS TABLE (
+    date DATE,
+    revenue NUMERIC,
+    cost NUMERIC,
+    profit NUMERIC,
+    transactions INTEGER
+) AS $$
+DECLARE
+    default_start_date DATE;
+    default_end_date DATE;
+BEGIN
+    -- Set default date range if not provided (last 30 days)
+    default_end_date := CURRENT_DATE;
+    default_start_date := CURRENT_DATE - INTERVAL '30 days';
+    
+    -- Use provided dates or defaults
+    start_date := COALESCE(start_date, default_start_date);
+    end_date := COALESCE(end_date, default_end_date);
+    
+    RETURN QUERY
+    SELECT
+        DATE_TRUNC('day', pa.created_at)::DATE as date,
+        COALESCE(SUM(
+            CASE
+                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue
+                WHEN pa.activity_type = 'refund' THEN -(pa.quantity * pa.unit_revenue)
+                ELSE 0
+            END
+        ), 0) as revenue,
+        COALESCE(SUM(
+            CASE
+                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_cost
+                WHEN pa.activity_type = 'refund' THEN pa.quantity * pa.unit_cost
+                ELSE 0
+            END
+        ), 0) as cost,
+        COALESCE(SUM(
+            CASE
+                WHEN pa.activity_type = 'sale' THEN pa.quantity * pa.unit_revenue - pa.quantity * pa.unit_cost
+                WHEN pa.activity_type = 'refund' THEN -(pa.quantity * pa.unit_revenue) - pa.quantity * pa.unit_cost
+                ELSE 0
+            END
+        ), 0) as profit,
+        COUNT(DISTINCT t.id) as transactions
+    FROM product_activities pa
+    LEFT JOIN transactions t ON pa.transaction_id = t.id
+    WHERE pa.created_at::DATE >= start_date
+    AND pa.created_at::DATE <= end_date
+    AND pa.activity_type IN ('sale', 'refund')
+    GROUP BY DATE_TRUNC('day', pa.created_at)
+    ORDER BY date;
+END;
+$$ LANGUAGE plpgsql;
 
 -- migrate:down
 
 -- Drop the custom functions
 DROP FUNCTION IF EXISTS get_dashboard_metrics();
-DROP FUNCTION IF EXISTS get_sales_trends(TEXT);
+DROP FUNCTION IF EXISTS get_sales_trends(DATE, DATE);
 DROP FUNCTION IF EXISTS get_top_products(INTEGER);
 DROP FUNCTION IF EXISTS get_category_performance();
 DROP FUNCTION IF EXISTS get_low_stock_alerts(INTEGER);
+DROP FUNCTION IF EXISTS get_financial_analytics(DATE, DATE);

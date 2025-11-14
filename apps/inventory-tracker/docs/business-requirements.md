@@ -28,11 +28,15 @@ Provide a high-level overview of inventory health and business performance at a 
 - **Total Products**: Count of all active products
 - **Total Categories**: Number of product categories
 - **Low Stock Alerts**: Products running low on inventory
-- **Total Inventory Value**: Current value of all stock
+- **Total Transactions**: Number of transactions this month
+- **Total Refunded Transactions**: Number of refunded transactions
+- **Total Sales**: Total revenue from sales this month
+- **Total Refunded**: Total amount refunded this month
+- **Net Profit**: Total profit after deducting costs and refunds
 
 #### Visual Analytics
 
-- **Sales Trend Chart**: Daily/weekly/monthly sales performance
+- **Sales Trend Chart**: Sales performance with date filter presets (daily, weekly, monthly, custom date range)
 - **Top Selling Products**: Best performing products by revenue
 - **Category Performance**: Sales breakdown by product category
 - **Low Stock Product**: Quick list of product low stock.

@@ -77,11 +77,12 @@ src/
 
 #### 2. Dashboard Components
 
-- **MetricsCards**: Display key metrics (Total Products, Categories, Low Stock, Inventory Value)
-- **SalesTrendChart**: Line/area chart using shadcn chart components with Recharts v2
+- **MetricsCards**: Display key metrics (Total Products, Categories, Low Stock, Financial Summary)
+- **SalesTrendChart**: Line/area chart with date filter presets (daily, weekly, monthly, custom range)
 - **TopProductsChart**: Bar chart using shadcn chart components with Recharts v2
 - **CategoryPerformanceChart**: Pie/donut chart using shadcn chart components with Recharts v2
 - **LowStockList**: Table/list of products with low stock
+- **FinancialChart**: Profit/loss analysis chart with revenue vs cost breakdown
 
 #### 3. Category Management Components
 
@@ -146,7 +147,10 @@ export const api = {
   // Analytics
   analytics: {
     metrics: () => fetch(`${API_BASE}/rpc/get_dashboard_metrics`),
-    salesTrends: () => fetch(`${API_BASE}/rpc/get_sales_trends`),
+    salesTrends: (startDate?: string, endDate?: string) =>
+      fetch(`${API_BASE}/rpc/get_sales_trends?start_date=${startDate || ''}&end_date=${endDate || ''}`),
+    financialAnalytics: (startDate?: string, endDate?: string) =>
+      fetch(`${API_BASE}/rpc/get_financial_analytics?start_date=${startDate || ''}&end_date=${endDate || ''}`),
     topProducts: () => fetch(`${API_BASE}/rpc/get_top_products`),
   }
 };
@@ -298,18 +302,82 @@ export const isToday = (date: string | Date) => {
 // components/charts/SalesTrendChart.tsx
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import dayjs from 'dayjs';
 
 interface SalesData {
   date: string;
   sales: number;
 }
 
-export function SalesTrendChart({ data }: { data: SalesData[] }) {
+interface SalesTrendChartProps {
+  data: SalesData[];
+  onDateFilterChange: (startDate: string, endDate: string) => void;
+}
+
+export function SalesTrendChart({ data, onDateFilterChange }: SalesTrendChartProps) {
+  const [selectedFilter, setSelectedFilter] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('weekly');
+
+  const handleFilterChange = (filter: 'daily' | 'weekly' | 'monthly' | 'custom') => {
+    setSelectedFilter(filter);
+    
+    const endDate = dayjs();
+    let startDate: dayjs.Dayjs;
+    
+    switch (filter) {
+      case 'daily':
+        startDate = endDate.subtract(1, 'day');
+        break;
+      case 'weekly':
+        startDate = endDate.subtract(7, 'days');
+        break;
+      case 'monthly':
+        startDate = endDate.subtract(30, 'days');
+        break;
+      case 'custom':
+        // For custom, you would open a date picker dialog
+        return;
+    }
+    
+    onDateFilterChange(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Tren Penjualan</CardTitle>
-        <CardDescription>Penjualan harian dalam 30 hari terakhir</CardDescription>
+        <CardDescription>Analisis penjualan dengan filter waktu</CardDescription>
+        <div className="flex gap-2 mt-4">
+          <Button
+            variant={selectedFilter === 'daily' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleFilterChange('daily')}
+          >
+            Harian
+          </Button>
+          <Button
+            variant={selectedFilter === 'weekly' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleFilterChange('weekly')}
+          >
+            Mingguan
+          </Button>
+          <Button
+            variant={selectedFilter === 'monthly' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleFilterChange('monthly')}
+          >
+            Bulanan
+          </Button>
+          <Button
+            variant={selectedFilter === 'custom' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleFilterChange('custom')}
+          >
+            Kustom
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -320,6 +388,50 @@ export function SalesTrendChart({ data }: { data: SalesData[] }) {
             <Tooltip />
             <Line type="monotone" dataKey="sales" stroke="#8884d8" strokeWidth={2} />
           </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+```typescript
+// components/charts/FinancialChart.tsx
+import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+interface FinancialData {
+  date: string;
+  revenue: number;
+  cost: number;
+  profit: number;
+  transactions: number;
+}
+
+interface FinancialChartProps {
+  data: FinancialData[];
+}
+
+export function FinancialChart({ data }: FinancialChartProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Analisis Keuangan</CardTitle>
+        <CardDescription>Pendapatan, biaya, dan keuntungan harian</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          <ComposedChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis yAxisId="left" />
+            <YAxis yAxisId="right" orientation="right" />
+            <Tooltip />
+            <Legend />
+            <Bar yAxisId="left" dataKey="revenue" fill="#8884d8" name="Pendapatan" />
+            <Bar yAxisId="left" dataKey="cost" fill="#82ca9d" name="Biaya" />
+            <Line yAxisId="right" type="monotone" dataKey="profit" stroke="#ff7300" strokeWidth={2} name="Keuntungan" />
+          </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
@@ -461,7 +573,8 @@ POST   /transactions               # Create transaction group
 
 # Analytics endpoints (custom functions)
 GET    /rpc/get_dashboard_metrics
-GET    /rpc/get_sales_trends?period=week
+GET    /rpc/get_sales_trends?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+GET    /rpc/get_financial_analytics?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
 GET    /rpc/get_top_products?limit=10
 ```
 
