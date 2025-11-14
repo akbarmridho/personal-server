@@ -11,7 +11,7 @@
  *   pnpm run seed
  *   pnpm run seed:reset  # Clear and reseed database
  */
-
+import "@dotenvx/dotenvx/config";
 import { faker } from "@faker-js/faker";
 import { Pool } from "pg";
 
@@ -523,8 +523,8 @@ async function seedTransactionsAndActivities(
         }
 
         await client.query(
-          `INSERT INTO product_activities 
-           (transaction_id, product_id, variant_id, category_id, product_name, variant_name, type, quantity, unit_cost, unit_revenue, notes, created_at) 
+          `INSERT INTO product_activities
+           (transaction_id, product_id, variant_id, category_id, product_name, variant_name, type, quantity, unit_cost, unit_revenue, notes, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             transactionId,

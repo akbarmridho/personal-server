@@ -72,19 +72,6 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_product_variants_updated_at BEFORE UPDATE ON product_variants
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE OR REPLACE FUNCTION prevent_stock_update()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.stock IS DISTINCT FROM NEW.stock THEN
-        RAISE EXCEPTION 'Direct stock updates are not allowed. Use product_activities table.';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER prevent_direct_stock_update BEFORE UPDATE ON product_variants
-FOR EACH ROW EXECUTE FUNCTION prevent_stock_update();
-
 CREATE OR REPLACE FUNCTION adjust_stock_on_activity()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -149,14 +136,12 @@ CREATE INDEX idx_activities_created ON product_activities(created_at);
 DROP TRIGGER IF EXISTS adjust_stock_after_activity_delete ON product_activities;
 DROP TRIGGER IF EXISTS adjust_stock_after_activity_update ON product_activities;
 DROP TRIGGER IF EXISTS adjust_stock_after_activity ON product_activities;
-DROP TRIGGER IF EXISTS prevent_direct_stock_update ON product_variants;
 DROP TRIGGER IF EXISTS update_product_variants_updated_at ON product_variants;
 DROP TRIGGER IF EXISTS update_products_updated_at ON products;
 DROP TRIGGER IF EXISTS update_product_categories_updated_at ON product_categories;
 DROP FUNCTION IF EXISTS adjust_stock_on_activity_delete();
 DROP FUNCTION IF EXISTS adjust_stock_on_activity_update();
 DROP FUNCTION IF EXISTS adjust_stock_on_activity();
-DROP FUNCTION IF EXISTS prevent_stock_update();
 DROP FUNCTION IF EXISTS update_updated_at_column();
 DROP TABLE IF EXISTS product_activities;
 DROP TABLE IF EXISTS transactions;
