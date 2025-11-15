@@ -170,7 +170,7 @@ export const productsAPI = {
   ): Promise<PaginatedResponse<ProductWithRelations>> => {
     const searchParams = new URLSearchParams();
 
-    // Add select with relations
+    // Use the view that includes total stock calculation
     searchParams.set("select", "*,product_categories(*),product_variants(*)");
 
     // Add sorting
@@ -243,9 +243,12 @@ export const productsAPI = {
       Prefer: "count=exact",
     };
 
-    const response = await fetch(`${API_BASE}/products?${searchParams}`, {
-      headers,
-    });
+    const response = await fetch(
+      `${API_BASE}/products_with_total_stock?${searchParams}`,
+      {
+        headers,
+      },
+    );
 
     const data = await handleResponse<ProductWithRelations[]>(response);
     const totalCount = parseInt(
@@ -264,7 +267,7 @@ export const productsAPI = {
 
   getById: async (id: number): Promise<ProductWithRelations> => {
     const response = await fetch(
-      `${API_BASE}/products?id=eq.${id}&select=*,product_categories(*),product_variants(*)`,
+      `${API_BASE}/products_with_total_stock?id=eq.${id}&select=*,product_variants(*)`,
       {
         headers: { "Content-Type": "application/json" },
       },

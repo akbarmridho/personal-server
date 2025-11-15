@@ -54,11 +54,13 @@ export const getEndOfDayJakarta = (date?: string | Date) => {
 };
 
 export const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("id-ID", {
+  const formatted = new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
   }).format(amount);
+  // Remove non-breaking space after Rp
+  return formatted.replace("Rp\u00A0", "Rp");
 };
 
 export const formatNumber = (num: number) => {

@@ -57,10 +57,14 @@ export interface ProductActivity {
   created_at: string;
 }
 
-// Extended types with relations
+// Extended types with relations (matches products_with_total_stock view)
 export interface ProductWithRelations extends Product {
-  product_categories?: ProductCategory;
+  category_name?: string;
+  category_description?: string | null;
+  category_created_at?: string;
+  category_updated_at?: string;
   product_variants?: ProductVariant[];
+  total_stock: number;
 }
 
 export interface ProductActivityWithRelations extends ProductActivity {
