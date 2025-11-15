@@ -77,7 +77,6 @@ export function ProductTable() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductWithRelations | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     products,
@@ -87,6 +86,8 @@ export function ProductTable() {
     totalPages,
     totalCount,
     error,
+    deleteProduct,
+    isDeleting,
   } = useProducts(params);
 
   const handleEdit = (product: ProductWithRelations) => {
@@ -108,10 +109,8 @@ export function ProductTable() {
   const handleConfirmDelete = async () => {
     if (!selectedProduct) return;
 
-    setIsSubmitting(true);
     try {
-      // This would normally call the API
-      console.log("Deleting product:", selectedProduct.id);
+      await deleteProduct(selectedProduct.id);
       toast.success("Produk berhasil dihapus");
       setDeleteOpen(false);
     } catch (err) {
@@ -119,8 +118,6 @@ export function ProductTable() {
       toast.error(
         err instanceof Error ? err.message : "Gagal menghapus produk",
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -470,7 +467,6 @@ export function ProductTable() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         product={selectedProduct || undefined}
-        isLoading={isSubmitting}
       />
 
       <DeleteProductDialog
@@ -478,7 +474,7 @@ export function ProductTable() {
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
         product={selectedProduct}
-        isLoading={isSubmitting}
+        isLoading={isDeleting}
       />
     </div>
   );

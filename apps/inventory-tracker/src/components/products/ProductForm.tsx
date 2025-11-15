@@ -13,11 +13,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCategories } from "@/hooks/useCategories";
 import { useProducts } from "@/hooks/useProducts";
+import { naturalSort } from "@/lib/utils";
 import {
   type ProductWithVariantsFormData,
   productWithVariantsSchema,
 } from "@/lib/validations";
-import type { ProductWithRelations, SyncProductVariants } from "@/types/database";
+import type {
+  ProductWithRelations,
+  SyncProductVariants,
+} from "@/types/database";
 import { VariantManager } from "./VariantManager";
 
 interface ProductFormProps {
@@ -51,19 +55,26 @@ export function ProductForm({
 
   useEffect(() => {
     if (product) {
+      const variants =
+        product.product_variants?.map((v) => ({
+          id: v.id,
+          name: v.name,
+          description: v.description || "",
+          cost_price: v.cost_price,
+          sell_price: v.sell_price,
+          stock: v.stock,
+        })) || [];
+
+      // Apply natural sorting to variants
+      const sortedVariants = variants.sort((a, b) =>
+        naturalSort(a.name, b.name),
+      );
+
       setFormData({
         name: product.name,
         category_id: product.category_id,
         description: product.description || "",
-        variants:
-          product.product_variants?.map((v) => ({
-            id: v.id,
-            name: v.name,
-            description: v.description || "",
-            cost_price: v.cost_price,
-            sell_price: v.sell_price,
-            stock: v.stock,
-          })) || [],
+        variants: sortedVariants,
       });
     } else {
       setFormData({
@@ -163,7 +174,13 @@ export function ProductForm({
             category_id: 0,
             description: "",
             variants: [
-              { name: "", description: "", cost_price: 0, sell_price: 0, stock: 0 },
+              {
+                name: "",
+                description: "",
+                cost_price: 0,
+                sell_price: 0,
+                stock: 0,
+              },
             ],
           });
           setErrors({});
@@ -210,7 +227,9 @@ export function ProductForm({
 
             <SelectField
               label="Kategori"
-              value={formData.category_id === 0 ? "" : String(formData.category_id)}
+              value={
+                formData.category_id === 0 ? "" : String(formData.category_id)
+              }
               onChange={(value) =>
                 setFormData({ ...formData, category_id: Number(value) })
               }
@@ -243,7 +262,13 @@ export function ProductForm({
           <div className="space-y-4">
             <VariantManager
               variants={formData.variants}
-              onChange={(variants) => setFormData({ ...formData, variants })}
+              onChange={(variants) => {
+                // Apply natural sorting to variants when they change
+                const sortedVariants = variants.sort((a, b) =>
+                  naturalSort(a.name, b.name),
+                );
+                setFormData({ ...formData, variants: sortedVariants });
+              }}
               errors={variantErrors}
               isEdit={!!product}
             />

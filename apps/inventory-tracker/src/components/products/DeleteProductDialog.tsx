@@ -40,8 +40,8 @@ export function DeleteProductDialog({
 
         <div className="py-4">
           <p className="text-sm text-gray-600">
-            Produk ini memiliki {variantCount} varian. Semua varian dan riwayat
-            aktivitas terkait akan ikut terhapus.
+            Produk ini memiliki {variantCount} varian. Semua varian akan ikut terhapus.
+            Riwayat aktivitas akan tetap ada namun tidak terikat lagi dengan produk ini.
           </p>
           <p className="text-sm text-red-600 mt-2 font-medium">
             Tindakan ini tidak dapat dibatalkan.
