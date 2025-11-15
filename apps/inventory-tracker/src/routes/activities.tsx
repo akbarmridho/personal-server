@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { ActivityTable } from "@/components/activities/ActivityTable";
-import { AdjustmentForm } from "@/components/activities/AdjustmentForm";
 import { RefundForm } from "@/components/activities/RefundForm";
 import { TransactionForm } from "@/components/activities/TransactionForm";
 import { Button } from "@/components/ui/button";
@@ -179,14 +178,7 @@ function ActivitiesPage() {
               <Plus className="h-4 w-4 mr-2" />
               Refund
             </Button>
-            <Button
-              onClick={() => setActiveForm("adjustment")}
-              className="w-full justify-start"
-              variant="outline"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Restock / Penyesuaian
-            </Button>
+
           </div>
         )}
 
@@ -214,17 +206,7 @@ function ActivitiesPage() {
           </div>
         )}
 
-        {activeForm === "adjustment" && (
-          <div className="border rounded-lg p-4 bg-card">
-            <h2 className="font-semibold mb-4">Restock / Penyesuaian</h2>
-            <AdjustmentForm
-              products={products}
-              onSubmit={handleAdjustmentSubmit}
-              onCancel={() => setActiveForm(null)}
-              isSubmitting={isSubmitting}
-            />
-          </div>
-        )}
+
       </div>
     </div>
   );

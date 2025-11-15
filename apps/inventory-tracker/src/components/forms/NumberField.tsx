@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -21,9 +22,15 @@ export function NumberField({
   error,
   required,
   disabled,
-  min = 0,
+  min,
   max,
 }: NumberFieldProps) {
+  const [inputValue, setInputValue] = useState(String(value));
+
+  useEffect(() => {
+    setInputValue(String(value));
+  }, [value]);
+
   return (
     <div className="space-y-2">
       <Label>
@@ -32,8 +39,20 @@ export function NumberField({
       </Label>
       <Input
         type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        value={inputValue}
+        onChange={(e) => {
+          const val = e.target.value;
+          setInputValue(val);
+          if (val === "" || val === "-") return;
+          const num = Number(val);
+          if (!Number.isNaN(num)) onChange(num);
+        }}
+        onBlur={() => {
+          if (inputValue === "" || inputValue === "-") {
+            onChange(0);
+            setInputValue("0");
+          }
+        }}
         placeholder={placeholder}
         className={error ? "border-red-500" : ""}
         disabled={disabled}

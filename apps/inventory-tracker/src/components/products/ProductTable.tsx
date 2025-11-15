@@ -47,6 +47,8 @@ import { DeleteProductDialog } from "./DeleteProductDialog";
 import { ProductForm } from "./ProductForm";
 import { productColumns } from "./ProductTableColumns";
 import { ProductTablePagination } from "./ProductTablePagination";
+import { StockAdjustmentDialog } from "./StockAdjustmentDialog";
+import type { ProductVariant } from "@/types/database";
 
 export function ProductTable() {
   const { categories } = useCategories();
@@ -75,8 +77,11 @@ export function ProductTable() {
   // Modal state management
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [stockAdjustmentOpen, setStockAdjustmentOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductWithRelations | null>(null);
+  const [selectedVariant, setSelectedVariant] =
+    useState<ProductVariant | null>(null);
 
   const {
     products,
@@ -121,9 +126,9 @@ export function ProductTable() {
     }
   };
 
-  const handleAddStock = (variantId: number) => {
-    console.log("Add stock for variant:", variantId);
-    toast.info("Fitur tambah stok akan segera hadir");
+  const handleAddStock = (variant: ProductVariant) => {
+    setSelectedVariant(variant);
+    setStockAdjustmentOpen(true);
   };
 
   // Show error toast when there's a data loading error
@@ -416,12 +421,12 @@ export function ProductTable() {
                                         <TableCell className="text-right">
                                           <Button
                                             onClick={() =>
-                                              handleAddStock(variant.id)
+                                              handleAddStock(variant)
                                             }
                                             size="sm"
                                             variant="outline"
                                           >
-                                            Tambah Stok
+                                            Atur Stok
                                           </Button>
                                         </TableCell>
                                       </TableRow>
@@ -475,6 +480,12 @@ export function ProductTable() {
         onConfirm={handleConfirmDelete}
         product={selectedProduct}
         isLoading={isDeleting}
+      />
+
+      <StockAdjustmentDialog
+        open={stockAdjustmentOpen}
+        onClose={() => setStockAdjustmentOpen(false)}
+        variant={selectedVariant}
       />
     </div>
   );
