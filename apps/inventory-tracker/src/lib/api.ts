@@ -10,19 +10,19 @@ import type {
   TopProduct,
 } from "@/types/api";
 import type {
-  CreateProduct,
+  AtomicOperationResult,
   CreateProductActivity,
   CreateProductCategory,
   CreateProductVariant,
+  CreateProductWithInitialStock,
   CreateTransaction,
-  Product,
   ProductActivity,
   ProductActivityWithRelations,
   ProductCategory,
   ProductVariant,
   ProductWithRelations,
+  SyncProductVariants,
   Transaction,
-  UpdateProduct,
   UpdateProductCategory,
   UpdateProductVariant,
 } from "@/types/database";
@@ -275,32 +275,6 @@ export const productsAPI = {
     const data = await handleResponse<ProductWithRelations[]>(response);
     if (!data.length) throw new APIError("Produk tidak ditemukan", 404);
     return data[0];
-  },
-
-  create: async (data: CreateProduct): Promise<Product> => {
-    const response = await fetch(`${API_BASE}/products`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify(data),
-    });
-    const result = await handleResponse<Product[]>(response);
-    return result[0];
-  },
-
-  update: async (id: number, data: UpdateProduct): Promise<Product> => {
-    const response = await fetch(`${API_BASE}/products?id=eq.${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify(data),
-    });
-    const result = await handleResponse<Product[]>(response);
-    return result[0];
   },
 
   delete: async (id: number): Promise<void> => {
@@ -619,6 +593,64 @@ export const analyticsAPI = {
   },
 };
 
+// Atomic Product Creation API
+export const atomicProductsAPI = {
+  createWithInitialStock: async (
+    data: CreateProductWithInitialStock,
+  ): Promise<AtomicOperationResult> => {
+    const response = await fetch(
+      `${API_BASE}/rpc/create_product_with_initial_stock`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          p_category_id: data.category_id,
+          p_name: data.name,
+          p_description: data.description,
+          p_variants: data.variants,
+        }),
+      },
+    );
+    const result = await handleResponse<AtomicOperationResult[]>(response);
+    return result[0];
+  },
+
+  syncProductVariants: async (
+    productId: number,
+    data: SyncProductVariants,
+  ): Promise<AtomicOperationResult> => {
+    const payload: any = {
+      p_product_id: productId,
+    };
+
+    if (data.name !== undefined) payload.p_name = data.name;
+    if (data.description !== undefined)
+      payload.p_description = data.description;
+    if (data.category_id !== undefined)
+      payload.p_category_id = data.category_id;
+    if (data.variants !== undefined) payload.p_variants = data.variants;
+
+    const response = await fetch(`${API_BASE}/rpc/sync_product_variants`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        p_product_id: productId,
+        p_name: data.name,
+        p_description: data.description,
+        p_category_id: data.category_id,
+        p_variants: data.variants,
+      }),
+    });
+
+    const result = await handleResponse<AtomicOperationResult[]>(response);
+    return result[0];
+  },
+};
+
 // Export unified API object
 export const api = {
   categories: categoriesAPI,
@@ -627,6 +659,7 @@ export const api = {
   transactions: transactionsAPI,
   activities: activitiesAPI,
   analytics: analyticsAPI,
+  atomicProducts: atomicProductsAPI,
 };
 
 export { APIError };

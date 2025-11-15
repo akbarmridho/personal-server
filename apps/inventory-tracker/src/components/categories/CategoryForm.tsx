@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { type CategoryFormData, categorySchema } from "@/lib/validations";
 import type { ProductCategory } from "@/types/database";
 
@@ -54,7 +55,8 @@ export function CategoryForm({
 
   const onFormSubmit = async (data: CategoryFormData) => {
     await onSubmit(data);
-    form.reset();
+    // Reset form to default values after successful submission
+    form.reset({ name: "", description: "" });
     onOpenChange(false);
   };
 
@@ -94,9 +96,10 @@ export function CategoryForm({
                 <FormItem>
                   <FormLabel>Deskripsi</FormLabel>
                   <FormControl>
-                    <textarea
+                    <Textarea
                       {...field}
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30"
+                      className="min-h-[80px]"
+                      placeholder="Deskripsi kategori (opsional)"
                     />
                   </FormControl>
                   <FormMessage />

@@ -35,7 +35,7 @@ export function SelectField({
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger className={error ? "border-red-500" : ""}>
+        <SelectTrigger className={`cursor-pointer ${error ? "border-red-500" : ""}`}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

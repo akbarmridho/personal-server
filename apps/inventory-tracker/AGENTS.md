@@ -5,6 +5,7 @@ Essential guidance for AI agents working on the Inventory Tracker project.
 ## Project Overview
 
 Business inventory management system for Indonesian business owners with:
+
 - **Language**: All UI text in Indonesian
 - **Timezone**: **CRITICAL** - All date/time operations use Asia/Jakarta (GMT+7)
 - **Currency**: Indonesian Rupiah (IDR)
@@ -54,6 +55,7 @@ src/
 ## Database Schema
 
 ### Core Tables
+
 - **product_categories**: Product categorization (can't delete if containing products)
 - **products**: Core product info (must belong to category, can have variants)
 - **product_variants**: Product variants with pricing/stock (auto-managed via triggers)
@@ -61,6 +63,7 @@ src/
 - **product_activities**: Records all inventory movements (Restock, Sales, Refund, Adjustment)
 
 ### Critical Features
+
 1. **Automatic Stock Management**: Database triggers handle all stock updates
 2. **Asia/Jakarta Timezone**: All date/time calculations use Asia/Jakarta
 3. **Audit Trail**: All activities recorded permanently, cannot be deleted
@@ -68,6 +71,7 @@ src/
 ## API Integration
 
 ### PostgREST Endpoints
+
 ```typescript
 // Categories
 GET/POST/PATCH/DELETE /product_categories
@@ -114,12 +118,14 @@ const fetchProducts = async (page, pageSize, sort, filter) => {
 ```
 
 #### PostgREST Parameters
+
 - **Sorting**: `?order=column.asc` or `?order=column.desc`
 - **Filtering**: `?column=eq.value` or `?column=ilike.*value*`
 - **Pagination**: `?limit=10&offset=20`
 - **Nested Selection**: `?select=*,related_table(*)`
 
 #### TanStack Query Pattern
+
 ```typescript
 export const useProducts = (page = 1, pageSize = 10, sort = 'name.asc', filter = '') => {
   return useQuery({
@@ -135,17 +141,20 @@ export const useProducts = (page = 1, pageSize = 10, sort = 'name.asc', filter =
 ### shadcn MCP Components (PREFERRED)
 
 Always use shadcn MCP instead of creating custom components:
+
 ```bash
 npx shadcn@latest add button input select table dialog form card badge alert tabs label
 ```
 
 #### Component Workflow
+
 1. Check if component exists in shadcn/ui registry using MCP
 2. Add component using shadcn MCP
 3. Only create custom components when absolutely necessary
 4. Follow shadcn patterns for any custom components
 
 #### Custom Hooks Pattern
+
 ```typescript
 export const useCategories = () => {
   const queryClient = useQueryClient();
@@ -173,6 +182,7 @@ export const useCategories = () => {
 ```
 
 ### Form Validation with Zod
+
 ```typescript
 export const categorySchema = z.object({
   name: z.string().min(1, 'Nama kategori wajib diisi'),
@@ -186,7 +196,7 @@ export const productSchema = z.object({
   variants: z.array(z.object({
     name: z.string().min(1, 'Nama varian wajib diisi'),
     description: z.string().optional(),
-    cost_price: z.number().min(0, 'Harga beli harus positif'),
+    cost_price: z.number().min(0, 'Harga Modal harus positif'),
     sell_price: z.number().min(0, 'Harga jual harus positif'),
     stock: z.number().min(0, 'Stok harus positif').optional(),
   })).min(1, 'Minimal satu varian diperlukan'),
@@ -196,6 +206,7 @@ export const productSchema = z.object({
 ## Critical Development Rules
 
 ### 1. Timezone Handling (CRITICAL)
+
 ```typescript
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -212,10 +223,13 @@ export const getCurrentDateJakarta = () => dayjs().tz('Asia/Jakarta');
 ```
 
 ### 2. Indonesian Language
+
 All UI text must be in Indonesian throughout the application.
 
 ### 3. Stock Management
+
 Stock can ONLY be changed through activities:
+
 ```typescript
 // ✅ CORRECT: Create activity record
 const activity = {
@@ -232,12 +246,15 @@ const activity = {
 ```
 
 ### 4. Component Structure
+
 Follow established patterns with Card, Dialog, and Form components.
 
 ### 5. Server-Side Data Operations (CRITICAL)
+
 All sorting, filtering, pagination must be server-side (see API Integration section).
 
 ## Routing with TanStack Router
+
 ```typescript
 // routes/categories.tsx
 import { createFileRoute } from "@tanstack/react-router";
@@ -249,6 +266,7 @@ export const Route = createFileRoute("/categories")({
 ```
 
 ## Responsive Design
+
 - **Mobile**: 320px - 768px
 - **Tablet**: 768px - 1024px
 - **Desktop**: 1024px+
@@ -263,7 +281,9 @@ export const Route = createFileRoute("/categories")({
 ```
 
 ## Chart Implementation
+
 Use shadcn chart components with Recharts:
+
 ```typescript
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -292,6 +312,7 @@ export function SalesTrendChart({ data }) {
 ```
 
 ## Development Commands
+
 ```bash
 pnpm exec tsc --noEmit  # Type checking (use this to test instead of pnpm dev)
 pnpm dev              # Start development server
@@ -306,6 +327,7 @@ pnpm check            # Run Biome check (lint + format)
 ```
 
 ## Common Pitfalls to Avoid
+
 1. **Timezone Issues**: Never use UTC dates for user-facing features
 2. **Direct Stock Updates**: Never update stock directly, always use activities
 3. **English Text**: All UI text must be in Indonesian
@@ -317,6 +339,7 @@ pnpm check            # Run Biome check (lint + format)
 9. **Missing Audit Trail**: Don't provide delete functionality for activities
 
 ## Testing Guidelines
+
 1. **Test Timezone Handling**: Verify all date calculations use Asia/Jakarta
 2. **Test Stock Management**: Ensure stock updates work through activities
 3. **Test Indonesian Language**: Verify all text is in Indonesian
@@ -324,6 +347,7 @@ pnpm check            # Run Biome check (lint + format)
 5. **Test Error States**: Verify proper error handling and user feedback
 
 ## Performance & Security
+
 - Use TanStack Query for intelligent caching
 - Server-side pagination only
 - Route-based code splitting
@@ -333,12 +357,14 @@ pnpm check            # Run Biome check (lint + format)
 - PostgREST permissions for API security
 
 ## Deployment
+
 - Use `pnpm build` for production
 - Use `pnpm preview` for VM deployment
 - Configure `VITE_API_URL` for production
 - Use PM2 or systemd for process management
 
 ## Getting Help
+
 1. Check `docs/FOUNDATION_REFERENCE.md` for component usage
 2. Review `docs/business-requirements.md` for feature details
 3. Consult `docs/technical-plan.md` for implementation details

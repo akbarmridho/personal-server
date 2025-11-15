@@ -41,7 +41,6 @@ import { useProducts } from "@/hooks/useProducts";
 import { PAGINATION } from "@/lib/constants";
 import { formatCurrency } from "@/lib/date-utils";
 import { naturalSort } from "@/lib/utils";
-import type { ProductWithVariantsFormData } from "@/lib/validations";
 import type { QueryParams } from "@/types/api";
 import type { ProductWithRelations } from "@/types/database";
 import { DeleteProductDialog } from "./DeleteProductDialog";
@@ -105,22 +104,6 @@ export function ProductTable() {
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: ProductWithVariantsFormData) => {
-    setIsSubmitting(true);
-    try {
-      // This would normally call the API
-      console.log("Submitting product data:", data);
-      toast.success("Produk berhasil disimpan");
-      setFormOpen(false);
-    } catch (err) {
-      console.error("Error saving product:", err);
-      toast.error(
-        err instanceof Error ? err.message : "Gagal menyimpan produk",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleConfirmDelete = async () => {
     if (!selectedProduct) return;
@@ -362,7 +345,7 @@ export function ProductTable() {
               table.getRowModel().rows.map((row) => {
                 const getStockStatus = (stock: number) => {
                   if (stock === 0) return "text-red-600";
-                  if (stock < 10) return "text-yellow-600";
+                  if (stock < 15) return "text-yellow-600";
                   return "text-green-600";
                 };
 
@@ -385,16 +368,13 @@ export function ProductTable() {
                           className="p-0"
                         >
                           <div className="bg-gray-50 p-4">
-                            <h4 className="text-sm font-medium mb-3">
-                              Varian Produk: {row.original.name}
-                            </h4>
                             <div className="overflow-x-auto">
                               <Table>
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead>Nama Varian</TableHead>
                                     <TableHead className="text-right">
-                                      Harga Beli
+                                      Harga Modal
                                     </TableHead>
                                     <TableHead className="text-right">
                                       Harga Jual
@@ -489,7 +469,6 @@ export function ProductTable() {
       <ProductForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        onSubmit={handleSubmit}
         product={selectedProduct || undefined}
         isLoading={isSubmitting}
       />

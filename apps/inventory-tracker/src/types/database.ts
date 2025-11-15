@@ -82,18 +82,6 @@ export interface UpdateProductCategory {
   description?: string;
 }
 
-export interface CreateProduct {
-  category_id: number;
-  name: string;
-  description?: string;
-}
-
-export interface UpdateProduct {
-  category_id?: number;
-  name?: string;
-  description?: string;
-}
-
 export interface CreateProductVariant {
   product_id: number;
   name: string;
@@ -114,6 +102,40 @@ export interface UpdateProductVariant {
 
 export interface CreateTransaction {
   notes?: string;
+}
+
+// Atomic product creation types
+export interface CreateProductWithInitialStock {
+  category_id: number;
+  name: string;
+  description?: string;
+  variants: Array<{
+    name: string;
+    description?: string;
+    cost_price: number;
+    sell_price: number;
+    stock: number;
+  }>;
+}
+
+export interface SyncProductVariants {
+  name?: string;
+  description?: string;
+  category_id?: number;
+  variants?: Array<{
+    id?: number; // Include ID for existing variants
+    name: string;
+    description?: string;
+    cost_price: number;
+    sell_price: number;
+    // Note: stock is not included as it's managed separately
+  }>;
+}
+
+export interface AtomicOperationResult {
+  product_id?: number;
+  success: boolean;
+  message: string;
 }
 
 export interface CreateProductActivity {

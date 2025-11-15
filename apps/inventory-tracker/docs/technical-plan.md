@@ -203,7 +203,7 @@ export const productSchema = z.object({
   variants: z.array(z.object({
     name: z.string().min(1, 'Nama varian wajib diisi'),
     description: z.string().optional(),
-    cost_price: z.number().min(0, 'Harga beli harus positif'),
+    cost_price: z.number().min(0, 'Harga Modal harus positif'),
     sell_price: z.number().min(0, 'Harga jual harus positif'),
     stock: z.number().min(0, 'Stok harus positif').optional(),
   })).min(1, 'Minimal satu varian diperlukan'),

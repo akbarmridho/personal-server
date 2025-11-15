@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { toast } from "sonner";
 import { FormField } from "@/components/forms/FormField";
 import { SelectField } from "@/components/forms/SelectField";
 import { Button } from "@/components/ui/button";
@@ -8,18 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useCategories } from "@/hooks/useCategories";
+import { useProducts } from "@/hooks/useProducts";
 import {
   type ProductWithVariantsFormData,
   productWithVariantsSchema,
 } from "@/lib/validations";
-import type { ProductWithRelations } from "@/types/database";
+import type { ProductWithRelations, SyncProductVariants } from "@/types/database";
 import { VariantManager } from "./VariantManager";
 
 interface ProductFormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: ProductWithVariantsFormData) => Promise<void>;
   product?: ProductWithRelations;
   isLoading?: boolean;
 }
@@ -27,11 +30,12 @@ interface ProductFormProps {
 export function ProductForm({
   open,
   onClose,
-  onSubmit,
   product,
   isLoading,
 }: ProductFormProps) {
+  const descriptionId = useId();
   const { categories } = useCategories();
+  const { createProduct, syncProduct } = useProducts();
   const [formData, setFormData] = useState<ProductWithVariantsFormData>({
     name: "",
     category_id: 0,
@@ -53,6 +57,7 @@ export function ProductForm({
         description: product.description || "",
         variants:
           product.product_variants?.map((v) => ({
+            id: v.id,
             name: v.name,
             description: v.description || "",
             cost_price: v.cost_price,
@@ -78,7 +83,7 @@ export function ProductForm({
     }
     setErrors({});
     setVariantErrors({});
-  }, [product, open]);
+  }, [product]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,12 +117,76 @@ export function ProductForm({
       return;
     }
 
-    await onSubmit(result.data);
+    try {
+      if (product) {
+        const syncData: SyncProductVariants = {
+          name: result.data.name,
+          category_id: result.data.category_id,
+          description: result.data.description,
+          variants: result.data.variants.map((variant) => ({
+            id: variant.id,
+            name: variant.name,
+            description: variant.description,
+            cost_price: variant.cost_price,
+            sell_price: variant.sell_price,
+          })),
+        };
+
+        const syncResult = await syncProduct(product.id, syncData);
+        if (syncResult.success) {
+          toast.success("Produk dan varian berhasil diperbarui");
+          onClose();
+        } else {
+          toast.error(syncResult.message);
+        }
+      } else {
+        // Create new product with initial stock
+        const createData = {
+          name: result.data.name,
+          category_id: result.data.category_id,
+          description: result.data.description,
+          variants: result.data.variants.map((variant) => ({
+            name: variant.name,
+            description: variant.description,
+            cost_price: variant.cost_price,
+            sell_price: variant.sell_price,
+            stock: variant.stock || 0,
+          })),
+        };
+
+        const createResult = await createProduct(createData);
+        if (createResult.success) {
+          toast.success("Produk berhasil ditambahkan");
+          // Reset form fields after successful creation
+          setFormData({
+            name: "",
+            category_id: 0,
+            description: "",
+            variants: [
+              { name: "", description: "", cost_price: 0, sell_price: 0, stock: 0 },
+            ],
+          });
+          setErrors({});
+          setVariantErrors({});
+          onClose();
+        } else {
+          toast.error(createResult.message);
+        }
+      }
+    } catch (err) {
+      console.error("Error saving product:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Gagal menyimpan produk",
+      );
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" onOpenAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent
+        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             {product ? "Edit Produk" : "Tambah Produk Baru"}
@@ -141,7 +210,7 @@ export function ProductForm({
 
             <SelectField
               label="Kategori"
-              value={String(formData.category_id)}
+              value={formData.category_id === 0 ? "" : String(formData.category_id)}
               onChange={(value) =>
                 setFormData({ ...formData, category_id: Number(value) })
               }
@@ -149,20 +218,26 @@ export function ProductForm({
                 value: String(cat.id),
                 label: cat.name,
               }))}
-              placeholder="Pilih kategori"
+              placeholder="Pilih Kategori"
               error={errors.category_id}
               required
             />
 
-            <FormField
-              label="Deskripsi"
-              value={formData.description || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Deskripsi produk (opsional)"
-              error={errors.description}
-            />
+            <div className="space-y-2">
+              <Label htmlFor={descriptionId}>Deskripsi</Label>
+              <Textarea
+                id={descriptionId}
+                value={formData.description || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Deskripsi produk (opsional)"
+                className="min-h-[80px]"
+              />
+              {errors.description && (
+                <p className="text-sm text-destructive">{errors.description}</p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -170,6 +245,7 @@ export function ProductForm({
               variants={formData.variants}
               onChange={(variants) => setFormData({ ...formData, variants })}
               errors={variantErrors}
+              isEdit={!!product}
             />
             {errors.variants && (
               <p className="text-sm text-red-500">{errors.variants}</p>

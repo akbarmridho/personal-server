@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { productsAPI } from "@/lib/api";
+import { atomicProductsAPI, productsAPI } from "@/lib/api";
 import type { QueryParams } from "@/types/api";
-import type { CreateProduct, UpdateProduct } from "@/types/database";
+import type {
+  CreateProductWithInitialStock,
+  SyncProductVariants,
+} from "@/types/database";
 
 export function useProducts(params?: QueryParams) {
   const queryClient = useQueryClient();
@@ -12,23 +15,26 @@ export function useProducts(params?: QueryParams) {
     staleTime: 120_000,
   });
 
-  const createMutation = useMutation({
-    mutationFn: productsAPI.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateProduct }) =>
-      productsAPI.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-  });
-
   const deleteMutation = useMutation({
     mutationFn: productsAPI.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+
+  // Atomic product creation with initial stock
+  const createMutation = useMutation({
+    mutationFn: atomicProductsAPI.createWithInitialStock,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["activities"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: SyncProductVariants }) =>
+      atomicProductsAPI.syncProductVariants(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
@@ -42,12 +48,13 @@ export function useProducts(params?: QueryParams) {
     totalPages: productsQuery.data?.totalPages || 0,
     isLoading: productsQuery.isLoading,
     error: productsQuery.error,
-    createProduct: (data: CreateProduct) => createMutation.mutateAsync(data),
-    updateProduct: (id: number, data: UpdateProduct) =>
-      updateMutation.mutateAsync({ id, data }),
     deleteProduct: (id: number) => deleteMutation.mutateAsync(id),
+    createProduct: (data: CreateProductWithInitialStock) =>
+      createMutation.mutateAsync(data),
+    syncProduct: (id: number, data: SyncProductVariants) =>
+      syncMutation.mutateAsync({ id, data }),
     isCreating: createMutation.isPending,
-    isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isSyncing: syncMutation.isPending,
   };
 }

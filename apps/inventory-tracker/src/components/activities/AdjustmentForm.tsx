@@ -116,7 +116,7 @@ export function AdjustmentForm({
               <span className="font-medium">{selectedVariant.stock} unit</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Harga Beli:</span>
+              <span className="text-muted-foreground">Harga Modal:</span>
               <span>{formatCurrency(selectedVariant.cost_price)}</span>
             </div>
             <div className="flex justify-between">
@@ -137,7 +137,7 @@ export function AdjustmentForm({
           required
         />
         <NumberField
-          label="Harga Beli Satuan"
+          label="Harga Modal Satuan"
           value={unitCost}
           onChange={(value) => setValue("unit_cost", value)}
           error={errors.unit_cost?.message}

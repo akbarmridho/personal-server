@@ -40,12 +40,13 @@ export const updateProductSchema = z.object({
 
 // Product variant validation schemas
 export const variantSchema = z.object({
+  id: z.number().int().positive().optional(), // Include ID for existing variants
   name: z
     .string()
     .min(1, "Nama varian wajib diisi")
     .max(255, "Nama terlalu panjang"),
   description: z.string().optional(),
-  cost_price: z.number().int().min(0, "Harga beli tidak boleh negatif"),
+  cost_price: z.number().int().min(0, "Harga modal tidak boleh negatif"),
   sell_price: z.number().int().min(0, "Harga jual tidak boleh negatif"),
   stock: z.number().int().min(0, "Stok tidak boleh negatif").optional(),
 });
@@ -60,7 +61,7 @@ export const updateVariantSchema = z.object({
   cost_price: z
     .number()
     .int()
-    .min(0, "Harga beli tidak boleh negatif")
+    .min(0, "Harga modal tidak boleh negatif")
     .optional(),
   sell_price: z
     .number()
@@ -111,7 +112,7 @@ export const activitySchema = z.object({
   variant_name: z.string().min(1, "Nama varian wajib diisi"),
   type: activityTypeEnum,
   quantity: z.number().int().min(1, "Kuantitas minimal 1"),
-  unit_cost: z.number().int().min(0, "Harga beli tidak boleh negatif"),
+  unit_cost: z.number().int().min(0, "Harga modal tidak boleh negatif"),
   unit_revenue: z.number().int().min(0, "Harga jual tidak boleh negatif"),
   cost_adjustment: z.number().int().default(0),
   revenue_adjustment: z.number().int().default(0),
@@ -122,7 +123,7 @@ export const activitySchema = z.object({
 export const restockActivitySchema = z.object({
   variant_id: z.number().int().positive("Varian wajib dipilih"),
   quantity: z.number().int().min(1, "Kuantitas minimal 1"),
-  unit_cost: z.number().int().min(0, "Harga beli tidak boleh negatif"),
+  unit_cost: z.number().int().min(0, "Harga modal tidak boleh negatif"),
   notes: z.string().optional(),
 });
 
@@ -130,14 +131,14 @@ export const salesActivitySchema = z.object({
   variant_id: z.number().int().positive("Varian wajib dipilih"),
   quantity: z.number().int().min(1, "Kuantitas minimal 1"),
   unit_revenue: z.number().int().min(0, "Harga jual tidak boleh negatif"),
-  unit_cost: z.number().int().min(0, "Harga beli tidak boleh negatif"),
+  unit_cost: z.number().int().min(0, "Harga modal tidak boleh negatif"),
   notes: z.string().optional(),
 });
 
 export const adjustmentActivitySchema = z.object({
   variant_id: z.number().int().positive("Varian wajib dipilih"),
   quantity: z.number().int().min(1, "Kuantitas minimal 1"),
-  unit_cost: z.number().int().min(0, "Harga beli tidak boleh negatif"),
+  unit_cost: z.number().int().min(0, "Harga modal tidak boleh negatif"),
   notes: z.string().optional(),
 });
 
@@ -149,7 +150,7 @@ export const transactionWithActivitiesSchema = z.object({
       z.object({
         variant_id: z.number().int().positive("Varian wajib dipilih"),
         quantity: z.number().int().min(1, "Kuantitas minimal 1"),
-        unit_cost: z.number().int().min(0, "Harga beli tidak boleh negatif"),
+        unit_cost: z.number().int().min(0, "Harga modal tidak boleh negatif"),
         unit_revenue: z.number().int().min(0, "Harga jual tidak boleh negatif"),
         revenue_adjustment: z.number().int().default(0),
       }),
