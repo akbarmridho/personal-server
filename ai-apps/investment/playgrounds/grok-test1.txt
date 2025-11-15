@@ -1,0 +1,106 @@
+Query
+
+Find rumours and news related to $BUMI (indonesia stock) for the past week
+
+---
+
+Thinking... (705 tokens)
+Calling tool: web_search with arguments: {"query":"$BUMI OR \"PT Bumi Resources Tbk\" news OR rumors after:2025-11-08","num_results":15}
+Thinking... (705 tokens)
+Calling tool: x_keyword_search with arguments: {"query":"($BUMI OR \"Bumi Resources\" OR \"PT Bumi Resources\") (stock OR saham OR news OR rumor OR berita) since:2025-11-08 until:2025-11-16 (lang:en OR lang:id)","limit":20,"mode":"Latest"}
+Thinking... (705 tokens)
+Calling tool: x_semantic_search with arguments: {"query":"rumors and news about $BUMI stock Indonesia","limit":15,"from_date":"2025-11-08","to_date":"2025-11-15"}
+Thinking... (1212 tokens)
+
+Final Response:
+### News and Rumors on $BUMI (PT Bumi Resources Tbk) - Past Week (Nov 8-15, 2025)
+
+$BUMI, the Indonesian mining company primarily known for coal but expanding into metals, has seen significant positive buzz in the past week. The stock experienced a sharp rally, with trading volumes hitting record highs (e.g., 5.66 trillion IDR on Nov 11, nearly matching the entire IHSG's daily volume). Prices surged from around 142 IDR (early Nov) to over 230 IDR by Nov 13-14, driven by diversification news, institutional buying, and technical bullishness. Below is a breakdown of key **news** (from reliable sources) and **rumors** (primarily from X/Twitter discussions). All info is based on public data up to Nov 15, 2025—DYOR as markets are volatile.
+
+#### Key News (From Web Searches and Financial Sites)
+These are factual reports from outlets like Yahoo Finance, Metal.com, Investor Daily, Bisnis.com, and IDX-related channels:
+
+1. **Diversification Push Beyond Coal (Nov 11-12)**:
+   - $BUMI aims for 50% non-coal revenue by 2030, expanding into gold, copper, bauxite, and alumina processing. This includes acquiring a 45% stake in PT Laman Mining (bauxite miner) for US$59.1 million (announced ~Nov 14). The move aligns with Indonesia's downstreaming policies and rising metal demand.
+   - Full ownership of Wolfram Limited (Australian gold/copper mine) confirmed, with operations slated for 2026. This is expected to boost reserves and revenue streams (reported Nov 11 on KabarBursa and YouTube channels).
+
+2. **Bond Issuance for Acquisitions (Nov 14)**:
+   - $BUMI plans to issue Rp780 billion in bonds (kupon 9%) to fund mine acquisitions and subsidiaries. This follows family-owned (Bakrie Group) tambang expansions. (Source: IDX Channel, Bisnis.com).
+
+3. **Institutional Selling and Ownership Shifts (Nov 14-15)**:
+   - UBS AG lego (sold) hundreds of millions of shares, reducing holdings significantly. Meanwhile, old Chinese creditor Chengdong Investment is offloading stakes, shifting more shares to retail/public investors.
+   - Positive counter: BlackRock and Dimensional Fund Advisors entered as major buyers, fueling the rally (reported Nov 12 on Korea Investment & Sekuritas).
+
+4. **Analyst Upgrades and Price Targets (Nov 12-13)**:
+   - Ina Sekuritas issued a new, drastically higher price target (exact figure not specified in snippets, but implied upside from current levels ~230 IDR). Citing rebound in gold prices (to US$4,131/oz) and $BUMI's metal pivot.
+   - Yahoo Finance analyst consensus: Earnings growth projected, with upgrades due to diversification. Stock closed ~236 IDR on Nov 14 (up ~40% WoW).
+
+5. **Stock Performance Highlights**:
+   - Nov 11: Volume 286M lots, value 5.3T IDR; hit auto-reject atas (ARA) at 199 IDR.
+   - Nov 13: Continued surge to 238 IDR, with foreign net buy of Rp2.6T (BUMI as top pick alongside GOTO/BRMS).
+   - Overall: +60% WoW, breaking 2024 highs. (Sources: Stockbit, Yahoo Finance).
+
+No major negative news; focus is on growth potential amid coal's volatility.
+
+#### Rumors and Social Media Buzz (From X/Twitter)
+X posts (Latest mode, English/Indonesian) show hype around the rally, with ~20 relevant tweets from Nov 11-15. Rumors lean bullish, often tied to unverified "insider" flows, but no confirmed scandals. Key themes:
+
+1. **Institutional and "Big Player" Buying (Nov 11-14)**:
+   - Rumors of massive foreign inflows: BlackRock/Dimensional "jumbo buys" pushing the stock parabolic. One post: "Asing net buy Rp2.6T, BUMI favorit" (Nov 13, @Stockbit—876 likes).
+   - Bakrie Group synergy: $BUMI, $BRMS (gold), and $DEWA (nickel) called "baggers" (multi-baggers). Rumor: Salim Group possibly entering DEWA/BUMI (unconfirmed, Nov 14, @Mikirduitcom).
+   - Chinese creditor dump: Chengdong selling to retail, "saham berpindah tangan publik" (Nov 13, @Mikirduitcom). Seen as positive for liquidity.
+
+2. **Technical and Trading Hype (Nov 11-13)**:
+   - Super bullish signals: "Wave 3 extended, target 230" (Nov 11, @tuanpasar69—84 likes, with chart). Parabolic SAR, MACD golden cross, volume 2x EMA (Nov 11, @asuma471).
+   - "Buy the dip" calls everywhere; one trader: "From 142 to 199 in days, happy cuan" (Nov 11). Volume rumors: "4T+ daily, no other stock close" (Nov 13, @WOLF_of_IHSG—9 likes).
+   - Big transaction alerts (from bots like @ceritasahamid): Frequent 40k-50k lot buys/sells at 220-238 IDR (Nov 13-14), hinting at "bandar" (big player) accumulation.
+
+3. **Retail Sentiment and "Cuan" Stories (Nov 13-15)**:
+   - Excitement over profits: "Siapa ikutan CUAN? $BUMI tembus langit" (Nov 15, @HurufCinta). Newbies: "Day 3 trading, BUMI naik gila" (Nov 13, @japiwraaaa).
+   - Group stocks rally: "BRMS/BUMI/DEWA bikin bagger, naik sejauh apa lagi?" (Nov 14, @Mikirduitcom—video analysis).
+   - Minor frustration: "Hold turun, jual naik—saham anj" (Nov 14, @confusederas), but overall positive.
+
+Rumors are speculative (e.g., unverified Salim entry, exact fund moves), amplified by high engagement (e.g., 34k+ views on volume posts). No FUD (fear, uncertainty, doubt) noted; sentiment is euphoric but warns of risks like overvaluation.
+
+#### Overall Outlook
+- **Positive Drivers**: Diversification news + foreign buying = momentum. Stock up ~65% in week, but volatility high (e.g., ARA hits).
+- **Risks Mentioned**: Debt from bonds, creditor sales, coal dependency. Analysts eye 230-250 IDR short-term.
+- Sources: Aggregated from Yahoo Finance, Bisnis.com, Investor.id, and X posts (e.g., @Stockbit, @Mikirduitcom). For real-time, check IDX or Stockbit.
+
+If you need deeper dives (e.g., specific charts or URLs), let me know!
+
+Citations:
+['https://x.com/i/status/1988863187987366036', 'https://x.com/i/status/1988878873048785147', 'https://stockbit.com/symbol/BUMI', 'https://x.com/i/status/1988194703846912207', 'https://x.com/i/status/1988880093532520790', 'https://finance.yahoo.com/quote/BUMI.JK/analysis/', 'https://x.com/i/status/1989325625862287819', 'https://x.com/i/status/1988903338826690893', 'https://www.investing.com/equities/bumitama-agri-ltd', 'https://x.com/i/status/1989158263355760643', 'https://x.com/i/status/1988960713860399426', 'https://x.com/i/status/1988880689924866356', 'https://x.com/i/status/1989250540333932910', 'https://x.com/i/status/1988880469543522751', 'https://www.youtube.com/watch?v=ytmLnonbP-A', 'https://x.com/i/status/1989332647898763636', 'https://x.com/i/status/1988162070236614664', 'https://www.instagram.com/p/DQ6FMzIkRB1/', 'https://x.com/i/status/1988888229458952649', 'https://x.com/i/status/1988218266289115370', 'https://x.com/i/status/1988879241514217672', 'https://x.com/i/status/1989169357625389265', 'https://x.com/i/status/1988880928136130752', 'https://x.com/i/status/1988584948983611474', 'https://x.com/i/status/1988078882986308076', 'https://finance.yahoo.com/quote/BUMI.JK/', 'https://finance.yahoo.com/quote/BUMI.JK/news/', 'https://x.com/i/status/1988881150425854038', 'https://x.com/i/status/1988882244447137829', 'https://x.com/i/status/1988881610205524044', 'https://x.com/i/status/1988884669094404477', 'https://x.com/i/status/1988863185294880901', 'https://news.metal.com/newscontent/103622028', 'https://x.com/i/status/1989158254681944115', 'https://x.com/i/status/1989485175361999233', 'https://x.com/i/status/1989243153963180138', 'https://www.youtube.com/watch?v=Pialtd2xo0s', 'https://www.bisnis.com/topic/1397/bumi-resources', 'https://x.com/i/status/1988882218757058721', 'https://x.com/i/status/1988083236132770000', 'https://x.com/i/status/1988497295567188281', 'https://x.com/i/status/1988077894309216685', 'https://x.com/i/status/1988881278150799855']
+
+
+Usage:
+completion_tokens: 1748
+prompt_tokens: 14676
+total_tokens: 17636
+prompt_text_tokens: 14676
+reasoning_tokens: 1212
+cached_prompt_text_tokens: 2644
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+server_side_tools_used: SERVER_SIDE_TOOL_WEB_SEARCH
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+
+{'SERVER_SIDE_TOOL_X_SEARCH': 2, 'SERVER_SIDE_TOOL_WEB_SEARCH': 1}
+
+
+Server Side Tool Calls:
+[type: TOOL_CALL_TYPE_WEB_SEARCH_TOOL
+function {
+  name: "web_search"
+  arguments: "{\"query\":\"$BUMI OR \\\"PT Bumi Resources Tbk\\\" news OR rumors after:2025-11-08\",\"num_results\":15}"
+}
+, type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_keyword_search"
+  arguments: "{\"query\":\"($BUMI OR \\\"Bumi Resources\\\" OR \\\"PT Bumi Resources\\\") (stock OR saham OR news OR rumor OR berita) since:2025-11-08 until:2025-11-16 (lang:en OR lang:id)\",\"limit\":20,\"mode\":\"Latest\"}"
+}
+, type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_semantic_search"
+  arguments: "{\"query\":\"rumors and news about $BUMI stock Indonesia\",\"limit\":15,\"from_date\":\"2025-11-08\",\"to_date\":\"2025-11-15\"}"
+}
+]

@@ -1,0 +1,89 @@
+Query:
+
+Find rumours about indonesia stock $INET for the past week
+
+---
+
+Answer:
+
+Thinking... (348 tokens)
+Calling tool: x_keyword_search with arguments: {"query":"$INET (rumor OR rumour OR speculation OR hearing OR gosip) (lang:en OR lang:id) since:2025-11-08 until:2025-11-16","limit":20,"mode":"Latest"}
+Thinking... (449 tokens)
+Calling tool: x_semantic_search with arguments: {"query":"rumors about $INET Indonesia stock","limit":20,"from_date":"2025-11-08","to_date":"2025-11-15"}
+Thinking... (795 tokens)
+Calling tool: x_keyword_search with arguments: {"query":"$INET since:2025-11-08 until:2025-11-16","limit":20,"mode":"Latest"}
+Thinking... (1202 tokens)
+
+Final Response:
+### Rumors and Buzz about $INET (PT Indoritel Makmur Internasional Tbk) Stock in the Past Week (Nov 8–15, 2025)
+
+Based on recent X (Twitter) posts from Indonesian stock traders, analysts, and investors, $INET (an Indonesian telecom/ISP company) has been a hot topic due to significant price surges (from ~Rp280 to over Rp500 in spots). The chatter is mostly speculative, focusing on potential corporate actions that could drive further gains. Note: These are unverified rumors from social media—**not financial advice; always DYOR and check official disclosures from IDX/BEI**. No major confirmed news from official sources in this period, but the hype seems tied to trading volume and foreign interest.
+
+#### Key Rumors and Speculations:
+1. **Potential Acquisition of PADA (PT Padang Parahyangan Manunggal Tbk)**:
+   - Multiple posts suggest $INET is rumored to be acquiring $PADA, a data center or related telecom asset. This is cited as the main driver behind the stock's recent melt-up (e.g., +15.91% on Nov 14 alone).
+     - Example: A post from @investbarengoei (Nov 9) shared a video update: "#PADA mau di akusisi #INET" (PADA to be acquired by INET), linking it to price action.
+     - Another from @InvestorID (Nov 11): "Saham INET Melesat, Ternyata Mau Akuisisi" (INET stock surges, turns out planning acquisition), with a link to an article speculating on expansion via buyouts.
+     - @SocialiteGhibah (Nov 13) posted an "Arcamologi" analysis thread grouping $WIFI, $INET, $KETR, and $PADA, implying interconnected deals in telecom/data infrastructure.
+   - Why the buzz? $INET is seen as undervalued (market cap ~Rp4.7T), and an acquisition could "level it up" from a small ISP to a bigger player. Traders speculate this would boost synergies in fiber optics/data services. However, some call it "unconfirmed gossip" fueling short-term pumps.
+
+2. **Right Issue of Rp3.2 Trillion**:
+   - Rumors of a massive rights issue (additional share offering) to fund growth/expansion. Posts describe it as a way for $INET to "naik kelas" (level up) from low-revenue ISP status.
+     - @tradingnesia_id (Nov 11): "Dulu INET itu hanya ISP kecil... Tapi sekarang, mereka mau naik kelas lewat right issue Rp3,2 Triliun!"
+     - Traders like @febycahyaa (Nov 11) debated holding shares for the rights issue vs. selling, with one user buying at Rp440 and pondering: "Better hold buat ikut right issue apa jual besok ya tp tipis2."
+   - Speculation: This could dilute shares short-term but fund acquisitions or capex, leading to multibagger potential (e.g., @Kyoka22_ on Nov 13: "$INET multibagger soon").
+
+3. **Strong Foreign Buying and "Sultan" Interest**:
+   - Heavy foreign inflows (net buy ~Rp1T in a day, per @WOLF_of_IHSG on Nov 15) are fueling rumors of big institutional plays. Compared to blue-chips like $BCA/$BMRI despite $INET's small cap.
+     - @WOLF_of_IHSG (Nov 14–15): "Foreign flow bersih yang masuk ke $INET... setara dengan yg masuk ke emiten bank BCA dan Mandiri... Asing sangat 'apresiasi' emiten satu ini."
+     - @sukatul1 (Nov 14): "Asing buy hampir 100 miliar" in session 1, implying "sultan" (whale) brokers accumulating.
+   - Traders speculate this signals insider knowledge of upcoming news (e.g., acquisition confirmation or partnerships), with posts calling it a "dorongan beli kuat" (strong buy push).
+
+4. **Price Action and Trading Hype**:
+   - Stock broke out multiple times (e.g., targets Rp480–500 from @Walzzs on Nov 10). Posts describe wild swings: "Nyopet di 464... malah dibanting ke 460. Giliran di CL bangke sesi 2 malah naik sampe 500" (@Thespian1313, Nov 14).
+   - Comparisons to $WIFI (another telecom stock): @CornerCuan (Nov 14) noted differences in playstyle, with $INET seen as more volatile but higher upside.
+   - Profit-taking stories: Many shared cuan (gains), e.g., buying at Rp280 and selling at Rp500 (@CornerCuan, Nov 14). Some regret selling early (@efekrumahkicau: "Andai $INET kaga gua auto sell di harga 400").
+
+#### Overall Sentiment:
+- **Bullish Speculation**: 80%+ of posts are positive, with calls for swing trades/holds due to "multibagger" potential from rumors. Volume spiked (e.g., 28k+ lots in big trades via @ceritasahamid).
+- **Risks Mentioned**: Dilution from rights issue, volatility (e.g., fake orders or pumps/dumps), and wait-and-see ahead of Bank Indonesia's policy meeting (Nov 19–20).
+- **Volume of Chatter**: ~50+ relevant posts in the week, mostly from Indonesian accounts (@WOLF_of_IHSG, @Thespian1313, @CornerCuan). No major English-language buzz, as it's niche to IDX traders.
+- **No Confirmed News**: These are rumors—watch for official announcements. Stock closed sideways on Nov 14 (IHSG -0.02%), but $INET was a top gainer.
+
+If you want deeper dives (e.g., specific post threads, charts, or searches on related tickers like $PADA), let me know!
+
+Citations:
+['https://x.com/i/status/1986718373464698927', 'https://x.com/i/status/1989234302912196638', 'https://x.com/i/status/1989243140373623106', 'https://x.com/i/status/1986807202796150820', 'https://x.com/i/status/1989234675269898322', 'https://x.com/i/status/1986744176990417251', 'https://x.com/i/status/1989271051927466353', 'https://x.com/i/status/1988074896468136323', 'https://x.com/i/status/1989662756325458194', 'https://x.com/i/status/1988765927417212981', 'https://x.com/i/status/1989232612888760466', 'https://x.com/i/status/1989251101611421700', 'https://x.com/i/status/1989230268717363387', 'https://x.com/i/status/1986900023003517253', 'https://x.com/i/status/1988161370115002497', 'https://x.com/i/status/1986866087393427825', 'https://x.com/i/status/1986678306201346474', 'https://x.com/i/status/1989222824935096453', 'https://x.com/i/status/1986766992687444168', 'https://x.com/i/status/1988546511550939298', 'https://x.com/i/status/1988103938797920578', 'https://x.com/i/status/1989293329650246081', 'https://x.com/i/status/1988909307828572445', 'https://x.com/i/status/1987919499165933575', 'https://x.com/i/status/1988077463881330928', 'https://x.com/i/status/1989208197111095677', 'https://x.com/i/status/1987445788566540621', 'https://x.com/i/status/1986681106595533011', 'https://x.com/i/status/1989628312361259130', 'https://x.com/i/status/1988787761789431953', 'https://x.com/i/status/1988149977647120813', 'https://x.com/i/status/1989246017817178309', 'https://x.com/i/status/1986838301077348353', 'https://x.com/i/status/1989215072900771854', 'https://x.com/i/status/1986627313031938516', 'https://x.com/i/status/1989220138579898691', 'https://x.com/i/status/1988822772269871452', 'https://x.com/i/status/1987441599484461443', 'https://x.com/i/status/1989250540333932910']
+
+
+Usage:
+completion_tokens: 1499
+prompt_tokens: 25082
+total_tokens: 27783
+prompt_text_tokens: 25082
+reasoning_tokens: 1202
+cached_prompt_text_tokens: 13136
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+
+{'SERVER_SIDE_TOOL_X_SEARCH': 3}
+
+
+Server Side Tool Calls:
+[type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_keyword_search"
+  arguments: "{\"query\":\"$INET (rumor OR rumour OR speculation OR hearing OR gosip) (lang:en OR lang:id) since:2025-11-08 until:2025-11-16\",\"limit\":20,\"mode\":\"Latest\"}"
+}
+, type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_semantic_search"
+  arguments: "{\"query\":\"rumors about $INET Indonesia stock\",\"limit\":20,\"from_date\":\"2025-11-08\",\"to_date\":\"2025-11-15\"}"
+}
+, type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_keyword_search"
+  arguments: "{\"query\":\"$INET since:2025-11-08 until:2025-11-16\",\"limit\":20,\"mode\":\"Latest\"}"
+}
+]

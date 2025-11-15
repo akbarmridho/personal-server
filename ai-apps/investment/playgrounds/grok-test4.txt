@@ -1,0 +1,98 @@
+Query:
+
+Find rumours related to indonesia stock market and related to Indonesian stocks for the past week
+
+---
+
+Answer:
+
+Thinking... (451 tokens)
+Calling tool: x_semantic_search with arguments: {"query":"rumors related to Indonesia stock market and Indonesian stocks","limit":20,"from_date":"2025-11-08","to_date":"2025-11-15","min_score_threshold":0.2}
+Thinking... (782 tokens)
+Calling tool: x_keyword_search with arguments: {"query":"\"Indonesia stock\" OR IHSG OR IDX OR \"saham Indonesia\" (rumor OR rumour OR spekulasi OR gosip) since:2025-11-08 until:2025-11-15","limit":20,"mode":"Latest"}
+Thinking... (941 tokens)
+Calling tool: x_keyword_search with arguments: {"query":"(\"Indonesia stock\" OR IHSG OR IDX OR \"saham Indonesia\") since:2025-11-08 until:2025-11-15","limit":20,"mode":"Latest"}
+Thinking... (1245 tokens)
+
+Final Response:
+### Rumors and Speculations on Indonesia Stock Market (Nov 8–15, 2025)
+
+Based on recent social media discussions on X (formerly Twitter), particularly from trading communities, financial analysts, and news shares, here are the key rumors and speculative talks related to the Indonesian stock market (IHSG/IDX Composite Index) and specific Indonesian stocks over the past week. Note that "rumors" here refer to unverified speculations, market chatter, or unconfirmed reports circulating online—often mixed with news. I've focused on relevance, filtering out pure news or unrelated posts. The market has been volatile, with IHSG fluctuating around 8,300–8,400 points amid global uncertainties (e.g., US Fed rate decisions and rupiah weakening).
+
+#### 1. **Potential Merger Between GoTo (GOTO) and Grab**
+   - **Details**: There's ongoing buzz about a possible merger between Indonesian tech giant GoTo Group (ticker: GOTO) and Singapore-based Grab. Posts suggest it could involve private equity like Danantara, aiming to consolidate Southeast Asian ride-hailing and e-commerce. GOTO's stock reportedly hit resistance at its 200-day moving average (MA200) amid the speculation, leading to some selling pressure.
+   - **Context**: GoTo denied any decisions or agreements on Nov 10, calling it "wacana" (just talk). However, Grab's US shares rose ~6% pre-market on Nov 10, speculated to be linked (though attributed to other investments like Vay Technology). Traders are watching for consolidation if the rumor persists.
+   - **Impact Speculation**: If true, it could boost GOTO's valuation but dilute shares; skeptics see it as hype in a high-valuation market (IHSG near all-time highs).
+   - **Sources**: TradingDiary2 (@TradingDiary2) and related threads; ~40 likes on key posts.
+
+#### 2. **Foreign Investor Exodus from Bonds, Spilling into Stocks**
+   - **Details**: Chatter points to global funds rapidly exiting Indonesian government bonds, potentially wiping out 2025 inflows entirely. This is linked to rising US yields and Fed rate cut delays, weakening the rupiah (IDR/USD under pressure).
+   - **Context**: On Nov 13, Bloomberg shared that Indonesia is "close to wiping out" bond inflows, fueling fears of broader capital flight. Speculation ties this to stock market caution, with IHSG dropping 0.2–0.44% on Nov 11 and 13.
+   - **Impact Speculation**: Could pressure commodity-heavy stocks (e.g., coal, nickel like TINS) due to lower Chinese demand (China's fixed-asset investment down 1.7% Jan–Oct). Some predict short-term IHSG dips but resilience from domestic inflows.
+   - **Sources**: Bloomberg (@business), BoersenDE (@BoersenDE); posts with 20+ likes.
+
+#### 3. **Superbank IPO Hype and Investor Overheating**
+   - **Details**: Speculation around Bank Jago's (Superbank) upcoming IPO (expected next month) is heating up, with rumors of high subscription demand despite IHSG at all-time highs (ATH ~8,400).
+   - **Context**: Traders debate allocating cash to the IPO (potentially 5–10 lots per investor) vs. holding blue-chip stocks. One post noted: "Euforia boleh, tapi IPO ga akan ngangkat portfolio utamamu" (Euphoria is fine, but IPO won't lift your main portfolio), suggesting many are overextended with cash despite strong performers.
+   - **Impact Speculation**: Could draw Rp billions in inflows but risk post-IPO dumps if market cools. Ties into broader talk of IDX market cap hitting 66% of GDP (up from 43% in 2021).
+   - **Sources**: Mikelsaham (@mikelsaham); 300+ likes, shared Nov 7 (bordering the week).
+
+#### 4. **IHSG to Hit 9,000–Record Highs in 2026?**
+   - **Details**: Optimistic rumors from analysts predict IHSG climbing 10%+ to a fresh ATH (potentially 9,000+) next year, driven by strong earnings, foreign inflows, and economic resilience (IMF forecasts 5% GDP growth for 2025).
+   - **Context**: Citi's forecast (shared Nov 11) sparked chatter, with KISI Sekuritas echoing it on Nov 14. Counter-speculation: Minor dips (e.g., "turun dikit nggak apa-apa") are okay, but avoid "wait-and-see" amid US uncertainties delaying Fed cuts.
+   - **Impact Speculation**: Bullish on banks and commodities, but vulnerable to global shocks (e.g., China slowdown). Purbaya Yudha (analyst) urged buying dips.
+   - **Sources**: Business (@business), aldotjahjadi8 (@aldotjahjadi8), KalderaNews (@kalderanews); multiple posts with links to Detik Finance and Liputan6.
+
+#### 5. **Foreigners Dumping Specific Stocks Amid Sudden IHSG Drop**
+   - **Details**: Rumors of net selling by foreigners in 10 key stocks (e.g., banking and resource names) as IHSG "tiba-tiba merosot" (suddenly dropped) on Nov 11.
+   - **Context**: Attributed to rupiah weakness and global caution post-US government shutdown data. Specific mentions: Asing (foreigners) kompakt lepas saham (compactly selling off).
+   - **Impact Speculation**: Could signal short-term consolidation (3+ months) for underperformers, per general trading wisdom shared in threads. Watch for promoter stake increases as buy signals.
+   - **Sources**: CNBC Indonesia (@cnbcindonesia), Atulsingh_asan (@Atulsingh_asan); 900+ likes on broader trading tips.
+
+#### 6. **Indirect Political/Market Overlap Rumors**
+   - **Minor Buzz**: Some threads link political scandals (e.g., Jokowi's alleged fake diploma case with suspects named Nov 7) to "headline risk" for markets, similar to past Brazil/Malaysia scandals causing investor flight. No direct stock ties, but speculated to add volatility.
+   - **Other**: Rare earth metals potential at PT Timah (TINS) mines rumored to attract investment; radiation-free ops at Charoen Pokphand (CPIN) easing concerns.
+   - **Sources**: Khalid in Southeast Asia (@khalids), Jatosint (@Jatosint); lower engagement but relevant to sentiment.
+
+#### Overall Market Sentiment
+- **Positive Vibes**: Optimism from record market size and growth forecasts; domestic investors urged to "do nothing and wait" on good days.
+- **Cautions**: Bearish on over-euphoria (e.g., IPO chasing at ATH), with VIX updates signaling global volatility. Rupiah pressure and China data are top worries.
+- **Volume**: Discussions peaked mid-week (Nov 11–13) around bond outflows and IHSG dips. Total relevant posts scanned: ~50, with trading accounts like @TradingDiary2 and @aldotjahjadi8 most active.
+
+These are based on public X posts and may not reflect verified facts—always DYOR (do your own research) and consult professionals. If you want deeper dives (e.g., specific stock threads or images), let me know!
+
+Citations:
+['https://x.com/i/status/1988894202160189863', 'https://x.com/i/status/1987812077428199875', 'https://x.com/i/status/1989481672375713863', 'https://x.com/i/status/1986766992687444168', 'https://x.com/i/status/1989113660284043452', 'https://x.com/i/status/1988063392473772307', 'https://x.com/i/status/1989476718785237286', 'https://x.com/i/status/1988154477195440295', 'https://x.com/i/status/1986650914690900074', 'https://x.com/i/status/1989477514092351681', 'https://x.com/i/status/1988842858384609283', 'https://x.com/i/status/1986651248226148781', 'https://x.com/i/status/1986641571429728374', 'https://x.com/i/status/1986635056589513001', 'https://x.com/i/status/1989482902791622888', 'https://x.com/i/status/1989480452382756981', 'https://x.com/i/status/1989480565083644337', 'https://x.com/i/status/1989480406639694193', 'https://x.com/i/status/1989479928157589569', 'https://x.com/i/status/1986874224120614995', 'https://x.com/i/status/1988165692722421924', 'https://x.com/i/status/1987862198115528715', 'https://x.com/i/status/1989479282033463571', 'https://x.com/i/status/1989479779985494266', 'https://x.com/i/status/1988228258987749792', 'https://x.com/i/status/1988067922770592174', 'https://x.com/i/status/1989477799569293644', 'https://x.com/i/status/1989478619257954779', 'https://x.com/i/status/1989479313662775394', 'https://x.com/i/status/1989480297273176128', 'https://x.com/i/status/1986726598494810291', 'https://x.com/i/status/1989476624551878669', 'https://x.com/i/status/1986692785840529896', 'https://x.com/i/status/1989480265916583983', 'https://x.com/i/status/1989479106736754956', 'https://x.com/i/status/1989476247492333865', 'https://x.com/i/status/1988198325867429889', 'https://x.com/i/status/1989476459401101362', 'https://x.com/i/status/1986893654343229461', 'https://x.com/i/status/1989479653426467186', 'https://x.com/i/status/1986788923381895628']
+
+
+Usage:
+completion_tokens: 1802
+prompt_tokens: 31653
+total_tokens: 34700
+prompt_text_tokens: 31653
+reasoning_tokens: 1245
+cached_prompt_text_tokens: 9465
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+server_side_tools_used: SERVER_SIDE_TOOL_X_SEARCH
+
+{'SERVER_SIDE_TOOL_X_SEARCH': 3}
+
+
+Server Side Tool Calls:
+[type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_semantic_search"
+  arguments: "{\"query\":\"rumors related to Indonesia stock market and Indonesian stocks\",\"limit\":20,\"from_date\":\"2025-11-08\",\"to_date\":\"2025-11-15\",\"min_score_threshold\":0.2}"
+}
+, type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_keyword_search"
+  arguments: "{\"query\":\"\\\"Indonesia stock\\\" OR IHSG OR IDX OR \\\"saham Indonesia\\\" (rumor OR rumour OR spekulasi OR gosip) since:2025-11-08 until:2025-11-15\",\"limit\":20,\"mode\":\"Latest\"}"
+}
+, type: TOOL_CALL_TYPE_X_SEARCH_TOOL
+function {
+  name: "x_keyword_search"
+  arguments: "{\"query\":\"(\\\"Indonesia stock\\\" OR IHSG OR IDX OR \\\"saham Indonesia\\\") since:2025-11-08 until:2025-11-15\",\"limit\":20,\"mode\":\"Latest\"}"
+}
+]
