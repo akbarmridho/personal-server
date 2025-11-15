@@ -293,9 +293,9 @@ export function SalesTrendChart({ data }) {
 
 ## Development Commands
 ```bash
+pnpm exec tsc --noEmit  # Type checking (use this to test instead of pnpm dev)
 pnpm dev              # Start development server
 pnpm build            # Build for production
-pnpm exec tsc --noEmit  # Type checking
 pnpm migrate          # Database migrations
 pnpm seed             # Seed database
 pnpm lint             # Run Biome linter

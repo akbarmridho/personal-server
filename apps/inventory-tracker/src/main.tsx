@@ -3,6 +3,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
+import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { routeTree } from "./routeTree.gen.ts";
 import "./styles.css";
@@ -45,6 +46,7 @@ if (rootElement && !rootElement.innerHTML) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <RouterProvider router={router} />
+          <Toaster />
         </ThemeProvider>
       </QueryClientProvider>
     </StrictMode>,

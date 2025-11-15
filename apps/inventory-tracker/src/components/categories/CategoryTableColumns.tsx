@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/date-utils";
+import { formatDateTime } from "@/lib/date-utils";
 import type { ProductCategory } from "@/types/database";
 
 interface CategoryTableColumnsProps {
@@ -27,27 +27,29 @@ export function categoryColumns({
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
+        <div className="font-medium min-w-[150px] max-w-[200px]">{row.getValue("name")}</div>
       ),
+      size: 200,
     },
-    {
-      accessorKey: "description",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="h-auto p-0 font-semibold"
-        >
-          Deskripsi
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="text-muted-foreground max-w-xs truncate">
-          {row.getValue("description") || "-"}
-        </div>
-      ),
-    },
+   {
+     accessorKey: "description",
+     header: ({ column }) => (
+       <Button
+         variant="ghost"
+         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+         className="h-auto p-0 font-semibold"
+       >
+         Deskripsi
+         <ArrowUpDown className="ml-2 h-4 w-4" />
+       </Button>
+     ),
+     cell: ({ row }) => (
+       <div className="text-muted-foreground min-w-[200px] max-w-[300px] whitespace-normal break-words">
+         {row.getValue("description") || "-"}
+       </div>
+     ),
+     size: 300,
+   },
     {
       accessorKey: "products",
       enableSorting: false,
@@ -59,8 +61,9 @@ export function categoryColumns({
       cell: ({ row }) => {
         const products = row.getValue("products") as { count: number }[] | undefined;
         const count = Array.isArray(products) ? products[0]?.count : 0;
-        return <div>{count || 0}</div>;
+        return <div className="min-w-[100px]">{count || 0}</div>;
       },
+      size: 100,
     },
     {
       accessorKey: "created_at",
@@ -76,8 +79,27 @@ export function categoryColumns({
       ),
       cell: ({ row }) => {
         const date = row.getValue("created_at") as string;
-        return <div className="text-muted-foreground">{formatDate(date)}</div>;
+        return <div className="text-muted-foreground min-w-[150px]">{formatDateTime(date)}</div>;
       },
+      size: 150,
+    },
+    {
+      accessorKey: "updated_at",
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-auto p-0 font-semibold"
+        >
+          Diperbarui
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const date = row.getValue("updated_at") as string;
+        return <div className="text-muted-foreground min-w-[150px]">{formatDateTime(date)}</div>;
+      },
+      size: 150,
     },
     {
       id: "actions",
@@ -105,6 +127,7 @@ export function categoryColumns({
           </Button>
         </div>
       ),
+      size: 100,
     },
   ];
 }

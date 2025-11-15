@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,10 +38,19 @@ export function CategoryForm({
 }: CategoryFormProps) {
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
-    defaultValues: category
-      ? { name: category.name, description: category.description || "" }
-      : { name: "", description: "" },
+    defaultValues: { name: "", description: "" },
   });
+
+  // Reset form when category changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      form.reset(
+        category
+          ? { name: category.name, description: category.description || "" }
+          : { name: "", description: "" },
+      );
+    }
+  }, [category, open, form]);
 
   const onFormSubmit = async (data: CategoryFormData) => {
     await onSubmit(data);

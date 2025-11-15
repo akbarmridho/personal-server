@@ -13,19 +13,20 @@ dayjs.locale("id");
 dayjs.tz.setDefault("Asia/Jakarta");
 
 export const formatDate = (date: string | Date) => {
-  return dayjs(date).tz("Asia/Jakarta").format("DD MMM YYYY");
+  return dayjs.utc(date).tz("Asia/Jakarta").format("DD MMM YYYY");
 };
 
 export const formatDateTime = (date: string | Date) => {
-  return dayjs(date).tz("Asia/Jakarta").format("DD MMM YYYY HH:mm");
+  return dayjs.utc(date).tz("Asia/Jakarta").format("DD MMM YYYY HH:mm");
 };
 
 export const formatRelativeTime = (date: string | Date) => {
-  return dayjs(date).tz("Asia/Jakarta").fromNow();
+  return dayjs.utc(date).tz("Asia/Jakarta").fromNow();
 };
 
 export const isToday = (date: string | Date) => {
-  return dayjs(date)
+  return dayjs
+    .utc(date)
     .tz("Asia/Jakarta")
     .isSame(dayjs().tz("Asia/Jakarta"), "day");
 };

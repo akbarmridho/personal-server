@@ -18,12 +18,7 @@ const navigation = [
     href: ROUTES.DASHBOARD,
     icon: LayoutDashboard,
   },
-  {
-    name: "Kategori",
-    href: ROUTES.CATEGORIES,
-    icon: FolderTree,
-  },
-  {
+    {
     name: "Produk",
     href: ROUTES.PRODUCTS,
     icon: Package,
@@ -32,6 +27,11 @@ const navigation = [
     name: "Aktivitas",
     href: ROUTES.ACTIVITIES,
     icon: History,
+  },
+  {
+    name: "Kategori",
+    href: ROUTES.CATEGORIES,
+    icon: FolderTree,
   },
 ];
 

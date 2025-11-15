@@ -11,7 +11,8 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { Search, Settings } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,17 +31,15 @@ import {
 } from "@/components/ui/table";
 import { useCategories } from "@/hooks/useCategories";
 import { PAGINATION } from "@/lib/constants";
+import type { CategoryFormData } from "@/lib/validations";
 import type { QueryParams } from "@/types/api";
 import type { ProductCategory } from "@/types/database";
+import { CategoryForm } from "./CategoryForm";
 import { categoryColumns } from "./CategoryTableColumns";
 import { CategoryTablePagination } from "./CategoryTablePagination";
+import { DeleteCategoryDialog } from "./DeleteCategoryDialog";
 
-interface CategoryTableProps {
-  onEdit: (category: ProductCategory) => void;
-  onDelete: (category: ProductCategory) => void;
-}
-
-export function CategoryTable({ onEdit, onDelete }: CategoryTableProps) {
+export function CategoryTable() {
   const [params, setParams] = useState<QueryParams>({
     page: 1,
     pageSize: PAGINATION.DEFAULT_PAGE_SIZE,
@@ -54,8 +53,78 @@ export function CategoryTable({ onEdit, onDelete }: CategoryTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  const { categories, isLoading, currentPage, pageSize, totalPages, totalCount } =
-    useCategories(params);
+  // Modal state management
+  const [formOpen, setFormOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] =
+    useState<ProductCategory | null>(null);
+
+  const {
+    categories,
+    isLoading,
+    currentPage,
+    pageSize,
+    totalPages,
+    totalCount,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    error,
+  } = useCategories(params);
+
+  const handleEdit = (category: ProductCategory) => {
+    setSelectedCategory(category);
+    setFormOpen(true);
+  };
+
+  const handleDelete = (category: ProductCategory) => {
+    setSelectedCategory(category);
+    setDeleteOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedCategory(null);
+    setFormOpen(true);
+  };
+
+  const handleSubmit = async (data: CategoryFormData) => {
+    try {
+      if (selectedCategory) {
+        await updateCategory(selectedCategory.id, data);
+        toast.success("Kategori berhasil diperbarui");
+      } else {
+        await createCategory(data);
+        toast.success("Kategori berhasil ditambahkan");
+      }
+      setFormOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
+      throw err;
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedCategory) return;
+    try {
+      await deleteCategory(selectedCategory.id);
+      toast.success("Kategori berhasil dihapus");
+      setDeleteOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
+    }
+  };
+
+  // Show error toast when there's a data loading error
+  useEffect(() => {
+    if (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Gagal memuat kategori",
+      );
+    }
+  }, [error]);
 
   const handleSearchChange = (search: string) => {
     setParams((prev) => ({
@@ -89,7 +158,7 @@ export function CategoryTable({ onEdit, onDelete }: CategoryTableProps) {
 
   const table = useReactTable({
     data: categories,
-    columns: categoryColumns({ onEdit, onDelete }),
+    columns: categoryColumns({ onEdit: handleEdit, onDelete: handleDelete }),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -158,24 +227,28 @@ export function CategoryTable({ onEdit, onDelete }: CategoryTableProps) {
                     }
                   >
                     {column.id === "name"
-                      ? "Nama"
-                      : column.id === "description"
-                        ? "Deskripsi"
-                        : column.id === "products"
-                          ? "Jumlah Produk"
-                          : column.id === "created_at"
-                            ? "Dibuat"
-                            : column.id}
+                     ? "Nama"
+                     : column.id === "description"
+                       ? "Deskripsi"
+                       : column.id === "products"
+                         ? "Jumlah Produk"
+                         : column.id === "created_at"
+                           ? "Dibuat"
+                           : column.id === "updated_at"
+                             ? "Diperbarui"
+                             : column.id}
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm">Tambah Kategori</Button>
+          <Button size="sm" onClick={handleAdd}>
+            Tambah Kategori
+          </Button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -242,6 +315,23 @@ export function CategoryTable({ onEdit, onDelete }: CategoryTableProps) {
         totalPages={totalPages}
         currentPageItems={categories.length}
         totalItems={totalCount}
+      />
+
+      {/* Modals */}
+      <CategoryForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSubmit={handleSubmit}
+        category={selectedCategory || undefined}
+        isSubmitting={isCreating || isUpdating}
+      />
+
+      <DeleteCategoryDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        category={selectedCategory}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
       />
     </div>
   );
