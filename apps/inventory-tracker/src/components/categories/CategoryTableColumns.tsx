@@ -61,7 +61,7 @@ export function categoryColumns({
       cell: ({ row }) => {
         const products = row.getValue("products") as { count: number }[] | undefined;
         const count = Array.isArray(products) ? products[0]?.count : 0;
-        return <div className="min-w-[100px]">{count || 0}</div>;
+        return <div className="min-w-[50px] text-center">{count || 0}</div>;
       },
       size: 100,
     },
@@ -105,28 +105,35 @@ export function categoryColumns({
       id: "actions",
       enableSorting: false,
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={() => onEdit(row.original)}
-            title="Edit"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            onClick={() => onDelete(row.original)}
-            title="Hapus"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const products = row.getValue("products") as { count: number }[] | undefined;
+        const count = Array.isArray(products) ? products[0]?.count : 0;
+        const hasProducts = (count || 0) > 0;
+        
+        return (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => onEdit(row.original)}
+              title="Edit"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+              onClick={() => onDelete(row.original)}
+              disabled={hasProducts}
+              title={hasProducts ? "Tidak dapat menghapus kategori dengan produk" : "Hapus"}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+      },
       size: 100,
     },
   ];

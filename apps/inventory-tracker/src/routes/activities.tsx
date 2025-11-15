@@ -9,7 +9,6 @@ import { useActivities } from "@/hooks/useActivities";
 import { useProducts } from "@/hooks/useProducts";
 import { transactionsAPI, variantsAPI } from "@/lib/api";
 import type {
-  AdjustmentActivityFormData,
   RefundFormData,
   TransactionWithActivitiesFormData,
 } from "@/lib/validations";
@@ -110,103 +109,72 @@ function ActivitiesPage() {
     }
   };
 
-  const handleAdjustmentSubmit = async (
-    data: AdjustmentActivityFormData,
-    type: "Restock" | "Adjustment",
-  ) => {
-    setIsSubmitting(true);
-    try {
-      const variant = await variantsAPI.getById(data.variant_id);
-      const product = products.find((p) => p.id === variant.product_id);
-
-      await createBatchActivities([
-        {
-          product_id: variant.product_id,
-          variant_id: variant.id,
-          category_id: product?.category_id || undefined,
-          product_name: product?.name || "",
-          variant_name: variant.name,
-          type: type as ActivityType,
-          quantity: data.quantity,
-          unit_cost: data.unit_cost,
-          unit_revenue: 0,
-          cost_adjustment: 0,
-          revenue_adjustment: 0,
-          notes: data.notes,
-        },
-      ]);
-      setActiveForm(null);
-    } catch (error) {
-      console.error("Error creating adjustment:", error);
-      alert("Gagal menyimpan penyesuaian");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
-      {/* Main Content */}
-      <div className="flex-1">
-        <div className="mb-6">
-          <p className="text-muted-foreground mt-1">
+    <div className="space-y-6">
+      {/* Header with Actions */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-muted-foreground">
             Riwayat transaksi dan aktivitas stok
           </p>
         </div>
-
-        <ActivityTable isLoading={isLoading} />
-      </div>
-
-      {/* Sidebar Forms */}
-      <div className="lg:w-96 space-y-4">
         {!activeForm && (
-          <div className="space-y-2">
-            <h2 className="font-semibold mb-3">Tambah Aktivitas</h2>
+          <div className="flex gap-2">
             <Button
               onClick={() => setActiveForm("transaction")}
-              className="w-full justify-start"
-              variant="outline"
+              size="sm"
             >
               <Plus className="h-4 w-4 mr-2" />
               Transaksi Penjualan
             </Button>
             <Button
               onClick={() => setActiveForm("refund")}
-              className="w-full justify-start"
+              size="sm"
               variant="outline"
             >
               <Plus className="h-4 w-4 mr-2" />
               Refund
             </Button>
-
           </div>
         )}
+      </div>
 
-        {activeForm === "transaction" && (
-          <div className="border rounded-lg p-4 bg-card">
-            <h2 className="font-semibold mb-4">Transaksi Penjualan</h2>
-            <TransactionForm
-              products={products}
-              onSubmit={handleTransactionSubmit}
-              onCancel={() => setActiveForm(null)}
-              isSubmitting={isSubmitting}
-            />
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Main Content */}
+        <div className="flex-1">
+          <ActivityTable isLoading={isLoading} />
+        </div>
+
+        {/* Sidebar Forms */}
+        {activeForm && (
+          <div className="lg:w-96 space-y-4">
+
+            {activeForm === "transaction" && (
+              <div className="border rounded-lg p-4 bg-card">
+                <h2 className="font-semibold mb-4">Transaksi Penjualan</h2>
+                <TransactionForm
+                  products={products}
+                  onSubmit={handleTransactionSubmit}
+                  onCancel={() => setActiveForm(null)}
+                  isSubmitting={isSubmitting}
+                />
+              </div>
+            )}
+
+            {activeForm === "refund" && (
+              <div className="border rounded-lg p-4 bg-card">
+                <h2 className="font-semibold mb-4">Refund</h2>
+                <RefundForm
+                  activities={activities}
+                  onSubmit={handleRefundSubmit}
+                  onCancel={() => setActiveForm(null)}
+                  isSubmitting={isSubmitting}
+                />
+              </div>
+            )}
           </div>
         )}
-
-        {activeForm === "refund" && (
-          <div className="border rounded-lg p-4 bg-card">
-            <h2 className="font-semibold mb-4">Refund</h2>
-            <RefundForm
-              activities={activities}
-              onSubmit={handleRefundSubmit}
-              onCancel={() => setActiveForm(null)}
-              isSubmitting={isSubmitting}
-            />
-          </div>
-        )}
-
-
       </div>
     </div>
   );
