@@ -67,8 +67,8 @@ export const categoriesAPI = {
   ): Promise<PaginatedResponse<ProductCategory>> => {
     const searchParams = new URLSearchParams();
 
-    // Add select and ordering
-    searchParams.set("select", "*");
+    // Add select with product count and ordering
+    searchParams.set("select", "*,products(count)");
 
     // Add sorting
     if (params?.sort) {
@@ -105,10 +105,8 @@ export const categoriesAPI = {
     );
 
     const data = await handleResponse<ProductCategory[]>(response);
-    const totalCount = parseInt(
-      response.headers.get("content-range")?.split("/")[1] || "0",
-      10,
-    );
+    const contentRange = response.headers.get("content-range");
+    const totalCount = parseInt(contentRange?.split("/")[1] || "0", 10);
 
     return {
       data,
