@@ -11,6 +11,7 @@ export const env = createEnv({
     VOYAGE_API_KEY: z.string(),
     OPENROUTER_API_KEY: z.string(),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
+    XAI_API_KEY: z.string(),
     JINA_AI_API_KEY: z.string(),
     HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
     API_SERVER_PORT: z.coerce.number().prefault(10001),

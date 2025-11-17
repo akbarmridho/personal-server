@@ -9,17 +9,23 @@ client = Client(api_key="")
 chat = client.chat.create(
     model="grok-4-fast",  # reasoning model
     tools=[
-        # web_search(), 
+        web_search(allowed_domains=["reddit.com"], enable_image_understanding=True), 
         x_search(
             enable_image_understanding=True,
-            # allowed_x_handles=[
-            #     "JudiSaham", "eskepalmilosatu", "handierawan", "profesor_saham", "TradingDiary2", "Cheytax_1", "cukhurukuque", "stockmapping", "mikelsaham"],
-            from_date=datetime(2025, 11, 7)
+            allowed_x_handles=[
+                "JudiSaham", "eskepalmilosatu", "handierawan", "profesor_saham", "TradingDiary2", "Cheytax_1", "cukhurukuque", "stockmapping", "mikelsaham"],
+            from_date=datetime(2025, 11, 9)
         ),
     ],
 )
 
-chat.append(user("Find rumours about indonesia stock $INET for the past week"))
+chat.append(user("""
+Find this week rumours related specific Indonesia stock in X (Twitter) and r/JudiSaham subreddit. 
+The date range is 2025-11-09 to 2025-11-16 (today). 
+Format your findings per interesting thread or post instead of per stocks and summarize the discussion and key or interesting findings.
+                 
+Limit web_search tool call at most 5 and x_search tool call at most 5 (so in total at most 10).
+"""))
 
 is_thinking = True
 for response, chunk in chat.stream():
