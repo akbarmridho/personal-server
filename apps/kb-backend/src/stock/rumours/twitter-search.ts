@@ -54,7 +54,7 @@ export const searchRumourTwitter = async (params: {
   return await pRetry(
     async () => {
       const response = await client.responses.create({
-        model: "grok-4-fast-reasoning",
+        model: "grok-4-1-fast-reasoning",
         input: [
           {
             role: "system",
