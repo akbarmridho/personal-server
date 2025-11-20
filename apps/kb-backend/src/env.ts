@@ -19,7 +19,7 @@ export const env = createEnv({
     INTERNET_MCP_PORT: z.coerce.number().prefault(10003),
     STOCK_MCP_PORT: z.coerce.number().prefault(10004),
     DATABASE_URL: z.string(),
-    STOCK_HTTP_PROXY_URL: z.string().optional(),
+    STOCK_HTTP_PROXY_URL: z.string(),
 
     // aggregator site
     AGGREGATOR_AUTH: z.string(),
