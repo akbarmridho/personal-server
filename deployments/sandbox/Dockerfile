@@ -1,9 +1,3 @@
-# Production-ready sandbox image (Debian trixie-slim base)
-# - non-root user
-# - read-only rootfs
-# - minimal toolset for code search/transform
-# - vendored sandboxd (Python)
-
 FROM debian:trixie-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -16,14 +10,14 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates curl wget unzip procps build-essential \
        ripgrep jq fd-find psmisc python3 python3-pip \
-       sed awk findutils diff patch yq \
+       sed gawk findutils diffutils patch yq \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 24
 RUN set -eux; \
-    NODE_VERSION=24; \
     ARCH=$(dpkg --print-architecture); \
-    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}.0/node-v${NODE_VERSION}.0-linux-${ARCH}.tar.xz" -o /tmp/node.tar.xz \
+    NODE_VERSION=$(curl -s https://nodejs.org/dist/latest-v24.x/ | grep -oP 'node-v\K[0-9]+\.[0-9]+\.[0-9]+' | head -1); \
+    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${ARCH}.tar.xz" -o /tmp/node.tar.xz \
     && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
     && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
     && rm -rf /tmp/node.tar.xz
@@ -47,14 +41,14 @@ RUN set -eux; \
       && chmod +x /usr/local/bin/tree-sitter || true; \
     fi
 
-# Copy the sandbox daemons and requirements
-COPY sandboxd.py /usr/local/bin/sandboxd.py
-COPY mcp_server.py /usr/local/bin/mcp_server.py
-COPY requirements.txt /tmp/requirements.txt
-RUN chmod +x /usr/local/bin/sandboxd.py /usr/local/bin/mcp_server.py
-
 # Install python dependencies from requirements.txt
-RUN pip3 --no-cache-dir install -r /tmp/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install --break-system-packages --no-cache-dir -r /tmp/requirements.txt \
+    && rm -rf /tmp/requirements.txt
+
+# Copy the sandbox daemon
+COPY sandboxd.py /usr/local/bin/sandboxd.py
+RUN chmod +x /usr/local/bin/sandboxd.py
 
 # Expose API port (internal; container will be network-isolated)
 EXPOSE 9000

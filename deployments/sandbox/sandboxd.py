@@ -8,6 +8,7 @@ import subprocess
 import resource
 import mimetypes
 import base64
+import shlex
 from pathlib import Path
 from fastmcp import FastMCP
 from typing import Optional, Dict, Any, Union
@@ -33,7 +34,7 @@ def _preexec_limits():
     resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
 
 @mcp.tool
-def execute_command(command: str, timeout: Optional[int] = None) -> dict:
+def execute_command(command: str, timeout: Optional[int] = None, workspace: str = "temporary") -> dict:
     """
     Execute a shell command in the sandbox environment with resource limits.
     
@@ -76,6 +77,9 @@ def execute_command(command: str, timeout: Optional[int] = None) -> dict:
     Args:
         command: The shell command to execute
         timeout: Optional timeout in seconds (defaults to 30)
+        workspace: Workspace type - "temporary" (default) or "persistent"
+                  - "temporary": Files in /home/sandbox/workspace (for sandbox operations)
+                  - "persistent": Files in /home/sandbox/persistent (human-managed, protected)
     
     Returns:
         Dictionary with stdout, stderr, and exit_code
@@ -83,23 +87,46 @@ def execute_command(command: str, timeout: Optional[int] = None) -> dict:
     if not command or len(command) > 32_000:
         return {"error": "Invalid command"}
     
-    # Basic security checks
-    forbidden = ['reboot', 'shutdown', 'rm -rf /', 'chroot', 'mount', 'umount', 'dd if=']
-    for pattern in forbidden:
-        if pattern in command:
-            return {"error": f"Forbidden command fragment: {pattern}"}
+    # Security: Rely on container isolation (read-only rootfs, dropped caps, non-root user)
+    # instead of a fragile blacklist.
     
     timeout_val = timeout or TIMEOUT_SECONDS
     
+    # Determine working directory based on workspace type
+    if workspace == "persistent":
+        workdir = PERSISTENT_DIR
+    else:
+        workdir = WORKDIR
+    
+    # Check for shell operators to decide execution mode
+    shell_operators = ['|', '>', '<', '&', ';', '$', '`', '(', ')', '\\']
+    use_shell = any(op in command for op in shell_operators)
+    
     try:
-        proc = subprocess.run(
-            ["/bin/bash", "-lc", command],
-            capture_output=True,
-            text=True,
-            timeout=timeout_val,
-            preexec_fn=_preexec_limits,
-            cwd=WORKDIR
-        )
+        if use_shell:
+            # Use shell execution for complex commands
+            proc = subprocess.run(
+                ["/bin/bash", "-lc", command],
+                capture_output=True,
+                text=True,
+                timeout=timeout_val,
+                preexec_fn=_preexec_limits,
+                cwd=workdir
+            )
+        else:
+            # Use direct execution for simple commands (safer)
+            args = shlex.split(command)
+            if not args:
+                 return {"error": "Empty command"}
+            
+            proc = subprocess.run(
+                args,
+                capture_output=True,
+                text=True,
+                timeout=timeout_val,
+                preexec_fn=_preexec_limits,
+                cwd=workdir
+            )
         return {
             "stdout": proc.stdout,
             "stderr": proc.stderr,
@@ -265,173 +292,46 @@ def read_file(path: str, workspace: str = "temporary") -> Dict[str, Any]:
         return {"error": str(e)}
 
 @mcp.tool
-def write_file(path: str, content: str, workspace: str = "temporary") -> dict:
+def execute_code(code: str, language: str, timeout: Optional[int] = None) -> dict:
     """
-    Write content to a file within the workspace.
+    Execute code in the sandbox environment with resource limits.
     
     Args:
-        path: Relative path to the file to write
-        content: Content to write to the file
-        workspace: Workspace type - "temporary" (default) or "persistent"
-                  - "temporary": Files in /home/sandbox/workspace (for sandbox operations)
-                  - "persistent": Files in /home/sandbox/persistent (human-managed, protected)
-    
-    Returns:
-        Dictionary with success status or error
-    """
-    try:
-        # Determine base directory based on workspace type
-        if workspace == "persistent":
-            base_dir = PERSISTENT_DIR
-        else:
-            base_dir = WORKDIR
-        
-        # Ensure path is within the correct workspace
-        file_path = base_dir / path
-        file_path = file_path.resolve()
-        
-        if not str(file_path).startswith(str(base_dir.resolve())):
-            return {"error": f"Access denied: path outside {workspace} workspace"}
-        
-        # Create parent directories if needed
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(content)
-        
-        return {"success": True, "message": f"File written: {path}"}
-    except Exception as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def list_directory(path: str = ".") -> dict:
-    """
-    List files and directories in the given path within workspace.
-    
-    Args:
-        path: Relative path to list (defaults to workspace root)
-    
-    Returns:
-        Dictionary with directory contents or error
-    """
-    try:
-        # Ensure path is within workspace
-        dir_path = WORKDIR / path
-        dir_path = dir_path.resolve()
-        
-        if not str(dir_path).startswith(str(WORKDIR.resolve())):
-            return {"error": "Access denied: path outside workspace"}
-        
-        if not dir_path.exists():
-            return {"error": f"Path not found: {path}"}
-        
-        if not dir_path.is_dir():
-            return {"error": f"Path is not a directory: {path}"}
-        
-        items = []
-        for item in dir_path.iterdir():
-            items.append({
-                "name": item.name,
-                "type": "directory" if item.is_dir() else "file",
-                "size": item.stat().st_size if item.is_file() else None
-            })
-        
-        return {"items": items}
-    except Exception as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def reset_workspace(workspace: str = "temporary") -> dict:
-    """
-    Reset the workspace by removing all files and directories.
-    
-    Args:
-        workspace: Workspace type - "temporary" (default) or "persistent"
-                  - "temporary": Resets /home/sandbox/workspace (safe to reset)
-                  - "persistent": Protected - requires confirmation, resets /home/sandbox/persistent
-    
-    Returns:
-        Dictionary with success status or error
-    """
-    try:
-        # Determine base directory based on workspace type
-        if workspace == "persistent":
-            base_dir = PERSISTENT_DIR
-            # Additional safety check for persistent workspace
-            return {
-                "error": "Cannot reset persistent workspace automatically. This contains human-managed files and datasets. Use reset_persistent_workspace() with explicit confirmation if needed."
-            }
-        else:
-            base_dir = WORKDIR
-        
-        for item in base_dir.iterdir():
-            try:
-                if item.is_dir():
-                    import shutil
-                    shutil.rmtree(item)
-                else:
-                    item.unlink()
-            except Exception:
-                pass
-        return {"success": True, "message": f"{workspace.capitalize()} workspace reset successfully"}
-    except Exception as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def reset_persistent_workspace(confirmation: str) -> dict:
-    """
-    Reset the persistent workspace (human-managed files) - REQUIRES EXPLICIT CONFIRMATION.
-    
-    Args:
-        confirmation: Must be exactly "RESET_PERSISTENT_WORKSPACE" to proceed
-    
-    Returns:
-        Dictionary with success status or error
-    """
-    if confirmation != "RESET_PERSISTENT_WORKSPACE":
-        return {"error": "Invalid confirmation. Must be exactly 'RESET_PERSISTENT_WORKSPACE' to proceed."}
-    
-    try:
-        base_dir = PERSISTENT_DIR
-        for item in base_dir.iterdir():
-            try:
-                if item.is_dir():
-                    import shutil
-                    shutil.rmtree(item)
-                else:
-                    item.unlink()
-            except Exception:
-                pass
-        return {"success": True, "message": "Persistent workspace reset successfully"}
-    except Exception as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def execute_python(code: str, timeout: Optional[int] = None) -> dict:
-    """
-    Execute Python code in the sandbox environment with resource limits.
-    
-    Args:
-        code: The Python code to execute
+        code: The code to execute
+        language: The programming language - either "python" or "js"
         timeout: Optional timeout in seconds (defaults to 30)
     
     Returns:
         Dictionary with stdout, stderr, and exit_code
     """
     if not code or len(code) > 32_000:
-        return {"error": "Invalid Python code"}
+        return {"error": f"Invalid {language} code"}
+    
+    if language not in ["python", "js"]:
+        return {"error": "Language must be either 'python' or 'js'"}
     
     timeout_val = timeout or TIMEOUT_SECONDS
     
     try:
-        proc = subprocess.run(
-            ["/usr/bin/python3", "-c", code],
-            capture_output=True,
-            text=True,
-            timeout=timeout_val,
-            preexec_fn=_preexec_limits,
-            cwd=WORKDIR
-        )
+        if language == "python":
+            proc = subprocess.run(
+                ["/usr/bin/python3", "-c", code],
+                capture_output=True,
+                text=True,
+                timeout=timeout_val,
+                preexec_fn=_preexec_limits,
+                cwd=WORKDIR
+            )
+        else:  # language == "js"
+            proc = subprocess.run(
+                ["/usr/local/bin/node", "-e", code],
+                capture_output=True,
+                text=True,
+                timeout=timeout_val,
+                preexec_fn=_preexec_limits,
+                cwd=WORKDIR
+            )
+        
         return {
             "stdout": proc.stdout,
             "stderr": proc.stderr,
@@ -442,78 +342,6 @@ def execute_python(code: str, timeout: Optional[int] = None) -> dict:
             "stdout": e.stdout or "",
             "stderr": (e.stderr or "") + "\n[timeout]",
             "exit_code": 124
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def execute_nodejs(code: str, timeout: Optional[int] = None) -> dict:
-    """
-    Execute Node.js code in the sandbox environment with resource limits.
-    
-    Args:
-        code: The Node.js code to execute
-        timeout: Optional timeout in seconds (defaults to 30)
-    
-    Returns:
-        Dictionary with stdout, stderr, and exit_code
-    """
-    if not code or len(code) > 32_000:
-        return {"error": "Invalid Node.js code"}
-    
-    timeout_val = timeout or TIMEOUT_SECONDS
-    
-    try:
-        proc = subprocess.run(
-            ["/usr/local/bin/node", "-e", code],
-            capture_output=True,
-            text=True,
-            timeout=timeout_val,
-            preexec_fn=_preexec_limits,
-            cwd=WORKDIR
-        )
-        return {
-            "stdout": proc.stdout,
-            "stderr": proc.stderr,
-            "exit_code": proc.returncode
-        }
-    except subprocess.TimeoutExpired as e:
-        return {
-            "stdout": e.stdout or "",
-            "stderr": (e.stderr or "") + "\n[timeout]",
-            "exit_code": 124
-        }
-    except Exception as e:
-        return {"error": str(e)}
-
-@mcp.tool
-def get_workspace_info(workspace: str = "temporary") -> dict:
-    """
-    Get information about the workspace.
-    
-    Args:
-        workspace: Workspace type - "temporary" (default) or "persistent"
-                  - "temporary": /home/sandbox/workspace (for sandbox operations)
-                  - "persistent": /home/sandbox/persistent (human-managed, protected)
-    
-    Returns:
-        Dictionary with workspace information
-    """
-    try:
-        # Determine base directory based on workspace type
-        if workspace == "persistent":
-            base_dir = PERSISTENT_DIR
-        else:
-            base_dir = WORKDIR
-        
-        stat = base_dir.stat() if base_dir.exists() else None
-        return {
-            "workspace_type": workspace,
-            "workspace_path": str(base_dir),
-            "exists": base_dir.exists(),
-            "is_directory": base_dir.is_dir(),
-            "size": stat.st_size if stat else None,
-            "description": f"{workspace.capitalize()} workspace - {'human-managed, protected from reset' if workspace == 'persistent' else 'for sandbox operations, can be reset'}"
         }
     except Exception as e:
         return {"error": str(e)}

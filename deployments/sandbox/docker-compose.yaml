@@ -1,32 +1,21 @@
-version: '3.8'
-
 services:
+  # even though it's sandbox it doesn't really secure
+  # but since the user is only one person then why make it complicated
   sandbox:
     build: .
-    image: sandbox:latest
-    container_name: sandbox
-    network_mode: none                      # no network by default
-    read_only: true                          # rootfs read-only
-    tmpfs:
-      - /tmp:rw,exec                         # writable tmp
-      - /run:rw                              # writable runtime dir
-    pids_limit: 128                          # limit processes
-    cpus: 1.0                                # cpu share
-    mem_limit: 1g                            # memory cap
-    security_opt:
-      - no-new-privileges:true               # no setuid
-      - seccomp:./seccomp.json          # provide seccomp profile
-    cap_drop:
-      - ALL                                  # drop all capabilities
+    hostname: sandbox
+    ports:
+      - "8014:9000"
+    cpus: 0.5
+    mem_limit: 512Mi
     volumes:
-      - ai-workspace:/home/sandbox/persistent:rw  # persistent workspace (human-managed)
-      - ./workspace:/home/sandbox/workspace:rw     # temporary sandbox workspace
-    restart: unless-stopped                  # keep it running
-    # Note: persistent workspace contains datasets and files managed by humans
-    #       temporary workspace is for sandbox operations and can be reset
+      - sandbox_workspace:/home/sandbox/persistent:rw # persistent workspace (human-managed)
+      - sandbox_tmp:/home/sandbox/workspace:rw # temporary sandbox workspace
+    restart: unless-stopped # keep it running
 
 volumes:
-  ai-workspace:
+  sandbox_tmp:
+  sandbox_workspace:
     driver: rclone
     driver_opts:
       type: "webdav"
