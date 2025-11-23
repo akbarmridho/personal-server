@@ -17,7 +17,7 @@ from typing import Optional, Dict, Any, Union
 WORKDIR = Path(os.environ.get("SANDBOX_WORKDIR", "/home/sandbox/workspace"))
 PERSISTENT_DIR = Path("/home/sandbox/persistent")  # Persistent workspace (human-managed)
 TIMEOUT_SECONDS = int(os.environ.get("SANDBOX_CMD_TIMEOUT", "30"))
-RLIMIT_AS_BYTES = int(os.environ.get("SANDBOX_RLIMIT_AS", str(512 * 1024 * 1024)))  # default 512MB
+RLIMIT_AS_BYTES = int(os.environ.get("SANDBOX_RLIMIT_AS", str(1024 * 1024 * 1024)))  # default 1GB
 RLIMIT_CPU_SECONDS = int(os.environ.get("SANDBOX_RLIMIT_CPU", "10"))
 
 # Ensure workspaces exist
@@ -31,7 +31,7 @@ def _preexec_limits():
     """Set resource limits for subprocess execution"""
     resource.setrlimit(resource.RLIMIT_AS, (RLIMIT_AS_BYTES, RLIMIT_AS_BYTES))
     resource.setrlimit(resource.RLIMIT_CPU, (RLIMIT_CPU_SECONDS, RLIMIT_CPU_SECONDS))
-    resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
+    resource.setrlimit(resource.RLIMIT_NOFILE, (1024, 1024))
 
 @mcp.tool
 def execute_command(command: str, timeout: Optional[int] = None, workspace: str = "temporary") -> dict:

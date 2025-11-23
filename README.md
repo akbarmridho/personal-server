@@ -76,3 +76,4 @@ docker network create personal_network
 ### Sandbox
 
 - `8014` sandbox container.
+- `8015` filestash.

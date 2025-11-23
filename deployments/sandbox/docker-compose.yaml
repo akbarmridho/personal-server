@@ -7,11 +7,28 @@ services:
     ports:
       - "8014:9000"
     cpus: 0.5
-    mem_limit: 512Mi
+    mem_limit: 1024Mi
     volumes:
       - sandbox_workspace:/home/sandbox/persistent:rw # persistent workspace (human-managed)
       - sandbox_tmp:/home/sandbox/workspace:rw # temporary sandbox workspace
     restart: unless-stopped # keep it running
+    # don't connect this sandbox to personal_network
+
+  filestash:
+    container_name: filestash
+    image: machines/filestash@sha256:3db87b72418164f327c9f2f9f02a39bb2fa77a21cfd2d1b2734cec48ac06237b
+    restart: unless-stopped
+    environment:
+      APPLICATION_URL: https:/filestash.akbarmr.dev
+    ports:
+      - "8015:8334"
+    volumes:
+      - filestash:/app/data/state/
+    networks:
+      - personal_network
+    extra_hosts:
+      - "personal-01:host-gateway"
+      - "akbarmr.dev:host-gateway"
 
 volumes:
   sandbox_tmp:
@@ -27,3 +44,8 @@ volumes:
       path: "personal-server/ai-workspace"
       vfs_cache_mode: "writes"
       poll_interval: "30s"
+  filestash:
+
+networks:
+  personal_network:
+    external: true
