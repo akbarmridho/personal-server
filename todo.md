@@ -1,7 +1,5 @@
 # TODO
 
-- review sandbox and use tool call permission instead.
-- use this for the filestash <https://www.filestash.app/webdav-client.html> (WebDAV Client for human)
 - CustomRAG
   - use vectorchord
   - use <https://docs.paradedb.com/deploy/self-hosted/extension> -> make sure to inlcude Indonesia lang as well. this might be tricky if the text is mixed.
