@@ -1,142 +1,100 @@
 # Bandarmology
 
-**Sources:** [
+**Sources:**
   
-- 2025-11-25 Reddit r/JudiSaham - Bandarmology to Follow](<https://www.reddit.com/r/JudiSaham/comments/1p1qwm6/bandarmology_to_follow/>)
+- [2025-11-25 Reddit r/JudiSaham - Bandarmology to Follow](https://www.reddit.com/r/JudiSaham/comments/1p1qwm6/bandarmology_to_follow/)
+- [2025-11-25 Reddit r/JudiSaham - Help Me Tag These Brokers](https://www.reddit.com/r/JudiSaham/comments/1p1u6br/help_me_tag_these_brokers/).
 
-## Notable Bandars / Market Makers
+## 1. Notable Bandars & Market Makers (The "Whales")
 
-These are key brokers identified as primary bandars, stock movers, or institutional players with specific strategies and reputations:
+These brokers are identified as primary market movers, conglomerate vehicles, or institutional players.
 
-| Code | Broker Name                  | Type          | Key Notes / Strategies |
-|------|------------------------------|---------------|------------------------|
-| **MG** | Semesta Indovest Sekuritas | Local (High Frequency) | "Sadistic/cruel" dumper; TP immediately if top buyer (sharp drops follow); tacky playstyle; historically with **YB** (now solo). |
-| **HP** | Henan Putihrai Sekuritas   | Local (Established) | Strong for "Om PP" (Prajogo Pangestu) stocks (e.g., PTRO, BRPT); price holder/liquidity on bid side for foreign exits; mover for BUVA. |
-| **SQ** | BCA Sekuritas              | Local (Big Bank Group) | Djarum Group broker (e.g., BBCA, TOWR, BELI, RANC). |
-| **AK** | UBS Sekuritas Indonesia    | Foreign (Top Institutional) | Mover for liquid stocks; algo-driven entries/exits for foreign investors. |
-| **BK** | J.P. Morgan Sekuritas Indonesia | Foreign (Top Institutional) | Mover for liquid stocks; algo-driven entries/exits for foreign investors. |
+| Code | Broker Name | Classification | Key Notes / Strategies / Affiliations |
+| :--- | :--- | :--- | :--- |
+| **MG** | Semesta Indovest Sekuritas | Local (High Freq) | **The "Sadistic" Scalper.** Known for high-volume scalping, pumping prices high and dumping immediately (Haka/Haki). If MG is the top buyer, expect volatility/drops the next day. |
+| **HP** | Henan Putihrai Sekuritas | Local (Conglomerate) | **"Om PP" (Prajogo Pangestu) Vehicle.** Strong flow for Barito Group (BRPT, TPIA, PTRO). Often acts as a price holder or liquidity provider on the bid side for foreign exits. |
+| **LG** | Trimegah Sekuritas | Local (Conglomerate) | **Thohir Group (Erick Thohir).** Often associated with movers in EMTK, ABBA, or MARI. Flows often indicate mid-to-long term accumulation. |
+| **YJ** | Jasa Utama Capital | Local (Conglomerate) | **Tanoko Group (Tancorp).** The primary mover for Hermanto Tanoko’s stocks (CLEO, RISE, ZONE, PEVE). |
+| **SQ** | BCA Sekuritas | Local (Big Bank) | **Djarum Group / BCA.** Used by the Hartono family for banking and telco flows (BBCA, TOWR, BELI, RANC). Defensive/Accumulator. |
+| **EP** | MNC Sekuritas | Local (Conglomerate) | **MNC Group (Hary Tanoe).** The distinct mover for MNC stocks (KPIG, BHIT, BCAP, IPTV). Retail-heavy but controlled by the group. |
+| **DH** | Sinarmas Sekuritas | Local (Conglomerate) | **Sinarmas Group.** The primary vehicle for DSSA, INKP, TKIM, FREN, and SMART. |
+| **AK** | UBS Sekuritas | Foreign (Institutional) | **The "Algo" Giant.** High volume, algorithm-driven. Often drives the direction for liquid LQ45 stocks. |
+| **BB** | Verdhana Sekuritas | Local (Institutional) | **The New Giant.** A rising "Big Player" effectively replacing flows from Credit Suisse (CS). Sophisticated institutional flow. |
 
-## Comprehensive Broker List
+## 2. Comprehensive Broker List (Categorized)
 
-Brokers categorized by size, type (Foreign/Asing, Local/Lokal, BUMN), and notes. Big/Mid brokers drive significant volume; small brokers are niche/active but lower volume.
+### A. Big Brokers (The Market Movers)
 
-### Big Brokers
+*Characterized by massive transaction value and ability to direct market trends.*
 
-| Code | Broker Name                  | Type              | Notes                  |
-|------|------------------------------|-------------------|------------------------|
-| **AK** | UBS Sekuritas Indonesia    | Foreign           | Top Institutional     |
-| **BK** | J.P. Morgan Sekuritas Indonesia | Foreign       | Top Institutional     |
-| **CC** | Mandiri Sekuritas          | BUMN              | Top Local/BUMN        |
-| **YP** | Mirae Asset Sekuritas Indonesia | Foreign      | Top Retail Volume     |
-| **ZP** | Maybank Sekuritas Indonesia | Foreign         | Top Institutional     |
-| **NI** | BNI Sekuritas              | BUMN              | Top BUMN              |
-| **PD** | Indo Premier Sekuritas     | Local             | Top Retail Value      |
-| **MG** | Semesta Indovest Sekuritas | Local             | High Frequency        |
-| **KZ** | CLSA Sekuritas Indonesia   | Foreign           | Institutional         |
-| **MS** | Morgan Stanley Sekuritas   | Foreign           | Institutional         |
-| **CG** | Citigroup Sekuritas Indonesia | Foreign       | Institutional         |
-| **RX** | Macquarie Sekuritas Indonesia | Foreign       | Institutional         |
-| **SQ** | BCA Sekuritas              | Local             | Big Bank Group        |
-| **OD** | BRI Danareksa Sekuritas    | BUMN              | Top BUMN              |
-| **BB** | Verdhana Sekuritas Indonesia | Local          | *Rising Big Player*   |
-| **YU** | CGS International Sekuritas | Foreign        | Top Institutional     |
+| Code | Broker Name | Type | Notes |
+| :--- | :--- | :--- | :--- |
+| **AK** | UBS Sekuritas Indonesia | Foreign | Top Institutional / Algo-driven. |
+| **BK** | J.P. Morgan Sekuritas | Foreign | Top Institutional / Market Leader. |
+| **ZP** | Maybank Sekuritas | Foreign | Institutional / Often used for crossing. |
+| **KZ** | CLSA Sekuritas | Foreign | Institutional (Old money flow). |
+| **RX** | Macquarie Sekuritas | Foreign | Institutional. |
+| **MS** | Morgan Stanley Sekuritas | Foreign | Institutional (MSCI rebalancing flow). |
+| **CC** | Mandiri Sekuritas | BUMN | **Mixed Flow.** Top Local broker, but heavy Retail usage makes "Bandar" tracking harder. |
+| **YP** | Mirae Asset Sekuritas | Foreign | **Retail King.** Top Retail Volume. If YP is buying, usually retail is FOMO-ing. |
+| **NI** | BNI Sekuritas | BUMN | BUMN Flow / Mixed Retail. |
+| **MG** | Semesta Indovest | Local | High Frequency Trader / Scalper Bandar. |
+| **BB** | Verdhana Sekuritas | Local | *Rising Star* (ex-Credit Suisse flows). |
+| **YU** | CGS International | Foreign | Top Institutional / Strategic entries. |
 
-### Mid Brokers
+### B. Mid Brokers (The "Pengepul" / Specialized)
 
-| Code | Broker Name                  | Type     | Notes                  |
-|------|------------------------------|----------|------------------------|
-| **AZ** | Sucor Sekuritas             | Local    | Strong Retail/Inst    |
-| **XL** | Stockbit Sekuritas Digital  | Local    | Popular Retail App    |
-| **XC** | Ajaib Sekuritas Asia        | Local    | Popular Retail App    |
-| **DH** | Sinarmas Sekuritas          | Local    | Conglomerate          |
-| **LG** | Trimegah Sekuritas Indonesia | Local   | Established Local     |
-| **DR** | RHB Sekuritas Indonesia     | Foreign  | Regional              |
-| **CP** | KB Valbury Sekuritas        | Foreign  | Regional              |
-| **GR** | Panin Sekuritas Tbk         | Local    | Established Local     |
-| **HP** | Henan Putihrai Sekuritas    | Local    | Established Local     |
-| **DX** | Bahana Sekuritas            | BUMN     | Institutional/BUMN    |
-| **AI** | UOB Kay Hian Sekuritas      | Foreign  | Regional              |
-| **BQ** | Korea Investment & Sekuritas | Foreign | Regional              |
-| **KK** | Phillip Sekuritas Indonesia | Foreign  | Retail                |
-| **TP** | OCBC Sekuritas Indonesia    | Foreign  | Regional              |
-| **AP** | Pacific Sekuritas Indonesia | Local    | Active Mid-Tier       |
-| **FS** | Yuanta Sekuritas Indonesia  | Foreign  | Regional              |
-| **EP** | MNC Sekuritas               | Local    | Media Group           |
-| **IF** | Samuel Sekuritas Indonesia  | Local    | Established Local     |
-| **LS** | Reliance Sekuritas Indonesia | Foreign | Active Mid-Tier       |
-| **KI** | Ciptadana Sekuritas Asia    | Local    | Conglomerate          |
+*Active in specific second-liner stocks or used for accumulation phases.*
 
-### Small Brokers
+| Code | Broker Name | Type | Notes |
+| :--- | :--- | :--- | :--- |
+| **AZ** | Sucor Sekuritas | Local | Strong Retail/Asset Management mix. |
+| **LG** | Trimegah Sekuritas | Local | **Thohir Group** affiliation. |
+| **HP** | Henan Putihrai | Local | **Prajogo Pangestu** affiliation. |
+| **DH** | Sinarmas Sekuritas | Local | **Sinarmas Group** affiliation. |
+| **EP** | MNC Sekuritas | Local | **MNC Group** affiliation. |
+| **SQ** | BCA Sekuritas | Local | **Djarum Group** affiliation. |
+| **YJ** | Jasa Utama Capital | Local | **Tanoko Group** affiliation. |
+| **DX** | Bahana Sekuritas | BUMN | Institutional/State-owned flows. |
+| **TR** | Samuel Sekuritas (IF) | Local | *Code corrected to IF*. Established Local. |
+| **GR** | Panin Sekuritas | Local | Established / Sometimes associated with **Panin Group**. |
+| **SS** | Supra Sekuritas | Local | **"Insider" Broker.** Community notes say: *"They know what we don't know."* |
+| **MU** | CGS-CIMB (Old Code) | Foreign | Often linked to **Boy Thohir / MDKA** flows previously. |
+| **KI** | Ciptadana Sekuritas | Local | Lippo Group affiliated (historically). |
 
-#### Foreign (Asing)
+### C. Retail Brokers (The "Unyu-Unyu")
 
-- **AG** - Kiwoom Sekuritas Indonesia
-- **AH** - Shinhan Sekuritas Indonesia
-- **CS** - Credit Suisse Sekuritas (*Inactive/Merging*)
-- **DP** - DBS Vickers Sekuritas Indonesia
-- **DU** - KAF Sekuritas Indonesia
-- **GI** - Webull Sekuritas Indonesia (*New/Growing*)
-- **GW** - HSBC Sekuritas Indonesia
-- **HD** - KGI Sekuritas Indonesia
-- **LH** - Royal Investium Sekuritas
-- **RB** - Ina Sekuritas Indonesia
-- **XA** - NH Korindo Sekuritas Indonesia
+*High retail concentration. If these are the top buyers, the price is likely being distributed (Bandar selling to Retail).*
 
-#### Local (Lokal)
+| Code | Broker Name | Characteristics |
+| :--- | :--- | :--- |
+| **YP** | Mirae Asset | The definitive retail broker. |
+| **PD** | Indo Premier (IPOT) | Top Retail Value. |
+| **XL** | Stockbit Sekuritas | Popular app-based retail. |
+| **XC** | Ajaib Sekuritas | Popular app-based retail (Gen-Z). |
+| **KK** | Phillip Sekuritas | Retail (POEMS users). |
+| **XCP**| Ajaib | (Duplicate code check: XC is Ajaib). |
 
-- **AD** - OSO Sekuritas Indonesia
-- **AF** - Harita Kencana Sekuritas
-- **AN** - Wanteg Sekuritas
-- **AO** - Erdikha Elit Sekuritas
-- **AR** - Binaartha Sekuritas
-- **AT** - Phintraco Sekuritas
-- **BF** - Inti Fikasa Sekuritas
-- **BR** - Trust Sekuritas
-- **BS** - Equity Sekuritas Indonesia
-- **BZ** - Batavia Prosperindo Sekuritas
-- **CD** - Mega Capital Sekuritas
-- **DD** - Makindo Sekuritas
-- **DM** - Masindo Artha Sekuritas
-- **EL** - Evergreen Sekuritas Indonesia
-- **ES** - Ekokapital Sekuritas
-- **FO** - Forte Global Sekuritas
-- **FZ** - Waterfront Sekuritas Indonesia
-- **GA** - BNC Sekuritas Indonesia
-- **IC** - Integrity Capital Sekuritas
-- **ID** - Anugerah Sekuritas Indonesia
-- **IH** - Indo Harvest Sekuritas
-- **II** - Danatama Makmur Sekuritas
-- **IN** - Investindo Nusantara Sekuritas
-- **IP** - Yugen Bertumbuh Sekuritas
-- **IT** - Inti Teladan Sekuritas
-- **IU** - Indo Capital Sekuritas
-- **JB** - Bjb Sekuritas
-- **KS** - Kresna Sekuritas
-- **MI** - Victoria Sekuritas Indonesia
-- **MK** - Ekuator Swarna Sekuritas
-- **MU** - Minna Padi Investama Sekuritas
-- **OK** - Net Sekuritas
-- **PC** - FAC Sekuritas Indonesia
-- **PF** - Danasakti Sekuritas Indonesia
-- **PG** - Panca Global Sekuritas
-- **PI** - Magenta Kapital Sekuritas Indonesia
-- **PO** - Pilarmas Investindo Sekuritas
-- **PP** - Aldiracita Sekuritas Indonesia
-- **PS** - Paramitra Alfa Sekuritas
-- **QA** - Tuntun Sekuritas Indonesia
-- **RF** - Buana Capital Sekuritas
-- **RG** - Profindo Sekuritas Indonesia
-- **RO** - Pluang Maju Sekuritas
-- **RS** - Yulie Sekuritas Indonesia Tbk
-- **SA** - Elit Sukses Sekuritas
-- **SC** - IMG Sekuritas
-- **SF** - Surya Fajar Sekuritas
-- **SH** - Artha Sekuritas Indonesia
-- **SS** - Supra Sekuritas Indonesia
-- **TF** - Universal Broker Indonesia
-- **TS** - Dwidana Sakti Sekuritas
-- **TX** - Dhanawibawa Sekuritas Indonesia
-- **YB** - Yakin Bertumbuh Sekuritas
-- **YJ** - Lotus Andalan Sekuritas
-- **YO** - Amantara Sekuritas Indonesia
-- **ZR** - Bumiputera Sekuritas
+---
+
+## 3. Small / Niche Broker List (For Code Reference)
+
+**Foreign (Asing)**
+
+- **AG** - Kiwoom Sekuritas
+- **AH** - Shinhan Sekuritas
+- **TP** - OCBC Sekuritas (Regional Flow)
+- **GW** - HSBC Sekuritas
+- **XA** - NH Korindo (Often used for repo/nominee plays)
+
+**Local (Lokal)**
+
+- **AD** - OSO Sekuritas
+- **AO** - Erdikha Elit
+- **BQ** - Korea Investment (KIS) - *Note: Actually Foreign/Regional, growing mid-tier.*
+- **EL** - Evergreen Sekuritas
+- **FZ** - Waterfront Sekuritas
+- **IH** - Indo Harvest
+- **PI** - Magenta Kapital (Note: Often confused with Phillip/KK in forums, but PI is distinct).
+- **SA** - Elit Sukses
+- **YB** - Yakin Bertumbuh (Historically partnered with MG for pumps, now less active).
