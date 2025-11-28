@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 FastMCP Server for Sandbox Operations
-This provides MCP tools that interact with the sandbox environment
+This provides MCP tools that interact with the sandbox environment.
+Updated for CONCURRENT request handling using AsyncIO.
 """
 import os
-import subprocess
 import resource
 import mimetypes
-import base64
 import shlex
+import asyncio
 from pathlib import Path
 from fastmcp import FastMCP
 from typing import Optional, Dict, Any, Union
@@ -29,66 +29,30 @@ mcp = FastMCP("sandbox-server")
 
 def _preexec_limits():
     """Set resource limits for subprocess execution"""
-    resource.setrlimit(resource.RLIMIT_AS, (RLIMIT_AS_BYTES, RLIMIT_AS_BYTES))
-    resource.setrlimit(resource.RLIMIT_CPU, (RLIMIT_CPU_SECONDS, RLIMIT_CPU_SECONDS))
-    resource.setrlimit(resource.RLIMIT_NOFILE, (1024, 1024))
+    try:
+        resource.setrlimit(resource.RLIMIT_AS, (RLIMIT_AS_BYTES, RLIMIT_AS_BYTES))
+        resource.setrlimit(resource.RLIMIT_CPU, (RLIMIT_CPU_SECONDS, RLIMIT_CPU_SECONDS))
+        resource.setrlimit(resource.RLIMIT_NOFILE, (1024, 1024))
+    except Exception:
+        # Ignore errors if we can't set limits (e.g. inside certain containers)
+        pass
 
 @mcp.tool
-def execute_command(command: str, timeout: Optional[int] = None, workspace: str = "temporary") -> dict:
+async def execute_command(command: str, timeout: Optional[int] = None, workspace: str = "temporary") -> dict:
     """
     Execute a shell command in the sandbox environment with resource limits.
-    
-    Available tools in the sandbox:
-    
-    Search Tools:
-    - ripgrep (rg): Fast text search. Usage: rg "pattern" [path] [options]
-      Examples: rg "TODO" --hidden -n, rg "function" src/ -A 5 -B 5
-    - ast-grep (sg): AST-based code search and transformation. Usage: sg -p "pattern" [files]
-      Examples: sg -p "console.log($$)" --lang js, sg -p "def $$($$):" --lang py
-    - tree-sitter: Parser generator tool. Usage: tree-sitter [command] [options]
-      Examples: tree-sitter init, tree-sitter generate, tree-sitter parse file.js
-    - fd (fd-find): User-friendly file finder. Usage: fd [pattern] [path] [options]
-      Examples: fd "*.py", fd "test" src/, fd -e js -e ts
-    
-    Parsing/Transform Tools:
-    - jq: JSON processor. Usage: jq [filter] [file]
-      Examples: jq '.key', jq '.items[] | .name', jq -r '.text'
-    - yq: YAML processor (similar to jq). Usage: yq [expression] [file]
-      Examples: yq '.key', yq '.items[] | .name', yq eval file.yaml
-    - python3: Python interpreter. Usage: python3 [script.py] or python3 -c "command"
-    - node: Node.js runtime (v24). Usage: node [script.js] or node -e "command"
-    
-    Other Utilities:
-    - sed: Stream editor. Usage: sed [options] 'command' [file]
-      Examples: sed 's/old/new/g' file.txt, sed -i 's/foo/bar/' *.txt
-    - awk: Pattern scanning and processing. Usage: awk [options] 'pattern {action}' [file]
-      Examples: awk '{print $1}' file.txt, awk -F, '{sum+=$3} END {print sum}' file.csv
-    - find: File searching. Usage: find [path] [expression]
-      Examples: find . -name "*.py", find /src -type f -mtime -7
-    - diff: File comparison. Usage: diff [options] file1 file2
-      Examples: diff -u file1 file2, diff -r dir1 dir2
-    - patch: Apply patches. Usage: patch [options] [originalfile] [patchfile]
-      Examples: patch -p1 < changes.patch, patch -i changes.patch
-    
-    Workspace Information:
-    - Temporary workspace (/home/sandbox/workspace): For sandbox operations, can be reset safely
-    - Persistent workspace (/home/sandbox/persistent): Human-managed files, datasets, protected from reset
+    Handles concurrent requests via asyncio.
     
     Args:
         command: The shell command to execute
         timeout: Optional timeout in seconds (defaults to 30)
         workspace: Workspace type - "temporary" (default) or "persistent"
-                  - "temporary": Files in /home/sandbox/workspace (for sandbox operations)
-                  - "persistent": Files in /home/sandbox/persistent (human-managed, protected)
     
     Returns:
         Dictionary with stdout, stderr, and exit_code
     """
     if not command or len(command) > 32_000:
         return {"error": "Invalid command"}
-    
-    # Security: Rely on container isolation (read-only rootfs, dropped caps, non-root user)
-    # instead of a fragile blacklist.
     
     timeout_val = timeout or TIMEOUT_SECONDS
     
@@ -102,14 +66,17 @@ def execute_command(command: str, timeout: Optional[int] = None, workspace: str 
     shell_operators = ['|', '>', '<', '&', ';', '$', '`', '(', ')', '\\']
     use_shell = any(op in command for op in shell_operators)
     
+    proc = None
     try:
+        # Create asynchronous subprocess
         if use_shell:
             # Use shell execution for complex commands
-            proc = subprocess.run(
-                ["/bin/bash", "-lc", command],
-                capture_output=True,
-                text=True,
-                timeout=timeout_val,
+            # Note: /bin/bash -lc allows reading .bashrc if needed, but creates overhead.
+            # We stick to direct shell execution for simpler async handling.
+            proc = await asyncio.create_subprocess_shell(
+                f"/bin/bash -lc {shlex.quote(command)}",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 preexec_fn=_preexec_limits,
                 cwd=workdir
             )
@@ -119,46 +86,50 @@ def execute_command(command: str, timeout: Optional[int] = None, workspace: str 
             if not args:
                  return {"error": "Empty command"}
             
-            proc = subprocess.run(
-                args,
-                capture_output=True,
-                text=True,
-                timeout=timeout_val,
+            program = args[0]
+            arguments = args[1:]
+            
+            proc = await asyncio.create_subprocess_exec(
+                program,
+                *arguments,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 preexec_fn=_preexec_limits,
                 cwd=workdir
             )
+
+        # Wait for output with timeout
+        try:
+            stdout_data, stderr_data = await asyncio.wait_for(
+                proc.communicate(), 
+                timeout=timeout_val
+            )
+        except asyncio.TimeoutError:
+            if proc:
+                try:
+                    proc.kill()
+                    await proc.wait()  # Ensure process is reaped
+                except ProcessLookupError:
+                    pass
+            return {
+                "stdout": "",
+                "stderr": "Command timed out\n[timeout]",
+                "exit_code": 124
+            }
+
         return {
-            "stdout": proc.stdout,
-            "stderr": proc.stderr,
+            "stdout": stdout_data.decode('utf-8', errors='replace'),
+            "stderr": stderr_data.decode('utf-8', errors='replace'),
             "exit_code": proc.returncode
         }
-    except subprocess.TimeoutExpired as e:
-        return {
-            "stdout": e.stdout or "",
-            "stderr": (e.stderr or "") + "\n[timeout]",
-            "exit_code": 124
-        }
+        
     except Exception as e:
         return {"error": str(e)}
 
-@mcp.tool
-def read_file(path: str, workspace: str = "temporary") -> Dict[str, Any]:
+def _sync_read_file(path: str, workspace: str) -> Dict[str, Any]:
     """
-    Read the contents of a file within the workspace. Returns appropriate data structure based on file type.
-    
-    For text files: Returns the text content directly
-    For images: Returns metadata (dimensions, size, format) and description
-    For PDFs: Returns metadata (page count, size, title) and summary if text is extractable
-    For other binary files: Returns metadata and file type information
-    
-    Args:
-        path: Relative path to the file to read
-        workspace: Workspace type - "temporary" (default) or "persistent"
-                  - "temporary": Files in /home/sandbox/workspace (for sandbox operations)
-                  - "persistent": Files in /home/sandbox/persistent (human-managed, protected)
-    
-    Returns:
-        Dictionary with file content, metadata, or error
+    Synchronous helper for reading files, to be run in a separate thread.
+    This prevents file I/O from blocking the main event loop.
     """
     try:
         # Determine base directory based on workspace type
@@ -287,14 +258,29 @@ def read_file(path: str, workspace: str = "temporary") -> Dict[str, Any]:
             })
         
         return result
-        
     except Exception as e:
         return {"error": str(e)}
 
 @mcp.tool
-def execute_code(code: str, language: str, timeout: Optional[int] = None) -> dict:
+async def read_file(path: str, workspace: str = "temporary") -> Dict[str, Any]:
+    """
+    Read the contents of a file within the workspace. Returns appropriate data structure based on file type.
+    
+    Args:
+        path: Relative path to the file to read
+        workspace: Workspace type - "temporary" (default) or "persistent"
+    
+    Returns:
+        Dictionary with file content, metadata, or error
+    """
+    # Run the synchronous file I/O in a separate thread to avoid blocking the async event loop
+    return await asyncio.to_thread(_sync_read_file, path, workspace)
+
+@mcp.tool
+async def execute_code(code: str, language: str, timeout: Optional[int] = None) -> dict:
     """
     Execute code in the sandbox environment with resource limits.
+    Handles concurrent requests via asyncio.
     
     Args:
         code: The code to execute
@@ -311,43 +297,55 @@ def execute_code(code: str, language: str, timeout: Optional[int] = None) -> dic
         return {"error": "Language must be either 'python' or 'js'"}
     
     timeout_val = timeout or TIMEOUT_SECONDS
+    proc = None
     
     try:
         if language == "python":
-            proc = subprocess.run(
-                ["/usr/bin/python3", "-c", code],
-                capture_output=True,
-                text=True,
-                timeout=timeout_val,
+            proc = await asyncio.create_subprocess_exec(
+                "/usr/bin/python3", "-c", code,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 preexec_fn=_preexec_limits,
                 cwd=WORKDIR
             )
         else:  # language == "js"
-            proc = subprocess.run(
-                ["/usr/local/bin/node", "-e", code],
-                capture_output=True,
-                text=True,
-                timeout=timeout_val,
+            proc = await asyncio.create_subprocess_exec(
+                "/usr/local/bin/node", "-e", code,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
                 preexec_fn=_preexec_limits,
                 cwd=WORKDIR
             )
         
+        try:
+            stdout_data, stderr_data = await asyncio.wait_for(
+                proc.communicate(), 
+                timeout=timeout_val
+            )
+        except asyncio.TimeoutError:
+            if proc:
+                try:
+                    proc.kill()
+                    await proc.wait()
+                except ProcessLookupError:
+                    pass
+            return {
+                "stdout": "",
+                "stderr": "Code execution timed out\n[timeout]",
+                "exit_code": 124
+            }
+        
         return {
-            "stdout": proc.stdout,
-            "stderr": proc.stderr,
+            "stdout": stdout_data.decode('utf-8', errors='replace'),
+            "stderr": stderr_data.decode('utf-8', errors='replace'),
             "exit_code": proc.returncode
-        }
-    except subprocess.TimeoutExpired as e:
-        return {
-            "stdout": e.stdout or "",
-            "stderr": (e.stderr or "") + "\n[timeout]",
-            "exit_code": 124
         }
     except Exception as e:
         return {"error": str(e)}
 
 if __name__ == "__main__":
     # Run the MCP server with streamable HTTP transport
+    # FastMCP automatically handles async functions
     mcp.run(
         transport="streamable-http",
         host="0.0.0.0",
