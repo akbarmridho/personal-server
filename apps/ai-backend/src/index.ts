@@ -1,12 +1,11 @@
 import cors from "@fastify/cors";
-import { convertToModelMessages } from "ai";
+import { convertToModelMessages, type UIMessage } from "ai";
 import Fastify from "fastify";
 import { fastifyPlugin } from "inngest/fastify";
 import { weatherAgent } from "./agents/weather.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { inngest, inngestFunctions } from "./inngest.js";
-
 export async function createServer() {
   const fastify = Fastify({
     loggerInstance: logger,
@@ -26,23 +25,28 @@ export async function createServer() {
     client: inngest,
     functions: inngestFunctions,
     options: {
-      // default path
       servePath: "/api/inngest",
     },
   });
 
   // setup ai agents
-  fastify.post("/agents/weather", async (request, reply) => {
-    const data = request.body as { messages: any };
+  // todo
+  // resumable streams: https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-resume-streams
+  // https://github.com/vercel/ai/issues/6422#issuecomment-3350874035 (workaround)
+  fastify.post("/api/chat", async (request, reply) => {
+    const data = request.body as {
+      id: string;
+      metadata: Record<string, any>;
+      trigger: "submit-message" | "regenerate-message";
+      messages: UIMessage[];
+    };
     const result = await weatherAgent.stream({
       messages: convertToModelMessages(data.messages),
     });
 
     reply.header("Content-Type", "text/plain; charset=utf-8");
 
-    logger.info(data, "DATA");
-
-    reply.send(result.toUIMessageStreamResponse());
+    return reply.send(result.toUIMessageStreamResponse());
   });
 
   fastify.listen({ port: env.HTTP_SERVER_PORT, host: "0.0.0.0" }, (err) => {

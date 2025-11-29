@@ -7,14 +7,14 @@ export const weatherTool = tool({
   inputSchema: z.object({
     city: z.string(),
   }),
-  needsApproval: true, // Require user approval
+  needsApproval: false, // Require user approval
   execute: async ({ city }) => {
     return `${city} weather: it's always sunny`;
   },
 });
 
 export const weatherAgent = new ToolLoopAgent({
-  model: openrouter("tngtech/tng-r1t-chimera:free"),
+  model: openrouter("openai/gpt-oss-20b:free"),
   instructions: "You are a helpful weather assistant.",
   tools: {
     weather: weatherTool,

@@ -26,10 +26,10 @@ import {
   UserMessageAttachments,
 } from "@/components/assistant-ui/attachment";
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
+import { Reasoning, ReasoningGroup } from "@/components/assistant-ui/reasoning";
 import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
 import { Button } from "@/components/ui/button";
-
 import { cn } from "@/lib/utils";
 
 export const Thread: FC = () => {
@@ -244,6 +244,8 @@ const AssistantMessage: FC = () => {
       <div className="aui-assistant-message-content mx-2 break-words text-foreground leading-7">
         <MessagePrimitive.Parts
           components={{
+            Reasoning: Reasoning,
+            ReasoningGroup: ReasoningGroup,
             Text: MarkdownText,
             tools: { Fallback: ToolFallback },
           }}
