@@ -18,9 +18,11 @@
     "node": ">=24"
   },
   "dependencies": {
+    "@ai-sdk/openai": "3.0.0-beta.72",
+    "@ai-sdk/react": "3.0.0-beta.123",
     "@dotenvx/dotenvx": "^1.49.0",
     "@t3-oss/env-core": "^0.13.8",
-    "ai": "^5.0.51",
+    "ai": "6.0.0-beta.123",
     "fastify": "^5.6.2",
     "fastify-graceful-shutdown": "^5.0.0",
     "inngest": "^3.46.0",
