@@ -10,7 +10,7 @@ import { ThreadList } from "@/components/assistant-ui/thread-list";
 const App = () => {
   const runtime = useChatRuntime({
     transport: new AssistantChatTransport({
-      api: "/api/chat",
+      api: "http://localhost:3010/agents/weather",
     }),
   });
 

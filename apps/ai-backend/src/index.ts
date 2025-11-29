@@ -1,28 +1,26 @@
+import cors from "@fastify/cors";
 import { convertToModelMessages } from "ai";
 import Fastify from "fastify";
 import { fastifyPlugin } from "inngest/fastify";
 import { weatherAgent } from "./agents/weather.js";
 import { env } from "./config/env.js";
+import { logger } from "./config/logger.js";
 import { inngest, inngestFunctions } from "./inngest.js";
 
 export async function createServer() {
   const fastify = Fastify({
-    logger:
-      env.NODE_ENV === "development"
-        ? {
-            transport: {
-              target: "pino-pretty",
-              options: {
-                colorize: true,
-                translateTime: "HH:MM:ss Z",
-                ignore: "pid,hostname",
-              },
-            },
-          }
-        : true,
+    loggerInstance: logger,
   });
 
   fastify.register(import("fastify-graceful-shutdown"));
+
+  // Enable CORS for all origins
+  fastify.register(cors, {
+    origin: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  });
 
   fastify.register(fastifyPlugin, {
     client: inngest,
@@ -41,6 +39,8 @@ export async function createServer() {
     });
 
     reply.header("Content-Type", "text/plain; charset=utf-8");
+
+    logger.info(data, "DATA");
 
     reply.send(result.toUIMessageStreamResponse());
   });

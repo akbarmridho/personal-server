@@ -24,6 +24,7 @@
     "@ai-sdk/openai": "3.0.0-beta.72",
     "@ai-sdk/react": "3.0.0-beta.123",
     "@dotenvx/dotenvx": "^1.49.0",
+    "@fastify/cors": "^11.1.0",
     "@openrouter/ai-sdk-provider": "1.0.0-beta.7",
     "@t3-oss/env-core": "^0.13.8",
     "ai": "6.0.0-beta.123",
@@ -38,8 +39,8 @@
     "@biomejs/biome": "2.2.2",
     "@swc-node/register": "^1.10.10",
     "@types/node": "^22.16.4",
-    "inngest-cli": "^1.14.0",
     "concurrently": "^9.1.0",
+    "inngest-cli": "^1.14.0",
     "typescript": "^5.9.2"
   }
 }
