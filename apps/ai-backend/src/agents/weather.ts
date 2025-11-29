@@ -1,6 +1,6 @@
-import { openai } from "@ai-sdk/openai";
 import { ToolLoopAgent, tool } from "ai";
 import { z } from "zod";
+import { openrouter } from "../config/openrouter.js";
 
 export const weatherTool = tool({
   description: "Get the weather in a location",
@@ -14,7 +14,7 @@ export const weatherTool = tool({
 });
 
 export const weatherAgent = new ToolLoopAgent({
-  model: openai("gpt-5-mini"),
+  model: openrouter("tngtech/tng-r1t-chimera:free"),
   instructions: "You are a helpful weather assistant.",
   tools: {
     weather: weatherTool,

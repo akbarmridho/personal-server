@@ -2,15 +2,27 @@ import { convertToModelMessages } from "ai";
 import Fastify from "fastify";
 import { fastifyPlugin } from "inngest/fastify";
 import { weatherAgent } from "./agents/weather.js";
-import { env } from "./env.js";
+import { env } from "./config/env.js";
 import { inngest, inngestFunctions } from "./inngest.js";
 
 export async function createServer() {
   const fastify = Fastify({
-    logger: true,
+    logger:
+      env.NODE_ENV === "development"
+        ? {
+            transport: {
+              target: "pino-pretty",
+              options: {
+                colorize: true,
+                translateTime: "HH:MM:ss Z",
+                ignore: "pid,hostname",
+              },
+            },
+          }
+        : true,
   });
 
-  fastify.register(require("fastify-graceful-shutdown"));
+  fastify.register(import("fastify-graceful-shutdown"));
 
   fastify.register(fastifyPlugin, {
     client: inngest,

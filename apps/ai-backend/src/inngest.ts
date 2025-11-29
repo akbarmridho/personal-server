@@ -1,5 +1,5 @@
 import { Inngest, type InngestFunction } from "inngest";
-import { env } from "./env.js";
+import { env } from "./config/env.js";
 
 export const inngest = new Inngest({
   id: "ai-backend",

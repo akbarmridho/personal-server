@@ -8,8 +8,10 @@ export const env = createEnv({
    * Will throw if you access these variables on the client.
    */
   server: {
-    HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
+    NODE_ENV: z.enum(["development", "production"]).default("development"),
+    HTTP_SERVER_PORT: z.coerce.number().default(3010),
     INNGEST_BASE_URL: z.string().default("http://localhost:8288"),
+    OPENROUTER_API_KEY: z.string(),
   },
   /*
    * Specify what values should be validated by your schemas above.

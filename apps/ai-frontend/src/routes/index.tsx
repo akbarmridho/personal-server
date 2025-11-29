@@ -11,7 +11,6 @@ const App = () => {
   const runtime = useChatRuntime({
     transport: new AssistantChatTransport({
       api: "/api/chat",
-      prepareSendMessagesRequest: 
     }),
   });
 
