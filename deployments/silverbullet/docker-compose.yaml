@@ -1,5 +1,6 @@
 services:
   silverbullet:
+    container_name: silverbullet
     image: ghcr.io/silverbulletmd/silverbullet:2.3.0
     restart: unless-stopped
     environment:
@@ -12,6 +13,18 @@ services:
       - 8017:3000
     networks:
       - personal_network
+
+  silverbullet-mcp-server:
+    image: ghcr.io/Ahmad-A0/silverbullet-mcp:v1.0.0
+    ports:
+      - "8018:4000"
+    environment:
+      SB_AUTH_TOKEN: gTNhyNDwJCSGVYCH
+      MCP_TOKEN: secret
+      SB_API_BASE_URL: http://silverbullet:3000
+      PORT: 4000
+    depends_on:
+      - silverbullet
 
 volumes:
   silverbullet_data:
