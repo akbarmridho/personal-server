@@ -14,7 +14,7 @@ services:
       - personal_network
 
 volumes:
-  silverbullet-data:
+  silverbullet_data:
     driver: rclone
     driver_opts:
       type: "webdav"
