@@ -2,10 +2,11 @@ import cors from "@fastify/cors";
 import { convertToModelMessages, type UIMessage } from "ai";
 import Fastify from "fastify";
 import { fastifyPlugin } from "inngest/fastify";
-import { weatherAgent } from "./agents/weather.js";
+import { getAgent } from "./agents/weather.js";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { inngest, inngestFunctions } from "./inngest.js";
+
 export async function createServer() {
   const fastify = Fastify({
     loggerInstance: logger,
@@ -39,8 +40,12 @@ export async function createServer() {
       metadata: Record<string, any>;
       trigger: "submit-message" | "regenerate-message";
       messages: UIMessage[];
+      tools: Record<string, any>;
     };
-    const result = await weatherAgent.stream({
+
+    const agent = getAgent("agent", data.tools);
+
+    const result = await agent.stream({
       messages: convertToModelMessages(data.messages),
     });
 

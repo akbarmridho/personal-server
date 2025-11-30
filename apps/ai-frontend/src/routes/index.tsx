@@ -29,7 +29,6 @@ const App = () => {
         <div className="flex h-dvh w-full">
           <ThreadListSidebar />
           <SidebarInset>
-            {/* Add sidebar trigger, location can be customized */}
             <SidebarTrigger className="absolute top-4 left-4" />
             <Thread />
           </SidebarInset>
