@@ -11,7 +11,7 @@ services:
       - INNGEST_POSTGRES_URI=postgres://postgres:postgres@postgres_main:5432/inngest
       - INNGEST_REDIS_URI=redis://inngest_redis:6379
     depends_on:
-      redis:
+      inngest_redis:
         condition: service_healthy
     networks:
       - personal_network
