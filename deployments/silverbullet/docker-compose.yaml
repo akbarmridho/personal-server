@@ -15,7 +15,7 @@ services:
       - personal_network
 
   silverbullet-mcp-server:
-    image: ghcr.io/Ahmad-A0/silverbullet-mcp:v1.0.0
+    image: ghcr.io/ahmad-a0/silverbullet-mcp:v1.0.0
     ports:
       - "8018:4000"
     environment:
