@@ -77,3 +77,7 @@ docker network create personal_network
 
 - `8014` sandbox container.
 - `8015` filestash.
+
+### Embedding
+
+- `8016` embedding service.
