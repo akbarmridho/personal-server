@@ -14,7 +14,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - inngest-network
+      - personal_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8288/health"]
       interval: 30s
@@ -30,7 +30,7 @@ services:
     volumes:
       - inngest_redis:/data
     networks:
-      - inngest-network
+      - personal_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
