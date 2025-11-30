@@ -5,7 +5,8 @@ WORKDIR /app
 # Copy requirements first for better caching
 COPY requirements.txt .
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements.txt
 # Copy the embedding service
 COPY embedding.py .
 # Expose port

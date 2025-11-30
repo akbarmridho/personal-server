@@ -85,3 +85,8 @@ docker network create personal_network
 ### Inngest
 
 - `8288` and `8289`.
+
+### Silverbullet
+
+- `8017` silverbullet.
+- `8018` silverbullet.
