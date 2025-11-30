@@ -1,0 +1,32 @@
+services:
+  silverbullet:
+    image: ghcr.io/silverbulletmd/silverbullet:2.3.0
+    restart: unless-stopped
+    environment:
+      SB_USER: "admin:admin"
+      SB_HOSTNAME: "0.0.0.0"
+      SB_AUTH_TOKEN: "gTNhyNDwJCSGVYCH"
+    volumes:
+      - silverbullet_data:/space
+    ports:
+      - 8017:3000
+    networks:
+      - personal_network
+
+volumes:
+  silverbullet-data:
+    driver: rclone
+    driver_opts:
+      type: "webdav"
+      webdav_url: "http://localhost:4001"
+      webdav_vendor: "other"
+      webdav_user: "admin"
+      webdav_pass: "LACyVhZAkys-312NHJJrUobWhYky"
+      allow_other: "true"
+      path: "personal-server/silverbullet"
+      vfs_cache_mode: "writes"
+      poll_interval: "30s"
+
+networks:
+  personal_network:
+    external: true
