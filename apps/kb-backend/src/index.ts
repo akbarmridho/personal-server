@@ -1,7 +1,9 @@
 import "@dotenvx/dotenvx/config";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { serve } from "inngest/express";
 import { env } from "./env.js";
+import { inngest, inngestFunctions } from "./inngest.js";
 import { setupInternetMcp } from "./internet/mcp.js";
 import { setupRAGMcp } from "./rag/mcp.js";
 import { setupHTTPServer } from "./server.js";
@@ -65,6 +67,13 @@ async function main() {
   );
 
   // add other mcp here
+
+  // inngest
+  proxyApp.use("/api/inngest", express.json());
+  proxyApp.use(
+    "/api/inngest",
+    serve({ client: inngest, functions: inngestFunctions }),
+  );
 
   // proxy the rest to elysia
   proxyApp.use(
