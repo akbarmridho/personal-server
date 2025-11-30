@@ -81,3 +81,7 @@ docker network create personal_network
 ### Embedding
 
 - `8016` embedding service.
+
+### Inngest
+
+- `8288` and `8289`.
