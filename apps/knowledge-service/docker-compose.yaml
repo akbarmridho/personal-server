@@ -1,0 +1,44 @@
+services:
+  knowledge-service:
+    container_name: knowledge_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8016:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - personal_network
+    depends_on:
+      - qdrant
+
+  qdrant:
+    container_name: qdrant
+    image: qdrant/qdrant:v1.16
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    networks:
+      - personal_network
+    restart: unless-stopped
+
+networks:
+  personal_network:
+    external: true
+
+volumes:
+  qdrant_storage:
