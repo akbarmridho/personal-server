@@ -1,5 +1,6 @@
 from qdrant_client import QdrantClient, models
 from app.core.config import settings
+from app.services.embeddings import EmbeddingService
 from typing import List, Dict, Any
 import uuid
 
@@ -15,9 +16,15 @@ class QdrantService:
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config={
-                    "dense": models.VectorParams(size=1024, distance=models.Distance.COSINE),
+                    "dense": models.VectorParams(
+                        size=EmbeddingService.DENSE_DIMENSION,
+                        distance=models.Distance.COSINE,
+                        hnsw_config=models.HnswConfigDiff(
+                            on_disk=True
+                        )
+                    ),
                     "late": models.VectorParams(
-                        size=128, # mxbai-edge-colbert-v0-32m is 128 dim
+                        size=EmbeddingService.COLBERT_DIMENSION,
                         distance=models.Distance.COSINE,
                         multivector_config=models.MultiVectorConfig(
                             comparator=models.MultiVectorComparator.MAX_SIM,
@@ -26,8 +33,13 @@ class QdrantService:
                     ),
                 },
                 sparse_vectors_config={
-                    "sparse_smart": models.SparseVectorParams(modifier=models.Modifier.IDF),
-                    "sparse_exact": models.SparseVectorParams(
+                    "splade": models.SparseVectorParams(
+                        modifier=models.Modifier.IDF,
+                        index=models.SparseIndexParams(
+                            on_disk=True,
+                        )
+                    ),
+                    "bm25": models.SparseVectorParams(
                         index=models.SparseIndexParams(
                             on_disk=True,
                         )
@@ -55,43 +67,34 @@ class QdrantService:
             wait=True
         )
 
+    # todo metadata filter
     async def search(self, query_vectors: Dict[str, Any], limit: int = 10) -> List[Dict[str, Any]]:
         """
         Search using hybrid retrieval (Fusion).
         """
+
+        max_limit = min(limit * 3, 100)
+
         # Prefetch from all sources
-        prefetch = [
-            models.Prefetch(
-                query=query_vectors["dense"],
-                using="dense",
-                limit=limit * 2
-            ),
-            models.Prefetch(
-                query=models.SparseVector(**query_vectors["sparse_smart"]),
-                using="sparse_smart",
-                limit=limit * 2
-            ),
-            models.Prefetch(
-                query=models.SparseVector(**query_vectors["sparse_exact"]),
-                using="sparse_exact",
-                limit=limit * 2
-            ),
-            # Late interaction usually used as rescorer or main query?
-            # In ingest.ipynb/query.ipynb, late is used as the main query with prefetch from others?
-            # "query=batch_embeddings_late([query])[0], using='late', prefetch=[...]"
-            # Yes, Late Interaction is the most expensive/accurate, so we use it to rerank/search 
-            # on candidates from others, or just use it as main search if index supports it.
-            # Qdrant supports Multivector search.
-        ]
-        
-        # If we use Late as the main query, it will rescore the prefetched results?
-        # Or we can use Fusion.
-        # The user's query.ipynb uses Late as main query and Dense/Sparse as prefetch.
-        # I will follow that pattern.
-        
         results = self.client.query_points(
             collection_name=self.collection_name,
-            prefetch=prefetch,
+            prefetch=[
+                models.Prefetch(
+                    query=query_vectors["dense"],
+                    using="dense",
+                    limit=max_limit
+                ),
+                models.Prefetch(
+                    query=models.SparseVector(**query_vectors["splade"]),
+                    using="splade",
+                    limit=max_limit
+                ),
+                models.Prefetch(
+                    query=models.SparseVector(**query_vectors["bm25"]),
+                    using="bm25",
+                    limit=max_limit
+                ),
+            ],
             query=query_vectors["late"],
             using="late",
             limit=limit,
@@ -100,6 +103,7 @@ class QdrantService:
         
         return [point.model_dump() for point in results.points]
 
+    # todo update this?
     async def scroll(self, limit: int = 10, offset: str = None) -> Dict[str, Any]:
         """
         Scroll through documents.

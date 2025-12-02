@@ -10,9 +10,19 @@ class TextProcessor:
             chunk_overlap=overlap,
         )
 
-    def chunk_texts(self, texts: list[str]) -> list[list[str]]:
+
+    def chunk_text(self, text: str) -> list[str]:
         """
         Chunk text into segments of specified token size.
+        """
+        chunks: list[Chunk] = self.chunker.chunk(text)
+
+        return [chunk.text for chunk in chunks]
+
+
+    def chunk_texts(self, texts: list[str]) -> list[list[str]]:
+        """
+        Chunk texts into segments of specified token size.
         """
         document_chunks: list[list[Chunk]] = self.chunker.chunk_batch(texts, 20, False)
         # chonkie returns Chunk objects usually, we need text

@@ -2,7 +2,6 @@ import bm25s
 import mmh3
 import re
 import os
-from typing import List, Dict, Any, Optional
 
 class CustomBM25:
     def __init__(self, stop_words: list[str] = None, save_path: str = "bm25s_index"):

@@ -7,83 +7,93 @@ from pylate import models as pylate_models
 from app.core.config import settings
 from app.services.text_processing import TextProcessor
 from app.services.bm25 import CustomBM25
+from tokenizers import Tokenizer
 
 class EmbeddingService:
+    COLBERT_MODEL: str = "mixedbread-ai/mxbai-edge-colbert-v0-32m"
+    COLBERT_DIMENSION: int = 64
+    SPLADE_MODEL: str = "Qdrant/bm42-all-minilm-l6-v2-attentions"
+    SPLADE_TOKEN_LIMIT: int = 512
+    DENSE_MODEL: str = "qwen/qwen3-embedding-8b"
+    DENSE_DIMENSION: int = 2048
+
     def __init__(self):
         # Initialize models
         print("Loading models...")
         
         # ColBERT (Pylate)
-        # mixedbread-ai/mxbai-edge-colbert-v0-32m
-        self.colbert_model = pylate_models.ColBERT(
-            model_name_or_path=settings.COLBERT_MODEL,
+        self.colbert_model: pylate_models.ColBERT = pylate_models.ColBERT(
+            model_name_or_path=self.COLBERT_MODEL,
         )
         
-        # Sparse (FastEmbed)
-        self.sparse_model = SparseTextEmbedding(model_name=settings.SPARSE_MODEL)
+        # Sparse (FastEmbed) - this is BM42 which is a SPLADE-like model or BM25 with steroids
+        self.splade_model: SparseTextEmbedding = SparseTextEmbedding(model_name=self.SPLADE_MODEL)
+
+        # Text Processor for chunking this sparse model
+        self.sparse_text_processor: TextProcessor = TextProcessor(chunk_size=self.SPLADE_TOKEN_LIMIT, overlap=64, tokenizer=Tokenizer.from_pretrained(model_name=self.splade_model))
         
         # Dense (OpenRouter with Qwen)
         if not settings.OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY is required. Please set it in your environment variables.")
-        self.openrouter_client = OpenRouter(api_key=settings.OPENROUTER_API_KEY)
+
+        self.openrouter_client: OpenRouter = OpenRouter(api_key=settings.OPENROUTER_API_KEY)
             
         # BM25S (Custom)
-        self.bm25_model = CustomBM25(save_path="bm25s_index")
-        
-        # Text Processor for chunking
-        self.text_processor = TextProcessor(chunk_size=512, overlap=64)
+        self.bm25_model: CustomBM25 = CustomBM25()
         
         self.executor = ThreadPoolExecutor(max_workers=2)
+
         print("Models loaded.")
 
     def _embed_dense(self, texts: list[str]) -> list[list[float]]:
-        # OpenRouter handles batching and long context
-        result = self.openrouter_client.embeddings.generate(
-            input=texts,
-            model=settings.DENSE_MODEL
-        )
-        return [embedding.embedding for embedding in result.data]
-
-    def _embed_late(self, texts: list[str], is_query: bool = False) -> list[list[list[float]]]:
-        # Pylate encode
-        # Returns list of list of vectors? Or tensor?
-        # The snippet says: documents_embeddings = model.encode(...)
-        # We need to convert to list of list of list of float for Qdrant (or list of list of float? ColBERT is MultiVector)
-        # Qdrant 'late' vector expects list of vectors.
+        """
+        Generate dense embeddings for texts with batching.
+        Processes texts in batches of 50 to optimize API calls.
+        """
+        BATCH_SIZE = 50
+        all_embeddings = []
         
+        # Process texts in batches
+        for i in range(0, len(texts), BATCH_SIZE):
+            batch_texts = texts[i:i + BATCH_SIZE]
+            
+            result = self.openrouter_client.embeddings.generate(
+                input=batch_texts,
+                encoding_format="float",
+                dimensions=self.DENSE_DIMENSION,
+                retries=3
+            )
+            
+            batch_embeddings = [embedding.embedding for embedding in result.data]
+            all_embeddings.extend(batch_embeddings)
+        
+        return all_embeddings
+
+    def _embed_late(self, texts: list[str], is_query: bool = False):
         embeddings = self.colbert_model.encode(
             texts,
             batch_size=32,
             is_query=is_query,
-            show_progress_bar=False
+            show_progress_bar=False,
+            convert_to_numpy=True
         )
-        # Convert to list format if it's numpy or tensor
-        if hasattr(embeddings, "tolist"):
-            return embeddings.tolist()
+  
         return embeddings
 
-    def _embed_sparse_smart(self, text: str) -> dict[int, float]:
+    def _embed_splade(self, text: str) -> dict[int, float]:
         # Handle chunking for 512 limit
-        chunks = self.text_processor.chunk_text(text)
+        chunks = self.sparse_text_processor.chunk_text(text)
         if not chunks:
             return {}
-            
+
         # Embed each chunk
-        # sparse_model.passage_embed returns generator of SparseEmbedding (values, indices)
-        chunk_embeddings = list(self.sparse_model.passage_embed(chunks))
+        # splade_model.passage_embed returns generator of SparseEmbedding (values, indices)
+        chunk_embeddings = list(self.splade_model.passage_embed(chunks))
         
         # Combine (Max Aggregation)
         combined_vector = {}
         
         for embed in chunk_embeddings:
-            # embed is a SparseEmbedding object or dict? FastEmbed returns object with .indices and .values
-            # or .as_object() or .as_dict()
-            # Let's check fastembed usage in ingest.ipynb: "embeddings = list(sparse_model.passage_embed(batch))... e.as_object()"
-            # as_object() returns dict with indices and values.
-            
-            # We want to merge into a single dict {index: value}
-            # embed.indices is list[int], embed.values is list[float]
-            
             indices = embed.indices
             values = embed.values
             
@@ -95,7 +105,7 @@ class EmbeddingService:
                     
         return combined_vector
 
-    def _embed_sparse_exact(self, text: str) -> dict[str, Any]:
+    def _embed_bm25(self, text: str) -> dict[str, Any]:
         # BM25S
         return self.bm25_model.encode(text)
 
@@ -113,13 +123,13 @@ class EmbeddingService:
         late_task = loop.run_in_executor(self.executor, self._embed_late, [text], False)
         
         # Sparse Smart (BM42) - needs sub-chunking logic
-        sparse_smart_task = loop.run_in_executor(self.executor, self._embed_sparse_smart, text)
+        splade_task = loop.run_in_executor(self.executor, self._embed_splade, text)
         
         # Sparse Exact (BM25S)
-        sparse_exact_task = loop.run_in_executor(self.executor, self._embed_sparse_exact, text)
+        bm25_task = loop.run_in_executor(self.executor, self._embed_bm25, text)
         
-        dense, late, sparse_smart, sparse_exact = await asyncio.gather(
-            dense_task, late_task, sparse_smart_task, sparse_exact_task
+        dense, late, splade, bm25 = await asyncio.gather(
+            dense_task, late_task, splade_task, bm25_task
         )
         
         # Format for Qdrant
@@ -129,16 +139,13 @@ class EmbeddingService:
         # Sparse Exact: dict {indices: [], values: []}
         
         # Qdrant Sparse format: models.SparseVector(indices=..., values=...)
-        # My _embed_sparse_smart returns dict {idx: val}. I should convert to indices/values lists.
-        
-        smart_indices = list(sparse_smart.keys())
-        smart_values = list(sparse_smart.values())
-        
+        # My _embed_splade returns dict {idx: val}. I should convert to indices/values lists.
+  
         return {
             "dense": dense[0],
             "late": late[0],
-            "sparse_smart": {"indices": smart_indices, "values": smart_values},
-            "sparse_exact": sparse_exact
+            "splade": splade,
+            "bm25": bm25
         }
 
     async def embed_query(self, text: str) -> dict[str, Any]:
@@ -147,20 +154,20 @@ class EmbeddingService:
         
         dense_task = loop.run_in_executor(self.executor, lambda: self._embed_dense([text])[0])
         late_task = loop.run_in_executor(self.executor, self._embed_late, [text], True)
-        sparse_smart_task = loop.run_in_executor(self.executor, lambda: list(self.sparse_model.query_embed([text]))[0])
-        sparse_exact_task = loop.run_in_executor(self.executor, self._embed_sparse_exact, text)
+        splade_task = loop.run_in_executor(self.executor, lambda: list(self.splade_model.query_embed([text]))[0])
+        bm25_task = loop.run_in_executor(self.executor, self._embed_bm25, text)
         
-        dense, late, sparse_smart, sparse_exact = await asyncio.gather(
-            dense_task, late_task, sparse_smart_task, sparse_exact_task
+        dense, late, splade, bm25 = await asyncio.gather(
+            dense_task, late_task, splade_task, bm25_task
         )
         
         # Sparse Smart from query_embed returns object, need to convert
-        smart_indices = sparse_smart.indices
-        smart_values = sparse_smart.values
+        smart_indices = splade.indices
+        smart_values = splade.values
         
         return {
             "dense": dense,
             "late": late[0],
-            "sparse_smart": {"indices": smart_indices, "values": smart_values},
-            "sparse_exact": sparse_exact
+            "splade": {"indices": smart_indices, "values": smart_values},
+            "bm25": bm25
         }
