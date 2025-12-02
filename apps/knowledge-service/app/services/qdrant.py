@@ -39,11 +39,6 @@ class QdrantService:
                             on_disk=True,
                         )
                     ),
-                    "bm25": models.SparseVectorParams(
-                        index=models.SparseIndexParams(
-                            on_disk=True,
-                        )
-                    ),
                 }
             )
             print("Collection created.")
@@ -87,11 +82,6 @@ class QdrantService:
                 models.Prefetch(
                     query=models.SparseVector(**query_vectors["splade"]),
                     using="splade",
-                    limit=max_limit
-                ),
-                models.Prefetch(
-                    query=models.SparseVector(**query_vectors["bm25"]),
-                    using="bm25",
                     limit=max_limit
                 ),
             ],

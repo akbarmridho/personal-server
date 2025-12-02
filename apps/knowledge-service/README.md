@@ -4,14 +4,12 @@ A FastAPI-based knowledge retrieval service implementing hybrid search using mul
 
 - **Dense Embeddings**: Voyage AI finance model
 - **Late Interaction (ColBERT)**: Pylate with mixedbread-ai/mxbai-edge-colbert-v0-32m
-- **Smart Sparse (BM42)**: FastEmbed BM42 model  
-- **Exact Sparse (BM25S)**: Custom BM25 implementation with MMH3 hashing for exact jargon matching
+- **Smart Sparse (BM42)**: FastEmbed BM42 model
 
 ## Features
 
 - Hybrid search combining dense, sparse, and late interaction embeddings
 - Custom chunking with Chonkie for handling long documents
-- BM25S for exact jargon/term matching
 - Qdrant vector database integration
 - FastAPI REST API with async support
 - Collection management and document ingestion
@@ -28,7 +26,6 @@ apps/knowledge-service/
 │   ├── models/
 │   │   └── api.py             # Pydantic models
 │   ├── services/
-│   │   ├── bm25.py            # BM25S exact matching
 │   │   ├── embeddings.py      # Multi-model embedding service
 │   │   ├── qdrant.py          # Vector DB operations
 │   │   └── text_processing.py # Text chunking
@@ -60,6 +57,7 @@ docker-compose up -d
 ```
 
 This will start:
+
 - Knowledge Service on port 8016
 - Qdrant on ports 6333 (HTTP) and 6334 (gRPC)
 
@@ -73,11 +71,13 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ## API Endpoints
 
 ### Health Check
+
 ```bash
 GET /health
 ```
 
 ### Ingest Documents
+
 ```bash
 POST /api/v1/ingest
 Content-Type: application/json
@@ -97,6 +97,7 @@ Content-Type: application/json
 ```
 
 ### Search Documents
+
 ```bash
 POST /api/v1/search
 Content-Type: application/json
@@ -108,22 +109,9 @@ Content-Type: application/json
 ```
 
 ### List Documents
+
 ```bash
 GET /api/v1/documents?limit=10&offset=<next_page_offset>
-```
-
-### Train BM25S Model
-```bash
-POST /api/v1/train-bm25
-Content-Type: application/json
-
-{
-  "documents": [
-    {
-      "text": "Training corpus text"
-    }
-  ]
-}
 ```
 
 ## How It Works
@@ -135,14 +123,13 @@ Content-Type: application/json
    - Dense vectors via Voyage AI
    - ColBERT multi-vectors via Pylate
    - BM42 sparse vectors via FastEmbed (with chunking and max aggregation)
-   - BM25S sparse vectors with MMH3 hashing
 3. **Storage**: All vectors stored in Qdrant with metadata
 
 ### Search
 
 1. Query is embedded using all models
 2. Qdrant performs hybrid search:
-   - Prefetch candidates from dense, sparse_smart, and sparse_exact
+   - Prefetch candidates from dense and sparse_smart
    - Rerank using ColBERT late interaction
 3. Results returned with scores and payloads
 
@@ -164,6 +151,6 @@ Content-Type: application/json
 ## References
 
 Based on implementation patterns from:
+
 - `ai-apps/investment/playgrounds/ingest.ipynb`
 - `ai-apps/investment/playgrounds/query.ipynb`
-- BM25S implementation guide in `bm25s.md`
