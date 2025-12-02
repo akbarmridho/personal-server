@@ -8,6 +8,9 @@ from app.core.config import settings
 from app.services.text_processing import TextProcessor
 from tokenizers import Tokenizer
 
+# other interesting models: bge-m3, gte-multilingual
+# current approach (bm42 and colbert) are trained on common english dataset meanwhile our dataset is focused on Indonesia stock market news even though
+# it is mostly written in english
 class EmbeddingService:
     COLBERT_MODEL: str = "mixedbread-ai/mxbai-edge-colbert-v0-32m"
     COLBERT_DIMENSION: int = 64
@@ -41,14 +44,20 @@ class EmbeddingService:
 
         print("Models loaded.")
 
-    def _embed_dense(self, texts: list[str]) -> list[list[float]]:
+    def _embed_dense(self, texts: list[str], is_query: bool = False) -> list[list[float]]:
         """
         Generate dense embeddings for texts with batching.
         Processes texts in batches of 50 to optimize API calls.
         """
         BATCH_SIZE = 50
         all_embeddings = []
+
+        def generate_task(text: str) -> str:
+            return f"Instruct: Given a search query, retrieve relevant passages that answer the query\nQuery: {text}"
         
+        if is_query:
+            texts = [generate_task(text) for text in texts]
+
         # Process texts in batches
         for i in range(0, len(texts), BATCH_SIZE):
             batch_texts = texts[i:i + BATCH_SIZE]
@@ -101,50 +110,58 @@ class EmbeddingService:
                     
         return combined_vector
 
-    async def embed_document(self, text: str) -> dict[str, Any]:
-        """
-        Generate all embeddings for a single document text.
-        """
-        loop = asyncio.get_event_loop()
-        
-        # Run in executor to avoid blocking
-        # Dense
-        dense_task = loop.run_in_executor(self.executor, self._embed_dense, [text])
-        
-        # Late (ColBERT)
-        late_task = loop.run_in_executor(self.executor, self._embed_late, [text], False)
-        
-        # Sparse Smart (BM42) - needs sub-chunking logic
-        splade_task = loop.run_in_executor(self.executor, self._embed_splade, text)
-        
-        dense, late, splade = await asyncio.gather(
-            dense_task, late_task, splade_task
-        )
-        
-        return {
-            "dense": dense[0],
-            "late": late[0],
-            "splade": splade
-        }
-
     async def embed_query(self, text: str) -> dict[str, Any]:
         # Similar to document but with is_query=True for models that support it
         loop = asyncio.get_event_loop()
         
-        dense_task = loop.run_in_executor(self.executor, lambda: self._embed_dense([text])[0])
+        dense_task = loop.run_in_executor(self.executor, lambda: self._embed_dense([text], True)[0])
         late_task = loop.run_in_executor(self.executor, self._embed_late, [text], True)
         splade_task = loop.run_in_executor(self.executor, lambda: list(self.splade_model.query_embed([text]))[0])
         
         dense, late, splade = await asyncio.gather(
             dense_task, late_task, splade_task
         )
-        
-        # Sparse Smart from query_embed returns object, need to convert
-        smart_indices = splade.indices
-        smart_values = splade.values
-        
+
         return {
             "dense": dense,
             "late": late[0],
-            "splade": {"indices": smart_indices, "values": smart_values}
+            "splade": splade
         }
+
+    async def embed_documents(self, texts: list[str], batch_size: int = 20) -> list[dict[str, Any]]:
+        """
+        Generate all embeddings for multiple documents in batches.
+        Processes texts in batches to optimize API calls and memory usage.
+        """
+        loop = asyncio.get_event_loop()
+        all_embeddings = []
+        
+        # Process texts in batches
+        for i in range(0, len(texts), batch_size):
+            batch_texts = texts[i:i + batch_size]
+            
+            # Run dense embeddings in batch (already optimized in _embed_dense)
+            dense_task = loop.run_in_executor(self.executor, self._embed_dense, batch_texts, False)
+            
+            # Run late embeddings in batch
+            late_task = loop.run_in_executor(self.executor, self._embed_late, batch_texts)
+            
+            # Run sparse embeddings for each text in batch (still needs individual processing due to chunking)
+            splade_tasks = [
+                loop.run_in_executor(self.executor, self._embed_splade, text)
+                for text in batch_texts
+            ]
+            
+            dense, late, splade_results = await asyncio.gather(
+                dense_task, late_task, *splade_tasks
+            )
+            
+            # Combine results for this batch
+            for j in range(len(batch_texts)):
+                all_embeddings.append({
+                    "dense": dense[j],
+                    "late": late[j],
+                    "splade": splade_results[j]
+                })
+        
+        return all_embeddings

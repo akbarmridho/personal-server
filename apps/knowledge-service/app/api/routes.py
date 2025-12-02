@@ -21,30 +21,34 @@ def get_services():
     return embedding_service, qdrant_service
 
 @router.post("/ingest", response_model=Dict[str, str])
-async def ingest_documents(request: IngestRequest, background_tasks: BackgroundTasks):
+async def ingest_documents(request: IngestRequest):
     """
-    Ingest documents into the knowledge base.
+    Ingest documents into the knowledge base using batch processing.
     """
     emb_svc, qdrant_svc = get_services()
     
-    # Process in background or foreground? 
-    # For large batches, background is better, but user might want confirmation.
-    # We'll do it in foreground for now to ensure errors are caught, 
-    # or maybe chunk processing.
+    # Extract texts and prepare document metadata
+    texts = [doc.text for doc in request.documents]
+    doc_metadata = [
+        {
+            "id": doc.id if doc.id else str(uuid.uuid4()),
+            "text": doc.text,
+            "metadata": doc.metadata
+        }
+        for doc in request.documents
+    ]
     
+    # Generate embeddings in batch (with batch size of 50 for optimal performance)
+    batch_embeddings = await emb_svc.embed_documents(texts, batch_size=50)
+    
+    # Combine embeddings with document metadata
     processed_docs = []
-    
-    for doc in request.documents:
-        # Generate embeddings
-        vectors = await emb_svc.embed_document(doc.text)
-        
-        doc_id = doc.id if doc.id else str(uuid.uuid4())
-        
+    for i, (doc_meta, vectors) in enumerate(zip(doc_metadata, batch_embeddings)):
         processed_docs.append({
-            "id": doc_id,
+            "id": doc_meta["id"],
             "payload": {
-                "text": doc.text,
-                **doc.metadata
+                "text": doc_meta["text"],
+                **doc_meta["metadata"]
             },
             "vectors": vectors
         })

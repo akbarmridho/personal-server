@@ -34,7 +34,7 @@ class QdrantService:
                 },
                 sparse_vectors_config={
                     "splade": models.SparseVectorParams(
-                        modifier=models.Modifier.IDF,
+                        modifier=models.Modifier.IDF, # this modifier is required for BM42 models only. other sparse embedding/true splade doesn't need this
                         index=models.SparseIndexParams(
                             on_disk=True,
                         )
