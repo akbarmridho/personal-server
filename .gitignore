@@ -247,3 +247,6 @@ newsletter-raw/
 newsletter-data/
 newsletter-sample/
 newsletter-snips/
+raw_output/
+cheerio_output/
+bfinal/
