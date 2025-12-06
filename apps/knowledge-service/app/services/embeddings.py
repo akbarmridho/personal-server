@@ -1,39 +1,154 @@
 import asyncio
 import os
+import numpy as np
+import onnxruntime as ort
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
-from FlagEmbedding import BGEM3FlagModel
+from typing import Any, List, Dict
+from collections import defaultdict
+from huggingface_hub import hf_hub_download
+from transformers import AutoTokenizer
 from openrouter import OpenRouter
 from app.core.config import settings
+
+# ---------------------------------------------------------
+# HELPER: Optimized ONNX Runner for Low Memory (4GB Limit)
+# ---------------------------------------------------------
+class BGEM3OnnxRunner:
+    """
+    A lightweight, memory-safe replacement for FlagEmbedding using ONNX Runtime (Int8).
+    Optimized for running on CPU with strict RAM constraints.
+    """
+    def __init__(self):
+        print("Downloading/Loading Int8 Quantized BGE-M3 model...")
+        model_path = hf_hub_download(repo_id="gpahal/bge-m3-onnx-int8", filename="model_quantized.onnx")
+        
+        # CPUExecutionProvider is safer for low RAM than CUDA
+        # inter_op_num_threads=1 helps prevent CPU contention with other async tasks
+        sess_options = ort.SessionOptions()
+        sess_options.intra_op_num_threads = 2
+        sess_options.inter_op_num_threads = 1
+        
+        self.session = ort.InferenceSession(
+            model_path, 
+            sess_options=sess_options, 
+            providers=['CPUExecutionProvider']
+        )
+
+        self.tokenizer = AutoTokenizer.from_pretrained("BAAI/bge-m3")
+        
+        # Tokens to ignore in sparse weights (CLS, EOS, PAD, UNK)
+        self.unused_tokens = {
+            self.tokenizer.cls_token_id, 
+            self.tokenizer.eos_token_id, 
+            self.tokenizer.pad_token_id, 
+            self.tokenizer.unk_token_id
+        }
+        print("BGE-M3 ONNX Model loaded successfully.")
+
+    def encode(self, sentences: List[str], batch_size: int = 2, max_length: int = 512) -> Dict[str, List[Any]]:
+        """
+        Generates Sparse and Late Interaction (ColBERT) embeddings.
+        NOTE: Discards Dense vectors immediately to save RAM.
+        """
+        all_sparse = []
+        all_colbert = []
+        
+        # Sort sentences by length to minimize padding overhead (Crucial for CPU speed)
+        # We store original indices to restore order later
+        sorted_indices = np.argsort([len(s) for s in sentences])[::-1]
+        
+        for i in range(0, len(sentences), batch_size):
+            batch_idx = sorted_indices[i : i + batch_size]
+            batch_text = [sentences[idx] for idx in batch_idx]
+            
+            # Tokenize -> Numpy
+            encoded = self.tokenizer(
+                batch_text,
+                padding=True,
+                truncation=True,
+                max_length=max_length,
+                return_tensors="np" 
+            )
+            
+            inputs = {
+                "input_ids": encoded["input_ids"].astype(np.int64),
+                "attention_mask": encoded["attention_mask"].astype(np.int64)
+            }
+            
+            # Run Inference
+            # Outputs: [0]=Dense, [1]=Sparse, [2]=ColBERT
+            outputs = self.session.run(None, inputs)
+            
+            # We ignore outputs[0] (Dense) because you use OpenRouter for that.
+            # This saves significant RAM by not appending heavy float32 arrays to a list.
+            
+            raw_sparse_vecs = outputs[1]
+            raw_colbert_vecs = outputs[2]
+            
+            # --- PROCESS COLBERT (LATE) ---
+            for j, mask in enumerate(encoded["attention_mask"]):
+                # Slice off padding to save RAM (ColBERT is storage heavy)
+                valid_len = np.sum(mask)
+                colbert_emb = raw_colbert_vecs[j][:valid_len]
+                all_colbert.append(colbert_emb)
+
+            # --- PROCESS SPARSE ---
+            for j, input_ids in enumerate(encoded["input_ids"]):
+                weights = raw_sparse_vecs[j].squeeze(-1)
+                sparse_dict = defaultdict(float)
+                
+                for token_id, weight in zip(input_ids, weights):
+                    if weight > 0 and token_id not in self.unused_tokens:
+                        sparse_dict[str(token_id)] = max(sparse_dict[str(token_id)], float(weight))
+                
+                all_sparse.append(dict(sparse_dict))
+                
+        # Restore original order
+        results = {
+            "sparse": [None] * len(sentences),
+            "colbert": [None] * len(sentences)
+        }
+        
+        for i, original_idx in enumerate(sorted_indices):
+            results["sparse"][original_idx] = all_sparse[i]
+            results["colbert"][original_idx] = all_colbert[i]
+            
+        return results
+
+# ---------------------------------------------------------
+# MAIN SERVICE
+# ---------------------------------------------------------
 
 class EmbeddingService:
     DENSE_MODEL: str = "qwen/qwen3-embedding-8b"
     DENSE_DIMENSION: int = 1024
-    BGE_M3_LENGTH: int = 3072
+    BGE_M3_LENGTH: int = 3072 # NOTE: ONNX usually capped at 512 or 8192 depending on export. 
     BGE_M3_COLBERT_DIMENSION: int = 1024
-    bge_m3_model: BGEM3FlagModel
+    
+    # Typed as the custom runner now
+    bge_m3_model: BGEM3OnnxRunner 
     openrouter_client: OpenRouter
 
     def __init__(self):
         # Initialize models
-        print("Loading models...")
+        print("Loading Embedding Service...")
 
-        self.bge_m3_model = BGEM3FlagModel(
-            'BAAI/bge-m3',
-            use_fp16=True,
-            query_max_length=self.BGE_M3_LENGTH,
-            batch_size=int(os.getenv("BGE_M3_BATCH_SIZE", 4))
-        )
+        # Initialize the Optimized ONNX Runner
+        self.bge_m3_model = BGEM3OnnxRunner()
         self.m3_lock = asyncio.Lock()
+        
+        # Configurable batch size for ONNX
+        self.m3_batch_size = int(os.getenv("BGE_M3_BATCH_SIZE", 2))
 
         # Dense (OpenRouter with Qwen)
         if not settings.OPENROUTER_API_KEY:
-            raise ValueError("OPENROUTER_API_KEY is required. Please set it in your environment variables.")
+            raise ValueError("OPENROUTER_API_KEY is required.")
 
         self.openrouter_client = OpenRouter(api_key=settings.OPENROUTER_API_KEY)
 
-        # Used for BGE M3 CPU/GPU model forward
-        self.executor = ThreadPoolExecutor(max_workers=1)  # 1 ensures no concurrent M3 calls
+        # ThreadPoolExecutor for M3
+        # max_workers=1 is strictly necessary to prevent RAM spikes from concurrent ONNX runs
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
         print("Models loaded.")
 
@@ -45,6 +160,7 @@ class EmbeddingService:
         all_embeddings = []
 
         def generate_task(text: str) -> str:
+            # Qwen-specific instruction
             return f"Instruct: Given a search query, retrieve relevant passages that answer the query\nQuery: {text}"
 
         if is_query:
@@ -53,37 +169,44 @@ class EmbeddingService:
         for i in range(0, len(texts), BATCH_SIZE):
             batch = texts[i:i + BATCH_SIZE]
 
-            result = await self.openrouter_client.embeddings.generate_async(
-                input=batch,
-                encoding_format="float",
-                dimensions=self.DENSE_DIMENSION,
-                retries=3
-            )
-            all_embeddings.extend([e.embedding for e in result.data])
+            # Ensure robust error handling for API calls
+            try:
+                result = await self.openrouter_client.embeddings.generate_async(
+                    input=batch,
+                    encoding_format="float",
+                    dimensions=self.DENSE_DIMENSION,
+                    retries=3
+                )
+                all_embeddings.extend([e.embedding for e in result.data])
+            except Exception as e:
+                print(f"Error fetching dense embeddings: {e}")
+                raise e
 
         return all_embeddings
 
-    async def _embed_m3(self, texts: list[str]) -> list[dict[str, Any]]:
+    async def _embed_m3(self, texts: List[str]) -> List[Dict[str, Any]]:
         """
-        BGE-M3 encode must not run concurrently.
-        Use async lock + thread executor to keep it safe.
+        BGE-M3 encode via ONNX.
+        Runs in a separate thread to avoid blocking the Async Event Loop.
         """
         async with self.m3_lock:
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
+            
+            # Offload CPU-intensive ONNX work to thread pool
             output = await loop.run_in_executor(
                 self.executor,
                 lambda: self.bge_m3_model.encode(
                     texts,
-                    return_colbert_vecs=True,
-                    return_sparse=True
+                    batch_size=self.m3_batch_size,
+                    max_length=3072 
                 )
             )
 
         results = []
         for i in range(len(texts)):
             results.append({
-                "sparse": output["lexical_weights"][i],
-                "late": output["colbert_vecs"][i]
+                "sparse": output["sparse"][i],
+                "late": output["colbert"][i] 
             })
 
         return results
@@ -91,7 +214,7 @@ class EmbeddingService:
     # ---------------------------
     # QUERY EMBEDDING
     # ---------------------------
-    async def embed_query(self, text: str) -> dict[str, Any]:
+    async def embed_query(self, text: str) -> Dict[str, Any]:
         dense_task = self._embed_dense([text], is_query=True)
         m3_task = self._embed_m3([text])
 
@@ -106,7 +229,11 @@ class EmbeddingService:
     # ---------------------------
     # DOCUMENT EMBEDDING
     # ---------------------------
-    async def embed_documents(self, texts: List[str], batch_size: int = 20) -> List[dict[str, Any]]:
+    async def embed_documents(self, texts: List[str], batch_size: int = 20) -> List[Dict[str, Any]]:
+        """
+        Embeds documents in chunks.
+        Note: The batch_size here controls how many docs are sent to OpenRouter/ONNX at once.
+        """
         results = []
 
         for i in range(0, len(texts), batch_size):
