@@ -32,7 +32,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
     
     Documents must include:
     - id: Document ID (provided by caller)
-    - type: One of market_news, ticker_news, weekly_summary, analysis, rumour
+    - type: One of news, weekly_summary, analysis, rumour
     - title, content, document_date, source (required)
     - Optional metadata: tickers, sectors, industries, etc.
     
@@ -76,7 +76,7 @@ async def search_documents(request: InvestmentSearchRequest):
     Search for documents using hybrid retrieval with metadata filtering.
     
     Supports filtering by:
-    - tickers: List of ticker symbols (searches both primary and mentioned)
+    - tickers: List of ticker symbols
     - sectors: List of sectors
     - industries: List of industries
     - types: List of document types

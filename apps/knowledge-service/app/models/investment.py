@@ -6,8 +6,7 @@ from datetime import datetime
 
 class DocumentType(str, Enum):
     """Document type enum for investment documents."""
-    MARKET_NEWS = "market_news"
-    TICKER_NEWS = "ticker_news"
+    NEWS = "news"
     WEEKLY_SUMMARY = "weekly_summary"
     ANALYSIS = "analysis"
     RUMOUR = "rumour"
@@ -41,27 +40,19 @@ class InvestmentDocument(BaseModel):
     urls: Optional[List[str]] = Field(default=None, description="Associated URLs")
     
     # Ticker/Symbol Fields (Optional)
-    primary_tickers: Optional[List[str]] = Field(
+    tickers: Optional[List[str]] = Field(
         default=None,
-        description="Main tickers discussed (e.g., ['BBCA', 'TLKM'])"
-    )
-    mentioned_tickers: Optional[List[str]] = Field(
-        default=None,
-        description="Tickers mentioned but not primary focus"
+        description="Tickers discussed (e.g., ['BBCA', 'TLKM'])"
     )
     
     # Sector/Industry Fields (Optional)
     sectors: Optional[List[str]] = Field(
         default=None,
-        description="Sectors discussed: 'banking', 'telecom', 'mining', etc."
-    )
-    subsectors: Optional[List[str]] = Field(
-        default=None,
-        description="More granular: 'digital_banking', 'coal_mining', etc."
+        description="Sectors discussed: 'financials', 'infrastructure', etc."
     )
     industries: Optional[List[str]] = Field(
         default=None,
-        description="Industry classifications: 'financial_services', 'infrastructure', etc."
+        description="Industry classifications: 'banks', 'toll_roads', etc."
     )
     
     # Market Context Fields (Optional)

@@ -12,7 +12,7 @@ from typing import Dict, Any
 def prepare_embedding_text(doc: Dict[str, Any]) -> str:
     """
     Prepare enriched content for embedding.
-    Works for all document types (market_news, ticker_news, weekly_summary, analysis, rumour).
+    Works for all document types (news, weekly_summary, analysis, rumour).
     
     Combines structured metadata with content to improve:
     - Company/ticker-specific queries
@@ -28,15 +28,15 @@ def prepare_embedding_text(doc: Dict[str, Any]) -> str:
         
     Example:
         >>> doc = {
-        ...     "type": "ticker_news",
+        ...     "type": "news",
         ...     "title": "BBCA Q3 Earnings",
         ...     "content": "Bank Central Asia reported...",
-        ...     "primary_tickers": ["BBCA"],
-        ...     "sectors": ["banking"],
+        ...     "tickers": ["BBCA"],
+        ...     "sectors": ["financials"],
         ...     "document_date": "2025-10-21"
         ... }
         >>> prepare_embedding_text(doc)
-        'Ticker News: BBCA Q3 Earnings\\nCompanies: BBCA\\nSectors: banking\\n
+        'News: BBCA Q3 Earnings\\nCompanies: BBCA\\nSectors: financials\\n
 Date: 2025-10-21\\n\\nBank Central Asia reported...'
     """
     parts = []
@@ -46,16 +46,12 @@ Date: 2025-10-21\\n\\nBank Central Asia reported...'
     parts.append(f"{doc_type}: {doc['title']}")
     
     # 2. Ticker context (if available)
-    if doc.get('primary_tickers'):
-        parts.append(f"Companies: {', '.join(doc['primary_tickers'])}")
-    if doc.get('mentioned_tickers'):
-        parts.append(f"Also mentioned: {', '.join(doc['mentioned_tickers'])}")
+    if doc.get('tickers'):
+        parts.append(f"Companies: {', '.join(doc['tickers'])}")
     
     # 3. Sector/industry context (if available)
     if doc.get('sectors'):
         parts.append(f"Sectors: {', '.join(doc['sectors'])}")
-    if doc.get('subsectors'):
-        parts.append(f"Subsectors: {', '.join(doc['subsectors'])}")
     if doc.get('industries'):
         parts.append(f"Industries: {', '.join(doc['industries'])}")
     
@@ -98,7 +94,7 @@ def validate_document_schema(doc: Dict[str, Any]) -> bool:
             raise ValueError(f"Document missing required field: {field}")
     
     # Validate document type
-    valid_types = ['market_news', 'ticker_news', 'weekly_summary', 'analysis', 'rumour']
+    valid_types = ['news', 'weekly_summary', 'analysis', 'rumour']
     if doc['type'] not in valid_types:
         raise ValueError(f"Invalid document type: {doc['type']}. Must be one of {valid_types}")
     

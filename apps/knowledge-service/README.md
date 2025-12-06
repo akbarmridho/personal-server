@@ -1,0 +1,72 @@
+# Knowledge Service Schema & Design
+
+## Overview
+
+This document defines the unified Qdrant collection schema for the Investment Knowledge Service. It handles multiple types of investment-related documents with flexible querying capabilities and metadata filtering.
+
+## Document Types
+
+1. **News** - General market news, sector updates, and ticker-specific news
+2. **Weekly Summary** - Periodic market analysis and outlook
+3. **Analysis** - In-depth research from various sources (algoresearch, websites, PDFs, Instagram, etc.)
+4. **Rumour** - Social media threads from Reddit, Twitter, etc.
+
+## Collection Schema
+
+### Payload Structure
+
+```python
+{
+    # === Core Fields (Required) ===
+    "id": str,                    # UUID v4 generated deterministically from content hash
+    "type": str,                  # One of: "news", "weekly_summary", "analysis", "rumour"
+    "title": str,                 # Document title or headline
+    "content": str,               # The actual text content (used for embedding)
+    
+    # === Temporal Fields (Required) ===
+    "document_date": str,         # ISO 8601 format: "2025-10-31" (date only) or "2025-10-31T14:30:00+07:00" (datetime)
+                                  # Prefer date-only format. For datetime, always include GMT+7 timezone
+    
+    # === Source Fields (Required) ===
+    "source": dict,               # Source metadata as Record<string, string>
+                                  # Examples: {"platform": "stockbit", "type": "news"}
+    
+    # === URLs (Optional) ===
+    "urls": [str],                # Associated URLs
+    
+    # === Ticker/Symbol Fields (Optional) ===
+    "tickers": [str],             # Tickers discussed (e.g., ["BBCA", "TLKM"])
+    
+    # === Sector/Industry Fields (Optional) ===
+    "sectors": [str],             # Broad sectors: "financials", "infrastructure", "energy"
+    "industries": [str],          # Specific industries: "banks", "toll_roads", "coal_mining"
+    
+    # === Market Context Fields (Optional) ===
+    "market_indices": [str],      # Relevant indices: "IHSG", "LQ45", "IDX30"
+}
+```
+
+## Population Rules
+
+This section defines **how** to populate the metadata fields to ensure consistency across the system.
+
+### 1. Tickers (`tickers`)
+*   **Source**: Extracted from text or provided by source metadata.
+*   **Format**: Always Uppercase (e.g., `BBCA`, `GOTO`).
+*   **Rule**: Include if the document is specifically about the company or mentions it significantly.
+
+### 2. Sectors & Industries (`sectors`, `industries`)
+*   **Hierarchy**: `Industry` (Specific) -> `Sector` (Broad).
+*   **Derivation Rule**:
+    *   **If Tickers are present**: Do **NOT** use LLM to guess. Look up the ticker in the master database.
+        *   *Example*: Document mentions `BBCA` -> Auto-tag `Industry: Banks`, `Sector: Financials`.
+    *   **If No Tickers (General News)**: Use LLM to analyze the content.
+        *   *Example*: "Coal prices are rising" -> LLM detects `Industry: Coal Mining` -> Map to `Sector: Energy`.
+*   **Consistency**: Always store **both** fields to allow for broad (Sector) and specific (Industry) filtering.
+
+### 3. Market Indices (`market_indices`)
+*   **Purpose**: Strict filtering for macro-level documents (e.g., "Show me IHSG Weekly Recaps").
+*   **Rule**: Only populate if the document **explicitly tracks** or is **primarily about** the index.
+    *   *Yes*: "Weekly Market Recap: IHSG drops 1%", "LQ45 Rebalancing Announced".
+    *   *No*: "BBCA contributes to IHSG gain" (This is news about BBCA, not the index itself).
+*   **Note**: Do not rely on this field for general search relevance. Use keyword search (sparse vectors) for queries like "news about IHSG".
