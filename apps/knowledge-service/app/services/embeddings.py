@@ -172,6 +172,7 @@ class EmbeddingService:
             # Ensure robust error handling for API calls
             try:
                 result = await self.openrouter_client.embeddings.generate_async(
+                    model=self.DENSE_MODEL,
                     input=batch,
                     encoding_format="float",
                     dimensions=self.DENSE_DIMENSION,
