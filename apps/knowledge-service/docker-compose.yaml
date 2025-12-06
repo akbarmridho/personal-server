@@ -13,6 +13,11 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'    # Cap of 2 CPUs
+          memory: 4G   # Cap of 4GB RAM
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -32,6 +37,11 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_storage:/qdrant/storage
+    deploy:
+      resources:
+        limits:
+          cpus: '2'    # Cap of 2 CPUs
+          memory: 1G   # Cap of 1GB RAM
     networks:
       - personal_network
     restart: unless-stopped
