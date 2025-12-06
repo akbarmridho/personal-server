@@ -19,24 +19,33 @@ class QdrantService:
                     "dense": models.VectorParams(
                         size=EmbeddingService.DENSE_DIMENSION,
                         distance=models.Distance.COSINE,
-                        hnsw_config=models.HnswConfigDiff(
-                            on_disk=True
-                        )
+                        on_disk=True,
+                        datatype=models.Datatype.FLOAT16,
+                        hnsw_config=models.HnswConfigDiff()
                     ),
                     "late": models.VectorParams(
-                        size=EmbeddingService.COLBERT_DIMENSION,
+                        size=EmbeddingService.BGE_M3_COLBERT_DIMENSION,
                         distance=models.Distance.COSINE,
                         multivector_config=models.MultiVectorConfig(
                             comparator=models.MultiVectorComparator.MAX_SIM,
                         ),
-                        hnsw_config=models.HnswConfigDiff(m=0)
+                        on_disk=True,
+                        hnsw_config=models.HnswConfigDiff(
+                            m=0, # don't build index
+                        ),
+                        quantization_config=models.BinaryQuantization(
+                            binary=models.BinaryQuantizationConfig(
+                                always_ram=False,
+                                encoding=models.BinaryQuantizationEncoding.ONE_BIT,
+                            ),
+                        ),
                     ),
                 },
                 sparse_vectors_config={
-                    "splade": models.SparseVectorParams(
-                        modifier=models.Modifier.IDF, # this modifier is required for BM42 models only. other sparse embedding/true splade doesn't need this
+                    "sparse": models.SparseVectorParams(
                         index=models.SparseIndexParams(
                             on_disk=True,
+                            datatype=models.Datatype.FLOAT16
                         )
                     ),
                 }
@@ -187,7 +196,7 @@ class QdrantService:
         Search using hybrid retrieval with optional filtering.
         
         Args:
-            query_vectors: Dict with 'dense', 'late', and 'splade' vectors
+            query_vectors: Dict with 'dense', 'late', and 'sparse' vectors
             limit: Number of results to return
             query_filter: Optional Qdrant Filter object for metadata filtering
         """
@@ -205,8 +214,8 @@ class QdrantService:
                     filter=query_filter
                 ),
                 models.Prefetch(
-                    query=models.SparseVector(**query_vectors["splade"]),
-                    using="splade",
+                    query=models.SparseVector(**query_vectors["sparse"]),
+                    using="sparse",
                     limit=max_limit,
                     filter=query_filter
                 ),
