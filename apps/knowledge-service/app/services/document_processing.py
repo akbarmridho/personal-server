@@ -43,7 +43,11 @@ Date: 2025-10-21\\n\\nBank Central Asia reported...'
     
     # 1. Document type (helps distinguish news vs analysis vs rumours)
     doc_type = doc['type'].replace('_', ' ').title()
-    parts.append(f"{doc_type}: {doc['title']}")
+    
+    if doc.get('title'):
+        parts.append(f"{doc_type}: {doc['title']}")
+    else:
+        parts.append(doc_type)
     
     # 2. Ticker context (if available)
     if doc.get('tickers'):
@@ -87,7 +91,7 @@ def validate_document_schema(doc: Dict[str, Any]) -> bool:
     Raises:
         ValueError: If document is missing required fields
     """
-    required_fields = ['id', 'type', 'title', 'content', 'document_date', 'source']
+    required_fields = ['id', 'type', 'content', 'document_date', 'source']
     
     for field in required_fields:
         if field not in doc or doc[field] is None:

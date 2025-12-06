@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from enum import Enum
-from datetime import datetime
 
 
 class DocumentType(str, Enum):
@@ -15,13 +14,11 @@ class DocumentType(str, Enum):
 class InvestmentDocument(BaseModel):
     """
     Investment document model matching the Qdrant schema design.
-    
-    See: ai-apps/investment/docs/qdrant-schema-design.md
     """
     # Core Fields (Required)
     id: str = Field(..., description="Document ID (provided by caller)")
     type: DocumentType = Field(..., description="Document type")
-    title: str = Field(..., description="Document title or headline")
+    title: Optional[str] = Field(default=None, description="Document title or headline")
     content: str = Field(..., description="The actual text content")
     
     # Temporal Fields (Required)
@@ -31,7 +28,7 @@ class InvestmentDocument(BaseModel):
     )
     
     # Source Fields (Required)
-    source: Dict[str, str] = Field(
+    source: Dict[str, Any] = Field(
         ...,
         description="Source metadata as Record<string, string>"
     )
