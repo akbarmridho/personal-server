@@ -9,6 +9,13 @@ from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer
 from openrouter import OpenRouter
 from app.core.config import settings
+from qdrant_client.models import SparseVector
+
+def dict_to_sparse_vector(d: Dict[str, float]) -> SparseVector:
+    return SparseVector(
+        indices=list(d.keys()),
+        values=list(d.values())
+    )
 
 # ---------------------------------------------------------
 # HELPER: Optimized ONNX Runner for Low Memory (4GB Limit)
@@ -206,7 +213,7 @@ class EmbeddingService:
         results = []
         for i in range(len(texts)):
             results.append({
-                "sparse": output["sparse"][i],
+                "sparse": dict_to_sparse_vector(output["sparse"][i]),
                 "late": output["colbert"][i] 
             })
 

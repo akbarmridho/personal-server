@@ -25,7 +25,7 @@ def get_services():
         qdrant_service = QdrantService()
     return embedding_service, qdrant_service
 
-@router.post("/documents", response_model=Dict[str, str])
+@router.post("/documents", response_model=Dict[str, str | int])
 async def ingest_documents(request: InvestmentIngestRequest):
     """
     Ingest investment documents into the knowledge base.

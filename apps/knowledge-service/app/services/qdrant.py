@@ -214,7 +214,7 @@ class QdrantService:
                     filter=query_filter
                 ),
                 models.Prefetch(
-                    query=models.SparseVector(**query_vectors["sparse"]),
+                    query=query_vectors["sparse"],
                     using="sparse",
                     limit=max_limit,
                     filter=query_filter
