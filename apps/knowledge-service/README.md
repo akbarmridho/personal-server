@@ -51,22 +51,25 @@ This document defines the unified Qdrant collection schema for the Investment Kn
 This section defines **how** to populate the metadata fields to ensure consistency across the system.
 
 ### 1. Tickers (`tickers`)
-*   **Source**: Extracted from text or provided by source metadata.
-*   **Format**: Always Uppercase (e.g., `BBCA`, `GOTO`).
-*   **Rule**: Include if the document is specifically about the company or mentions it significantly.
+
+* **Source**: Extracted from text or provided by source metadata.
+* **Format**: Always Uppercase (e.g., `BBCA`, `GOTO`).
+* **Rule**: Include if the document is specifically about the company or mentions it significantly.
 
 ### 2. Sectors & Industries (`sectors`, `industries`)
-*   **Hierarchy**: `Industry` (Specific) -> `Sector` (Broad).
-*   **Derivation Rule**:
-    *   **If Tickers are present**: Do **NOT** use LLM to guess. Look up the ticker in the master database.
-        *   *Example*: Document mentions `BBCA` -> Auto-tag `Industry: Banks`, `Sector: Financials`.
-    *   **If No Tickers (General News)**: Use LLM to analyze the content.
-        *   *Example*: "Coal prices are rising" -> LLM detects `Industry: Coal Mining` -> Map to `Sector: Energy`.
-*   **Consistency**: Always store **both** fields to allow for broad (Sector) and specific (Industry) filtering.
+
+* **Hierarchy**: `Industry` (Specific) -> `Sector` (Broad).
+* **Derivation Rule**:
+  * **If Tickers are present**: Do **NOT** use LLM to guess. Look up the ticker in the master database.
+    * *Example*: Document mentions `BBCA` -> Auto-tag `Industry: Banks`, `Sector: Financials`.
+  * **If No Tickers (General News)**: Use LLM to analyze the content.
+    * *Example*: "Coal prices are rising" -> LLM detects `Industry: Coal Mining` -> Map to `Sector: Energy`.
+* **Consistency**: Always store **both** fields to allow for broad (Sector) and specific (Industry) filtering.
 
 ### 3. Market Indices (`market_indices`)
-*   **Purpose**: Strict filtering for macro-level documents (e.g., "Show me IHSG Weekly Recaps").
-*   **Rule**: Only populate if the document **explicitly tracks** or is **primarily about** the index.
-    *   *Yes*: "Weekly Market Recap: IHSG drops 1%", "LQ45 Rebalancing Announced".
-    *   *No*: "BBCA contributes to IHSG gain" (This is news about BBCA, not the index itself).
-*   **Note**: Do not rely on this field for general search relevance. Use keyword search (sparse vectors) for queries like "news about IHSG".
+
+* **Purpose**: Strict filtering for macro-level documents (e.g., "Show me IHSG Weekly Recaps").
+* **Rule**: Only populate if the document **explicitly tracks** or is **primarily about** the index.
+  * *Yes*: "Weekly Market Recap: IHSG drops 1%", "LQ45 Rebalancing Announced".
+  * *No*: "BBCA contributes to IHSG gain" (This is news about BBCA, not the index itself).
+* **Note**: Do not rely on this field for general search relevance. Use keyword search (sparse vectors) for queries like "news about IHSG".
