@@ -61,15 +61,13 @@ class QdrantService:
             # Document classification
             "type": models.PayloadSchemaType.KEYWORD,
             
-            # Ticker filtering
-            "primary_tickers": models.PayloadSchemaType.KEYWORD,
-            "mentioned_tickers": models.PayloadSchemaType.KEYWORD,
+            # Symbol filtering
+            "symbols": models.PayloadSchemaType.KEYWORD,
             
-            # Sector/market/industry filtering
-            "sectors": models.PayloadSchemaType.KEYWORD,
+            # Subsector/subindustry filtering
             "subsectors": models.PayloadSchemaType.KEYWORD,
-            "industries": models.PayloadSchemaType.KEYWORD,
-            "market_indices": models.PayloadSchemaType.KEYWORD,
+            "subindustries": models.PayloadSchemaType.KEYWORD,
+            "indices": models.PayloadSchemaType.KEYWORD,
             
             # Time-based queries
             "document_date": models.PayloadSchemaType.DATETIME,
@@ -113,45 +111,37 @@ class QdrantService:
         Build Qdrant filter from dict parameters.
         
         Args:
-            filters: Dict with optional keys: tickers, sectors, industries, types, date_from, date_to
+            filters: Dict with optional keys: symbols, subsectors, subindustries, types, date_from, date_to
             
         Returns:
             Qdrant Filter object
         """
         conditions = []
         
-        # Ticker filtering (search in both primary and mentioned)
-        if filters.get('tickers'):
+        # Symbol filtering
+        if filters.get('symbols'):
             conditions.append(
-                models.Filter(
-                    should=[
-                        models.FieldCondition(
-                            key="primary_tickers",
-                            match=models.MatchAny(any=filters['tickers'])
-                        ),
-                        models.FieldCondition(
-                            key="mentioned_tickers",
-                            match=models.MatchAny(any=filters['tickers'])
-                        )
-                    ]
+                models.FieldCondition(
+                    key="symbols",
+                    match=models.MatchAny(any=filters['symbols'])
                 )
             )
         
-        # Sector filtering
-        if filters.get('sectors'):
+        # Subsector filtering
+        if filters.get('subsectors'):
             conditions.append(
                 models.FieldCondition(
-                    key="sectors",
-                    match=models.MatchAny(any=filters['sectors'])
+                    key="subsectors",
+                    match=models.MatchAny(any=filters['subsectors'])
                 )
             )
         
-        # Industry filtering
-        if filters.get('industries'):
+        # Subindustry filtering
+        if filters.get('subindustries'):
             conditions.append(
                 models.FieldCondition(
-                    key="industries",
-                    match=models.MatchAny(any=filters['industries'])
+                    key="subindustries",
+                    match=models.MatchAny(any=filters['subindustries'])
                 )
             )
         

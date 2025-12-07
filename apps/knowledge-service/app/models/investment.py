@@ -37,23 +37,23 @@ class InvestmentDocument(BaseModel):
     urls: Optional[List[str]] = Field(default=None, description="Associated URLs")
     
     # Ticker/Symbol Fields (Optional)
-    tickers: Optional[List[str]] = Field(
+    symbols: Optional[List[str]] = Field(
         default=None,
-        description="Tickers discussed (e.g., ['BBCA', 'TLKM'])"
+        description="Symbols discussed (e.g., ['BBCA', 'TLKM'])"
     )
     
     # Sector/Industry Fields (Optional)
-    sectors: Optional[List[str]] = Field(
+    subsectors: Optional[List[str]] = Field(
         default=None,
-        description="Sectors discussed: 'financials', 'infrastructure', etc."
+        description="Subsectors discussed: 'financials', 'infrastructure', etc."
     )
-    industries: Optional[List[str]] = Field(
+    subindustries: Optional[List[str]] = Field(
         default=None,
-        description="Industry classifications: 'banks', 'toll_roads', etc."
+        description="Subindustry classifications: 'banks', 'toll_roads', etc."
     )
     
     # Market Context Fields (Optional)
-    market_indices: Optional[List[str]] = Field(
+    indices: Optional[List[str]] = Field(
         default=None,
         description="Relevant indices: 'IHSG', 'LQ45', 'IDX30', etc."
     )
@@ -78,17 +78,17 @@ class InvestmentSearchRequest(BaseModel):
     limit: int = Field(default=10, ge=1, le=100, description="Number of results")
     
     # Metadata filters (all optional)
-    tickers: Optional[List[str]] = Field(
+    symbols: Optional[List[str]] = Field(
         default=None,
-        description="Filter by ticker symbols"
+        description="Filter by symbols"
     )
-    sectors: Optional[List[str]] = Field(
+    subsectors: Optional[List[str]] = Field(
         default=None,
-        description="Filter by sectors"
+        description="Filter by subsectors"
     )
-    industries: Optional[List[str]] = Field(
+    subindustries: Optional[List[str]] = Field(
         default=None,
-        description="Filter by industries"
+        description="Filter by subindustries"
     )
     types: Optional[List[DocumentType]] = Field(
         default=None,

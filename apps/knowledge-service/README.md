@@ -35,14 +35,14 @@ This document defines the unified Qdrant collection schema for the Investment Kn
     "urls": [str],                # Associated URLs
     
     # === Ticker/Symbol Fields (Optional) ===
-    "tickers": [str],             # Tickers discussed (e.g., ["BBCA", "TLKM"])
+    "symbols": [str],             # Symbols discussed (e.g., ["BBCA", "TLKM"])
     
     # === Sector/Industry Fields (Optional) ===
-    "sectors": [str],             # Broad sectors: "financials", "infrastructure", "energy"
-    "industries": [str],          # Specific industries: "banks", "toll_roads", "coal_mining"
+    "subsectors": [str],          # Broad subsectors: "financials", "infrastructure", "energy"
+    "subindustries": [str],       # Specific subindustries: "banks", "toll_roads", "coal_mining"
     
     # === Market Context Fields (Optional) ===
-    "market_indices": [str],      # Relevant indices: "IHSG", "LQ45", "IDX30"
+    "indices": [str],             # Relevant indices: "IHSG", "LQ45", "IDX30"
 }
 ```
 
@@ -50,23 +50,23 @@ This document defines the unified Qdrant collection schema for the Investment Kn
 
 This section defines **how** to populate the metadata fields to ensure consistency across the system.
 
-### 1. Tickers (`tickers`)
+### 1. Symbols (`symbols`)
 
 * **Source**: Extracted from text or provided by source metadata.
 * **Format**: Always Uppercase (e.g., `BBCA`, `GOTO`).
 * **Rule**: Include if the document is specifically about the company or mentions it significantly.
 
-### 2. Sectors & Industries (`sectors`, `industries`)
+### 2. Subsectors & Subindustries (`subsectors`, `subindustries`)
 
-* **Hierarchy**: `Industry` (Specific) -> `Sector` (Broad).
+* **Hierarchy**: `Subindustry` (Specific) -> `Subsector` (Broad).
 * **Derivation Rule**:
-  * **If Tickers are present**: Do **NOT** use LLM to guess. Look up the ticker in the master database.
-    * *Example*: Document mentions `BBCA` -> Auto-tag `Industry: Banks`, `Sector: Financials`.
-  * **If No Tickers (General News)**: Use LLM to analyze the content.
-    * *Example*: "Coal prices are rising" -> LLM detects `Industry: Coal Mining` -> Map to `Sector: Energy`.
-* **Consistency**: Always store **both** fields to allow for broad (Sector) and specific (Industry) filtering.
+  * **If Symbols are present**: Do **NOT** use LLM to guess. Look up the symbol in the master database.
+    * *Example*: Document mentions `BBCA` -> Auto-tag `Subindustry: Banks`, `Subsector: Financials`.
+  * **If No Symbols (General News)**: Use LLM to analyze the content.
+    * *Example*: "Coal prices are rising" -> LLM detects `Subindustry: Coal Mining` -> Map to `Subsector: Energy`.
+* **Consistency**: Always store **both** fields to allow for broad (Subsector) and specific (Subindustry) filtering.
 
-### 3. Market Indices (`market_indices`)
+### 3. Indices (`indices`)
 
 * **Purpose**: Strict filtering for macro-level documents (e.g., "Show me IHSG Weekly Recaps").
 * **Rule**: Only populate if the document **explicitly tracks** or is **primarily about** the index.

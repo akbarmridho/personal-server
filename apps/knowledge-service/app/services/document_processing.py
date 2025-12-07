@@ -31,12 +31,12 @@ def prepare_embedding_text(doc: Dict[str, Any]) -> str:
         ...     "type": "news",
         ...     "title": "BBCA Q3 Earnings",
         ...     "content": "Bank Central Asia reported...",
-        ...     "tickers": ["BBCA"],
-        ...     "sectors": ["financials"],
+        ...     "symbols": ["BBCA"],
+        ...     "subsectors": ["financials"],
         ...     "document_date": "2025-10-21"
         ... }
         >>> prepare_embedding_text(doc)
-        'News: BBCA Q3 Earnings\\nCompanies: BBCA\\nSectors: financials\\n
+        'News: BBCA Q3 Earnings\\nCompanies: BBCA\\nSubsectors: financials\\n
 Date: 2025-10-21\\n\\nBank Central Asia reported...'
     """
     parts = []
@@ -49,19 +49,19 @@ Date: 2025-10-21\\n\\nBank Central Asia reported...'
     else:
         parts.append(doc_type)
     
-    # 2. Ticker context (if available)
-    if doc.get('tickers'):
-        parts.append(f"Companies: {', '.join(doc['tickers'])}")
+    # 2. Symbol context (if available)
+    if doc.get('symbols'):
+        parts.append(f"Companies: {', '.join(doc['symbols'])}")
     
-    # 3. Sector/industry context (if available)
-    if doc.get('sectors'):
-        parts.append(f"Sectors: {', '.join(doc['sectors'])}")
-    if doc.get('industries'):
-        parts.append(f"Industries: {', '.join(doc['industries'])}")
+    # 3. Subsector/subindustry context (if available)
+    if doc.get('subsectors'):
+        parts.append(f"Subsectors: {', '.join(doc['subsectors'])}")
+    if doc.get('subindustries'):
+        parts.append(f"Subindustries: {', '.join(doc['subindustries'])}")
     
-    # 4. Market indices (if available)
-    if doc.get('market_indices'):
-        parts.append(f"Markets: {', '.join(doc['market_indices'])}")
+    # 4. Indices (if available)
+    if doc.get('indices'):
+        parts.append(f"Markets: {', '.join(doc['indices'])}")
     
     # 5. Source context (important for rumours)
     if doc['type'] == 'rumour':

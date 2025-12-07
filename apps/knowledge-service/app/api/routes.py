@@ -34,7 +34,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
     - id: Document ID (provided by caller)
     - type: One of news, weekly_summary, analysis, rumour
     - content, document_date, source (required)
-    - Optional metadata: title, tickers, sectors, industries, etc.
+    - Optional metadata: title, symbols, subsectors, subindustries, etc.
     
     Uses enriched embeddings combining metadata with content for better retrieval.
     """
@@ -76,9 +76,9 @@ async def search_documents(request: InvestmentSearchRequest):
     Search for documents using hybrid retrieval with metadata filtering.
     
     Supports filtering by:
-    - tickers: List of ticker symbols
-    - sectors: List of sectors
-    - industries: List of industries
+    - symbols: List of symbols
+    - subsectors: List of subsectors
+    - subindustries: List of subindustries
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
     """
@@ -89,12 +89,12 @@ async def search_documents(request: InvestmentSearchRequest):
     
     # Build filter from request parameters
     filters = {}
-    if request.tickers:
-        filters['tickers'] = request.tickers
-    if request.sectors:
-        filters['sectors'] = request.sectors
-    if request.industries:
-        filters['industries'] = request.industries
+    if request.symbols:
+        filters['symbols'] = request.symbols
+    if request.subsectors:
+        filters['subsectors'] = request.subsectors
+    if request.subindustries:
+        filters['subindustries'] = request.subindustries
     if request.types:
         filters['types'] = request.types
     if request.date_from:
@@ -124,9 +124,9 @@ async def search_documents(request: InvestmentSearchRequest):
 async def list_documents(
     limit: int = Query(default=10, ge=1, le=100),
     offset: Optional[str] = Query(default=None),
-    tickers: Optional[List[str]] = Query(default=None),
-    sectors: Optional[List[str]] = Query(default=None),
-    industries: Optional[List[str]] = Query(default=None),
+    symbols: Optional[List[str]] = Query(default=None),
+    subsectors: Optional[List[str]] = Query(default=None),
+    subindustries: Optional[List[str]] = Query(default=None),
     types: Optional[List[DocumentType]] = Query(default=None),
     date_from: Optional[str] = Query(default=None),
     date_to: Optional[str] = Query(default=None)
@@ -135,9 +135,9 @@ async def list_documents(
     List/scroll through documents with optional metadata filtering.
     
     Supports filtering by:
-    - tickers: List of ticker symbols
-    - sectors: List of sectors
-    - industries: List of industries
+    - symbols: List of symbols
+    - subsectors: List of subsectors
+    - subindustries: List of subindustries
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
     
@@ -149,12 +149,12 @@ async def list_documents(
     
     # Build filter from query parameters
     filters = {}
-    if tickers:
-        filters['tickers'] = tickers
-    if sectors:
-        filters['sectors'] = sectors
-    if industries:
-        filters['industries'] = industries
+    if symbols:
+        filters['symbols'] = symbols
+    if subsectors:
+        filters['subsectors'] = subsectors
+    if subindustries:
+        filters['subindustries'] = subindustries
     if types:
         filters['types'] = types
     if date_from:
