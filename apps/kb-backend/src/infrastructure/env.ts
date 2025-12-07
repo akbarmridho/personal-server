@@ -34,6 +34,9 @@ export const env = createEnv({
     AGGREGATOR_COMPANIES_ENDPOINT: z.string(),
     AGGREGATOR_SECTORS_REPORT_ENDPOINT: z.string(),
 
+    // knowledge service
+    KNOWLEDGE_SERVICE_URL: z.string(),
+
     // telegram
     TELEGRAM_CHANNEL_ID: z.string(),
     TELEGRAM_KEY: z.string(),
