@@ -5,7 +5,7 @@ import { env } from "./env.js";
 
 type Events = {
   "data/snips-part": {
-    data: SnipInputData[];
+    data: { payload: SnipInputData[] };
   };
 };
 

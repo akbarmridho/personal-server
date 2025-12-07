@@ -15,7 +15,7 @@ export const snipsIngestPart = inngest.createFunction(
   async ({ event, step }) => {
     const parts = await step.run("cleanup", async () => {
       // no network calls, 99.9% succeed
-      const cleanedUp = await cleanupSnips(event.data);
+      const cleanedUp = await cleanupSnips(event.data.payload);
 
       const hasSymbol = cleanedUp.filter((e) => e.symbols.length > 0);
       const noSymbol = cleanedUp.filter((e) => e.symbols.length === 0);
