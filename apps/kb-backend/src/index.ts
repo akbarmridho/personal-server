@@ -70,7 +70,12 @@ async function main() {
   // add other mcp here
 
   // inngest
-  proxyApp.use("/api/inngest", express.json());
+  proxyApp.use(
+    "/api/inngest",
+    express.json({
+      limit: "32mb",
+    }),
+  );
   proxyApp.use(
     "/api/inngest",
     serve({ client: inngest, functions: inngestFunctions }),
