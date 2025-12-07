@@ -22,6 +22,7 @@ export const env = createEnv({
     STOCK_HTTP_PROXY_URL: z.string(),
     INNGEST_BASE_URL: z.string(),
     INNGEST_EVENT_KEY: z.string(),
+    INNGEST_SIGNING_KEY: z.string(),
 
     // aggregator site
     AGGREGATOR_AUTH: z.string(),
