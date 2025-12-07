@@ -1,6 +1,7 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import z from "zod";
+import { logger } from "../../utils/logger.js";
 
 export const normalizeSector = (value: string) => {
   return value
@@ -964,50 +965,92 @@ export async function classifySector(
     ${previousError ? `\n### PREVIOUS ERROR (FIX THIS): \n${previousError}` : ""}
   `;
 
-  const result = await generateObject({
-    model: openrouter("openai/gpt-oss-20b", {
-      reasoning: {
-        effort: "low",
-      },
-      models: ["google/gemini-2.5-flash-lite-preview-09-2025"],
-    }),
-    schema: ClassificationSchema,
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: `Content to classify:\n"${content}"` },
-    ],
-  });
+  try {
+    const result = await generateObject({
+      model: openrouter("openai/gpt-oss-20b", {
+        reasoning: {
+          effort: "low",
+        },
+        models: ["google/gemini-2.5-flash-lite-preview-09-2025"],
+      }),
+      schema: ClassificationSchema,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Content to classify:\n"${content}"` },
+      ],
+      maxRetries: 3, // Internal SDK retries for network blips
+      abortSignal: AbortSignal.timeout(3 * 60 * 1000), // 3 minutes hard timeout
+    });
 
-  const {
-    subsectors: predictedSubsectors,
-    subindustries: predictedSubindustries,
-  } = result.object;
+    const {
+      subsectors: predictedSubsectors,
+      subindustries: predictedSubindustries,
+    } = result.object;
 
-  const invalidSubsectors = predictedSubsectors.filter(
-    (s) => !validSubsectors.has(s),
-  );
-  const invalidSubindustries = predictedSubindustries.filter(
-    (s) => !validSubindustries.has(s),
-  );
+    // --- Validation Logic ---
+    const invalidSubsectors = predictedSubsectors.filter(
+      (s) => !validSubsectors.has(s),
+    );
+    const invalidSubindustries = predictedSubindustries.filter(
+      (s) => !validSubindustries.has(s),
+    );
 
-  if (invalidSubsectors.length > 0 || invalidSubindustries.length > 0) {
-    if (attempt < maxRetries) {
-      const errorMsg = `Validation Failed. 
-      The following values are NOT in the provided taxonomy: 
-      Subsectors: [${invalidSubsectors.join(", ")}]
-      Subindustries: [${invalidSubindustries.join(", ")}]
-      
-      Please retry and provide ONLY valid names from the JSON list.`;
+    if (invalidSubsectors.length > 0 || invalidSubindustries.length > 0) {
+      if (attempt < maxRetries) {
+        const errorMsg = `Validation Failed. 
+        The following values are NOT in the provided taxonomy: 
+        Subsectors: [${invalidSubsectors.join(", ")}]
+        Subindustries: [${invalidSubindustries.join(", ")}]
+        
+        Please retry and provide ONLY valid names from the JSON list.`;
 
-      return classifySector(content, attempt + 1, errorMsg);
-    } else {
-      // If retries exhausted, return empty to be safe
+        logger.warn(`Attempt ${attempt} validation failed. Retrying...`);
+        return classifySector(content, attempt + 1, errorMsg);
+      } else {
+        // If retries exhausted on validation, return empty to be safe
+        logger.error("Max retries reached on validation errors.");
+        return {
+          subsectors: [],
+          subindustries: [],
+        };
+      }
+    }
+
+    return result.object;
+  } catch (error: unknown) {
+    // --- Error Handling ---
+
+    // 1. Handle AbortSignal (Timeout)
+    if (error instanceof Error && error.name === "AbortError") {
+      logger.error(
+        `Attempt ${attempt}: Classification timed out (3 mins). Returning empty result.`,
+      );
+      // Do not retry on timeout to prevent indefinite hanging/resource exhaustion
       return {
         subsectors: [],
         subindustries: [],
       };
     }
-  }
 
-  return result.object;
+    // 2. Handle General/Technical Errors (API errors, Parsing errors)
+    logger.error(
+      error,
+      `Attempt ${attempt}: Technical error during classification.`,
+    );
+
+    if (attempt < maxRetries) {
+      const technicalErrorMsg = `Previous attempt failed due to a technical error: ${
+        error instanceof Error ? error.message : "Unknown Error"
+      }. Please ensure valid JSON output.`;
+
+      // Retry recursively
+      return classifySector(content, attempt + 1, technicalErrorMsg);
+    }
+
+    // 3. Fallback
+    return {
+      subsectors: [],
+      subindustries: [],
+    };
+  }
 }
