@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
-import { env } from "../env.js";
+import { env } from "../infrastructure/env.js";
 import { retriever } from "../rag/storage/retrieve.js";
 import { vectorStore } from "../rag/storage/store.js";
 import { logger } from "../utils/logger.js";

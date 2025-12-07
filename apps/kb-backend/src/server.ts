@@ -4,7 +4,7 @@ import { node } from "@elysiajs/node";
 import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
-import { env } from "./env.js";
+import { env } from "./infrastructure/env.js";
 import { setupInternetRoutes } from "./internet/http.js";
 import { setupRagRoutes } from "./rag/http.js";
 import { setupStockRoutes } from "./stock/http.js";

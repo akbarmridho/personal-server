@@ -2,7 +2,7 @@ import "@dotenvx/dotenvx/config";
 import { Impit } from "impit";
 import pRetry from "p-retry";
 import { CookieJar } from "tough-cookie";
-import { env } from "../../env.js";
+import { env } from "../../infrastructure/env.js";
 
 // Shared base interfaces for posts and comments
 interface RedditUser {

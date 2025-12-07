@@ -1,7 +1,7 @@
 import { FastMCP } from "fastmcp";
 import z from "zod";
 import { db } from "../db/db.js";
-import { env } from "../env.js";
+import { env } from "../infrastructure/env.js";
 import { logger } from "../utils/logger.js";
 import { retriever } from "./storage/retrieve.js";
 

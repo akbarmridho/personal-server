@@ -2,7 +2,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import z from "zod";
 import { KV } from "../../db/kv.js";
-import { env } from "../../env.js";
+import { env } from "../../infrastructure/env.js";
 import { logger } from "../../utils/logger.js";
 import { normalizeSlug } from "../utils.js";
 import { supportedSubsectors } from "./sectors.js";

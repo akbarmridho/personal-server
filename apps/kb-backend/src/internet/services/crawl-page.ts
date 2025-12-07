@@ -4,7 +4,7 @@ import axios, { type AxiosError } from "axios";
 import pRetry, { AbortError } from "p-retry";
 import sharp from "sharp";
 import z from "zod";
-import { env } from "../../env.js";
+import { env } from "../../infrastructure/env.js";
 import { logger } from "../../utils/logger.js";
 
 interface FetchParams {

@@ -7,7 +7,7 @@ dayjs.extend(timezone);
 
 import OpenAI from "openai";
 import pRetry from "p-retry";
-import { env } from "../../env.js";
+import { env } from "../../infrastructure/env.js";
 import { logger } from "../../utils/logger.js";
 
 // at most 10 handle
