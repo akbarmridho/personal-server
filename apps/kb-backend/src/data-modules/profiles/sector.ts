@@ -1,3 +1,7 @@
+import { openrouter } from "@openrouter/ai-sdk-provider";
+import { generateObject } from "ai";
+import z from "zod";
+
 export const normalizeSector = (value: string) => {
   return value
     .replace(/&/g, "and")
@@ -903,3 +907,107 @@ export const sectors: Array<{
     ],
   },
 ];
+
+const validSubsectors = new Set<string>();
+const validSubindustries = new Set<string>();
+
+sectors.forEach((sector) => {
+  sector.subsectors.forEach((sub) => {
+    validSubsectors.add(sub.name);
+    sub.industries.forEach((ind) => {
+      ind.subindustries.forEach((subInd) => {
+        validSubindustries.add(subInd.name);
+      });
+    });
+  });
+});
+
+// 2. Define the schema for the LLM output
+const ClassificationSchema = z.object({
+  subsectors: z
+    .array(z.string())
+    .describe("List of relevant subsector names from the provided taxonomy."),
+  subindustries: z
+    .array(z.string())
+    .describe("List of relevant subindustry names from the provided taxonomy."),
+});
+
+export async function classifySector(
+  content: string,
+  attempt = 1,
+  previousError?: string,
+): Promise<z.infer<typeof ClassificationSchema>> {
+  const maxRetries = 3;
+
+  // Construct the system prompt with the full taxonomy
+  const systemPrompt = `
+    You are a Senior Financial Analyst for the Indonesian Stock Market.
+    Your task is to classify news articles into specific hierarchical categories based on a provided taxonomy.
+
+    ### TAXONOMY DATA
+    ${JSON.stringify(sectors, null, 2)}
+
+    ### INSTRUCTIONS
+    1. **Analyze**: Read the news content thoroughly.
+    2. **Determine Sector**: Identify which broad Sector (e.g., 'financials', 'energy') the news belongs to.
+    3. **Determine Subsector**: If the content is specific enough, identify the 'subsector'. 
+    4. **Determine Industry/Subindustry**: Drill down to the specific 'subindustry' ONLY if the text explicitly discusses activities related to that subindustry.
+
+    ### RULES
+    - **Exact Matches Only**: You must return the 'name' field exactly as it appears in the Taxonomy Data. Do not invent new names.
+    - **Specificity Level**: 
+      - If an article talks about "Mining regulation" generally, map it to the 'basic-materials' subsector, but leave 'subindustries' EMPTY.
+      - If an article talks about "Gold prices", map it to 'metals-and-minerals' subsector AND 'gold' subindustry.
+    - **General News**: If the news is about the general economy (e.g., "IHSG rises", "Inflation data") or does not fit any specific category strongly, return EMPTY arrays for both fields.
+    - **Relevance**: Do not force a match. It is better to return empty arrays than to misclassify.
+
+    ${previousError ? `\n### PREVIOUS ERROR (FIX THIS): \n${previousError}` : ""}
+  `;
+
+  const result = await generateObject({
+    model: openrouter("openai/gpt-oss-20b", {
+      reasoning: {
+        effort: "low",
+      },
+      models: ["google/gemini-2.5-flash-lite-preview-09-2025"],
+    }),
+    schema: ClassificationSchema,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Content to classify:\n"${content}"` },
+    ],
+  });
+
+  const {
+    subsectors: predictedSubsectors,
+    subindustries: predictedSubindustries,
+  } = result.object;
+
+  const invalidSubsectors = predictedSubsectors.filter(
+    (s) => !validSubsectors.has(s),
+  );
+  const invalidSubindustries = predictedSubindustries.filter(
+    (s) => !validSubindustries.has(s),
+  );
+
+  if (invalidSubsectors.length > 0 || invalidSubindustries.length > 0) {
+    if (attempt < maxRetries) {
+      const errorMsg = `Validation Failed. 
+      The following values are NOT in the provided taxonomy: 
+      Subsectors: [${invalidSubsectors.join(", ")}]
+      Subindustries: [${invalidSubindustries.join(", ")}]
+      
+      Please retry and provide ONLY valid names from the JSON list.`;
+
+      return classifySector(content, attempt + 1, errorMsg);
+    } else {
+      // If retries exhausted, return empty to be safe
+      return {
+        subsectors: [],
+        subindustries: [],
+      };
+    }
+  }
+
+  return result.object;
+}
