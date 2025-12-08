@@ -12,8 +12,5 @@ class Settings(BaseSettings):
     
     # API Keys
     OPENROUTER_API_KEY: str | None = None
-    
-    class Config:
-        env_file: str = ".env"
 
 settings = Settings()

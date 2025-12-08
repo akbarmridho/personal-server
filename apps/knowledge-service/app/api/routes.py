@@ -12,17 +12,16 @@ from typing import List, Dict, Any, Optional
 
 router = APIRouter()
 
-# Initialize services (lazy load or startup event preferred, but global for simplicity here)
-# In a real app, use dependency injection or lifespan events.
+# Services initialized at startup
 embedding_service = None
 qdrant_service = None
 
-def get_services():
+def initialize_services():
     global embedding_service, qdrant_service
-    if not embedding_service:
-        embedding_service = EmbeddingService()
-    if not qdrant_service:
-        qdrant_service = QdrantService()
+    embedding_service = EmbeddingService()
+    qdrant_service = QdrantService()
+
+def get_services():
     return embedding_service, qdrant_service
 
 @router.post("/documents", response_model=Dict[str, str | int])
