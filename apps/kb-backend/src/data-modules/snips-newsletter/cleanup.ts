@@ -8,6 +8,110 @@ import { visit } from "unist-util-visit";
 import type { VFile } from "vfile";
 import type { Snips } from "./types.js";
 
+/**
+ * Normalize problematic/invisible Unicode to safe ASCII where appropriate.
+ * Standalone TypeScript/Node.js port of the Python `clean_text` function.
+ *
+ * Note: The original Python version uses `ftfy.fix_text` for advanced Unicode
+ * cleanup. Here we approximate with standard Unicode normalization only.
+ */
+export function cleanUnicodeChars(
+  text: string,
+  preserveInvisible: boolean = false,
+  preserveQuotes: boolean = false,
+  preserveDashes: boolean = false,
+  preserveFullwidthBrackets: boolean = false,
+): string {
+  // Rough replacement for `ftfy.fix_text` – basic Unicode normalization only.
+  // You may change to "NFKC" or another form if preferred.
+  text = text.normalize("NFC");
+
+  // Quote normalization
+  if (!preserveQuotes) {
+    // Pass 1: explicit fast translations
+    const QUOTE_ELLIPSIS_MAP: Record<string, string> = {
+      "\u2018": "'", // ‘
+      "\u2019": "'", // ’
+      "\u201B": "'", // ‛
+      "\u201A": "'", // ‚
+      "\u2039": "'", // ‹
+      "\u203A": "'", // ›
+      "\u02BC": "'", // ʼ
+      "\uFF07": "'", // ＇
+      "\u201C": '"', // “
+      "\u201D": '"', // ”
+      "\u201E": '"', // „
+      "\u201F": '"', // ‟
+      "\u00AB": '"', // «
+      "\u00BB": '"', // »
+      "\uFF02": '"', // ＂
+      "\u2026": "...", // …
+      "\u22EF": "...", // ⋯
+      "\u2025": "..", // ‥
+    };
+
+    // Apply explicit map
+    text = Array.from(text, (ch) => QUOTE_ELLIPSIS_MAP[ch] ?? ch).join("");
+
+    // Pass 2: fallback for remaining opening/closing punctuation
+    // We don't have Python's `unicodedata.category`/`name` in JS, so:
+    // - collapse any remaining paired punctuation (Pi/Pf) to a double quote.
+    const PAIRED_PUNCT_RE = /\p{Pi}|\p{Pf}/u;
+
+    let mapped = "";
+    for (const ch of text) {
+      if (PAIRED_PUNCT_RE.test(ch)) {
+        mapped += '"';
+      } else {
+        mapped += ch;
+      }
+    }
+    text = mapped;
+  }
+
+  // Dash normalization
+  if (!preserveDashes) {
+    // EM dash → space-dash-space
+    text = text.replace(/\s*\u2014\s*/g, " - ");
+    // EN dash → hyphen-minus
+    text = text.replace(/\u2013/g, "-");
+  }
+
+  // Fold select fullwidth punctuation that affects monospace alignment
+  if (!preserveFullwidthBrackets) {
+    const FULLWIDTH_FOLD: Record<string, string> = {
+      "\u3010": "[", // 【
+      "\u3011": "]", // 】
+    };
+
+    if ([...text].some((ch) => ch in FULLWIDTH_FOLD)) {
+      text = Array.from(text, (ch) => FULLWIDTH_FOLD[ch] ?? ch).join("");
+    }
+  }
+
+  // Zs separators → ASCII space
+  text = text.replace(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, " ");
+
+  if (!preserveInvisible) {
+    // Remove zero-width, bidi, and control invisibles
+    text = text.replace(
+      /[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,
+      "",
+    );
+  }
+
+  // Strip trailing spaces/tabs on each line
+  text = text.replace(/[ \t]+(\r?\n)/g, "$1");
+
+  // Remove whitespace-only lines' spaces/tabs (keep the newline)
+  text = text.replace(/^[ \t]+(\r?\n)/gm, "$1");
+
+  // If the file ends with spaces/tabs but no newline yet, drop them
+  text = text.replace(/[ \t]+$/g, "");
+
+  return text;
+}
+
 export interface InputData {
   date: string;
   content: string;
@@ -126,7 +230,7 @@ export async function cleanupSnips(data: InputData[]): Promise<Snips[]> {
   const results = await Promise.all(
     data.map(async (item) => {
       // Clean leading list markers (*, -, 1., 20.)
-      let content = item.content;
+      let content = cleanUnicodeChars(item.content);
       content = item.content.replace(/^(\*|-|\d+\.)\s+/, "");
 
       // strip emoji
