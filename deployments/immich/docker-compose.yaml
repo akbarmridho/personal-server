@@ -16,6 +16,10 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G   # Cap of 1GB RAM
     healthcheck:
       test:
         [

@@ -37,6 +37,9 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__TELEMETRY_DISABLED=true
+      - QDRANT__LOG_LEVEL=DEBUG
     deploy:
       resources:
         limits:

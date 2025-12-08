@@ -6,7 +6,7 @@ import uuid
 
 class QdrantService:
     def __init__(self):
-        self.client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, timeout=180)
+        self.client = QdrantClient(host=settings.QDRANT_HOST, timeout=180, prefer_grpc=True)
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         self._ensure_collection()
 

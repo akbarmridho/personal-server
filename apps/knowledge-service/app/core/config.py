@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     
     # Qdrant
     QDRANT_HOST: str = "localhost"
-    QDRANT_PORT: int = 6333
     QDRANT_COLLECTION_NAME: str = "investment_documents"
     
     # API Keys
