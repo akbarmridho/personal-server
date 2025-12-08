@@ -6,7 +6,7 @@ import uuid
 
 class QdrantService:
     def __init__(self):
-        self.client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
+        self.client = QdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT, timeout=180)
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         self._ensure_collection()
 
@@ -103,7 +103,7 @@ class QdrantService:
         self.client.upsert(
             collection_name=self.collection_name,
             points=points,
-            wait=True
+            wait=False
         )
 
     def build_filter(self, filters: Dict[str, Any]) -> models.Filter:
@@ -214,7 +214,8 @@ class QdrantService:
             using="late",
             limit=limit,
             query_filter=query_filter,
-            with_payload=True
+            with_payload=True,
+            timeout=60
         )
         
         return [point.model_dump() for point in results.points]
@@ -239,7 +240,8 @@ class QdrantService:
             offset=offset,
             scroll_filter=scroll_filter,
             with_payload=True,
-            with_vectors=False
+            with_vectors=False,
+            timeout=60
         )
         
         return {
