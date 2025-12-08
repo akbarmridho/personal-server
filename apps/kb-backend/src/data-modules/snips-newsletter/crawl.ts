@@ -10,7 +10,7 @@ const BASE_URL = "https://snips.stockbit.com/";
 const BACKFILL_LATEST_URL = "2025-12-03";
 const lastCrawlDateKey = "data-modules.snips.last-scrape-date";
 
-export const crawlSnips = inngest.createFunction(
+export const snipsCrawl = inngest.createFunction(
   {
     id: "snips-crawl",
     concurrency: 1,
