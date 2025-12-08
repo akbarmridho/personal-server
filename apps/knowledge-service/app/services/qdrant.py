@@ -11,8 +11,9 @@ class QdrantService:
         self._ensure_collection()
 
     def _ensure_collection(self):
+        """Create collection with indexing disabled by default for efficient backfilling."""
         if not self.client.collection_exists(self.collection_name):
-            print(f"Creating collection {self.collection_name}...")
+            print(f"Creating collection {self.collection_name} with indexing disabled...")
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config={
@@ -21,7 +22,7 @@ class QdrantService:
                         distance=models.Distance.COSINE,
                         on_disk=True,
                         datatype=models.Datatype.FLOAT16,
-                        hnsw_config=models.HnswConfigDiff()
+                        hnsw_config=models.HnswConfigDiff(m=0)  # Indexing disabled
                     ),
                     "late": models.VectorParams(
                         size=EmbeddingService.BGE_M3_COLBERT_DIMENSION,
@@ -30,9 +31,7 @@ class QdrantService:
                             comparator=models.MultiVectorComparator.MAX_SIM,
                         ),
                         on_disk=True,
-                        hnsw_config=models.HnswConfigDiff(
-                            m=0, # don't build index
-                        ),
+                        hnsw_config=models.HnswConfigDiff(m=0),  # Indexing disabled
                         quantization_config=models.BinaryQuantization(
                             binary=models.BinaryQuantizationConfig(
                                 always_ram=False,
@@ -50,8 +49,35 @@ class QdrantService:
                     ),
                 }
             )
-            print("Collection created.")
-            self._create_payload_indexes()
+            print("Collection created with indexing disabled.")
+    
+    def enable_indexing(self):
+        """Enable indexing for the existing collection (only for dense vector, late vector remains disabled)."""
+        if not self.client.collection_exists(self.collection_name):
+            raise ValueError(f"Collection {self.collection_name} does not exist.")
+            
+        print(f"Enabling indexing for collection {self.collection_name}...")
+        
+        # Update vector configs to enable indexing only for dense vector
+        self.client.update_collection(
+            collection_name=self.collection_name,
+            vectors_config={
+                "dense": models.VectorParamsDiff(
+                    hnsw_config=models.HnswConfigDiff(
+                        m=16,  # Default value for indexing
+                        ef_construct=100,  # Default value for indexing
+                    )
+                ),
+                # Keep late vector indexing disabled as intended
+                "late": models.VectorParamsDiff(
+                    hnsw_config=models.HnswConfigDiff(m=0)
+                )
+            }
+        )
+        
+        # Create payload indexes
+        self._create_payload_indexes()
+        print("Indexing enabled for dense vector (late vector remains disabled).")
     
     def _create_payload_indexes(self):
         """Create payload indexes for efficient filtering on metadata fields."""

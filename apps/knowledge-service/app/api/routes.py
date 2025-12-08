@@ -172,3 +172,21 @@ async def list_documents(
     )
     
     return result
+
+@router.post("/admin/enable-indexing")
+async def enable_indexing():
+    """
+    Enable indexing for the existing collection.
+    This will create payload indexes and update HNSW configuration.
+    """
+    _, qdrant_svc = get_services()
+    
+    try:
+        qdrant_svc.enable_indexing()
+        return {
+            "status": "success",
+            "message": "Indexing enabled for collection"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
