@@ -7,6 +7,12 @@ type Events = {
   "data/snips-part": {
     data: { payload: SnipInputData[] };
   };
+  "data/snips-scrape": {
+    data: {
+      url: string;
+      date: string;
+    };
+  };
 };
 
 export const inngest = new Inngest({

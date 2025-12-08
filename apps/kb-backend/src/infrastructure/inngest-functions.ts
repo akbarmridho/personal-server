@@ -1,5 +1,6 @@
 import type { InngestFunction } from "inngest";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
+import { crawlSnips } from "../data-modules/snips-newsletter/crawl.js";
 import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { env } from "./env.js";
 import { inngest } from "./inngest.js";
@@ -22,4 +23,5 @@ export const inngestFunctions: InngestFunction.Like[] = [
   failureNotification,
   updateCompanies,
   snipsIngestPart,
+  crawlSnips,
 ];
