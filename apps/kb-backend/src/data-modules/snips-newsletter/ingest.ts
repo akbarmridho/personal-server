@@ -36,7 +36,8 @@ export const snipsIngestPart = inngest.createFunction(
     );
 
     const payload = await step.run("prepare-payload", async () => {
-      const data: InvestmentDocument[] = [...parts.hasSymbol, ...noSymbol].map(
+      const hasSymbolMapped = await tagSnips(parts.hasSymbol);
+      const data: InvestmentDocument[] = [...hasSymbolMapped, ...noSymbol].map(
         (e) => {
           return {
             id: uuidv5(`${e.date}${e.content}`, namespace),
