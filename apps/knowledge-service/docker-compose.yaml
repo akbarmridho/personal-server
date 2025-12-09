@@ -5,13 +5,17 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8016:8000"
+      - "8016:8000"      # Application port
+    #  - "12345:12345"    # Memray live remote port
     environment:
       - PYTHONUNBUFFERED=1
       - QDRANT_HOST=qdrant
     env_file:
       - .env
     restart: unless-stopped
+    # Use command override for profiling when needed
+    # Uncomment the command below to enable Memray remote profiling:
+    # command: ["memray", "run", "--live-remote", "--live-port", "12345", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
     deploy:
       resources:
         limits:
