@@ -36,44 +36,44 @@ def prepare_embedding_text(doc: Dict[str, Any]) -> str:
         ...     "document_date": "2025-10-21"
         ... }
         >>> prepare_embedding_text(doc)
-        'News: BBCA Q3 Earnings\\nCompanies: BBCA\\nSubsectors: financials\\n
-Date: 2025-10-21\\n\\nBank Central Asia reported...'
+        'BBCA Q3 Earnings\\n\\nBank Central Asia reported...\\n\\nCompanies: BBCA\\nSubsectors: financials\\nDate: 2025-10-21\\nType: News'
     """
     parts = []
     
-    # 1. Document type (helps distinguish news vs analysis vs rumours)
-    doc_type = doc['type'].replace('_', ' ').title()
-    
+    # 1. Title (if available) - most important
     if doc.get('title'):
-        parts.append(f"{doc_type}: {doc['title']}")
-    else:
-        parts.append(doc_type)
+        parts.append(doc['title'])
+        parts.append('')  # Empty line separator
     
-    # 2. Symbol context (if available)
+    # 2. Main content - most important
+    parts.append(doc['content'])
+    parts.append('')  # Empty line separator
+    
+    # 3. Symbol context (if available)
     if doc.get('symbols'):
         parts.append(f"Companies: {', '.join(doc['symbols'])}")
     
-    # 3. Subsector/subindustry context (if available)
+    # 4. Subsector/subindustry context (if available)
     if doc.get('subsectors'):
         parts.append(f"Subsectors: {', '.join(doc['subsectors'])}")
     if doc.get('subindustries'):
         parts.append(f"Subindustries: {', '.join(doc['subindustries'])}")
     
-    # 4. Indices (if available)
+    # 5. Indices (if available)
     if doc.get('indices'):
         parts.append(f"Markets: {', '.join(doc['indices'])}")
-    
-    # 5. Source context (important for rumours)
-    if doc['type'] == 'rumour':
-        platform = doc['source'].get('platform', 'social media')
-        parts.append(f"Source: {platform} discussion")
     
     # 6. Temporal context
     parts.append(f"Date: {doc['document_date']}")
     
-    # 7. Main content (most important - gets full weight)
-    parts.append('')  # Empty line separator
-    parts.append(doc['content'])
+    # 7. Document type
+    doc_type = doc['type'].replace('_', ' ').title()
+    parts.append(f"Type: {doc_type}")
+    
+    # 8. Source context (important for rumours)
+    if doc['type'] == 'rumour':
+        platform = doc['source'].get('platform', 'social media')
+        parts.append(f"Source: {platform} discussion")
     
     return '\n'.join(parts)
 

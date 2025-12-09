@@ -129,7 +129,7 @@ class BGEM3OnnxRunner:
 class EmbeddingService:
     DENSE_MODEL: str = "qwen/qwen3-embedding-8b"
     DENSE_DIMENSION: int = 1024
-    BGE_M3_LENGTH: int = 3072 # NOTE: ONNX usually capped at 512 or 8192 depending on export. 
+    BGE_M3_LENGTH: int = 2048
     BGE_M3_COLBERT_DIMENSION: int = 1024
     
     # Typed as the custom runner now
