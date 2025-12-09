@@ -16,10 +16,11 @@ router = APIRouter()
 embedding_service = None
 qdrant_service = None
 
-def initialize_services():
+async def initialize_services():
     global embedding_service, qdrant_service
     embedding_service = EmbeddingService()
     qdrant_service = QdrantService()
+    await qdrant_service._ensure_collection()
 
 def get_services():
     return embedding_service, qdrant_service
@@ -181,7 +182,7 @@ async def enable_indexing():
     _, qdrant_svc = get_services()
     
     try:
-        qdrant_svc.enable_indexing()
+        await qdrant_svc.enable_indexing()
         return {
             "status": "success",
             "message": "Indexing enabled for collection"

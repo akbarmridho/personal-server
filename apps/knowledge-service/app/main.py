@@ -7,7 +7,7 @@ from app.api.routes import router as api_router, initialize_services
 async def lifespan(app: FastAPI):
     # Startup: Initialize services eagerly
     print("Initializing services...")
-    initialize_services()
+    await initialize_services()
     print("Services initialized successfully")
     yield
     # Shutdown: cleanup if needed

@@ -1,5 +1,6 @@
 import asyncio
 import os
+import gc
 import numpy as np
 import onnxruntime as ort
 from concurrent.futures import ThreadPoolExecutor
@@ -92,6 +93,9 @@ class BGEM3OnnxRunner:
             raw_sparse_vecs = outputs[1]
             raw_colbert_vecs = outputs[2]
             
+            # Clear inputs immediately after inference
+            del inputs, encoded
+            
             # --- PROCESS COLBERT (LATE) ---
             for j, mask in enumerate(encoded["attention_mask"]):
                 # Slice off padding to save RAM (ColBERT is storage heavy)
@@ -119,6 +123,10 @@ class BGEM3OnnxRunner:
         for i, original_idx in enumerate(sorted_indices):
             results["sparse"][original_idx] = all_sparse[i]
             results["colbert"][original_idx] = all_colbert[i]
+        
+        # Cleanup temporary arrays
+        del all_sparse, all_colbert, sorted_indices
+        gc.collect()
             
         return results
 
@@ -142,7 +150,11 @@ class EmbeddingService:
 
         # Initialize the Optimized ONNX Runner
         self.bge_m3_model = BGEM3OnnxRunner()
-        self.m3_lock = asyncio.Lock()
+        
+        # Semaphore to allow controlled concurrent ONNX inference
+        # max_workers=1 in executor + semaphore=1 = sequential (safe for low RAM)
+        # Increase semaphore if you have more RAM and want parallel processing
+        self.m3_semaphore = asyncio.Semaphore(1)
         
         # Configurable batch size for ONNX
         self.m3_batch_size = int(os.getenv("BGE_M3_BATCH_SIZE", 2))
@@ -196,8 +208,9 @@ class EmbeddingService:
         """
         BGE-M3 encode via ONNX.
         Runs in a separate thread to avoid blocking the Async Event Loop.
+        Uses semaphore for controlled concurrency.
         """
-        async with self.m3_lock:
+        async with self.m3_semaphore:
             loop = asyncio.get_running_loop()
             
             # Offload CPU-intensive ONNX work to thread pool
@@ -223,6 +236,10 @@ class EmbeddingService:
                 "sparse": dict_to_sparse_vector(output["sparse"][i]),
                 "late": late
             })
+        
+        # Free memory after processing
+        del output
+        gc.collect()
 
         return results
 

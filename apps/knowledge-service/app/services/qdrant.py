@@ -1,4 +1,4 @@
-from qdrant_client import QdrantClient, models
+from qdrant_client import AsyncQdrantClient, models
 from app.core.config import settings
 from app.services.embeddings import EmbeddingService
 from typing import List, Dict, Any
@@ -6,15 +6,14 @@ import uuid
 
 class QdrantService:
     def __init__(self):
-        self.client = QdrantClient(host=settings.QDRANT_HOST, timeout=180, prefer_grpc=True)
+        self.client = AsyncQdrantClient(host=settings.QDRANT_HOST, timeout=180, prefer_grpc=True)
         self.collection_name = settings.QDRANT_COLLECTION_NAME
-        self._ensure_collection()
 
-    def _ensure_collection(self):
+    async def _ensure_collection(self):
         """Create collection with indexing disabled by default for efficient backfilling."""
-        if not self.client.collection_exists(self.collection_name):
+        if not await self.client.collection_exists(self.collection_name):
             print(f"Creating collection {self.collection_name} with indexing disabled...")
-            self.client.create_collection(
+            await self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config={
                     "dense": models.VectorParams(
@@ -51,15 +50,15 @@ class QdrantService:
             )
             print("Collection created with indexing disabled.")
     
-    def enable_indexing(self):
+    async def enable_indexing(self):
         """Enable indexing for the existing collection (only for dense vector, late vector remains disabled)."""
-        if not self.client.collection_exists(self.collection_name):
+        if not await self.client.collection_exists(self.collection_name):
             raise ValueError(f"Collection {self.collection_name} does not exist.")
             
         print(f"Enabling indexing for collection {self.collection_name}...")
         
         # Update vector configs to enable indexing only for dense vector
-        self.client.update_collection(
+        await self.client.update_collection(
             collection_name=self.collection_name,
             vectors_config={
                 "dense": models.VectorParamsDiff(
@@ -76,10 +75,10 @@ class QdrantService:
         )
         
         # Create payload indexes
-        self._create_payload_indexes()
+        await self._create_payload_indexes()
         print("Indexing enabled for dense vector (late vector remains disabled).")
     
-    def _create_payload_indexes(self):
+    async def _create_payload_indexes(self):
         """Create payload indexes for efficient filtering on metadata fields."""
         print("Creating payload indexes...")
         
@@ -101,7 +100,7 @@ class QdrantService:
         
         for field_name, field_type in indexes.items():
             try:
-                self.client.create_payload_index(
+                await self.client.create_payload_index(
                     collection_name=self.collection_name,
                     field_name=field_name,
                     field_schema=field_type
@@ -126,7 +125,7 @@ class QdrantService:
                 vector=doc["vectors"]
             ))
             
-        self.client.upsert(
+        await self.client.upsert(
             collection_name=self.collection_name,
             points=points,
             wait=False
@@ -220,7 +219,7 @@ class QdrantService:
         max_limit = min(limit * 3, 100)
 
         # Prefetch from all sources
-        results = self.client.query_points(
+        results = await self.client.query_points(
             collection_name=self.collection_name,
             prefetch=[
                 models.Prefetch(
@@ -260,7 +259,7 @@ class QdrantService:
             offset: Pagination offset
             scroll_filter: Optional Qdrant Filter object for metadata filtering
         """
-        results, next_page_offset = self.client.scroll(
+        results, next_page_offset = await self.client.scroll(
             collection_name=self.collection_name,
             limit=limit,
             offset=offset,

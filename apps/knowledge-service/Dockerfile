@@ -14,6 +14,11 @@ COPY requirements.txt .
 # Install python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-download models to avoid downloading on startup
+RUN python -c "from huggingface_hub import hf_hub_download; from transformers import AutoTokenizer; \
+    hf_hub_download(repo_id='gpahal/bge-m3-onnx-int8', filename='model_quantized.onnx'); \
+    AutoTokenizer.from_pretrained('BAAI/bge-m3')"
+
 # Copy application code
 COPY . .
 
