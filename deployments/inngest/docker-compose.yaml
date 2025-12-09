@@ -10,6 +10,7 @@ services:
       - INNGEST_SIGNING_KEY=736563726574 # secret
       - INNGEST_POSTGRES_URI=postgres://postgres:postgres@postgres_main:5432/inngest
       - INNGEST_REDIS_URI=redis://inngest_redis:6379
+    restart: unless-stopped
     depends_on:
       inngest_redis:
         condition: service_healthy
@@ -25,6 +26,7 @@ services:
     #   - "6379:6379"
     volumes:
       - inngest_redis:/data
+    restart: unless-stopped
     networks:
       - personal_network
     healthcheck:
