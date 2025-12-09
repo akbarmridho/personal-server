@@ -35,6 +35,7 @@ class BGEM3OnnxRunner:
         sess_options = ort.SessionOptions()
         sess_options.intra_op_num_threads = 2
         sess_options.inter_op_num_threads = 1
+        sess_options.enable_cpu_mem_arena = False
         
         self.session = ort.InferenceSession(
             model_path, 
