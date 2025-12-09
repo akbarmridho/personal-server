@@ -93,9 +93,6 @@ class BGEM3OnnxRunner:
             raw_sparse_vecs = outputs[1]
             raw_colbert_vecs = outputs[2]
             
-            # Clear inputs immediately after inference
-            del inputs, encoded
-            
             # --- PROCESS COLBERT (LATE) ---
             for j, mask in enumerate(encoded["attention_mask"]):
                 # Slice off padding to save RAM (ColBERT is storage heavy)
@@ -113,6 +110,9 @@ class BGEM3OnnxRunner:
                         sparse_dict[str(token_id)] = max(sparse_dict[str(token_id)], float(weight))
                 
                 all_sparse.append(dict(sparse_dict))
+            
+            # Clear memory after processing this batch
+            del inputs, encoded, outputs, raw_sparse_vecs, raw_colbert_vecs
                 
         # Restore original order
         results = {
