@@ -212,9 +212,16 @@ class EmbeddingService:
 
         results = []
         for i in range(len(texts)):
+            late = output["colbert"][i]
+
+            if len(late) > 900:
+                # we have to trim colbert multivector on long tokens since qdrant have total vector hard limit
+                # of 1,048,576 vector items
+                late = late[:900]
+
             results.append({
                 "sparse": dict_to_sparse_vector(output["sparse"][i]),
-                "late": output["colbert"][i] 
+                "late": late
             })
 
         return results
