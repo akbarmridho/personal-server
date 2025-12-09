@@ -8,10 +8,16 @@ import { inngest } from "./inngest.js";
 import { telegraf } from "./telegram.js";
 
 const failureNotification = inngest.createFunction(
-  { id: "handle-any-fn-failure" },
+  {
+    id: "handle-any-fn-failure",
+    rateLimit: {
+      limit: 2,
+      period: "6h",
+    },
+  },
   { event: "inngest/function.failed" },
   async ({ event }) => {
-    const payload = JSON.stringify(event, null, 2);
+    const payload = JSON.stringify(event.data.error, null, 2);
 
     await telegraf.telegram.sendMessage(
       env.TELEGRAM_CHANNEL_ID,
