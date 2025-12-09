@@ -242,6 +242,12 @@ export async function cleanupSnips(data: InputData[]): Promise<Snips[]> {
       // Run the Unified pipeline
       const file = await processor.process(content);
 
+      let title = (file.data.extractedTitle as string) || null;
+
+      if (title?.includes("Stockbit Snips")) {
+        title = title.replaceAll("Stockbit Snips", "");
+      }
+
       return {
         date: item.date,
         // file.value contains the plain text result from stripMarkdown + stringify
@@ -249,7 +255,7 @@ export async function cleanupSnips(data: InputData[]): Promise<Snips[]> {
         // file.data contains the extraction results from our custom plugin
         symbols: (file.data.symbols as string[]) || [],
         urls: (file.data.urls as string[]) || [],
-        title: (file.data.extractedTitle as string) || null,
+        title: title,
         subsectors: [],
         subindustries: [],
         indices: [],
