@@ -100,15 +100,17 @@ export const samuelCompanyReportIngest = inngest.createFunction(
           ])
         )[0];
 
+        const normalizedUrl = normalizeUrl(event.data.url);
+
         return {
-          id: uuidv5(`${event.data.url}`, namespace),
+          id: uuidv5(`${normalizedUrl}`, namespace),
           type: "analysis" as const,
           title: tagged.title,
           content: tagged.content,
           document_date: tagged.date,
           source: {
             name: "samuel-research-report",
-            url: event.data.url,
+            url: normalizedUrl,
           },
           urls: tagged.urls,
           symbols: tagged.symbols,
