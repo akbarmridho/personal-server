@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import "dayjs/locale/id";
+import "dayjs/locale/id.js";
 import advancedFormat from "dayjs/plugin/advancedFormat.js";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import localeData from "dayjs/plugin/localeData.js";
