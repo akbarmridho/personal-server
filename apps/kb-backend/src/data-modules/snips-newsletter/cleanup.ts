@@ -6,7 +6,7 @@ import { unified } from "unified";
 import type { Node } from "unist";
 import { visit } from "unist-util-visit";
 import type { VFile } from "vfile";
-import type { Snips } from "./types.js";
+import type { Document } from "../utils/types.js";
 
 /**
  * Normalize problematic/invisible Unicode to safe ASCII where appropriate.
@@ -218,7 +218,7 @@ function stripEmoji(value?: string | null, replacement = "") {
  * 4. Strips Markdown formatting (Bold, Italic, Links) -> Plain Text.
  * 5. Returns structured data.
  */
-export async function cleanupSnips(data: InputData[]): Promise<Snips[]> {
+export async function cleanupSnips(data: InputData[]): Promise<Document[]> {
   // Define the processor pipeline
   const processor = unified()
     .use(remarkParse) // Parse string to AST

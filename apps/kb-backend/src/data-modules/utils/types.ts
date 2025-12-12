@@ -1,4 +1,4 @@
-export interface Snips {
+export interface Document {
   date: string;
   content: string;
   symbols: string[];

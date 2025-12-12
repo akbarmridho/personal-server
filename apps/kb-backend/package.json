@@ -59,6 +59,7 @@
         "mdast-util-to-string": "^4.0.0",
         "micromark-extension-gfm": "^3.0.0",
         "node-fetch-native": "^1.6.7",
+        "normalize-url": "^8.1.0",
         "openai": "^6.9.0",
         "p-limit": "^7.2.0",
         "p-retry": "^7.0.0",

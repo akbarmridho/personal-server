@@ -65,3 +65,22 @@ export const updateCompanies = inngest.createFunction(
     });
   },
 );
+
+export const extractSymbolFromText = async (
+  text: string,
+): Promise<string[]> => {
+  const companies = (await KV.get(companyMetaKeys)) as any as CompanyMeta[];
+
+  // Create a set of all valid symbols for faster lookup
+  const validSymbols = new Set(companies.map((company) => company.symbol));
+
+  // Use regex to find all 4-letter uppercase words in the text
+  const matches = text.match(/\b[A-Z]{4}\b/g) || [];
+
+  // Filter matches to only include valid company symbols
+  const foundSymbols = new Set(
+    matches.filter((match) => validSymbols.has(match)),
+  );
+
+  return [...foundSymbols];
+};

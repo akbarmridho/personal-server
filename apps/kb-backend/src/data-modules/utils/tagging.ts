@@ -3,9 +3,9 @@ import { logger } from "../../utils/logger.js";
 import { type CompanyMeta, companyMetaKeys } from "../profiles/companies.js";
 import { getMentionedIndices } from "../profiles/indices.js";
 import { classifySector } from "../profiles/sector.js";
-import type { Snips } from "./types.js";
+import type { Document } from "./types.js";
 
-export async function tagSnips(snips: Snips[]): Promise<Snips[]> {
+export async function tagMetadata(docs: Document[]): Promise<Document[]> {
   const companies = await KV.get(companyMetaKeys);
 
   if (!companies || (companies as []).length <= 950) {
@@ -19,11 +19,11 @@ export async function tagSnips(snips: Snips[]): Promise<Snips[]> {
   });
 
   const results = await Promise.all(
-    snips.map(async (snip) => {
+    docs.map(async (doc) => {
       const subsectors = new Set<string>();
       const subindustries = new Set<string>();
 
-      for (const symbol of snip.symbols) {
+      for (const symbol of doc.symbols) {
         const company = companyMap.get(symbol);
 
         if (!company) {
@@ -34,24 +34,21 @@ export async function tagSnips(snips: Snips[]): Promise<Snips[]> {
         subindustries.add(company.subIndustry);
       }
 
-      snip.subindustries = [...subindustries];
-      snip.subsectors = [...subsectors];
-      snip.indices = getMentionedIndices(snip.content);
+      doc.subindustries = [...subindustries];
+      doc.subsectors = [...subsectors];
+      doc.indices = getMentionedIndices(doc.content);
 
       // LLM-based tagging (Only if no symbols were matched)
-      if (snip.symbols.length === 0) {
+      if (doc.symbols.length === 0) {
         try {
-          const classification = await classifySector(snip.content);
+          const classification = await classifySector(doc.content);
 
           // Merge LLM results (deduplicating just in case)
-          snip.subsectors = [
-            ...new Set([...snip.subsectors, ...classification.subsectors]),
+          doc.subsectors = [
+            ...new Set([...doc.subsectors, ...classification.subsectors]),
           ];
-          snip.subindustries = [
-            ...new Set([
-              ...snip.subindustries,
-              ...classification.subindustries,
-            ]),
+          doc.subindustries = [
+            ...new Set([...doc.subindustries, ...classification.subindustries]),
           ];
         } catch (error) {
           logger.error(error, "Failed to classify snip via LLM after retries.");
@@ -59,7 +56,7 @@ export async function tagSnips(snips: Snips[]): Promise<Snips[]> {
         }
       }
 
-      return snip;
+      return doc;
     }),
   );
 

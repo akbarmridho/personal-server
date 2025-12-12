@@ -1,5 +1,7 @@
 import type { InngestFunction } from "inngest";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
+import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl.js";
+import { samuelCompanyReportIngest } from "../data-modules/samuel-sekuritas/ingest.js";
 import { snipsCrawl } from "../data-modules/snips-newsletter/crawl.js";
 import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
@@ -32,4 +34,6 @@ export const inngestFunctions: InngestFunction.Like[] = [
   snipsIngestPart,
   snipsCrawl,
   snipsScrape,
+  samuelCompanyReportsCrawl,
+  samuelCompanyReportIngest,
 ];

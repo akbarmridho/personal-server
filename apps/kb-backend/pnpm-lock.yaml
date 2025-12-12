@@ -122,6 +122,9 @@ importers:
       node-fetch-native:
         specifier: ^1.6.7
         version: 1.6.7
+      normalize-url:
+        specifier: ^8.1.0
+        version: 8.1.0
       openai:
         specifier: ^6.9.0
         version: 6.9.0(ws@8.18.3)(zod@4.1.12)
@@ -2740,6 +2743,10 @@ packages:
   normalize-url@4.5.1:
     resolution: {integrity: sha512-9UZCFRHQdNrfTpGg8+1INIg93B6zE0aXMVFkw1WFwvO4SlZywU6aLg5Of0Ap/PgcbSw4LNxvMWXMeugwMCX0AA==}
     engines: {node: '>=8'}
+
+  normalize-url@8.1.0:
+    resolution: {integrity: sha512-X06Mfd/5aKsRHc0O0J5CUedwnPmnDtLF2+nq+KN9KSDlJHkPuh0JUviWjEWMe0SW/9TDdSLVPuk7L5gGTIA1/w==}
+    engines: {node: '>=14.16'}
 
   npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -6321,6 +6328,8 @@ snapshots:
       whatwg-url: 5.0.0
 
   normalize-url@4.5.1: {}
+
+  normalize-url@8.1.0: {}
 
   npm-run-path@4.0.1:
     dependencies:

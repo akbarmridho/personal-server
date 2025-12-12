@@ -4,8 +4,8 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
+import { tagMetadata } from "../utils/tagging.js";
 import { cleanupSnips } from "./cleanup.js";
-import { tagSnips } from "./tagging.js";
 
 const namespace = "05675adf-779d-4b78-b6f8-ab30e06707ee";
 
@@ -30,13 +30,13 @@ export const snipsIngestPart = inngest.createFunction(
       parts.noSymbol.map((part, i) =>
         step.run(`tag-${i}`, async () => {
           // cna have network calls
-          return (await tagSnips([part]))[0];
+          return (await tagMetadata([part]))[0];
         }),
       ),
     );
 
     const payload = await step.run("prepare-payload", async () => {
-      const hasSymbolMapped = await tagSnips(parts.hasSymbol);
+      const hasSymbolMapped = await tagMetadata(parts.hasSymbol);
       const data: InvestmentDocument[] = [...hasSymbolMapped, ...noSymbol].map(
         (e) => {
           return {

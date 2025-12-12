@@ -13,6 +13,11 @@ type Events = {
       date: string;
     };
   };
+  "data/samuel-company-report-ingest": {
+    data: {
+      url: string;
+    };
+  };
 };
 
 export const inngest = new Inngest({
