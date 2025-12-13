@@ -1,4 +1,6 @@
 import type { InngestFunction } from "inngest";
+import { hpStockUpdateCrawl } from "../data-modules/hp-sekuritas/crawl.js";
+import { hpStockUpdateIngest } from "../data-modules/hp-sekuritas/ingest.js";
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
 import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl.js";
@@ -37,5 +39,7 @@ export const inngestFunctions: InngestFunction.Like[] = [
   snipsScrape,
   samuelCompanyReportsCrawl,
   samuelCompanyReportIngest,
+  hpStockUpdateCrawl,
+  hpStockUpdateIngest,
   documentManualIngest,
 ];

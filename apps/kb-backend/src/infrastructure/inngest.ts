@@ -19,6 +19,14 @@ type Events = {
       url: string;
     };
   };
+  "data/hp-stock-update-ingest": {
+    data: {
+      id: number;
+      title: string;
+      date: string;
+      url: string;
+    };
+  };
   "data/document-manual-ingest": {
     data: {
       payload: Array<

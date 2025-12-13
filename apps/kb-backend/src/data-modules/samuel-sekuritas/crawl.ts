@@ -14,8 +14,8 @@ export const samuelCompanyReportsCrawl = inngest.createFunction(
     id: "samuel-company-report-crawl",
     concurrency: 1,
   },
-  // daily at 20.30 from monday to friday
-  { cron: "TZ=Asia/Jakarta 30 20 * * 1-5" },
+  // daily at 20.15 from monday to friday
+  { cron: "TZ=Asia/Jakarta 15 20 * * 1-5" },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(lastCrawlURLs)) as string[] | null;
