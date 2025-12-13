@@ -1,0 +1,14 @@
+services:
+  docling-serve:
+    image: ghcr.io/docling-project/docling-serve-cpu:v1.9.0
+    container_name: docling-serve
+    ports:
+      - "5001:5001"
+    volumes:
+      - "./gradio_ui.py:/opt/app-root/src/docling_serve/gradio_ui.py"
+    environment:
+      DOCLING_SERVE_ENABLE_UI: "1"
+      DOCLING_SERVE_ENABLE_REMOTE_SERVICES: true
+    env_file:
+      - .env
+    restart: unless-stopped
