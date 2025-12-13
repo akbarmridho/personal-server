@@ -309,12 +309,13 @@ def get_description_params():
                 "prompt": """
 Describe the provided image in Markdown, suitable as a caption for a document parser.
 
-Write exactly three sentences (no more, no less):
 1) Identify what kind of image this is (e.g., chart/graph, diagram/flow, table screenshot, photo, logo, UI screenshot) and what it shows.
 2) State the main takeaway in plain language; if it is financial, express the takeaway in business/finance terms (metrics, comparisons, direction of change).
 3) Include the most important visible labels and any clearly readable numbers with units/currency and time periods; if none are readable, say “no readable numbers/text”.
+4) Answer in the same language as the image language. Otherwise, fallback to English.
 
-Be concise and accurate. Do not guess or invent details; if something is unclear, write “unreadable” rather than approximating.
+State your answer as sentences, table, list, etc as you see fit. However, don't mention the detected language. Focus on answer and remove unnecessary heading like
+"Image Analysis" or something like that. Be concise and accurate. Do not guess or invent details; if something is unclear, write “unreadable” rather than approximating.
 """
             }
 

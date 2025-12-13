@@ -1,28 +1,8 @@
 const fs = require("fs/promises");
 const path = require("path");
-const { execSync } = require("child_process");
-
-// --- DYNAMIC INSTALLER START ---
-function requireWithInstall(moduleName) {
-  try {
-    return require(moduleName);
-  } catch (e) {
-    if (e.code === "MODULE_NOT_FOUND") {
-      console.log(`📦 Installing '${moduleName}' dynamically...`);
-      // --no-save prevents adding to package.json
-      // --no-package-lock prevents creating package-lock.json
-      execSync(`npm install ${moduleName} --no-save --no-package-lock`, {
-        stdio: "inherit",
-      });
-      console.log(`✅ Installed '${moduleName}'. Resuming script...\n`);
-      return require(moduleName);
-    }
-    throw e;
-  }
-}
 
 // Load gray-matter dynamically
-const matter = requireWithInstall("gray-matter");
+const matter = require("gray-matter");
 // --- DYNAMIC INSTALLER END ---
 
 // CONFIGURATION
@@ -44,7 +24,6 @@ function validateMetadata(fileName, data) {
     errors.push("Missing field: 'source' object");
   } else {
     if (!data.source.name) errors.push("Missing inside source: 'source.name'");
-    if (!data.source.url) errors.push("Missing inside source: 'source.url'");
   }
 
   if (errors.length > 0) {

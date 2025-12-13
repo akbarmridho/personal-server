@@ -44,6 +44,7 @@
         "express": "^5.1.0",
         "fastmcp": "^3.17.0",
         "graceful-server-elysia": "^1.0.25",
+        "gray-matter": "^4.0.3",
         "he": "^1.2.0",
         "http-proxy": "^1.18.1",
         "http-proxy-agent": "^7.0.2",
