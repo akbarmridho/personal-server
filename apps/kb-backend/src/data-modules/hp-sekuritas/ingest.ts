@@ -75,7 +75,7 @@ const summarizePdf = async (url: string) => {
     maxRetries: 3,
   });
 
-  if (response.text) {
+  if (!response.text) {
     throw new Error("Empty text");
   }
 
