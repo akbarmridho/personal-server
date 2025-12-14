@@ -8,6 +8,7 @@ import { samuelCompanyReportIngest } from "../data-modules/samuel-sekuritas/inge
 import { snipsCrawl } from "../data-modules/snips-newsletter/crawl.js";
 import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
+import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
 import { env } from "./env.js";
 import { inngest } from "./inngest.js";
 import { telegraf } from "./telegram.js";
@@ -41,5 +42,6 @@ export const inngestFunctions: InngestFunction.Like[] = [
   samuelCompanyReportIngest,
   hpStockUpdateCrawl,
   hpStockUpdateIngest,
+  twitterRumourScrape,
   documentManualIngest,
 ];
