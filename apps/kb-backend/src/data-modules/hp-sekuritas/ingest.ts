@@ -8,7 +8,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { extractSymbolFromText } from "../profiles/companies.js";
+import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
 const summarizePdf = async (url: string) => {
@@ -95,9 +95,9 @@ export const hpStockUpdateIngest = inngest.createFunction(
     const payload: InvestmentDocument = await step.run(
       "prepare-payload",
       async () => {
-        const symbols = await extractSymbolFromText(
-          `${event.data.title}\n${summary}`,
-        );
+        const symbols = (
+          await extractSymbolFromTexts([`${event.data.title}\n${summary}`])
+        )[0];
 
         const tagged = (
           await tagMetadata([

@@ -8,7 +8,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { extractSymbolFromText } from "../profiles/companies.js";
+import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { extractDate } from "../utils/date.js";
 import { tagMetadata } from "../utils/tagging.js";
 
@@ -81,9 +81,9 @@ export const samuelCompanyReportIngest = inngest.createFunction(
     const payload: InvestmentDocument = await step.run(
       "prepare-payload",
       async () => {
-        const symbols = await extractSymbolFromText(
-          `${data.title}\n${data.content}`,
-        );
+        const symbols = (
+          await extractSymbolFromTexts([`${data.title}\n${data.content}`])
+        )[0];
 
         const tagged = (
           await tagMetadata([

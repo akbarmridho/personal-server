@@ -66,44 +66,120 @@ export const updateCompanies = inngest.createFunction(
   },
 );
 
-export const extractSymbolFromText = async (
-  text: string,
-): Promise<string[]> => {
-  const companies = (await KV.get(companyMetaKeys)) as any as CompanyMeta[];
+// Define prefixes that are too generic to be used as a 2-word identifier base.
+// If a name starts with these, we should match the FULL name to be safe.
+const GENERIC_PREFIXES = new Set([
+  "bank",
+  "mitra",
+  "sumber",
+  "global",
+  "jaya",
+  "indo",
+  "indonesia", // e.g. "Indonesia Kendaraan Terminal"
+  "graha",
+  "duta",
+  "multi",
+  "mega",
+  "sinar",
+  "wahana",
+  "tri",
+  "bina",
+  "inti",
+  "prima",
+  "fortune", // e.g. "Fortune Indonesia"
+]);
 
-  // Create a set of all valid symbols for faster lookup
-  const validSymbols = new Set(companies.map((company) => company.symbol));
+interface CompanyMatcher {
+  symbol: string;
+  pattern: RegExp;
+}
 
-  // Use regex to find all 4-letter uppercase words in the text
-  const matches = text.match(/\b[A-Z]{4}\b/g) || [];
-
-  // Filter matches to only include valid company symbols
-  const foundSymbols = new Set(
-    matches.filter((match) => validSymbols.has(match)),
+/**
+ * Cleans the company name by removing legal entities and common suffixes.
+ */
+const cleanCompanyName = (rawName: string): string => {
+  return (
+    rawName
+      // Remove "PT" or "PT." at the start
+      .replace(/^(PT\.?)\s+/i, "")
+      // Remove "Tbk" or "Tbk." at the end
+      .replace(/\s+(Tbk\.?)$/i, "")
+      // Remove "(Persero)"
+      .replace(/\(Persero\)/i, "")
+      // Remove punctuation but keep spaces/alphanumeric
+      .replace(/[^\w\s]/g, "")
+      // Remove extra whitespace
+      .trim()
   );
+};
 
-  return [...foundSymbols];
+const createCompanyMatchers = (companies: CompanyMeta[]): CompanyMatcher[] => {
+  const matchers: CompanyMatcher[] = [];
+
+  for (const company of companies) {
+    const symbol = company.symbol;
+    const cleanName = cleanCompanyName(company.name);
+    const nameParts = cleanName.split(/\s+/).filter(Boolean);
+    const firstWordLower = nameParts[0]?.toLowerCase();
+
+    // 1. Always match the Symbol (e.g., "BBRI")
+    matchers.push({
+      symbol: symbol,
+      pattern: new RegExp(`\\b${symbol}\\b`, "i"),
+    });
+
+    // 2. Determine Name Matching Strategy
+    if (nameParts.length > 0) {
+      let searchTerm = "";
+
+      // STRATEGY A: Single Word Name -> Match Exact
+      // e.g. "Elnusa", "Telkom"
+      if (nameParts.length === 1) {
+        searchTerm = nameParts[0];
+      }
+      // STRATEGY B: Generic Prefix Exception -> Match Full Name
+      // e.g. "Bank Rakyat Indonesia" (Starts with Bank, >2 words)
+      // e.g. "Sumber Energi Andalan" (Starts with Sumber, >2 words)
+      else if (GENERIC_PREFIXES.has(firstWordLower) && nameParts.length > 2) {
+        searchTerm = cleanName;
+      }
+      // STRATEGY C: Standard Multi-Word -> Match First 2 Words
+      // e.g. "Cita Mineral Investindo" -> "Cita Mineral"
+      // e.g. "Bank Mega" -> "Bank Mega" (Short enough to be distinct)
+      else {
+        searchTerm = `${nameParts[0]} ${nameParts[1]}`;
+      }
+
+      // Escape special regex characters just in case
+      const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      matchers.push({
+        symbol: symbol,
+        pattern: new RegExp(`\\b${escapedTerm}\\b`, "i"),
+      });
+    }
+  }
+
+  return matchers;
 };
 
 export const extractSymbolFromTexts = async (
   texts: string[],
 ): Promise<string[][]> => {
   const companies = (await KV.get(companyMetaKeys)) as any as CompanyMeta[];
+  const allMatchers = createCompanyMatchers(companies);
 
-  const symbols = texts.map((text) => {
-    // Create a set of all valid symbols for faster lookup
-    const validSymbols = new Set(companies.map((company) => company.symbol));
+  const results = texts.map((text) => {
+    const foundSymbols = new Set<string>();
 
-    // Use regex to find all 4-letter uppercase words in the text
-    const matches = text.match(/\b[A-Z]{4}\b/g) || [];
+    for (const matcher of allMatchers) {
+      if (matcher.pattern.test(text)) {
+        foundSymbols.add(matcher.symbol);
+      }
+    }
 
-    // Filter matches to only include valid company symbols
-    const foundSymbols = new Set(
-      matches.filter((match) => validSymbols.has(match)),
-    );
-
-    return [...foundSymbols];
+    return Array.from(foundSymbols);
   });
 
-  return symbols;
+  return results;
 };
