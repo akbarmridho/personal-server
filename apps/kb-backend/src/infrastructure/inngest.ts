@@ -1,4 +1,8 @@
 import { EventSchemas, Inngest } from "inngest";
+import type {
+  ArticleContent,
+  ArticleInfo,
+} from "../data-modules/algoresearch/types.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
 import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
@@ -26,6 +30,12 @@ type Events = {
       date: string;
       url: string;
     };
+  };
+  "data/algoresearch-ingest": {
+    data: ArticleContent;
+  };
+  "data/algoresearch-scrape": {
+    data: ArticleInfo;
   };
   "data/document-manual-ingest": {
     data: {
