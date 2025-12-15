@@ -125,7 +125,7 @@ const createCompanyMatchers = (companies: CompanyMeta[]): CompanyMatcher[] => {
     // 1. Always match the Symbol (e.g., "BBRI")
     matchers.push({
       symbol: symbol,
-      pattern: new RegExp(`(\\b|\\$)${symbol}\\b`, "i"),
+      pattern: new RegExp(`(\\b|\\$)${symbol}(?=\\b|:)`, "i"),
     });
 
     // 2. Determine Name Matching Strategy
