@@ -9,7 +9,7 @@ export const algoresearchScrape = inngest.createFunction(
   { event: "data/algoresearch-scrape" },
   async ({ event, step }) => {
     const data: ArticleContent = await step.run("scrape", async () => {
-      const date = dayjs(event.data.published_at).format("YYYY?MM-DD");
+      const date = dayjs(event.data.published_at).format("YYYY-MM-DD");
 
       const [firstContent, secondContent] = await Promise.all([
         axios.get(
