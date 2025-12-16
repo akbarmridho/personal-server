@@ -13,6 +13,8 @@ module.exports = {
       ignore_watch: ["node_modules", "logs", ".mastra"],
       combine_logs: true,
       time: true,
+      // 20.00 UTC is 03.00 WIB
+      cron_restart: "0 20 */3 * *",
     },
   ],
 };
