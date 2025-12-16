@@ -7,7 +7,7 @@ services:
       - immich-thumbnail:/data/thumbs
       - immich-video:/data/encoded-video
       - immich-library:/data/library
-      - immich-profile:/data/profile
+      - ./immich_data/profile:/data/profile
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -69,7 +69,6 @@ volumes:
   immich-thumbnail:
   immich-video:
   immich-library:
-  immich-profile:
   immich-filen:
     driver: rclone
     driver_opts:
