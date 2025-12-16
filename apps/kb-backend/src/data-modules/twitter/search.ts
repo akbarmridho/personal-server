@@ -11,7 +11,7 @@ import { logger } from "../../utils/logger.js";
 
 const handles = [
   "ApestorNyangkut",
-  "JudiSaham",
+  // "JudiSaham",
   "rakyatkapitalis",
   "stockmapping",
   "umarfikrii",

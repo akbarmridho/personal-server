@@ -2,6 +2,8 @@ import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import type { Element } from "domhandler";
 import normalizeUrl from "normalize-url";
 import TurndownService from "turndown";
@@ -13,6 +15,9 @@ import {
 } from "../../infrastructure/knowledge-service.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const namespace = "b2ddd6a6-c23b-4ce2-8d0b-762f505bc051";
 
@@ -292,7 +297,9 @@ export const algoresearchIngest = inngest.createFunction(
         const tagged = (
           await tagMetadata([
             {
-              date: dayjs(event.data.published_at).format("YYYY-MM-DD"),
+              date: dayjs(event.data.published_at)
+                .tz("Asia/Jakarta")
+                .format("YYYY-MM-DD"),
               content: enrichedContent,
               title: event.data.article_title,
               urls: [],
