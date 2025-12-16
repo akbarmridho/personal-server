@@ -8,7 +8,7 @@ export const algoresearchScrape = inngest.createFunction(
   { id: "algoresearch-scrape", concurrency: 1 },
   { event: "data/algoresearch-scrape" },
   async ({ event, step }) => {
-    const data: ArticleContent = await step.run("scrape", async () => {
+    await step.run("scrape", async () => {
       const date = dayjs(event.data.published_at).format("YYYY-MM-DD");
 
       const [firstContent, secondContent] = await Promise.all([
@@ -46,15 +46,13 @@ export const algoresearchScrape = inngest.createFunction(
 
       const articleUrl = `https://algoresearch.id/content/${dayjs(event.data.published_at).format("YYYY/MM/DD")}/${event.data.article_slug}`;
 
-      return {
+      const data = {
         ...event.data,
         first_content: firstContent.data as ArticleContent["first_content"],
         second_content: secondContent.data as ArticleContent["second_content"],
         url: articleUrl,
       };
-    });
 
-    await step.run("process-document", async () => {
       await step.sendEvent("queue-ingest", [
         {
           name: "data/algoresearch-ingest",
