@@ -41,15 +41,18 @@ export const algoResearchCrawl = inngest.createFunction(
       const raw = response.data.data.data as ArticleInfo[];
 
       const filtered = raw.filter((e) => {
-        return dayjs(e.created_at).isAfter(keystoneDate);
+        return dayjs(e.published_at).isAfter(keystoneDate);
       });
 
-      const highestCreatedAt = filtered.reduce((latest, item) => {
-        const current = dayjs(item.created_at);
+      const highestPublishedAt = filtered.reduce((latest, item) => {
+        const current = dayjs(item.published_at);
         return current.isAfter(latest) ? current : latest;
-      }, dayjs(keystoneDate));
+      }, keystoneDate);
 
-      return { toScrape: filtered, keystone: highestCreatedAt.toString() };
+      return {
+        toScrape: filtered,
+        keystone: highestPublishedAt.toISOString(),
+      };
     });
 
     if (toScrape.length > 0) {
