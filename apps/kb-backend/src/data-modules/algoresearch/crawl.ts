@@ -23,7 +23,7 @@ export const algoResearchCrawl = inngest.createFunction(
       } | null;
 
       const keystoneDate = dayjs(
-        latestCrawl?.date || "2025-12-03T04:38:14.000Z",
+        latestCrawl?.date || "2025-12-10T00:00:00.000Z",
       );
 
       const response = await axios.get(TARGET_URL, {
