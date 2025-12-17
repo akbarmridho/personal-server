@@ -2,6 +2,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
+import { NonRetriableError } from "inngest";
 import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import type { ArticleContent } from "./types.js";
@@ -14,7 +15,8 @@ export const algoresearchScrape = inngest.createFunction(
   { event: "data/algoresearch-scrape" },
   async ({ event, step }) => {
     const data = await step.run("scrape", async () => {
-      const date = dayjs(event.data.published_at).tz("Asia/Jakarta");
+      const date = dayjs.utc(event.data.created_at);
+
       const type =
         event.data.content_type === "free" ? "algo-news" : "algo-research";
 
@@ -52,6 +54,10 @@ export const algoresearchScrape = inngest.createFunction(
       ]);
 
       const articleUrl = `https://algoresearch.id/${event.data.content_type === "free" ? "insight/content" : "content"}/${date.format("YYYY/MM/DD")}/${event.data.article_slug}`;
+
+      if (firstContent.data.data === null || secondContent.data.data === null) {
+        throw new NonRetriableError("Content not found");
+      }
 
       return {
         ...event.data,
