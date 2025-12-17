@@ -5,6 +5,7 @@ import utc from "dayjs/plugin/utc.js";
 import { NonRetriableError } from "inngest";
 import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { compressArticle } from "./compress.js";
 import type { ArticleContent } from "./types.js";
 
 dayjs.extend(utc);
@@ -59,12 +60,14 @@ export const algoresearchScrape = inngest.createFunction(
         throw new NonRetriableError("Content not found");
       }
 
-      return {
+      const data = {
         ...event.data,
         first_content: firstContent.data as ArticleContent["first_content"],
         second_content: secondContent.data as ArticleContent["second_content"],
         url: articleUrl,
       };
+
+      return await compressArticle(data);
     });
 
     await step.sendEvent("queue-ingest", [
