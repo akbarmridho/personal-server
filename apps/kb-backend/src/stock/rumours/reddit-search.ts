@@ -126,7 +126,7 @@ function transformPost(child: any): RedditPost {
  * Transforms raw submission.json (array: [post Listing, comments Listing]) into SubmissionData.
  * Reconstructs comment threads recursively.
  */
-function transformSubmission(json: any[]): SubmissionData {
+export function transformSubmission(json: any[]): SubmissionData {
   if (!json || json.length < 2) {
     throw new Error(
       "Invalid submission JSON: expected array with post and comments listings",
