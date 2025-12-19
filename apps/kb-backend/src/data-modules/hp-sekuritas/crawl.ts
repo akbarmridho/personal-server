@@ -160,9 +160,15 @@ export const hpStockUpdateCrawl = inngest.createFunction(
 
       // update keystone
       await step.run("update-keystone", async () => {
-        await KV.set(lastCrawlIDs, {
-          id: Math.max(...toScrape.map((e) => e.id)),
-        });
+        let newValue = (await KV.get(lastCrawlIDs)) as {
+          id: number;
+        } | null;
+
+        if (toScrape.length > 0) {
+          newValue = { id: Math.max(...toScrape.map((e) => e.id)) };
+        }
+
+        await KV.set(lastCrawlIDs, newValue);
       });
     }
   },

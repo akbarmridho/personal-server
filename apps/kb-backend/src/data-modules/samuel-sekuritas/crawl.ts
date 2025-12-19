@@ -65,7 +65,21 @@ export const samuelCompanyReportsCrawl = inngest.createFunction(
 
       // update keystone
       await step.run("update-keystone", async () => {
-        await KV.set(lastCrawlURLs, toScrape);
+        // this code have problem when crawl multiple times where the latest crawl is empty
+        // it will ingest old articles so we add old urls as well even though it will accumulate but
+        // the data is too small to be noticed as problem.
+        // best practice: use date based ingestion but well, too lazy for that
+        const newURLs: string[] = [];
+
+        const latestCrawl = (await KV.get(lastCrawlURLs)) as string[] | null;
+
+        if (latestCrawl) {
+          newURLs.push(...latestCrawl);
+        }
+
+        newURLs.push(...toScrape);
+
+        await KV.set(lastCrawlURLs, newURLs);
       });
     }
   },
