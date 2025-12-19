@@ -1,5 +1,6 @@
 services:
   trilium:
+    container_name: trilium
     image: triliumnext/trilium:v0.100.0
     restart: unless-stopped
     ports:
@@ -8,3 +9,24 @@ services:
       - ~/trilium-data:/home/node/trilium-data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    networks:
+      - personal_network
+
+  trilium-mcp:
+    build: .
+    container_name: triliumnext-mcp
+    restart: unless-stopped
+    environment:
+      - TRILIUM_API_URL="http://trilium:8080/etapi"
+      - TRILIUM_API_TOKEN=${TRILIUM_API_TOKEN}
+      - PERMISSIONS=${PERMISSIONS:-READ;WRITE}
+    networks:
+      - personal_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+
+networks:
+  personal_network:
+    external: true
