@@ -513,15 +513,15 @@ export function generateTools(permissionChecker: PermissionChecker): any[] {
     tools.push(...createReadTools());
   }
 
-  // Add read attribute tools if READ permission
-  if (permissionChecker.hasPermission("READ")) {
-    tools.push(...createReadAttributeTools());
-  }
+  // // Add read attribute tools if READ permission
+  // if (permissionChecker.hasPermission("READ")) {
+  //   tools.push(...createReadAttributeTools());
+  // }
 
-  // Add write attribute tools if WRITE permission
-  if (permissionChecker.hasPermission("WRITE")) {
-    tools.push(...createWriteAttributeTools());
-  }
+  // // Add write attribute tools if WRITE permission
+  // if (permissionChecker.hasPermission("WRITE")) {
+  //   tools.push(...createWriteAttributeTools());
+  // }
 
   return tools;
 }

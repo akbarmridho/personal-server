@@ -1,7 +1,9 @@
 #!/usr/bin/env node
+import "@dotenvx/dotenvx/config.js";
 
+import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   CallToolRequestSchema,
   ErrorCode,
@@ -9,6 +11,7 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
+import type { Request, Response } from "express";
 import {
   handleManageAttributes,
   handleReadAttributes,
@@ -171,17 +174,55 @@ class TriliumServer {
     });
   }
 
-  async run() {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error("TriliumNext MCP server running on stdio");
+  getServer() {
+    return this.server;
   }
 }
 
 const server = new TriliumServer();
-server.run().catch((error) => {
-  console.error("Server error:", error);
-  process.exit(1);
+
+const app = createMcpExpressApp();
+
+app.post("/mcp", async (req: Request, res: Response) => {
+  try {
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    await server.getServer().connect(transport);
+    await transport.handleRequest(req, res, req.body);
+    res.on("close", () => {
+      transport.close();
+    });
+  } catch (error) {
+    console.error("Error handling MCP request:", error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: "2.0",
+        error: { code: -32603, message: "Internal server error" },
+        id: null,
+      });
+    }
+  }
+});
+
+app.get("/mcp", async (req: Request, res: Response) => {
+  res.writeHead(405).end(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Method not allowed." },
+      id: null,
+    }),
+  );
+});
+
+const PORT = process.env.PORT || 9999;
+app.listen(PORT, () => {
+  console.log(`TriliumNext MCP server running on port ${PORT}`);
+});
+
+process.on("SIGINT", async () => {
+  await server.getServer().close();
+  process.exit(0);
 });
 
 // Export helper functions for external use
