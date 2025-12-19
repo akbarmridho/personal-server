@@ -90,3 +90,7 @@ docker network create personal_network
 
 - `8017` silverbullet.
 - `8018` silverbullet.
+
+### Trilium
+
+- `8019` Trilium.
