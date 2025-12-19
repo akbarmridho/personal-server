@@ -12,21 +12,6 @@ services:
     networks:
       - personal_network
 
-  trilium-mcp:
-    build: .
-    container_name: triliumnext-mcp
-    restart: unless-stopped
-    environment:
-      - TRILIUM_API_URL="http://trilium:8080/etapi"
-      - TRILIUM_API_TOKEN=${TRILIUM_API_TOKEN}
-      - PERMISSIONS=${PERMISSIONS:-READ;WRITE}
-    networks:
-      - personal_network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    env_file:
-      - .env
-
 networks:
   personal_network:
     external: true
