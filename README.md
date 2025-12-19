@@ -94,3 +94,4 @@ docker network create personal_network
 ### Trilium
 
 - `8019` Trilium.
+- `8020` Trilium MCP.
