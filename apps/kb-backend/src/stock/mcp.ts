@@ -25,6 +25,7 @@ import {
   getForexSummary,
   type PriceSummaryData,
 } from "./other-prices/forex.js";
+import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { getSkill, listSkills } from "./skills/index.js";
 import { removeKeysRecursive } from "./utils.js";
@@ -628,6 +629,43 @@ export const setupStockMcp = async () => {
         logger.error(
           { error, symbol: args.symbol },
           "Get GC Stoch PSAR signal failed",
+        );
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-bottom-fishing-signal",
+    description:
+      "Analyzes a stock symbol for bottom fishing opportunities during market crashes. Uses Weekly RSI, Volume Spikes, and Heikin Ashi patterns to identify safe entry points. Returns predictive phases (WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED), current indicator states, signal confidence, and actionable insights.",
+    parameters: z.object({
+      symbol: z.string().describe("The stock ticker symbol (e.g., BBCA, ASII)"),
+    }),
+    execute: async (args) => {
+      logger.info(
+        { symbol: args.symbol },
+        "Executing get-bottom-fishing-signal",
+      );
+      try {
+        const data = await getBottomFishingSignal(args.symbol);
+        logger.info(
+          { symbol: args.symbol },
+          "Get bottom fishing signal completed",
+        );
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error(
+          { error, symbol: args.symbol },
+          "Get bottom fishing signal failed",
         );
         return {
           content: [

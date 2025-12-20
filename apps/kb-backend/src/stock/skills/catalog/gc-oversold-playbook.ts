@@ -11,7 +11,7 @@ export const gcOversoldPlaybook: Skill = {
   description:
     "Rules-based swing/investing plan: enter on the Golden Cross day when Stochastic is oversold, hold while Parabolic SAR stays bullish, scale out for profit-taking, and enforce a strict -5% max cut loss.",
   content: `
-- **Don't obsess over exact entry price** ("GC at what level?", "where should I enter?", "what's my average?"). For this approach, the key is entering **on the same day as the GC signal**, not nailing a perfect tick. If the stock moves up after the signal, you'll profit even with a slightly different entry; if it drops, a "better average" won't save you.
+- For this approach, the key is entering **on the same day as the GC signal**, not nailing a perfect tick. If the stock moves up after the signal, you'll profit even with a slightly different entry; if it drops, a "better average" won't save you.
 - **Entry rule:** buy when **GC (Golden Cross)** happens **and** Stochastic is in the **oversold** zone.  
   - **GC / Golden Cross:** a bullish signal where a **shorter-term moving average crosses above a longer-term moving average** (commonly $MA_{50}$ crossing above $MA_{200}$).
 - **Hold rule:** keep holding **as long as SAR is green**.  
