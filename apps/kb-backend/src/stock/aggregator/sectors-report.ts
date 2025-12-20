@@ -39,6 +39,12 @@ export const getSectorsReport = async (
       };
     }
 
+    const andRemoved = normalizedInput
+      .filter((e) => e.includes("-and-"))
+      .map((e) => e.replace("-and-", "-"));
+
+    normalizedInput.push(...andRemoved);
+
     const data = await KV.getOrSet(
       "stock.aggregator.sectors-report",
       async () => {
