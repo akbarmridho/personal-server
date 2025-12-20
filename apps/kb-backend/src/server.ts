@@ -5,8 +5,6 @@ import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
 import { env } from "./infrastructure/env.js";
-import { setupInternetRoutes } from "./internet/http.js";
-import { setupRagRoutes } from "./rag/http.js";
 import { setupStockRoutes } from "./stock/http.js";
 import { logger } from "./utils/logger.js";
 
@@ -39,12 +37,6 @@ export const setupHTTPServer = () => {
       }),
     )
     .get("/", () => "Hello World!")
-
-    // Attach RAG routes under /rag prefix
-    .use(setupRagRoutes())
-
-    // attach Internet routes under /internet prefix
-    .use(setupInternetRoutes())
 
     // attach stock routes under /stock prefix
     .use(setupStockRoutes())

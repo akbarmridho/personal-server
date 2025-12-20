@@ -2,10 +2,7 @@ import * as cheerio from "cheerio";
 import dayjs from "dayjs";
 import { KV } from "../../db/kv.js";
 import type { JsonValue } from "../../db/types.js";
-import {
-  formatHtml,
-  htmlToMarkdown,
-} from "../../rag/file-converters/html-to-md-converter.js";
+import { formatHtml, htmlToMarkdown } from "../../utils/html.js";
 import { proxiedAxios } from "../proxy.js";
 import {
   type BaseStockbitResponse,

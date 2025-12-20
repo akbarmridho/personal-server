@@ -1,10 +1,7 @@
-import dayjs from "dayjs";
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
 import { env } from "../infrastructure/env.js";
-import { retriever } from "../rag/storage/retrieve.js";
-import { vectorStore } from "../rag/storage/store.js";
 import { logger } from "../utils/logger.js";
 import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
 import { getSectors } from "./aggregator/sectors.js";
@@ -19,15 +16,11 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { getWeeklyMoodData } from "./news-summary/weekly-mood.js";
 import { getCommoditySummary } from "./other-prices/commodity.js";
 import {
   getForexSummary,
   type PriceSummaryData,
 } from "./other-prices/forex.js";
-import { removeKeysRecursive } from "./utils.js";
-
-const investmentNewsCollectionId = 3;
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -403,133 +396,83 @@ export const setupStockMcp = async () => {
     },
   });
 
-  server.addTool({
-    name: "search-news",
-    description:
-      "Search investment news using semantic search. Covers market news (IHSG, regulations, foreign flow) and company-specific news.",
-    parameters: z.object({
-      queries: z
-        .object({
-          query: z.string().describe("Semantic search query"),
-          hydeQuery: z.string().describe("Hypothetical answer for search"),
-        })
-        .array()
-        .describe("Array of query and hydeQuery pairs"),
-      startDate: z
-        .string()
-        .optional()
-        .describe("Start date in YYYY-MM-DD format"),
-      endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
-    }),
-    execute: async (args) => {
-      logger.info({ args }, "Executing search-news");
-      try {
-        const allResults = await Promise.all(
-          args.queries.map((q) =>
-            retriever.hierarchicalSearch(
-              q.query,
-              q.hydeQuery,
-              investmentNewsCollectionId,
-              {
-                start_date: args.startDate,
-                end_date: args.endDate,
-                useFullDocumentWhenMajority: true,
-                majorityChunkThreshold: 0.2,
-                similarityThreshold: 0.45,
-              },
-            ),
-          ),
-        );
+  // server.addTool({
+  //   name: "search-news",
+  //   description:
+  //     "Search investment news using semantic search. Covers market news (IHSG, regulations, foreign flow) and company-specific news.",
+  //   parameters: z.object({
+  //     queries: z
+  //       .object({
+  //         query: z.string().describe("Semantic search query"),
+  //         hydeQuery: z.string().describe("Hypothetical answer for search"),
+  //       })
+  //       .array()
+  //       .describe("Array of query and hydeQuery pairs"),
+  //     startDate: z
+  //       .string()
+  //       .optional()
+  //       .describe("Start date in YYYY-MM-DD format"),
+  //     endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
+  //   }),
+  //   execute: async (args) => {
+  //     logger.info({ args }, "Executing search-news");
+  //     try {
+  //       const allResults = await Promise.all(
+  //         args.queries.map((q) =>
+  //           retriever.hierarchicalSearch(
+  //             q.query,
+  //             q.hydeQuery,
+  //             investmentNewsCollectionId,
+  //             {
+  //               start_date: args.startDate,
+  //               end_date: args.endDate,
+  //               useFullDocumentWhenMajority: true,
+  //               majorityChunkThreshold: 0.2,
+  //               similarityThreshold: 0.45,
+  //             },
+  //           ),
+  //         ),
+  //       );
 
-        const seen = new Set<number>();
-        const deduplicated = allResults.flat().filter((r) => {
-          const key = r.documentId;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
+  //       const seen = new Set<number>();
+  //       const deduplicated = allResults.flat().filter((r) => {
+  //         const key = r.documentId;
+  //         if (seen.has(key)) return false;
+  //         seen.add(key);
+  //         return true;
+  //       });
 
-        const metadataFiltered = deduplicated
-          .map((r) => ({
-            ...r,
-            metadata: removeKeysRecursive(r.metadata, [
-              "primaryTickers",
-              "mentionedTickers",
-              "source",
-              "type",
-            ]),
-          }))
-          .slice(0, 10);
+  //       const metadataFiltered = deduplicated
+  //         .map((r) => ({
+  //           ...r,
+  //           metadata: removeKeysRecursive(r.metadata, [
+  //             "primaryTickers",
+  //             "mentionedTickers",
+  //             "source",
+  //             "type",
+  //           ]),
+  //         }))
+  //         .slice(0, 10);
 
-        logger.info(
-          { count: metadataFiltered.length },
-          "Search news completed",
-        );
-        return { type: "text", text: yaml.dump(metadataFiltered) };
-      } catch (error) {
-        logger.error({ error, args }, "Search news failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
-
-  server.addTool({
-    name: "get-market-summary",
-    description:
-      "Returns weekly market mood summaries and recent market news from the last 10 days.",
-    execute: async (args) => {
-      logger.info("Executing get-market-summary");
-      try {
-        const [weeklyMood, recentNews] = await Promise.all([
-          getWeeklyMoodData(8),
-          vectorStore.getDocuments(investmentNewsCollectionId, {
-            from: dayjs().subtract(10, "day").format("YYYY-MM-DD"),
-            to: dayjs().format("YYYY-MM-DD"),
-            metadataFilter: { type: "market" },
-            fullContent: true,
-          }),
-        ]);
-
-        const newsFiltered = recentNews.slice(0, 30).map((e) => {
-          return {
-            content: e.content,
-            metadata: removeKeysRecursive(e.metadata, [
-              "primaryTickers",
-              "mentionedTickers",
-              "source",
-              "type",
-            ]),
-          };
-        }); // limit to 30 just in case
-
-        const data = { weeklyMood, recentNews: newsFiltered };
-        logger.info(
-          { moodCount: weeklyMood.length, newsCount: newsFiltered.length },
-          "Get market summary completed",
-        );
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error({ error, args }, "Get market summary failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  //       logger.info(
+  //         { count: metadataFiltered.length },
+  //         "Search news completed",
+  //       );
+  //       return { type: "text", text: yaml.dump(metadataFiltered) };
+  //     } catch (error) {
+  //       logger.error({ error, args }, "Search news failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
   await server.start({
     transportType: "httpStream",

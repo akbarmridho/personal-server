@@ -5,9 +5,10 @@
 
 import type { ColumnType } from "kysely";
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+  T extends ColumnType<infer S, infer I, infer U>
+    ? ColumnType<S, I | undefined, U>
+    : ColumnType<T, T | undefined, T>;
 
 export type Int8 = ColumnType<
   string,
@@ -31,39 +32,6 @@ export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export interface Collections {
-  created_at: Generated<Timestamp>;
-  description: string;
-  id: Generated<Int8>;
-  name: string;
-  embedding: string;
-}
-
-export interface DocumentChunks {
-  chunk_index: number;
-  content: string;
-  created_at: Generated<Timestamp>;
-  document_id: Int8 | null;
-  embedding: string;
-  id: Generated<Int8>;
-  max_chunk_index: number;
-  updated_at: Generated<Timestamp>;
-}
-
-export interface Documents {
-  collection_id: Int8;
-  content: string;
-  created_at: Generated<Timestamp>;
-  document_ts: Generated<Timestamp>;
-  hierarchy_path: string | null;
-  id: Generated<Int8>;
-  metadata: Json | null;
-  summary: string;
-  summary_embedding: string;
-  title: string;
-  updated_at: Generated<Timestamp>;
-}
-
 export interface KvStore {
   expires_at: Timestamp | null;
   key: string;
@@ -76,9 +44,6 @@ export interface SchemaMigrations {
 }
 
 export interface DB {
-  collections: Collections;
-  document_chunks: DocumentChunks;
-  documents: Documents;
   kv_store: KvStore;
   schema_migrations: SchemaMigrations;
 }

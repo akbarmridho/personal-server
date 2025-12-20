@@ -9,17 +9,13 @@ export const env = createEnv({
    */
   server: {
     // LLM API Key
-    VOYAGE_API_KEY: z.string(),
     OPENROUTER_API_KEY: z.string(),
-    GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
     XAI_API_KEY: z.string(),
     JINA_AI_API_KEY: z.string(),
 
     // Server ports
     HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
     API_SERVER_PORT: z.coerce.number().prefault(10001),
-    RAG_MCP_PORT: z.coerce.number().prefault(10002),
-    INTERNET_MCP_PORT: z.coerce.number().prefault(10003),
     STOCK_MCP_PORT: z.coerce.number().prefault(10004),
 
     DATABASE_URL: z.string(),

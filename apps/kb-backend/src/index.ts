@@ -5,15 +5,11 @@ import { serve } from "inngest/express";
 import { env } from "./infrastructure/env.js";
 import { inngest } from "./infrastructure/inngest.js";
 import { inngestFunctions } from "./infrastructure/inngest-functions.js";
-import { setupInternetMcp } from "./internet/mcp.js";
-import { setupRAGMcp } from "./rag/mcp.js";
 import { setupHTTPServer } from "./server.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
 
 async function main() {
-  const ragMcpServer = await setupRAGMcp();
-  const internetMcpServer = await setupInternetMcp();
   const stockMcpServer = await setupStockMcp();
   const apiHttpServer = setupHTTPServer();
 
@@ -21,36 +17,6 @@ async function main() {
   // is a bit stupid decision. it's better to create proxy in elysia and pass the request for mcp servers into
   // the mcp server. but well, I'm too lazy to debug and make proxying works in elysia so here we are.
   const proxyApp = express();
-
-  //proxy to RAG mcp server
-  proxyApp.use(
-    "/mcps/rag",
-    createProxyMiddleware({
-      target: `http://0.0.0.0:${env.RAG_MCP_PORT}`,
-      changeOrigin: true,
-      ws: true,
-      proxyTimeout: 0,
-      timeout: 0,
-      pathRewrite: {
-        "^/mcps/rag": "", // remove /mcps/rag prefix, keep the rest
-      },
-    }),
-  );
-
-  //proxy to Internet mcp server
-  proxyApp.use(
-    "/mcps/internet",
-    createProxyMiddleware({
-      target: `http://0.0.0.0:${env.INTERNET_MCP_PORT}`,
-      changeOrigin: true,
-      ws: true,
-      proxyTimeout: 0,
-      timeout: 0,
-      pathRewrite: {
-        "^/mcps/internet": "", // remove /mcps/internet prefix, keep the rest
-      },
-    }),
-  );
 
   //proxy to Stock mcp server
   proxyApp.use(
@@ -106,11 +72,7 @@ async function main() {
       logger.info("Proxy server closed");
     });
     apiHttpServer.stop();
-    await Promise.all([
-      stockMcpServer.stop(),
-      ragMcpServer.stop(),
-      internetMcpServer.stop(),
-    ]);
+    await Promise.all([stockMcpServer.stop()]);
     process.exit(0);
   };
 

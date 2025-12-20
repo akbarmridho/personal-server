@@ -4,8 +4,8 @@ import axios, { type AxiosError } from "axios";
 import pRetry, { AbortError } from "p-retry";
 import sharp from "sharp";
 import z from "zod";
-import { env } from "../../infrastructure/env.js";
-import { logger } from "../../utils/logger.js";
+import { env } from "../infrastructure/env.js";
+import { logger } from "./logger.js";
 
 interface FetchParams {
   url: string;
@@ -76,8 +76,8 @@ const readImageContent = async (rawBuffer: Buffer): Promise<string> => {
   const buffer = await autoCrop(rawBuffer);
 
   const response = await generateText({
-    model: openrouter("qwen/qwen3-vl-8b-instruct", {
-      models: ["google/gemini-2.5-flash-preview-09-2025"],
+    model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
+      models: ["qwen/qwen3-vl-8b-instruct"],
     }),
     messages: [
       {
