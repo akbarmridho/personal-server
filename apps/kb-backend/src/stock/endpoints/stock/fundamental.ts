@@ -20,7 +20,6 @@ export const getCompanyFundamental = async (rawTicker: string) => {
     overview: {
       ticker: ticker,
       company_name: companyReport.company_name,
-      sector: companyReport.sector,
       subsector: normalizeSector(companyReport.sub_sector),
       listing_date: companyReport.listing_date,
     },
