@@ -1001,18 +1001,23 @@ export async function getBottomFishingSignal(
     );
   }
 
+  // Sort to ensure latest date is last
+  const sortedDailyData = dailyData
+    .slice()
+    .sort((a, b) => a.unixdate - b.unixdate);
+
   // 2. Calculate Weekly RSI
-  const weeklyRSISeries = calculateWeeklyRSI(dailyData);
+  const weeklyRSISeries = calculateWeeklyRSI(sortedDailyData);
   const rsiTrajectory = analyzeRSITrajectory(weeklyRSISeries);
   const latestRSI = weeklyRSISeries[weeklyRSISeries.length - 1];
 
   // 3. Analyze Volume
-  const volumeAnalysisSeries = analyzeVolume(dailyData);
-  const volumeTrend = analyzeVolumeTrend(volumeAnalysisSeries, dailyData);
+  const volumeAnalysisSeries = analyzeVolume(sortedDailyData);
+  const volumeTrend = analyzeVolumeTrend(volumeAnalysisSeries, sortedDailyData);
   const latestVolume = volumeAnalysisSeries[volumeAnalysisSeries.length - 1];
 
   // 4. Calculate Heikin Ashi
-  const haSeries = calculateHeikinAshi(dailyData);
+  const haSeries = calculateHeikinAshi(sortedDailyData);
   const haPattern = detectHAPattern(haSeries);
   const latestHA = haSeries[haSeries.length - 1];
   const previousHA =
@@ -1054,7 +1059,7 @@ export async function getBottomFishingSignal(
     recentCandles: haSeries.slice(-10).map((ha, i) => ({
       date: ha.date,
       haColor: ha.color,
-      volume: dailyData[dailyData.length - (10 - i)].volume,
+      volume: sortedDailyData[sortedDailyData.length - (10 - i)].volume,
       volumeRatio:
         volumeAnalysisSeries[volumeAnalysisSeries.length - (10 - i)]?.ratio ||
         1,
@@ -1062,8 +1067,8 @@ export async function getBottomFishingSignal(
   };
 
   // 8. Calculate price context
-  const latestPrice = dailyData[dailyData.length - 1].close;
-  const high52Week = Math.max(...dailyData.map((d) => d.high));
+  const latestPrice = sortedDailyData[sortedDailyData.length - 1].close;
+  const high52Week = Math.max(...sortedDailyData.map((d) => d.high));
   const drawdownPct = ((latestPrice - high52Week) / high52Week) * 100;
 
   // 9. Find lowest RSI in period
@@ -1074,7 +1079,7 @@ export async function getBottomFishingSignal(
   // 10. Assemble and return signal
   return {
     symbol,
-    asOf: dailyData[dailyData.length - 1].date,
+    asOf: sortedDailyData[sortedDailyData.length - 1].date,
     price: {
       close: latestPrice,
       drawdownFromHighPct: drawdownPct,
