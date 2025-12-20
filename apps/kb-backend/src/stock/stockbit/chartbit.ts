@@ -107,7 +107,7 @@ export interface ChartbitData {
 }
 
 export const getChartbitData = async (input: {
-  ticker: string;
+  symbol: string;
   from: Date;
   to: Date;
 }) => {
@@ -115,7 +115,7 @@ export const getChartbitData = async (input: {
   const toFormatted = dateToFormatted(input.to);
 
   const rawData = await KV.getOrSet(
-    `stockbit.chartbit.${input.ticker}.${fromFormatted}.${toFormatted}`,
+    `stockbit.chartbit.${input.symbol}.${fromFormatted}.${toFormatted}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -125,7 +125,7 @@ export const getChartbitData = async (input: {
 
       // somehow stockbit swap the from and to date filtering logic. not sure why they did this
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/chartbit/${input.ticker}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
+        `https://exodus.stockbit.com/chartbit/${input.symbol}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

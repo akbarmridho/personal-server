@@ -17,14 +17,10 @@ export const GetCompaniesParams = z
         ).join(", ")}`,
       )
       .optional(),
-    tickers: z
-      .string()
-      .array()
-      .describe("Array of stock ticker symbols")
-      .optional(),
+    symbols: z.string().array().describe("Array of stock symbols").optional(),
   })
-  .refine((data) => data.subsectors || data.tickers, {
-    message: "Either subsectors or tickers must be provided",
+  .refine((data) => data.subsectors || data.symbols, {
+    message: "Either subsectors or symbols must be provided",
   });
 
 export const getCompanies = async (
@@ -60,13 +56,13 @@ export const getCompanies = async (
         .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
       return { success: true, data: filtered };
-    } else if (input.tickers) {
-      const normalizedTickers = input.tickers.map((e) =>
+    } else if (input.symbols) {
+      const normalizedSymbols = input.symbols.map((e) =>
         e.toUpperCase().replaceAll(".JK", ""),
       );
 
       const filtered = data
-        .filter((item) => normalizedTickers.includes(item.symbol))
+        .filter((item) => normalizedSymbols.includes(item.symbol))
         .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
       return { success: true, data: filtered };
@@ -74,7 +70,7 @@ export const getCompanies = async (
 
     return {
       success: false,
-      message: "Either tickers or subsectors must be set",
+      message: "Either symbols or subsectors must be set",
     };
   } catch (error) {
     logger.error({ err: error }, "Failed to get companies");

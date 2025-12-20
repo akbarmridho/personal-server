@@ -49,11 +49,11 @@ export interface Seasonality {
 }
 
 export const getStockSeasonality = async (
-  ticker: string,
+  symbol: string,
 ): Promise<Seasonality> => {
   const year = dayjs().year();
   const rawData = await KV.getOrSet(
-    `stockbit.seasonality.${ticker}.${year}`,
+    `stockbit.seasonality.${symbol}.${year}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -62,7 +62,7 @@ export const getStockSeasonality = async (
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/seasonality/${ticker}?year=${year}&back_year=5`,
+        `https://exodus.stockbit.com/seasonality/${symbol}?year=${year}&back_year=5`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

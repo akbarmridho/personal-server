@@ -105,11 +105,11 @@ function normalizeDate(dateStr) {
 }
 
 export const getInsiderActivity = async (input: {
-  ticker: string;
+  symbol: string;
   maxPage: number;
 }) => {
   const rawData = await KV.getOrSet(
-    `stockbit.insider.${input.ticker}`,
+    `stockbit.insider.${input.symbol}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -124,7 +124,7 @@ export const getInsiderActivity = async (input: {
 
       while (true) {
         const response = await proxiedAxios.get(
-          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.ticker}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
+          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.symbol}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
           {
             headers: {
               Authorization: `Bearer ${authData.accessToken}`,

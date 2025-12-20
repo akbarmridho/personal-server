@@ -12,9 +12,9 @@ export interface PricePerformance {
   timeframe: string;
 }
 
-export const getPricePerformance = async (ticker: string) => {
+export const getPricePerformance = async (symbol: string) => {
   const rawData = await KV.getOrSet(
-    `stockbit.price-performance.${ticker}`,
+    `stockbit.price-performance.${symbol}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -23,7 +23,7 @@ export const getPricePerformance = async (ticker: string) => {
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/company-price-feed/price-performance/${ticker}`,
+        `https://exodus.stockbit.com/company-price-feed/price-performance/${symbol}`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

@@ -199,12 +199,12 @@ const mapper = {
 };
 
 export const getFinancials = async (input: {
-  ticker: string;
+  symbol: string;
   reportType: "income-statement" | "balance-sheet" | "cash-flow";
   statementType: "quarterly" | "annually" | "ttm";
 }) => {
   const rawData = await KV.getOrSet(
-    `stockbit.financials.${input.reportType}.${input.statementType}.${input.ticker}`,
+    `stockbit.financials.${input.reportType}.${input.statementType}.${input.symbol}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -213,7 +213,7 @@ export const getFinancials = async (input: {
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/findata-view/company/financial?symbol=${input.ticker}&data_type=1&report_type=${mapper.reportType[input.reportType]}&statement_type=${mapper.statementType[input.statementType]}`,
+        `https://exodus.stockbit.com/findata-view/company/financial?symbol=${input.symbol}&data_type=1&report_type=${mapper.reportType[input.reportType]}&statement_type=${mapper.statementType[input.statementType]}`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

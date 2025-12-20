@@ -10,7 +10,7 @@ import {
 } from "./auth.js";
 
 export const getMarketDetector = async (input: {
-  ticker: string;
+  symbol: string;
   from: Date;
   to: Date;
 }) => {
@@ -18,7 +18,7 @@ export const getMarketDetector = async (input: {
   const toFormatted = dateToFormatted(input.to);
 
   const rawData = await KV.getOrSet(
-    `stockbit.marketdetector.${input.ticker}.${fromFormatted}.${toFormatted}`,
+    `stockbit.marketdetector.${input.symbol}.${fromFormatted}.${toFormatted}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -27,7 +27,7 @@ export const getMarketDetector = async (input: {
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/marketdetectors/${input.ticker}?from=${fromFormatted}&to=${toFormatted}&transaction_type=TRANSACTION_TYPE_NET&market_board=MARKET_BOARD_REGULER&investor_type=INVESTOR_TYPE_ALL&limit=25`,
+        `https://exodus.stockbit.com/marketdetectors/${input.symbol}?from=${fromFormatted}&to=${toFormatted}&transaction_type=TRANSACTION_TYPE_NET&market_board=MARKET_BOARD_REGULER&investor_type=INVESTOR_TYPE_ALL&limit=25`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

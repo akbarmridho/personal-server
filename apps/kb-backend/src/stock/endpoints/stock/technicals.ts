@@ -17,13 +17,13 @@ import {
   scanForRecentPatterns,
 } from "../../technical.js";
 
-export const getStockTechnicals = async (rawTicker: string) => {
-  const ticker = await checkSymbol(rawTicker);
+export const getStockTechnicals = async (rawSymbol: string) => {
+  const symbol = await checkSymbol(rawSymbol);
 
   const [seasonality, chartbit] = await Promise.all([
-    getStockSeasonality(ticker),
+    getStockSeasonality(symbol),
     getChartbitData({
-      ticker,
+      symbol,
       from: dayjs().subtract(3, "year").toDate(),
       to: dayjs().toDate(),
     }),

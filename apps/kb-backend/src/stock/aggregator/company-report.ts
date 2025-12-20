@@ -10,17 +10,17 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export const GetCompanyReportParams = z.object({
-  ticker: z.string().describe("The all caps, 4 character, company ticker"),
+  symbol: z.string().describe("The all caps, 4 character, company symbol"),
 });
 
 export const getCompanyReport = async (
   input: z.infer<typeof GetCompanyReportParams>,
 ) => {
   const data = await KV.getOrSet(
-    `stock.aggregator.company-report-${input.ticker}`,
+    `stock.aggregator.company-report-${input.symbol}`,
     async () => {
       const response = await axios.get(
-        env.AGGREGATOR_COMPANY_REPORT_ENDPOINT.replace("TICKER", input.ticker),
+        env.AGGREGATOR_COMPANY_REPORT_ENDPOINT.replace("TICKER", input.symbol),
         {
           headers: {
             ...JSON.parse(env.AGGREGATOR_AUTH),

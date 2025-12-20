@@ -123,7 +123,7 @@ const createCompanyMatchers = (companies: CompanyMeta[]): CompanyMatcher[] => {
     const firstWordLower = nameParts[0]?.toLowerCase();
 
     // 1. Always match the Symbol (e.g., "BBRI")
-    // IMPORTANT: Ticker symbols are always 4 letters and MUST be UPPERCASE only.
+    // IMPORTANT: Symbols are always 4 letters and MUST be UPPERCASE only.
     // This prevents false matches with common lowercase words.
     // DO NOT change this to case-insensitive matching.
     matchers.push({

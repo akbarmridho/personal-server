@@ -37,9 +37,9 @@ export interface Keystats {
   }[];
 }
 
-export const getKeystats = async (ticker: string) => {
+export const getKeystats = async (symbol: string) => {
   const rawData = await KV.getOrSet(
-    `stockbit.keystats.${ticker}`,
+    `stockbit.keystats.${symbol}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -48,7 +48,7 @@ export const getKeystats = async (ticker: string) => {
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/keystats/ratio/v1/${ticker}?year_limit=10`,
+        `https://exodus.stockbit.com/keystats/ratio/v1/${symbol}?year_limit=10`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

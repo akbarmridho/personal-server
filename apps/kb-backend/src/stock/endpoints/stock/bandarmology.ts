@@ -15,10 +15,10 @@ const getClosestWorkingDay = (date: dayjs.Dayjs): dayjs.Dayjs => {
 };
 
 export const getStockBandarmology = async (
-  rawTicker: string,
+  rawSymbol: string,
   period: "1d" | "1w" | "1m" | "3m" | "1y",
 ) => {
-  const ticker = await checkSymbol(rawTicker);
+  const symbol = await checkSymbol(rawSymbol);
 
   const to = getClosestWorkingDay(dayjs());
   let from: dayjs.Dayjs;
@@ -42,7 +42,7 @@ export const getStockBandarmology = async (
   }
 
   return await getMarketDetector({
-    ticker,
+    symbol,
     from: from.toDate(),
     to: to.toDate(),
   });

@@ -8,9 +8,9 @@ import {
   stockbitAuth,
 } from "./auth.js";
 
-export const getEmittenInfo = async (input: { ticker: string }) => {
+export const getEmittenInfo = async (input: { symbol: string }) => {
   const rawData = await KV.getOrSet(
-    `stockbit.emitteninfo.${input.ticker}`,
+    `stockbit.emitteninfo.${input.symbol}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -19,7 +19,7 @@ export const getEmittenInfo = async (input: { ticker: string }) => {
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/emitten/${input.ticker}/info`,
+        `https://exodus.stockbit.com/emitten/${input.symbol}/info`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

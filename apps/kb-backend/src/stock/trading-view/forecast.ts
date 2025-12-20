@@ -49,12 +49,12 @@ export const QuarterlyDataSchema = z.object({
   ),
 });
 
-export const getForecastData = async (ticker: string) => {
+export const getForecastData = async (symbol: string) => {
   const data = await KV.getOrSet(
-    `stock.tradingview.forecast.${ticker}`,
+    `stock.tradingview.forecast.${symbol}`,
     async () => {
       const rawContent = (await fetchRawUrlContent({
-        url: `https://www.tradingview.com/symbols/IDX-${ticker}/forecast/`,
+        url: `https://www.tradingview.com/symbols/IDX-${symbol}/forecast/`,
         returnFormat: "markdown",
       })) as string;
 

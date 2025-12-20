@@ -3,13 +3,13 @@ import { getCompanyReport } from "../../aggregator/company-report.js";
 import { getInsiderActivity } from "../../stockbit/insider-activity.js";
 import { getStockProfile } from "../../stockbit/profile.js";
 
-export const getStockOwnership = async (rawTicker: string) => {
-  const ticker = await checkSymbol(rawTicker);
+export const getStockOwnership = async (rawSymbol: string) => {
+  const symbol = await checkSymbol(rawSymbol);
 
   const [companyProfile, companyReport, insiders] = await Promise.all([
-    getStockProfile(ticker),
-    getCompanyReport({ ticker }),
-    getInsiderActivity({ ticker, maxPage: 1 }),
+    getStockProfile(symbol),
+    getCompanyReport({ symbol }),
+    getInsiderActivity({ symbol, maxPage: 1 }),
   ]);
 
   return {

@@ -106,7 +106,7 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-companies",
     description:
-      "Returns companies filtered by subsectors or tickers. Provide either subsectors array or tickers array.",
+      "Returns companies filtered by subsectors or symbols. Provide either subsectors array or symbols array.",
     parameters: GetCompaniesParams,
     execute: async (args) => {
       logger.info({ args }, "Executing get-companies");
@@ -131,16 +131,16 @@ export const setupStockMcp = async () => {
 
   server.addTool({
     name: "get-stock-fundamental",
-    description: "Returns fundamental data for a specific stock ticker.",
-    parameters: z.object({ ticker: z.string() }),
+    description: "Returns fundamental data for a specific stock symbol.",
+    parameters: z.object({ symbol: z.string() }),
     execute: async (args) => {
-      logger.info({ ticker: args.ticker }, "Executing get-stock-fundamental");
+      logger.info({ symbol: args.symbol }, "Executing get-stock-fundamental");
       try {
-        const data = await getCompanyFundamental(args.ticker);
-        logger.info({ ticker: args.ticker }, "Get fundamental completed");
+        const data = await getCompanyFundamental(args.symbol);
+        logger.info({ symbol: args.symbol }, "Get fundamental completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, ticker: args.ticker }, "Get fundamental failed");
+        logger.error({ error, symbol: args.symbol }, "Get fundamental failed");
         return {
           content: [
             {
@@ -156,22 +156,22 @@ export const setupStockMcp = async () => {
 
   server.addTool({
     name: "get-stock-bandarmology",
-    description: "Returns market detector data for a specific stock ticker.",
+    description: "Returns market detector data for a specific stock symbol.",
     parameters: z.object({
-      ticker: z.string(),
+      symbol: z.string(),
       period: z.enum(["1d", "1w", "1m", "3m", "1y"]),
     }),
     execute: async (args) => {
       logger.info(
-        { ticker: args.ticker, period: args.period },
+        { symbol: args.symbol, period: args.period },
         "Executing get-stock-bandarmology",
       );
       try {
-        const data = await getStockBandarmology(args.ticker, args.period);
-        logger.info({ ticker: args.ticker }, "Get bandarmology completed");
+        const data = await getStockBandarmology(args.symbol, args.period);
+        logger.info({ symbol: args.symbol }, "Get bandarmology completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, ticker: args.ticker }, "Get bandarmology failed");
+        logger.error({ error, symbol: args.symbol }, "Get bandarmology failed");
         return {
           content: [
             {
@@ -187,16 +187,16 @@ export const setupStockMcp = async () => {
 
   server.addTool({
     name: "get-stock-financials",
-    description: "Returns financial statements for a specific stock ticker.",
+    description: "Returns financial statements for a specific stock symbol.",
     parameters: z.object({
-      ticker: z.string(),
+      symbol: z.string(),
       reportType: z.enum(["income-statement", "balance-sheet", "cash-flow"]),
       statementType: z.enum(["quarterly", "annually", "ttm"]),
     }),
     execute: async (args) => {
       logger.info(
         {
-          ticker: args.ticker,
+          symbol: args.symbol,
           reportType: args.reportType,
           statementType: args.statementType,
         },
@@ -204,10 +204,10 @@ export const setupStockMcp = async () => {
       );
       try {
         const data = await getStockFinancials(args);
-        logger.info({ ticker: args.ticker }, "Get financials completed");
+        logger.info({ symbol: args.symbol }, "Get financials completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, ticker: args.ticker }, "Get financials failed");
+        logger.error({ error, symbol: args.symbol }, "Get financials failed");
         return {
           content: [
             {
@@ -224,20 +224,20 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-stock-governance",
     description:
-      "Returns governance data for a specific stock ticker including management, executives, ownership structure, and insider activity.",
-    parameters: z.object({ ticker: z.string() }),
+      "Returns governance data for a specific stock symbol including management, executives, ownership structure, and insider activity.",
+    parameters: z.object({ symbol: z.string() }),
     execute: async (args) => {
-      logger.info({ ticker: args.ticker }, "Executing get-stock-governance");
+      logger.info({ symbol: args.symbol }, "Executing get-stock-governance");
       try {
         const [management, ownership] = await Promise.all([
-          getStockManagement(args.ticker),
-          getStockOwnership(args.ticker),
+          getStockManagement(args.symbol),
+          getStockOwnership(args.symbol),
         ]);
         const data = { management, ownership };
-        logger.info({ ticker: args.ticker }, "Get governance completed");
+        logger.info({ symbol: args.symbol }, "Get governance completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, ticker: args.ticker }, "Get governance failed");
+        logger.error({ error, symbol: args.symbol }, "Get governance failed");
         return {
           content: [
             {
@@ -254,16 +254,16 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-stock-technical",
     description:
-      "Returns technical analysis data for a specific stock ticker including indicators, patterns, and seasonality.",
-    parameters: z.object({ ticker: z.string() }),
+      "Returns technical analysis data for a specific stock symbol including indicators, patterns, and seasonality.",
+    parameters: z.object({ symbol: z.string() }),
     execute: async (args) => {
-      logger.info({ ticker: args.ticker }, "Executing get-stock-technical");
+      logger.info({ symbol: args.symbol }, "Executing get-stock-technical");
       try {
-        const data = await getStockTechnicals(args.ticker);
-        logger.info({ ticker: args.ticker }, "Get technicals completed");
+        const data = await getStockTechnicals(args.symbol);
+        logger.info({ symbol: args.symbol }, "Get technicals completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, ticker: args.ticker }, "Get technicals failed");
+        logger.error({ error, symbol: args.symbol }, "Get technicals failed");
         return {
           content: [
             {

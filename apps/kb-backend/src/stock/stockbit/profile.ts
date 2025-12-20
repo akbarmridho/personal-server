@@ -5,9 +5,9 @@ import { proxiedAxios } from "../proxy.js";
 import { removeKeysRecursive } from "../utils.js";
 import { StockbitAuthError, stockbitAuth } from "./auth.js";
 
-export const getStockProfile = async (ticker: string) => {
+export const getStockProfile = async (symbol: string) => {
   const rawData = await KV.getOrSet(
-    `stockbit.profile.${ticker}`,
+    `stockbit.profile.${symbol}`,
     async () => {
       const authData = await stockbitAuth.get();
 
@@ -16,7 +16,7 @@ export const getStockProfile = async (ticker: string) => {
       }
 
       const response = await proxiedAxios.get(
-        `https://exodus.stockbit.com/emitten/${ticker}/profile`,
+        `https://exodus.stockbit.com/emitten/${symbol}/profile`,
         {
           headers: {
             Authorization: `Bearer ${authData.accessToken}`,

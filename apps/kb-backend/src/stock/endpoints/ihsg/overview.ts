@@ -18,16 +18,16 @@ import {
 } from "../../technical.js";
 
 export const getIHSGOverview = async () => {
-  const ticker = "IHSG";
+  const symbol = "IHSG";
 
   const [seasonality, chartbit, emittenInfo] = await Promise.all([
-    getStockSeasonality(ticker),
+    getStockSeasonality(symbol),
     getChartbitData({
-      ticker,
+      symbol,
       from: dayjs().subtract(3, "year").toDate(),
       to: dayjs().toDate(),
     }),
-    getEmittenInfo({ ticker }),
+    getEmittenInfo({ symbol }),
   ]);
 
   const sortedAsc = chartbit.toSorted((a, b) => a.unixdate - b.unixdate);

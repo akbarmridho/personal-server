@@ -6,19 +6,19 @@ import { getKeystats } from "../../stockbit/keystats.js";
 import { getForecastData } from "../../trading-view/forecast.js";
 import { removeKeysRecursive } from "../../utils.js";
 
-export const getCompanyFundamental = async (rawTicker: string) => {
-  const ticker = await checkSymbol(rawTicker);
+export const getCompanyFundamental = async (rawSymbol: string) => {
+  const symbol = await checkSymbol(rawSymbol);
 
   const [companyReport, keystats, emittenInfo, forecast] = await Promise.all([
-    getCompanyReport({ ticker }),
-    getKeystats(ticker),
-    getEmittenInfo({ ticker }),
-    getForecastData(ticker),
+    getCompanyReport({ symbol }),
+    getKeystats(symbol),
+    getEmittenInfo({ symbol }),
+    getForecastData(symbol),
   ]);
 
   const data = {
     overview: {
-      ticker: ticker,
+      symbol: symbol,
       company_name: companyReport.company_name,
       subsector: normalizeSector(companyReport.sub_sector),
       listing_date: companyReport.listing_date,

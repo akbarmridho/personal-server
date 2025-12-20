@@ -50,7 +50,7 @@ export const setupStockRoutes = () =>
         try {
           const body = query.subsectors
             ? { subsectors: query.subsectors.split(",") }
-            : { tickers: query.tickers!.split(",") };
+            : { symbols: query.symbols!.split(",") };
           const result = await getCompanies(body);
           if (!result.success) set.status = 400;
           return result;
@@ -63,15 +63,15 @@ export const setupStockRoutes = () =>
       {
         query: t.Object({
           subsectors: t.Optional(t.String()),
-          tickers: t.Optional(t.String()),
+          symbols: t.Optional(t.String()),
         }),
       },
     )
     .get(
-      "/stock/:ticker/fundamental",
+      "/stock/:symbol/fundamental",
       async ({ params, set }) => {
         try {
-          const data = await getCompanyFundamental(params.ticker);
+          const data = await getCompanyFundamental(params.symbol);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get fundamental failed");
@@ -79,14 +79,14 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ ticker: t.String() }) },
+      { params: t.Object({ symbol: t.String() }) },
     )
     .get(
-      "/stock/:ticker/bandarmology",
+      "/stock/:symbol/bandarmology",
       async ({ params, query, set }) => {
         try {
           const period = query.period || "1m";
-          const data = await getStockBandarmology(params.ticker, period);
+          const data = await getStockBandarmology(params.symbol, period);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get bandarmology failed");
@@ -95,7 +95,7 @@ export const setupStockRoutes = () =>
         }
       },
       {
-        params: t.Object({ ticker: t.String() }),
+        params: t.Object({ symbol: t.String() }),
         query: t.Object({
           period: t.Optional(
             t.Union([
@@ -110,13 +110,13 @@ export const setupStockRoutes = () =>
       },
     )
     .get(
-      "/stock/:ticker/financials",
+      "/stock/:symbol/financials",
       async ({ params, query, set }) => {
         try {
           const reportType = query.reportType || "income-statement";
           const statementType = query.statementType || "quarterly";
           const data = await getStockFinancials({
-            ticker: params.ticker,
+            symbol: params.symbol,
             reportType,
             statementType,
           });
@@ -128,7 +128,7 @@ export const setupStockRoutes = () =>
         }
       },
       {
-        params: t.Object({ ticker: t.String() }),
+        params: t.Object({ symbol: t.String() }),
         query: t.Object({
           reportType: t.Optional(
             t.Union([
@@ -148,10 +148,10 @@ export const setupStockRoutes = () =>
       },
     )
     .get(
-      "/stock/:ticker/management",
+      "/stock/:symbol/management",
       async ({ params, set }) => {
         try {
-          const data = await getStockManagement(params.ticker);
+          const data = await getStockManagement(params.symbol);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get management failed");
@@ -159,13 +159,13 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ ticker: t.String() }) },
+      { params: t.Object({ symbol: t.String() }) },
     )
     .get(
-      "/stock/:ticker/ownership",
+      "/stock/:symbol/ownership",
       async ({ params, set }) => {
         try {
-          const data = await getStockOwnership(params.ticker);
+          const data = await getStockOwnership(params.symbol);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get ownership failed");
@@ -173,13 +173,13 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ ticker: t.String() }) },
+      { params: t.Object({ symbol: t.String() }) },
     )
     .get(
-      "/stock/:ticker/technical",
+      "/stock/:symbol/technical",
       async ({ params, set }) => {
         try {
-          const data = await getStockTechnicals(params.ticker);
+          const data = await getStockTechnicals(params.symbol);
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get technicals failed");
@@ -187,7 +187,7 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ ticker: t.String() }) },
+      { params: t.Object({ symbol: t.String() }) },
     )
     .get("/ihsg/technical", async ({ set }) => {
       try {
