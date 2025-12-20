@@ -39,14 +39,8 @@ export const getSectorsReport = async (
       };
     }
 
-    const andRemoved = normalizedInput
-      .filter((e) => e.includes("-and-"))
-      .map((e) => e.replace("-and-", "-"));
-
-    normalizedInput.push(...andRemoved);
-
     const data = await KV.getOrSet(
-      "stock.aggregator.sectors-report",
+      "stock.aggregator.sectors-report-v2",
       async () => {
         const response = await axios.get(
           env.AGGREGATOR_SECTORS_REPORT_ENDPOINT,
@@ -58,12 +52,22 @@ export const getSectorsReport = async (
           },
         );
 
-        return response.data as {
+        const data = response.data as {
           sector: string;
           sub_sector: string;
           slug: string;
           [key: string]: any;
         }[];
+
+        return data.map((e) => {
+          const { sector, sub_sector, slug, description, ...rest } = e;
+
+          return {
+            sector: normalizeSector(sector),
+            subSector: normalizeSector(sub_sector),
+            ...rest,
+          };
+        });
       },
       dayjs().add(1, "week").toDate(),
     );

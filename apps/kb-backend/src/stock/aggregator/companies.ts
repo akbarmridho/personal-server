@@ -49,16 +49,8 @@ export const getCompanies = async (
         };
       }
 
-      const andRemoved = normalizedInput
-        .filter((e) => e.includes("-and-"))
-        .map((e) => e.replace("-and-", "-"));
-
-      normalizedInput.push(...andRemoved);
-
       const filtered = data
-        .filter((item) =>
-          normalizedInput.includes(normalizeSector(item.subSector)),
-        )
+        .filter((item) => normalizedInput.includes(item.subSector))
         .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
       return { success: true, data: filtered };
