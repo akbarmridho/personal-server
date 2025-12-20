@@ -737,16 +737,14 @@ export async function getGCStochPSARSignal(
   const invalidationLevel = latestSMA200;
 
   // Calculate history (last 10 data points)
+  const startIdx50 = Math.max(0, sma50Series.length - 10);
+  const startIdxPsar = Math.max(0, psarSeries.length - 10);
+
   const history = {
     convergenceTrend: sma50Series.slice(-10).map((sma50, idx) => {
-      const sma200Idx = Math.min(
-        idx + (sma50Series.length - sma200Series.length),
-        sma200Series.length - 1,
-      );
-      const priceIdx = Math.min(
-        idx + (sma50Series.length - sortedData.length),
-        sortedData.length - 1,
-      );
+      const actualIdx = startIdx50 + idx;
+      const sma200Idx = Math.min(actualIdx, sma200Series.length - 1);
+      const priceIdx = Math.min(actualIdx + 50, sortedData.length - 1);
       return {
         date: sma50.date,
         gapPct:
@@ -761,10 +759,8 @@ export async function getGCStochPSARSignal(
       d: s.d,
     })),
     psarTrend: psarSeries.slice(-10).map((p, idx) => {
-      const priceIdx = Math.min(
-        idx + (psarSeries.length - sortedData.length),
-        sortedData.length - 1,
-      );
+      const actualIdx = startIdxPsar + idx;
+      const priceIdx = Math.min(actualIdx + 1, sortedData.length - 1);
       return {
         date: p.date,
         trend: p.trend,

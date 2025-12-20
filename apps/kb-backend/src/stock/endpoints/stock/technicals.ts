@@ -16,25 +16,27 @@ import {
   downsampleToWeekly,
   scanForRecentPatterns,
 } from "../../technical.js";
+import { removeKeysRecursive } from "../../utils.js";
 
 export const getStockTechnicals = async (rawSymbol: string) => {
   const symbol = await checkSymbol(rawSymbol);
 
-  const [seasonality, chartbit] = await Promise.all([
-    getStockSeasonality(symbol),
-    getChartbitData({
-      symbol,
-      from: dayjs().subtract(3, "year").toDate(),
-      to: dayjs().toDate(),
-    }),
-  ]);
+  const chartbit = await getChartbitData({
+    symbol,
+    from: dayjs().subtract(3, "year").toDate(),
+    to: dayjs().toDate(),
+  });
 
   const sortedAsc = chartbit.toSorted((a, b) => a.unixdate - b.unixdate);
 
   return {
     price: {
-      recent_weekly: sortedAsc.slice(-5).reverse(),
-      seasonality,
+      recent_weekly: removeKeysRecursive(sortedAsc.slice(-5).reverse(), [
+        "unixdate",
+        "soxclose",
+        "dividend",
+        "freq_analyzer",
+      ]),
       zigzag: {
         weekly_3y: calculateZigZag(downsampleToWeekly(sortedAsc), 20),
         daily_3m: calculateZigZag(sortedAsc.slice(-60)),

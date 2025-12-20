@@ -16,12 +16,12 @@ import {
   downsampleToWeekly,
   scanForRecentPatterns,
 } from "../../technical.js";
+import { removeKeysRecursive } from "../../utils.js";
 
 export const getIHSGOverview = async () => {
   const symbol = "IHSG";
 
-  const [seasonality, chartbit, emittenInfo] = await Promise.all([
-    getStockSeasonality(symbol),
+  const [chartbit, emittenInfo] = await Promise.all([
     getChartbitData({
       symbol,
       from: dayjs().subtract(3, "year").toDate(),
@@ -52,8 +52,12 @@ export const getIHSGOverview = async () => {
       time_left: emittenInfo.market_hour?.formatted_time_left,
     },
     price: {
-      recent_weekly: sortedAsc.slice(-5).reverse(),
-      seasonality,
+      recent_weekly: removeKeysRecursive(sortedAsc.slice(-5).reverse(), [
+        "unixdate",
+        "soxclose",
+        "dividend",
+        "freq_analyzer",
+      ]),
       zigzag: {
         weekly_3y: calculateZigZag(downsampleToWeekly(sortedAsc), 20),
         daily_3m: calculateZigZag(sortedAsc.slice(-60)),
