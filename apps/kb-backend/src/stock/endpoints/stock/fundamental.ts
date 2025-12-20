@@ -1,12 +1,13 @@
-import { checkTicker } from "../../aggregator/companies.js";
+import { normalizeSector } from "../../../data-modules/profiles/sector.js";
+import { checkSymbol } from "../../aggregator/companies.js";
 import { getCompanyReport } from "../../aggregator/company-report.js";
 import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getKeystats } from "../../stockbit/keystats.js";
 import { getForecastData } from "../../trading-view/forecast.js";
-import { normalizeSlug, removeKeysRecursive } from "../../utils.js";
+import { removeKeysRecursive } from "../../utils.js";
 
 export const getCompanyFundamental = async (rawTicker: string) => {
-  const ticker = await checkTicker(rawTicker);
+  const ticker = await checkSymbol(rawTicker);
 
   const [companyReport, keystats, emittenInfo, forecast] = await Promise.all([
     getCompanyReport({ ticker }),
@@ -20,8 +21,7 @@ export const getCompanyFundamental = async (rawTicker: string) => {
       ticker: ticker,
       company_name: companyReport.company_name,
       sector: companyReport.sector,
-      subsector: companyReport.sub_sector,
-      subsector_slug: normalizeSlug(companyReport.sub_sector),
+      subsector: normalizeSector(companyReport.sub_sector),
       listing_date: companyReport.listing_date,
     },
     market: {

@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { checkTicker } from "../../aggregator/companies.js";
+import { checkSymbol } from "../../aggregator/companies.js";
 import { getChartbitData } from "../../stockbit/chartbit.js";
 import { getStockSeasonality } from "../../stockbit/seasonality.js";
 import {
@@ -18,7 +18,7 @@ import {
 } from "../../technical.js";
 
 export const getStockTechnicals = async (rawTicker: string) => {
-  const ticker = await checkTicker(rawTicker);
+  const ticker = await checkSymbol(rawTicker);
 
   const [seasonality, chartbit] = await Promise.all([
     getStockSeasonality(ticker),

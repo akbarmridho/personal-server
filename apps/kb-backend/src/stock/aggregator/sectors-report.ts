@@ -1,11 +1,13 @@
 import axios from "axios";
 import dayjs from "dayjs";
 import z from "zod";
+import {
+  normalizeSector,
+  supportedSubsectors,
+} from "../../data-modules/profiles/sector.js";
 import { KV } from "../../db/kv.js";
 import { env } from "../../infrastructure/env.js";
 import { logger } from "../../utils/logger.js";
-import { normalizeSlug } from "../utils.js";
-import { supportedSubsectors } from "./sectors.js";
 
 export const GetSectorsReportParams = z.object({
   subsectors: z
@@ -23,7 +25,7 @@ export const getSectorsReport = async (
 > => {
   try {
     const normalizedInput = input.subsectors.map((s) =>
-      supportedSubsectors.has(s) ? s : normalizeSlug(s),
+      supportedSubsectors.has(s) ? s : normalizeSector(s),
     );
 
     const invalidSlugs = normalizedInput.filter(

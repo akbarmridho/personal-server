@@ -1,10 +1,10 @@
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
+import { sectors } from "../data-modules/profiles/sector.js";
 import { env } from "../infrastructure/env.js";
 import { logger } from "../utils/logger.js";
 import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
-import { getSectors } from "./aggregator/sectors.js";
 import {
   GetSectorsReportParams,
   getSectorsReport,
@@ -21,6 +21,7 @@ import {
   getForexSummary,
   type PriceSummaryData,
 } from "./other-prices/forex.js";
+import { removeKeysRecursive } from "./utils.js";
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -43,10 +44,11 @@ export const setupStockMcp = async () => {
     parameters: z.object({}),
     execute: async () => {
       logger.info("Executing get-sectors");
+
+      const subsectors = removeKeysRecursive(sectors, ["industries"]);
+
       try {
-        const data = getSectors();
-        logger.info({ count: data.length }, "Get sectors completed");
-        return { type: "text", text: yaml.dump(data) };
+        return { type: "text", text: yaml.dump(subsectors) };
       } catch (error) {
         logger.error({ error }, "Get sectors failed");
         return {

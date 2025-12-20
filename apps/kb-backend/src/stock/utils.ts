@@ -10,37 +10,6 @@ export const dateToFormatted = (date: Date) => {
 };
 
 /**
- * Function wrapper that adds simple in-memory caching.
- * The cache is unique per wrapped function.
- */
-export function withMemoryCache<T>(
-  fn: () => Promise<T>,
-  ttlMs: number,
-): () => Promise<T> {
-  let cache: { data: T; expiresAt: number } | null = null;
-
-  return async () => {
-    if (cache && Date.now() < cache.expiresAt) {
-      return cache.data;
-    }
-
-    const data = await fn();
-    cache = { data, expiresAt: Date.now() + ttlMs };
-    return data;
-  };
-}
-export const normalizeSlug = (input: string): string => {
-  return input
-    .toLowerCase()
-    .replace(/&amp;/g, "")
-    .replace("&", "")
-    .replace(",", "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .replace(/\s/g, "-");
-};
-
-/**
  * Recursively deletes one or more specified keys from an object or an array.
  * This function mutates the original object/array.
  *

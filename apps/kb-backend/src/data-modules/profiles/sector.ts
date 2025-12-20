@@ -909,6 +909,10 @@ export const sectors: Array<{
   },
 ];
 
+export const supportedSubsectors = new Set<string>(
+  sectors.flatMap((e) => e.subsectors).map((e) => e.name),
+);
+
 const validSubsectors = new Set<string>();
 const validSubindustries = new Set<string>();
 

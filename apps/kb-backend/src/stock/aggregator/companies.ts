@@ -1,63 +1,10 @@
-import axios from "axios";
-import dayjs from "dayjs";
 import z from "zod";
-import { KV } from "../../db/kv.js";
-import { env } from "../../infrastructure/env.js";
+import { fetchRawCompanies } from "../../data-modules/profiles/companies.js";
+import {
+  normalizeSector,
+  supportedSubsectors,
+} from "../../data-modules/profiles/sector.js";
 import { logger } from "../../utils/logger.js";
-import { normalizeSlug, withMemoryCache } from "../utils.js";
-import { supportedSubsectors } from "./sectors.js";
-
-interface RawCompany {
-  ticker: string;
-  sector: string;
-  subsector: string;
-  subsectorSlug: string;
-  companyName: string;
-}
-
-/**
- * Raw company fetching function (without cache)
- */
-async function fetchRawCompanies(): Promise<RawCompany[]> {
-  const responseData = await KV.getOrSet(
-    "stock.aggregator.companies",
-    async () => {
-      const response = await axios.get(env.AGGREGATOR_COMPANIES_ENDPOINT, {
-        headers: {
-          ...JSON.parse(env.AGGREGATOR_AUTH),
-          "Content-Type": "application/json",
-        },
-      });
-
-      return response.data;
-    },
-    dayjs().add(1, "week").toDate(),
-    true,
-  );
-
-  return (
-    responseData as {
-      sector: string;
-      sub_sector: string;
-      symbol: string;
-      company_name: string;
-    }[]
-  ).map((e) => ({
-    ticker: e.symbol.toUpperCase().replaceAll(".JK", ""),
-    sector: e.sector,
-    subsector: e.sub_sector,
-    subsectorSlug: normalizeSlug(e.sub_sector),
-    companyName: e.company_name,
-  }));
-}
-
-/**
- * Cached version of fetchRawCompanies (30 minutes TTL)
- */
-export const getRawCompanies = withMemoryCache(
-  fetchRawCompanies,
-  30 * 60 * 1000,
-);
 
 export const GetCompaniesParams = z
   .object({
@@ -86,11 +33,11 @@ export const getCompanies = async (
   { success: true; data: any } | { success: false; message: string }
 > => {
   try {
-    const data = await getRawCompanies();
+    const data = await fetchRawCompanies();
 
     if (input.subsectors) {
       const normalizedInput = input.subsectors.map((s) =>
-        supportedSubsectors.has(s) ? s : normalizeSlug(s),
+        supportedSubsectors.has(s) ? s : normalizeSector(s),
       );
 
       const invalidSlugs = normalizedInput.filter(
@@ -108,9 +55,9 @@ export const getCompanies = async (
 
       const filtered = data
         .filter((item) =>
-          normalizedInput.includes(normalizeSlug(item.subsector)),
+          normalizedInput.includes(normalizeSector(item.subSector)),
         )
-        .sort((a, b) => a.ticker.localeCompare(b.ticker));
+        .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
       return { success: true, data: filtered };
     } else if (input.tickers) {
@@ -119,8 +66,8 @@ export const getCompanies = async (
       );
 
       const filtered = data
-        .filter((item) => normalizedTickers.includes(item.ticker))
-        .sort((a, b) => a.ticker.localeCompare(b.ticker));
+        .filter((item) => normalizedTickers.includes(item.symbol))
+        .sort((a, b) => a.symbol.localeCompare(b.symbol));
 
       return { success: true, data: filtered };
     }
@@ -135,14 +82,14 @@ export const getCompanies = async (
   }
 };
 
-export const checkTicker = async (ticker: string): Promise<string> => {
-  const data = await getRawCompanies();
+export const checkSymbol = async (symbol: string): Promise<string> => {
+  const data = await fetchRawCompanies();
 
-  const normalized = ticker.toUpperCase().replaceAll(".JK", "");
+  const normalized = symbol.toUpperCase().replaceAll(".JK", "");
 
-  if (data.map((e) => e.ticker).includes(normalized)) {
+  if (data.map((e) => e.symbol).includes(normalized)) {
     return normalized;
   }
 
-  throw new Error(`Ticker ${ticker} not found`);
+  throw new Error(`Symbol ${symbol} not found`);
 };

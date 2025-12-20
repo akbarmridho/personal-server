@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
-import { checkTicker } from "../../aggregator/companies.js";
+import { checkSymbol } from "../../aggregator/companies.js";
 import { getMarketDetector } from "../../stockbit/market-detector.js";
 
 dayjs.extend(utc);
@@ -18,7 +18,7 @@ export const getStockBandarmology = async (
   rawTicker: string,
   period: "1d" | "1w" | "1m" | "3m" | "1y",
 ) => {
-  const ticker = await checkTicker(rawTicker);
+  const ticker = await checkSymbol(rawTicker);
 
   const to = getClosestWorkingDay(dayjs());
   let from: dayjs.Dayjs;

@@ -1,9 +1,9 @@
-import { checkTicker } from "../../aggregator/companies.js";
+import { checkSymbol } from "../../aggregator/companies.js";
 import { getCompanyReport } from "../../aggregator/company-report.js";
 import { getStockProfile } from "../../stockbit/profile.js";
 
 export const getStockManagement = async (rawTicker: string) => {
-  const ticker = await checkTicker(rawTicker);
+  const ticker = await checkSymbol(rawTicker);
 
   const [companyProfile, companyReport] = await Promise.all([
     getStockProfile(ticker),

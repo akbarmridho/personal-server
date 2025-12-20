@@ -16,7 +16,7 @@ export interface CompanyMeta {
 
 export const companyMetaKeys = "data-modules.profiles.companies";
 
-async function fetchRawCompanies(): Promise<CompanyMeta[]> {
+export async function fetchRawCompanies(): Promise<CompanyMeta[]> {
   const response = await axios.get(env.AGGREGATOR_COMPANIES_ENDPOINT, {
     headers: {
       ...JSON.parse(env.AGGREGATOR_AUTH),

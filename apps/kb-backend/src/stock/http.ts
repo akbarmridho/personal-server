@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
+import { sectors } from "../data-modules/profiles/sector.js";
 import { logger } from "../utils/logger.js";
 import { getCompanies } from "./aggregator/companies.js";
-import { getSectors } from "./aggregator/sectors.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";
 import { getIHSGOverview } from "./endpoints/ihsg/overview.js";
 import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
@@ -10,20 +10,18 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import {
-  getWeeklyMoodData,
-  mergeWeeklyMoodData,
-} from "./news-summary/weekly-mood.js";
 import { getCommoditySummary } from "./other-prices/commodity.js";
 import { getForexSummary } from "./other-prices/forex.js";
 import { stockbitAuth } from "./stockbit/auth.js";
+import { removeKeysRecursive } from "./utils.js";
 
 export const setupStockRoutes = () =>
   new Elysia({ prefix: "/stock-market-id", tags: ["Stock Market (Indonesia)"] })
     .get("/sectors", async ({ set }) => {
       try {
-        const data = getSectors();
-        return { success: true, data };
+        const subsectors = removeKeysRecursive(sectors, ["industries"]);
+
+        return { success: true, data: subsectors };
       } catch (err) {
         logger.error({ err }, "Get sectors failed");
         set.status = 500;
@@ -282,59 +280,4 @@ export const setupStockRoutes = () =>
         set.status = 500;
         return { success: false, error: (err as Error).message };
       }
-    })
-    .get(
-      "/weekly-mood",
-      async ({ set }) => {
-        try {
-          return { success: true, data: await getWeeklyMoodData(100) };
-        } catch (err) {
-          logger.error({ err }, "Get weekly mood failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        body: t.Object({
-          data: t.Array(
-            t.Object({
-              date: t.String(),
-              content: t.String(),
-            }),
-          ),
-        }),
-      },
-    )
-    .post(
-      "/weekly-mood/merge",
-      async ({ body, set }) => {
-        try {
-          await mergeWeeklyMoodData(body.data);
-          return { success: true };
-        } catch (err) {
-          logger.error({ err }, "Merge weekly mood failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        body: t.Object({
-          data: t.Array(
-            t.Object({
-              date: t.String(),
-              content: t.String(),
-            }),
-          ),
-        }),
-      },
-    );
-// .post("/stockbit-auth/refresh", async ({ set }) => {
-//   try {
-//     await stockbitAuth.refresh();
-//     return { success: true };
-//   } catch (err) {
-//     logger.error({ err }, "Refresh auth failed");
-//     set.status = 500;
-//     return { success: false, error: (err as Error).message };
-//   }
-// });
+    });
