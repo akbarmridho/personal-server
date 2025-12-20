@@ -103,14 +103,15 @@ export interface GCStochPSARSignal {
   phase: {
     current:
       | "forming"
-      | "ready"
-      | "triggered"
-      | "active"
-      | "exit_warning"
-      | "none";
+      | "imminent"
+      | "fresh_breakout"
+      | "uptrend_pullback"
+      | "uptrend_holding"
+      | "trend_exhaustion"
+      | "bearish_avoid";
     confidence: "high" | "medium" | "low";
     description: string;
-    actionableInsight: string; // What to do NOW
+    actionableInsight: string;
   };
 
   // === FOR ACTIVE POSITIONS ===
@@ -334,68 +335,64 @@ export function calculateConvergence(
     throw new Error("SMA series cannot be empty");
   }
 
-  const latestSMA50 = sma50Series[sma50Series.length - 1].value;
-  const latestSMA200 = sma200Series[sma200Series.length - 1].value;
-  const latestPrice = priceData[priceData.length - 1].close;
+  // Create maps for date-aligned lookup
+  const sma200Map = new Map(sma200Series.map((s) => [s.date, s.value]));
+  const priceMap = new Map(priceData.map((p) => [p.date, p.close]));
 
-  // Calculate gap as percentage of price
-  const gapPct = ((latestSMA50 - latestSMA200) / latestPrice) * 100;
+  // Align data by date
+  const alignedData = sma50Series
+    .map((s50) => {
+      const val200 = sma200Map.get(s50.date);
+      const price = priceMap.get(s50.date);
+      if (val200 === undefined || price === undefined) return null;
+      return {
+        date: s50.date,
+        val50: s50.value,
+        val200,
+        price,
+        gap: s50.value - val200,
+      };
+    })
+    .filter((d): d is NonNullable<typeof d> => d !== null);
+
+  if (alignedData.length === 0) {
+    return {
+      gapPct: 0,
+      trendState: "below_bearish",
+      convergenceRate: 0,
+      projectedDaysToGC: null,
+    };
+  }
+
+  const latest = alignedData[alignedData.length - 1];
+  const gapPct = (latest.gap / latest.price) * 100;
 
   // Determine trend state
   let trendState: ConvergenceResult["trendState"];
-  if (latestSMA50 < latestSMA200) {
-    if (gapPct > -5) {
+  if (latest.val50 > latest.val200) {
+    trendState = gapPct > 5 ? "diverging_strong" : "above_bullish";
+  } else {
+    if (gapPct > -2) {
       trendState = "cross_imminent";
-    } else if (sma50Series.length >= 5) {
-      // Check if converging
-      const recentGaps: number[] = [];
-      for (
-        let i = Math.max(0, sma50Series.length - 5);
-        i < sma50Series.length;
-        i++
-      ) {
-        const idx200 = Math.min(i, sma200Series.length - 1);
-        const priceIdx = Math.min(i + 200, priceData.length - 1);
-        const gap =
-          ((sma50Series[i].value - sma200Series[idx200].value) /
-            priceData[priceIdx].close) *
-          100;
-        recentGaps.push(gap);
-      }
-
-      if (recentGaps[recentGaps.length - 1] > recentGaps[0]) {
-        trendState = "converging";
-      } else {
-        trendState = "below_bearish";
-      }
+    } else if (alignedData.length >= 5) {
+      const prev = alignedData[alignedData.length - 5];
+      trendState = latest.gap > prev.gap ? "converging" : "below_bearish";
     } else {
       trendState = "below_bearish";
     }
-  } else {
-    if (gapPct > 5) {
-      trendState = "diverging_strong";
-    } else {
-      trendState = "above_bullish";
-    }
   }
 
-  // Calculate convergence rate (change in gap over last 5 periods)
+  // Calculate convergence rate
   let convergenceRate = 0;
-  if (sma50Series.length >= 5 && sma200Series.length >= 5) {
-    const currentGap = latestSMA50 - latestSMA200;
-    const pastIdx = Math.min(sma50Series.length - 6, sma200Series.length - 6);
-    const pastGap = sma50Series[pastIdx].value - sma200Series[pastIdx].value;
-    convergenceRate = (currentGap - pastGap) / 5; // Change per day
+  if (alignedData.length >= 6) {
+    const prev = alignedData[alignedData.length - 6];
+    convergenceRate = (latest.gap - prev.gap) / 5;
   }
 
   // Project days to GC
   let projectedDaysToGC: number | null = null;
-  if (trendState === "converging" || trendState === "cross_imminent") {
-    if (Math.abs(convergenceRate) > 0.01) {
-      projectedDaysToGC = Math.abs(
-        (latestSMA200 - latestSMA50) / convergenceRate,
-      );
-    }
+  if (convergenceRate > 0 && latest.val50 < latest.val200) {
+    projectedDaysToGC = Math.abs(latest.gap / convergenceRate);
   }
 
   return {
@@ -492,29 +489,35 @@ export function calculatePSARGap(
   const latestPSAR = psarSeries[psarSeries.length - 1];
   const latestPrice = priceData[priceData.length - 1].close;
 
-  // Calculate gap as percentage
-  const gapPct = ((latestPrice - latestPSAR.value) / latestPrice) * 100;
+  // Calculate gap as absolute percentage
+  const rawGap = latestPrice - latestPSAR.value;
+  const gapPct = (Math.abs(rawGap) / latestPrice) * 100;
 
   // Determine gap trend
   let gapTrend: PSARGapResult["gapTrend"];
-  if (psarSeries.length >= 3) {
-    const currentGap = Math.abs(gapPct);
-
-    const beforePreviousGap = Math.abs(
-      ((priceData[priceData.length - 3].close -
-        psarSeries[psarSeries.length - 3].value) /
-        priceData[priceData.length - 3].close) *
-        100,
+  if (psarSeries.length >= 3 && priceData.length >= 3) {
+    const priceMap = new Map(priceData.map((p) => [p.date, p.close]));
+    const beforePreviousPrice = priceMap.get(
+      psarSeries[psarSeries.length - 3].date,
     );
 
-    const gapChangeRate = (currentGap - beforePreviousGap) / 2;
+    if (beforePreviousPrice !== undefined) {
+      const beforePreviousGap =
+        Math.abs(
+          (beforePreviousPrice - psarSeries[psarSeries.length - 3].value) /
+            beforePreviousPrice,
+        ) * 100;
+      const gapChangeRate = (gapPct - beforePreviousGap) / 2;
 
-    if (currentGap < 1) {
-      gapTrend = "flip_imminent";
-    } else if (gapChangeRate < -0.2) {
-      gapTrend = "tightening";
-    } else if (gapChangeRate > 0.2) {
-      gapTrend = "widening";
+      if (gapPct < 1) {
+        gapTrend = "flip_imminent";
+      } else if (gapChangeRate < -0.2) {
+        gapTrend = "tightening";
+      } else if (gapChangeRate > 0.2) {
+        gapTrend = "widening";
+      } else {
+        gapTrend = "stable";
+      }
     } else {
       gapTrend = "stable";
     }
@@ -533,104 +536,143 @@ export function calculatePSARGap(
 export interface PhaseResult {
   current:
     | "forming"
-    | "ready"
-    | "triggered"
-    | "active"
-    | "exit_warning"
-    | "none";
+    | "imminent"
+    | "fresh_breakout"
+    | "uptrend_pullback"
+    | "uptrend_holding"
+    | "trend_exhaustion"
+    | "bearish_avoid";
   confidence: "high" | "medium" | "low";
   description: string;
   actionableInsight: string;
 }
 
+function findLastGoldenCross(
+  sma50Series: SMAResult[],
+  sma200Series: SMAResult[],
+): { date: string; daysAgo: number } | null {
+  const sma200Map = new Map(sma200Series.map((s) => [s.date, s.value]));
+  const reversed50 = [...sma50Series].reverse();
+
+  for (let i = 0; i < reversed50.length - 1; i++) {
+    const current50 = reversed50[i];
+    const prev50 = reversed50[i + 1];
+
+    const current200 = sma200Map.get(current50.date);
+    const prev200 = sma200Map.get(prev50.date);
+
+    if (current200 !== undefined && prev200 !== undefined) {
+      const wasBearish = prev50.value < prev200;
+      const isBullish = current50.value > current200;
+
+      if (wasBearish && isBullish) {
+        return { date: current50.date, daysAgo: i };
+      }
+    }
+  }
+  return null;
+}
+
 export function determinePhase(
   convergence: ConvergenceResult,
-  stochasticTrajectory: StochasticTrajectoryResult,
+  _stochasticTrajectory: StochasticTrajectoryResult,
   psarResult: PSARResult,
   psarGap: PSARGapResult,
   stochasticLatest: StochasticResult,
+  daysSinceGC: number | null,
 ): PhaseResult {
-  // PHASE: FORMING
-  // Convergence started, but not close yet
+  // BEARISH / AVOID
   if (
-    convergence.trendState === "converging" &&
-    convergence.projectedDaysToGC !== null &&
-    convergence.projectedDaysToGC > 10
+    convergence.trendState === "below_bearish" ||
+    convergence.trendState === "diverging_strong"
   ) {
+    return {
+      current: "bearish_avoid",
+      confidence: "low",
+      description: "Trend is bearish (SMA50 < SMA200).",
+      actionableInsight: "Do not touch. Wait for convergence to start.",
+    };
+  }
+
+  // FORMING
+  if (convergence.trendState === "converging") {
+    const days = convergence.projectedDaysToGC;
     return {
       current: "forming",
       confidence: "low",
-      description: "MA convergence detected. Golden Cross potentially forming.",
-      actionableInsight: `Watch list candidate. Projected GC in ~${Math.round(convergence.projectedDaysToGC)} days. Monitor for acceleration.`,
+      description: "SMA50 is catching up to SMA200.",
+      actionableInsight:
+        days && days < 20
+          ? `Add to Watchlist. GC projected in ~${days.toFixed(0)} days.`
+          : "Monitor weekly.",
     };
   }
 
-  // PHASE: READY
-  // GC imminent + Stoch heading to oversold
-  if (
-    (convergence.trendState === "cross_imminent" ||
-      (convergence.projectedDaysToGC !== null &&
-        convergence.projectedDaysToGC <= 5)) &&
-    (stochasticTrajectory.trajectory === "falling_to_oversold" ||
-      stochasticLatest.k < 20)
-  ) {
+  // IMMINENT
+  if (convergence.trendState === "cross_imminent") {
     return {
-      current: "ready",
+      current: "imminent",
       confidence: "medium",
-      description:
-        "Setup nearly complete. GC imminent, Stochastic approaching/in oversold.",
+      description: "Golden Cross is imminent (Gap < 2%).",
       actionableInsight:
-        "Prepare entry. Set alerts. Define position size. Entry likely within days.",
+        "Prepare entry plan. Watch for volume spikes to confirm the cross.",
     };
   }
 
-  // PHASE: TRIGGERED
-  // GC happened recently + Stoch oversold + PSAR bullish
+  // FRESH BREAKOUT
   if (
-    convergence.trendState === "above_bullish" &&
-    stochasticLatest.k < 20 &&
-    psarResult.trend === "bullish"
+    convergence.trendState.includes("bullish") &&
+    daysSinceGC !== null &&
+    daysSinceGC <= 15
   ) {
+    if (stochasticLatest.k < 80) {
+      return {
+        current: "fresh_breakout",
+        confidence: "high",
+        description: `FRESH Golden Cross confirmed ${daysSinceGC} days ago.`,
+        actionableInsight:
+          "STRONG BUY. The trend change is fresh. Enter immediately.",
+      };
+    } else {
+      return {
+        current: "fresh_breakout",
+        confidence: "medium",
+        description: `Fresh GC (${daysSinceGC} days ago), but price is momentarily overextended.`,
+        actionableInsight:
+          "Wait for intraday pullback or enter with smaller size.",
+      };
+    }
+  }
+
+  // UPTREND PULLBACK
+  if (convergence.trendState.includes("bullish") && stochasticLatest.k < 30) {
     return {
-      current: "triggered",
+      current: "uptrend_pullback",
       confidence: "high",
-      description:
-        "Entry signal ACTIVE. GC confirmed, Stochastic oversold, PSAR bullish.",
+      description: "Major trend is Bullish, short-term is Oversold.",
       actionableInsight:
-        "Execute entry. Set stop at -5%. Don't obsess over exact price—enter now.",
+        "BUY THE DIP. Low-risk entry opportunity in an existing uptrend.",
     };
   }
 
-  // PHASE: ACTIVE (already in position, monitoring)
-  if (
-    convergence.trendState === "above_bullish" &&
-    psarResult.trend === "bullish"
-  ) {
+  // TREND EXHAUSTION
+  if (psarResult.trend === "bearish" || psarGap.gapTrend === "flip_imminent") {
     return {
-      current: "active",
+      current: "trend_exhaustion",
       confidence: "high",
-      description: "Uptrend intact. PSAR bullish.",
-      actionableInsight: "Hold position. Monitor PSAR gap for exit warning.",
-    };
-  }
-
-  // PHASE: EXIT WARNING
-  if (psarGap.gapTrend === "flip_imminent" || psarResult.trend === "bearish") {
-    return {
-      current: "exit_warning",
-      confidence: "high",
-      description: "PSAR bearish or flip imminent.",
+      description: "Momentum is fading. PSAR has flipped or is about to.",
       actionableInsight:
-        "Review position. Apply TP rules based on profit level.",
+        "TAKE PROFIT / TIGHTEN STOPS. Do not open new positions.",
     };
   }
 
-  // PHASE: NONE
+  // UPTREND HOLDING
   return {
-    current: "none",
-    confidence: "low",
-    description: "No setup detected.",
-    actionableInsight: "No action. Wait for convergence to begin.",
+    current: "uptrend_holding",
+    confidence: "medium",
+    description: "Strong uptrend active. No fresh entry signal.",
+    actionableInsight:
+      "HOLD. Let profits run. Add only if price dips near SMA50.",
   };
 }
 
@@ -671,6 +713,11 @@ export async function getGCStochPSARSignal(
   const stochasticTrajectory = calculateStochasticTrajectory(stochasticSeries);
   const psarGap = calculatePSARGap(psarSeries, sortedData);
 
+  // Find last Golden Cross
+  const lastGC = findLastGoldenCross(sma50Series, sma200Series);
+  const lastGCDate = lastGC?.date || null;
+  const daysSinceGC = lastGC?.daysAgo || null;
+
   // Determine phase
   const phase = determinePhase(
     convergence,
@@ -678,13 +725,8 @@ export async function getGCStochPSARSignal(
     latestPSAR,
     psarGap,
     latestStochastic,
+    daysSinceGC,
   );
-
-  // Calculate historical data
-  const lastGCDate = null; // TODO: Implement GC detection in historical data
-  const daysSinceGC = lastGCDate
-    ? Math.floor(dayjs().diff(dayjs(lastGCDate), "day"))
-    : null;
 
   // Determine Stochastic zone
   let stochasticZone: "oversold" | "neutral" | "overbought";
@@ -698,13 +740,18 @@ export async function getGCStochPSARSignal(
 
   // Calculate hold status
   let holdStatus: GCStochPSARSignal["holdStatus"];
-  if (phase.current === "active" || phase.current === "triggered") {
-    if (psarGap.gapPct < 1) {
+  const isInPosition =
+    phase.current === "fresh_breakout" ||
+    phase.current === "uptrend_pullback" ||
+    phase.current === "uptrend_holding";
+
+  if (isInPosition) {
+    if (psarGap.gapPct < 1 || latestPSAR.trend === "bearish") {
       holdStatus = {
         psarTrend: latestPSAR.trend,
         gapHealth: "critical",
         action: "exit",
-        reason: "PSAR gap too narrow, trend reversal imminent",
+        reason: "PSAR gap too narrow or bearish, trend reversal imminent",
       };
     } else if (psarGap.gapPct < 2) {
       holdStatus = {
@@ -732,25 +779,21 @@ export async function getGCStochPSARSignal(
 
   // Calculate risk levels
   const suggestedEntry =
-    phase.current === "triggered" ? latestPrice : latestSMA50;
-  const cutLossPrice = suggestedEntry * 0.95; // -5% stop loss
+    phase.current === "fresh_breakout" ? latestPrice : latestSMA50;
+  const cutLossPrice = suggestedEntry * 0.95;
   const invalidationLevel = latestSMA200;
 
-  // Calculate history (last 10 data points)
-  const startIdx50 = Math.max(0, sma50Series.length - 10);
-  const startIdxPsar = Math.max(0, psarSeries.length - 10);
+  // Calculate history using date alignment
+  const sma200Map = new Map(sma200Series.map((s) => [s.date, s.value]));
+  const priceMap = new Map(sortedData.map((p) => [p.date, p.close]));
 
   const history = {
-    convergenceTrend: sma50Series.slice(-10).map((sma50, idx) => {
-      const actualIdx = startIdx50 + idx;
-      const sma200Idx = Math.min(actualIdx, sma200Series.length - 1);
-      const priceIdx = Math.min(actualIdx + 50, sortedData.length - 1);
+    convergenceTrend: sma50Series.slice(-10).map((sma50) => {
+      const sma200 = sma200Map.get(sma50.date);
+      const price = priceMap.get(sma50.date);
       return {
         date: sma50.date,
-        gapPct:
-          ((sma50.value - sma200Series[sma200Idx].value) /
-            sortedData[priceIdx].close) *
-          100,
+        gapPct: sma200 && price ? ((sma50.value - sma200) / price) * 100 : 0,
       };
     }),
     stochasticTrend: stochasticSeries.slice(-10).map((s) => ({
@@ -758,16 +801,12 @@ export async function getGCStochPSARSignal(
       k: s.k,
       d: s.d,
     })),
-    psarTrend: psarSeries.slice(-10).map((p, idx) => {
-      const actualIdx = startIdxPsar + idx;
-      const priceIdx = Math.min(actualIdx + 1, sortedData.length - 1);
+    psarTrend: psarSeries.slice(-10).map((p) => {
+      const price = priceMap.get(p.date);
       return {
         date: p.date,
         trend: p.trend,
-        gapPct:
-          ((sortedData[priceIdx].close - p.value) /
-            sortedData[priceIdx].close) *
-          100,
+        gapPct: price ? (Math.abs(price - p.value) / price) * 100 : 0,
       };
     }),
   };

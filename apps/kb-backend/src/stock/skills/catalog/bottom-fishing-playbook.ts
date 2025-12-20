@@ -1,5 +1,9 @@
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek.js";
 import { RSI } from "trading-signals";
+
+dayjs.extend(isoWeek);
+
 import { checkSymbol } from "../../aggregator/companies.js";
 import type { ChartbitData } from "../../stockbit/chartbit.js";
 import { getChartbitData } from "../../stockbit/chartbit.js";
@@ -291,46 +295,40 @@ export interface Prediction {
 // === HELPER FUNCTIONS ===
 
 /**
- * Aggregate daily OHLCV into weekly bars.
- * Week ends on Friday (or last trading day of the week).
+ * Aggregate daily OHLCV into weekly bars using ISO calendar weeks.
+ * Groups by ISO week number to match standard charting platforms.
  */
 export function aggregateToWeekly(dailyData: ChartbitData[]): WeeklyBar[] {
-  const sorted = dailyData.slice().sort((a, b) => a.unixdate - b.unixdate);
+  const weeklyMap = new Map<string, ChartbitData[]>();
+
+  // Group by ISO week
+  for (const candle of dailyData) {
+    const date = dayjs(candle.date);
+    const weekKey = `${date.isoWeekYear()}-W${date.isoWeek()}`;
+
+    if (!weeklyMap.has(weekKey)) weeklyMap.set(weekKey, []);
+    weeklyMap.get(weekKey)!.push(candle);
+  }
+
   const weeklyData: WeeklyBar[] = [];
-  const WEEK_IN_SECONDS = 7 * 24 * 60 * 60;
 
-  for (let i = 0; i < sorted.length; i++) {
-    const weekStart = sorted[i];
-    const weekEnd = weekStart.unixdate + WEEK_IN_SECONDS;
-    const weekCandles = [weekStart];
-
-    while (i + 1 < sorted.length && sorted[i + 1].unixdate < weekEnd) {
-      weekCandles.push(sorted[++i]);
-    }
-
-    // Find the Friday or last day of the week
-    let weekEndingDate = new Date(weekCandles[weekCandles.length - 1].date);
-    const dayOfWeek = weekEndingDate.getDay();
-
-    // If not Friday (5), adjust to Friday
-    if (dayOfWeek !== 5) {
-      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
-      weekEndingDate = new Date(
-        weekEndingDate.getTime() + daysUntilFriday * 24 * 60 * 60 * 1000,
-      );
-    }
+  for (const candles of weeklyMap.values()) {
+    candles.sort((a, b) => a.unixdate - b.unixdate);
 
     weeklyData.push({
-      weekEnding: dayjs(weekEndingDate).format("YYYY-MM-DD"),
-      open: weekCandles[0].open,
-      high: Math.max(...weekCandles.map((c) => c.high)),
-      low: Math.min(...weekCandles.map((c) => c.low)),
-      close: weekCandles[weekCandles.length - 1].close,
-      volume: weekCandles.reduce((sum, c) => sum + c.volume, 0),
+      weekEnding: candles[candles.length - 1].date,
+      open: candles[0].open,
+      high: Math.max(...candles.map((c) => c.high)),
+      low: Math.min(...candles.map((c) => c.low)),
+      close: candles[candles.length - 1].close,
+      volume: candles.reduce((sum, c) => sum + c.volume, 0),
     });
   }
 
-  return weeklyData;
+  return weeklyData.sort(
+    (a, b) =>
+      new Date(a.weekEnding).getTime() - new Date(b.weekEnding).getTime(),
+  );
 }
 
 /**
@@ -488,8 +486,8 @@ export function analyzeVolume(
     throw new Error(`Volume analysis needs at least ${smaPeriod} data points`);
   }
 
-  for (let i = smaPeriod - 1; i < sortedData.length; i++) {
-    const window = sortedData.slice(i - smaPeriod + 1, i + 1);
+  for (let i = smaPeriod; i < sortedData.length; i++) {
+    const window = sortedData.slice(i - smaPeriod, i);
     const currentVolume = sortedData[i].volume;
     const sma20 = window.reduce((sum, d) => sum + d.volume, 0) / smaPeriod;
     const ratio = currentVolume / sma20;
@@ -527,7 +525,7 @@ export function analyzeVolume(
  *   - overbought: RSI > 70
  *
  * Trajectory logic:
- *   - If RSI falling and slope < -2/week → estimate weeks to reach 30 or 40
+ *   - If RSI falling → qualitative assessment
  *   - If RSI < 30 and slope flattening → "bottoming"
  *   - If RSI rising from oversold → "recovering"
  */
@@ -538,7 +536,6 @@ export function analyzeRSITrajectory(rsiSeries: RSIResult[]): RSITrajectory {
 
   const latest = rsiSeries[rsiSeries.length - 1];
   const previous = rsiSeries[rsiSeries.length - 2];
-  const beforePrevious = rsiSeries[rsiSeries.length - 3];
 
   // Calculate slope (RSI change per week)
   const slope = latest.value - previous.value;
@@ -581,20 +578,9 @@ export function analyzeRSITrajectory(rsiSeries: RSIResult[]): RSITrajectory {
     trajectory = "stable";
   }
 
-  // Project weeks to reach key zones
-  let projectedWeeksToOversold: number | null = null;
-  let projectedWeeksToYellow: number | null = null;
-
-  if (slope < 0) {
-    if (latest.value > 30) {
-      projectedWeeksToOversold = Math.ceil(
-        (latest.value - 30) / Math.abs(slope),
-      );
-    }
-    if (latest.value > 45) {
-      projectedWeeksToYellow = Math.ceil((latest.value - 45) / Math.abs(slope));
-    }
-  }
+  // Remove invalid linear projections - RSI is non-linear
+  const projectedWeeksToOversold: number | null = null;
+  const projectedWeeksToYellow: number | null = null;
 
   // Count weeks in current zone
   let weeksInCurrentZone = 1;
@@ -786,12 +772,10 @@ export function detectHAPattern(haSeries: HeikinAshiCandle[]): HAPatternResult {
  * Determine current phase based on all indicators.
  */
 export function determinePhase(
-  rsiTrajectory: RSITrajectory,
   latestRSI: number,
   volumeAnalysis: VolumeAnalysis,
-  volumeTrend: VolumeTrend,
   haPattern: HAPatternResult,
-  latestHA: HeikinAshiCandle,
+  isWeekIncomplete: boolean,
 ): PhaseResult {
   // Initialize checklist
   const checklist = {
@@ -867,7 +851,13 @@ export function determinePhase(
     actionableInsight =
       "Safe to start accumulating slowly. Watch for stronger signals.";
   } else if (latestRSI < 30) {
-    if (
+    if (isWeekIncomplete) {
+      current = "major_alert";
+      confidence = "low";
+      description = "RSI dipping below 30, but week is incomplete";
+      actionableInsight =
+        "Wait for week close (Friday) to confirm oversold condition. Current reading may be premature.";
+    } else if (
       checklist.volumeSpikeCondition.met &&
       checklist.heikinAshiCondition.met
     ) {
@@ -939,19 +929,11 @@ export function generatePrediction(
   // Analyze based on current phase and indicators
   if (currentPhase === "watching") {
     setupFormingProbability = "low";
-    if (rsiTrajectory.projectedWeeksToYellow !== null) {
-      estimatedDaysToSignal = rsiTrajectory.projectedWeeksToYellow * 7;
-      watchFor.push(
-        `RSI entering yellow zone in ~${rsiTrajectory.projectedWeeksToYellow} weeks`,
-      );
-    }
+    watchFor.push("RSI approaching yellow zone (30-45)");
   } else if (currentPhase === "minor_opportunity") {
     setupFormingProbability = "medium";
-    if (rsiTrajectory.projectedWeeksToOversold !== null) {
-      estimatedDaysToSignal = rsiTrajectory.projectedWeeksToOversold * 7;
-      watchFor.push(
-        `RSI dropping below 30 in ~${rsiTrajectory.projectedWeeksToOversold} weeks`,
-      );
+    if (rsiTrajectory.trajectory === "falling_to_oversold") {
+      watchFor.push("RSI trending toward oversold zone");
     }
     watchFor.push("Volume spike to confirm stronger signal");
   } else if (currentPhase === "major_alert") {
@@ -1037,13 +1019,14 @@ export async function getBottomFishingSignal(
     haSeries.length > 1 ? haSeries[haSeries.length - 2] : latestHA;
 
   // 5. Determine Phase
+  const today = dayjs().day();
+  // Week is incomplete only Mon-Thu (1-4). Fri/Sat/Sun (5/6/0) = week closed
+  const isWeekIncomplete = today >= 1 && today < 5;
   const phase = determinePhase(
-    rsiTrajectory,
     latestRSI.value,
     latestVolume,
-    volumeTrend,
     haPattern,
-    latestHA,
+    isWeekIncomplete,
   );
 
   // 6. Generate Prediction
