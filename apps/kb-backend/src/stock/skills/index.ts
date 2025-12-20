@@ -1,5 +1,6 @@
 import { bottomFishingPlaybook } from "./catalog/bottom-fishing-playbook.js";
 import { brokerAnalysis } from "./catalog/broker-analysis.js";
+import { financiaStatementlHealthCheck } from "./catalog/financial-statement-healthcheck.js";
 import { fundamentalAnalysisNarrative } from "./catalog/fundamental-analysis-narrative.js";
 import { gcOversoldPlaybook } from "./catalog/gc-oversold-playbook.js";
 import { sectorBanking } from "./catalog/sector-banking.js";
@@ -12,6 +13,7 @@ const skills: Skill[] = [
   brokerAnalysis,
   gcOversoldPlaybook,
   bottomFishingPlaybook,
+  financiaStatementlHealthCheck,
   fundamentalAnalysisNarrative,
   sectorCoal,
   sectorOilGas,

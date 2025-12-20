@@ -13,7 +13,11 @@ export const fundamentalAnalysisNarrative: Skill = {
   - Does the company actually exist and operate today?
 
 - **Bankruptcy risk**
-  - Could the company realistically go bankrupt?
+  - Could the company realistically go bankrupt? (check Altman Z-score)
+  - Z-score interpretation:
+    - > 3.0 (Safe Zone): Financially healthy, low bankruptcy risk
+    - 1.8 - 3.0 (Grey Zone): Caution needed, warning signs appearing
+    - < 1.8 (Distress Zone): High probability of bankruptcy
 
 - **Future prospects**
   - Does the company have a long-term future?
