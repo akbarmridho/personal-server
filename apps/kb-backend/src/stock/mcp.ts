@@ -25,6 +25,7 @@ import {
   getForexSummary,
   type PriceSummaryData,
 } from "./other-prices/forex.js";
+import { getSkill, listSkills } from "./skills/index.js";
 import { removeKeysRecursive } from "./utils.js";
 
 // why yaml instead of json?
@@ -525,6 +526,71 @@ export const setupStockMcp = async () => {
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, args }, "Search documents failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "list-skills",
+    description:
+      "List all available stock market skills. Returns skill names and descriptions. Use get-skill to retrieve full content.",
+    parameters: z.object({}),
+    execute: async () => {
+      logger.info("Executing list-skills");
+      try {
+        const data = listSkills();
+        logger.info("List skills completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error }, "List skills failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-skill",
+    description:
+      "Retrieve a specific stock market skill by name. Returns modular knowledge like broker information, fundamental calculation methods, etc.",
+    parameters: z.object({
+      name: z.string().describe("The skill name to retrieve"),
+    }),
+    execute: async (args) => {
+      logger.info({ name: args.name }, "Executing get-skill");
+      try {
+        const data = getSkill(args.name);
+        if (!data) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Skill '${args.name}' not found`,
+              },
+            ],
+            isError: true,
+          };
+        }
+        logger.info({ name: args.name }, "Get skill completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, name: args.name }, "Get skill failed");
         return {
           content: [
             {
