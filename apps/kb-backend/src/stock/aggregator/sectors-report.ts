@@ -73,7 +73,7 @@ export const getSectorsReport = async (
     );
 
     const filtered = (data! as any[]).filter((item) =>
-      normalizedInput.includes(item.slug),
+      normalizedInput.includes(item.subSector),
     );
 
     return { success: true, data: filtered };
