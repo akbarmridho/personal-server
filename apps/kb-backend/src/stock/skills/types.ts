@@ -29,3 +29,11 @@ export interface Skill {
   /** The actual knowledge content in markdown format */
   content: string;
 }
+
+/**
+ * I want you to convert the given document, summarize it without losing meaning, then present it
+ * as a skill that can be used by LLM just like above.
+ * don't include citation in the JSON output
+ *
+ * output in typescript code and use multiline string for the content with double backtick
+ */
