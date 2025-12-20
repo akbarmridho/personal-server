@@ -1,4 +1,4 @@
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { logger } from "../../utils/logger.js";
 import { type CompanyMeta, companyMetaKeys } from "../profiles/companies.js";
 import { getMentionedIndices } from "../profiles/indices.js";

@@ -1,6 +1,6 @@
 import axios from "axios";
 import normalizeUrl from "normalize-url";
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
 
 const lastCrawlIDs = "data-modules.hp.stock-last-crawl-id";

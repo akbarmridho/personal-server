@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
-import { KV } from "../../db/kv.js";
-import type { JsonValue } from "../../db/types.js";
+import { KV } from "../../infrastructure/db/kv.js";
+import type { JsonValue } from "../../infrastructure/db/types.js";
 import { formatHtml, htmlToMarkdown } from "../../utils/html.js";
 import { proxiedAxios } from "../proxy.js";
 import {

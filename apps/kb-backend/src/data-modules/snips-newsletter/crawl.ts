@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import dayjs, { type Dayjs } from "dayjs";
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { logger } from "../../utils/logger.js";
 

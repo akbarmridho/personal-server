@@ -1,8 +1,4 @@
-import "@dotenvx/dotenvx/config";
-import { Impit } from "impit";
-import pRetry from "p-retry";
-import { CookieJar } from "tough-cookie";
-import { env } from "../../infrastructure/env.js";
+import fs from "node:fs/promises";
 
 // Shared base interfaces for posts and comments
 interface RedditUser {
@@ -40,42 +36,9 @@ interface RedditComment extends RedditItem {
   replies?: RedditComment[]; // Nested replies (recursive tree)
 }
 
-// Top-level transformed data
-interface SubredditHomeData {
-  posts: RedditPost[]; // Top posts (e.g., sorted by ups descending)
-}
-
 interface SubmissionData {
   post: RedditPost;
   comments: RedditComment[]; // Top-level comments with nested threads
-}
-
-/**
- * Transforms raw subreddit.json (home feed Listing) into SubredditHomeData.
- * Extracts essentials: title, author, date, permalink, ups, selftext, url, num_comments.
- * Returns posts sorted by ups descending (top for day).
- */
-function transformSubredditHome(json: any): SubredditHomeData {
-  const posts =
-    json.data?.children
-      ?.filter((child: any) => child.kind === "t3")
-      ?.map((child: any) => {
-        const data = child.data;
-        return {
-          id: data.id ?? "",
-          author: { name: data.author ?? "Unknown" },
-          timestamp: { created_utc: data.created_utc ?? 0 },
-          votes: { ups: data.ups ?? 0, score: data.score ?? 0 },
-          permalink: data.permalink,
-          title: data.title ?? "",
-          selftext: data.selftext ?? undefined,
-          url: data.url,
-          num_comments: data.num_comments ?? 0,
-        } as RedditPost;
-      })
-      ?.sort((a: RedditPost, b: RedditPost) => b.votes.ups - a.votes.ups) ?? []; // Sort top by ups
-
-  return { posts };
 }
 
 /**
@@ -126,7 +89,7 @@ function transformPost(child: any): RedditPost {
  * Transforms raw submission.json (array: [post Listing, comments Listing]) into SubmissionData.
  * Reconstructs comment threads recursively.
  */
-export function transformSubmission(json: any[]): SubmissionData {
+function transformSubmission(json: any[]): SubmissionData {
   if (!json || json.length < 2) {
     throw new Error(
       "Invalid submission JSON: expected array with post and comments listings",
@@ -146,55 +109,29 @@ export function transformSubmission(json: any[]): SubmissionData {
   return { post, comments: topComments };
 }
 
-const impit = new Impit({
-  browser: "chrome",
-  proxyUrl: env.STOCK_HTTP_PROXY_URL,
-  ignoreTlsErrors: true,
-  vanillaFallback: true,
-  cookieJar: new CookieJar(),
-});
+async function main() {
+  const args = process.argv.slice(2);
+  const inputIndex = args.indexOf("--input");
+  const outputIndex = args.indexOf("--output");
 
-export const getSubredditOverview = async (): Promise<SubredditHomeData> => {
-  const data = await pRetry(
-    async () => {
-      const response = await impit.fetch(
-        "https://www.reddit.com/r/JudiSaham/top.json?t=day",
-      );
+  if (
+    inputIndex === -1 ||
+    outputIndex === -1 ||
+    !args[inputIndex + 1] ||
+    !args[outputIndex + 1]
+  ) {
+    console.error(
+      "Usage: ts-node reddit-transform.ts --input <path> --output <path>",
+    );
+    process.exit(1);
+  }
 
-      if (response.status >= 300) {
-        throw new Error(
-          `[reddit] HTTP ${response.status} ${response.statusText}`,
-        );
-      }
+  const inputPath = args[inputIndex + 1];
+  const outputPath = args[outputIndex + 1];
+  const rawJson = JSON.parse(await fs.readFile(inputPath, "utf-8"));
+  const transformed = transformSubmission(rawJson);
+  await fs.writeFile(outputPath, JSON.stringify(transformed, null, 2));
+  console.log(`Transformed submission written to ${outputPath}`);
+}
 
-      return await response.json();
-    },
-    { retries: 3 },
-  );
-
-  return transformSubredditHome(data);
-};
-
-export const getSubmission = async (
-  permalink: string,
-): Promise<SubmissionData> => {
-  const data = await pRetry(
-    async () => {
-      // Build the URL by removing trailing slash and appending .json
-      const cleanPermalink = permalink.replace(/\/$/, "");
-      const url = `https://www.reddit.com${cleanPermalink}.json`;
-      const response = await impit.fetch(url);
-
-      if (response.status >= 300) {
-        throw new Error(
-          `[reddit] HTTP ${response.status} ${response.statusText}`,
-        );
-      }
-
-      return await response.json();
-    },
-    { retries: 3 },
-  );
-
-  return transformSubmission(data);
-};
+main().catch(console.error);

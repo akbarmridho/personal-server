@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { yf } from "../yf.js";
 import type { PriceSummaryData } from "./forex.js";
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import z from "zod";
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { normalizeSector } from "./sector.js";

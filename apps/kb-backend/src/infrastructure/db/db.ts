@@ -1,6 +1,6 @@
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import { env } from "../infrastructure/env.js";
+import { env } from "../env.js";
 import type { DB } from "./types.js";
 
 export const db = new Kysely<DB>({

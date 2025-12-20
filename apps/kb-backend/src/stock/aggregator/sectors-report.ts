@@ -5,7 +5,7 @@ import {
   normalizeSector,
   supportedSubsectors,
 } from "../../data-modules/profiles/sector.js";
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { env } from "../../infrastructure/env.js";
 import { logger } from "../../utils/logger.js";
 

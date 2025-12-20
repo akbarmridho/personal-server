@@ -2,7 +2,7 @@ import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import dayjs from "dayjs";
 import { z } from "zod";
-import { KV } from "../../db/kv.js";
+import { KV } from "../../infrastructure/db/kv.js";
 import { fetchRawUrlContent } from "../../utils/crawl.js";
 
 export const QuarterlyDataSchema = z.object({
