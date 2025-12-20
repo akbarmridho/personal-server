@@ -12,7 +12,7 @@ export const GetCompaniesParams = z
       .string()
       .array()
       .describe(
-        `Array of subsector slugs. Supported slugs: ${Array.from(
+        `Array of subsector. Supported slugs: ${Array.from(
           supportedSubsectors,
         ).join(", ")}`,
       )

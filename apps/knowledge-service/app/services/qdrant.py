@@ -245,6 +245,28 @@ class QdrantService:
         
         return [point.model_dump() for point in results.points]
 
+    async def retrieve(self, document_id: str) -> Dict[str, Any]:
+        """
+        Retrieve a document by its ID.
+        
+        Args:
+            document_id: The document ID
+            
+        Returns:
+            Document dict with id, payload, and vectors
+        """
+        point = await self.client.retrieve(
+            collection_name=self.collection_name,
+            ids=[document_id],
+            with_payload=True,
+            with_vectors=False
+        )
+        
+        if not point:
+            return None
+        
+        return point[0].model_dump()
+
     async def scroll(
         self, 
         limit: int = 10, 
@@ -264,6 +286,10 @@ class QdrantService:
             limit=limit,
             offset=offset,
             scroll_filter=scroll_filter,
+            order_by=models.OrderBy(
+                key="document_date",
+                direction=models.Direction.DESC
+            ),
             with_payload=True,
             with_vectors=False,
             timeout=60

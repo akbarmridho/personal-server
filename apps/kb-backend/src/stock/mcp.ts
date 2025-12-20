@@ -1,8 +1,12 @@
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
-import { sectors } from "../data-modules/profiles/sector.js";
+import {
+  sectors,
+  supportedSubsectors,
+} from "../data-modules/profiles/sector.js";
 import { env } from "../infrastructure/env.js";
+import { knowledgeService } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";
 import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
 import {
@@ -398,83 +402,141 @@ export const setupStockMcp = async () => {
     },
   });
 
-  // server.addTool({
-  //   name: "search-news",
-  //   description:
-  //     "Search investment news using semantic search. Covers market news (IHSG, regulations, foreign flow) and company-specific news.",
-  //   parameters: z.object({
-  //     queries: z
-  //       .object({
-  //         query: z.string().describe("Semantic search query"),
-  //         hydeQuery: z.string().describe("Hypothetical answer for search"),
-  //       })
-  //       .array()
-  //       .describe("Array of query and hydeQuery pairs"),
-  //     startDate: z
-  //       .string()
-  //       .optional()
-  //       .describe("Start date in YYYY-MM-DD format"),
-  //     endDate: z.string().optional().describe("End date in YYYY-MM-DD format"),
-  //   }),
-  //   execute: async (args) => {
-  //     logger.info({ args }, "Executing search-news");
-  //     try {
-  //       const allResults = await Promise.all(
-  //         args.queries.map((q) =>
-  //           retriever.hierarchicalSearch(
-  //             q.query,
-  //             q.hydeQuery,
-  //             investmentNewsCollectionId,
-  //             {
-  //               start_date: args.startDate,
-  //               end_date: args.endDate,
-  //               useFullDocumentWhenMajority: true,
-  //               majorityChunkThreshold: 0.2,
-  //               similarityThreshold: 0.45,
-  //             },
-  //           ),
-  //         ),
-  //       );
+  server.addTool({
+    name: "get-document",
+    description:
+      "Retrieve a specific investment document by its ID. Returns the complete document with all metadata.",
+    parameters: z.object({
+      documentId: z.string().describe("The document ID to retrieve"),
+    }),
+    execute: async (args) => {
+      logger.info({ documentId: args.documentId }, "Executing get-document");
+      try {
+        const data = await knowledgeService.getDocument(args.documentId);
+        logger.info({ documentId: args.documentId }, "Get document completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error(
+          { error, documentId: args.documentId },
+          "Get document failed",
+        );
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
 
-  //       const seen = new Set<number>();
-  //       const deduplicated = allResults.flat().filter((r) => {
-  //         const key = r.documentId;
-  //         if (seen.has(key)) return false;
-  //         seen.add(key);
-  //         return true;
-  //       });
+  server.addTool({
+    name: "list-documents",
+    description:
+      "List investment documents with optional filters. Returns document snapshots (table of contents) with id, type, title, first 100 tokens of content preview, date, and symbols. Use get-document tool to retrieve full content.",
+    parameters: z.object({
+      limit: z
+        .number()
+        .describe("The search limit. Default to 10. Min is 1 and max is 100")
+        .optional(),
+      offset: z.string().optional(),
+      symbols: z
+        .string()
+        .array()
+        .describe(
+          "Array of stock symbols represented as four-letter uppercase.",
+        )
+        .optional(),
+      subsectors: z
+        .string()
+        .array()
+        .describe(
+          `Array of subsector. Supported slugs: ${Array.from(
+            supportedSubsectors,
+          ).join(", ")}`,
+        )
+        .optional(),
+      types: z.enum(["news", "analysis", "rumour"]).array().optional(),
+      date_from: z
+        .string()
+        .describe("Start date limit in YYYY-MM-DD format")
+        .optional(),
+      date_to: z
+        .string()
+        .describe("Start date limit in YYYY-MM-DD format")
+        .optional(),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing list-documents");
+      try {
+        // todo don't return all
+        const data = await knowledgeService.listDocuments(args);
 
-  //       const metadataFiltered = deduplicated
-  //         .map((r) => ({
-  //           ...r,
-  //           metadata: removeKeysRecursive(r.metadata, [
-  //             "primaryTickers",
-  //             "mentionedTickers",
-  //             "source",
-  //             "type",
-  //           ]),
-  //         }))
-  //         .slice(0, 10);
+        logger.info({ args }, "List documents completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, args }, "List documents failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
 
-  //       logger.info(
-  //         { count: metadataFiltered.length },
-  //         "Search news completed",
-  //       );
-  //       return { type: "text", text: yaml.dump(metadataFiltered) };
-  //     } catch (error) {
-  //       logger.error({ error, args }, "Search news failed");
-  //       return {
-  //         content: [
-  //           {
-  //             type: "text",
-  //             text: error instanceof Error ? error.message : String(error),
-  //           },
-  //         ],
-  //         isError: true,
-  //       };
-  //     }
-  //   },
-  // });
+  server.addTool({
+    name: "search-documents",
+    description:
+      "Search investment documents using semantic search. Returns relevant documents with similarity scores based on the query.",
+    parameters: z.object({
+      query: z.string().describe("The search query"),
+      limit: z.number().describe("The search limit. Default to 10.").optional(),
+      symbols: z
+        .string()
+        .array()
+        .describe(
+          "Array of stock symbols represented as four-letter uppercase.",
+        )
+        .optional(),
+      subsectors: z.string().array().optional(),
+      types: z.enum(["news", "analysis", "rumour"]).array().optional(),
+      date_from: z
+        .string()
+        .describe("Start date limit in YYYY-MM-DD format")
+        .optional(),
+      date_to: z
+        .string()
+        .describe("End date limit in YYYY-MM-DD format")
+        .optional(),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing search-documents");
+      try {
+        const data = await knowledgeService.searchDocuments(args);
+        logger.info({ args }, "Search documents completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, args }, "Search documents failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
 
   await server.start({
     transportType: "httpStream",

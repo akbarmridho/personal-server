@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type AxiosInstance } from "axios";
 import { logger } from "../utils/logger.js";
+import { takeFirstNTokens } from "../utils/token-count.js";
 import { env } from "./env.js";
 
 export type DocumentType = "news" | "weekly_summary" | "analysis" | "rumour";
@@ -36,6 +37,48 @@ export interface InvestmentIngestRequest {
 // Generic response type based on the 200 OK schema
 export interface IngestResponse {
   [key: string]: string | number;
+}
+
+export interface ListDocumentsParams {
+  limit?: number;
+  offset?: string | null;
+  symbols?: string[] | null;
+  subsectors?: string[] | null;
+  subindustries?: string[] | null;
+  types?: DocumentType[] | null;
+  date_from?: string | null;
+  date_to?: string | null;
+}
+
+export interface DocumentSnapshot {
+  id: string;
+  type: DocumentType;
+  title?: string | null;
+  content_preview: string;
+  document_date: string;
+  symbols?: string[] | null;
+}
+
+export interface ListDocumentsResponse {
+  items: DocumentSnapshot[];
+  next_page_offset?: string;
+}
+
+export interface SearchRequest {
+  query: string;
+  limit?: number;
+  symbols?: string[] | null;
+  subsectors?: string[] | null;
+  subindustries?: string[] | null;
+  types?: DocumentType[] | null;
+  date_from?: string | null;
+  date_to?: string | null;
+}
+
+export interface SearchResult {
+  id: string;
+  score: number;
+  payload: Record<string, any>;
 }
 
 export class KnowledgeService {
@@ -84,6 +127,42 @@ export class KnowledgeService {
       // Handle network or unexpected errors
       throw error;
     }
+  }
+
+  async listDocuments(
+    params: ListDocumentsParams,
+  ): Promise<ListDocumentsResponse> {
+    const response = await this.client.get<{
+      items: Array<{ id: string; payload: InvestmentDocument }>;
+      next_page_offset?: string;
+    }>("/documents", { params });
+
+    return {
+      items: response.data.items.map((item) => ({
+        id: item.id,
+        type: item.payload.type,
+        title: item.payload.title,
+        content_preview: takeFirstNTokens(item.payload.content, 100),
+        document_date: item.payload.document_date,
+        symbols: item.payload.symbols,
+      })),
+      next_page_offset: response.data.next_page_offset,
+    };
+  }
+
+  async searchDocuments(request: SearchRequest): Promise<SearchResult[]> {
+    const response = await this.client.post<SearchResult[]>(
+      "/documents/search",
+      request,
+    );
+    return response.data;
+  }
+
+  async getDocument(documentId: string): Promise<Record<string, any>> {
+    const response = await this.client.get<Record<string, any>>(
+      `/documents/${documentId}`,
+    );
+    return response.data;
   }
 }
 

@@ -120,6 +120,20 @@ async def search_documents(request: InvestmentSearchRequest):
         for point in results
     ]
 
+@router.get("/documents/{document_id}", response_model=Dict[str, Any])
+async def get_document(document_id: str):
+    """
+    Retrieve a document by its ID.
+    """
+    _, qdrant_svc = get_services()
+    
+    document = await qdrant_svc.retrieve(document_id)
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return document
+
 @router.get("/documents", response_model=Dict[str, Any])
 async def list_documents(
     limit: int = Query(default=10, ge=1, le=100),

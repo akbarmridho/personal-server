@@ -92,6 +92,9 @@ importers:
       inngest:
         specifier: ^3.46.0
         version: 3.46.0(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.1.0)(typescript@5.9.3)(zod@4.1.12)
+      js-tiktoken:
+        specifier: ^1.0.21
+        version: 1.0.21
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -2380,6 +2383,9 @@ packages:
 
   js-base64@3.7.2:
     resolution: {integrity: sha512-NnRs6dsyqUXejqk/yv2aiXlAvOs56sLkX6nUdeaNezI5LFFLlsZjOThmwnrcwh5ZZRwZlCMnVAY3CvhIhoVEKQ==}
+
+  js-tiktoken@1.0.21:
+    resolution: {integrity: sha512-biOj/6M5qdgx5TKjDnFT1ymSpM5tbd3ylwDtrQvFQSu0Z7bBYko2dF+W/aUkXUPuk6IVpRxk/3Q2sHOzGlS36g==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -5814,6 +5820,10 @@ snapshots:
   joycon@3.1.1: {}
 
   js-base64@3.7.2: {}
+
+  js-tiktoken@1.0.21:
+    dependencies:
+      base64-js: 1.5.1
 
   js-tokens@4.0.0: {}
 
