@@ -65,6 +65,13 @@ Use the **get-bottom-fishing-signal** tool to instantly analyze a stock for this
 - **EXIT_WARNING**: HA exhaustion signal. Action: Take profits.
 
 The tool also provides predictive insights about when signals might form and actionable recommendations based on the current state.
+
+## DATA LIMITATIONS (Caveat)
+* **Scope:** This signal is calculated using **PRICE** and **TOTAL VOLUME**.
+* **Blind Spot:** It does **NOT** differentiate between 'Smart Money' volume and 'Retail' volume. It also ignores Frequency (Retail Frenzy).
+* **Verification Required:** A Volume Spike can sometimes be a 'Selling Climax' (Distribution). Check the \`Smart Money\` agent to confirm:
+    1. **Foreign Flow** is Positive (Accumulation).
+    2. **Frequency** is not excessive (avoiding Retail FOMO).
 `,
 };
 

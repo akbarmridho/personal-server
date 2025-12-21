@@ -37,7 +37,14 @@ Use the **get-gc-stoch-psar-signal** tool to instantly analyze a stock for this 
 - **EXIT_WARNING**: PSAR bearish or flip imminent. Action: Take Profit / Exit.
 
 The tool also calculates stop-loss levels and provides actionable insights based on the current state.
-    `,
+
+## DATA LIMITATIONS (Caveat)
+* **Scope:** This signal is calculated using **PRICE ACTION ONLY** (Moving Averages, Stochastic, PSAR).
+* **Blind Spot:** It does **NOT** analyze Volume, Frequency, or Foreign Flow.
+* **Verification Required:** Before executing, check the \`Momentum / Smart Money\` agent to confirm this price move is backed by:
+    1. **Volume Support** (Is volume rising with price?)
+    2. **Foreign Flow** (Are big players participating?)
+`,
 };
 
 export interface GCStochPSARSignal {
