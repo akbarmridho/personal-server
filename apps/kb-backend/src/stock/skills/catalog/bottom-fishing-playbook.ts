@@ -1,8 +1,12 @@
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek.js";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import { RSI } from "trading-signals";
 
 dayjs.extend(isoWeek);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import { checkSymbol } from "../../aggregator/companies.js";
 import type { ChartbitData } from "../../stockbit/chartbit.js";
@@ -987,12 +991,13 @@ export function generatePrediction(
  */
 export async function getBottomFishingSignal(
   symbol: string,
+  asOf: Date = dayjs.tz("Asia/Jakarta").toDate(),
 ): Promise<BottomFishingSignal> {
   // 1. Fetch 1 year of daily data
   const dailyData = await getChartbitData({
     symbol: await checkSymbol(symbol),
-    from: dayjs().subtract(1, "year").toDate(),
-    to: dayjs().toDate(),
+    from: dayjs(asOf).tz("Asia/Jakarta").subtract(1, "year").toDate(),
+    to: asOf,
   });
 
   if (dailyData.length < 60) {

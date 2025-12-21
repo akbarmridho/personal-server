@@ -1,4 +1,11 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import { Elysia, t } from "elysia";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 import { sectors } from "../data-modules/profiles/sector.js";
 import { logger } from "../utils/logger.js";
 import { getCompanies } from "./aggregator/companies.js";
@@ -12,6 +19,8 @@ import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 import { getCommoditySummary } from "./other-prices/commodity.js";
 import { getForexSummary } from "./other-prices/forex.js";
+import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
+import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 import { removeKeysRecursive } from "./utils.js";
 
@@ -280,4 +289,44 @@ export const setupStockRoutes = () =>
         set.status = 500;
         return { success: false, error: (err as Error).message };
       }
-    });
+    })
+    .get(
+      "/playbook/gc-oversold/:symbol",
+      async ({ params, query, set }) => {
+        try {
+          const asOfDate = query.asOf
+            ? dayjs.tz(query.asOf, "Asia/Jakarta").toDate()
+            : dayjs.tz("Asia/Jakarta").toDate();
+          const data = await getGCStochPSARSignal(params.symbol, asOfDate);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get GC Oversold signal failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ symbol: t.String() }),
+        query: t.Object({ asOf: t.Optional(t.String()) }),
+      },
+    )
+    .get(
+      "/playbook/bottom-fishing/:symbol",
+      async ({ params, query, set }) => {
+        try {
+          const asOfDate = query.asOf
+            ? dayjs.tz(query.asOf, "Asia/Jakarta").toDate()
+            : dayjs.tz("Asia/Jakarta").toDate();
+          const data = await getBottomFishingSignal(params.symbol, asOfDate);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get Bottom Fishing signal failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ symbol: t.String() }),
+        query: t.Object({ asOf: t.Optional(t.String()) }),
+      },
+    );

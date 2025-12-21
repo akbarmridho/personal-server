@@ -1,5 +1,11 @@
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import { SMA } from "trading-signals";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 import { checkSymbol } from "../../aggregator/companies.js";
 import type { ChartbitData } from "../../stockbit/chartbit.js";
 import { getChartbitData } from "../../stockbit/chartbit.js";
@@ -680,12 +686,13 @@ export function determinePhase(
 
 export async function getGCStochPSARSignal(
   symbol: string,
+  asOf: Date = dayjs.tz("Asia/Jakarta").toDate(),
 ): Promise<GCStochPSARSignal> {
   // Get chart data
   const chartData = await getChartbitData({
     symbol: await checkSymbol(symbol),
-    from: dayjs().subtract(1, "year").toDate(),
-    to: dayjs().toDate(),
+    from: dayjs(asOf).tz("Asia/Jakarta").subtract(1, "year").toDate(),
+    to: asOf,
   });
 
   const sortedData = chartData.slice().sort((a, b) => a.unixdate - b.unixdate);
