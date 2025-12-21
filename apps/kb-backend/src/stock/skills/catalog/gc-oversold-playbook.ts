@@ -686,7 +686,7 @@ export function determinePhase(
 
 export async function getGCStochPSARSignal(
   symbol: string,
-  asOf: Date = dayjs.tz("Asia/Jakarta").toDate(),
+  asOf: Date = dayjs().tz("Asia/Jakarta").toDate(),
 ): Promise<GCStochPSARSignal> {
   // Get chart data
   const chartData = await getChartbitData({

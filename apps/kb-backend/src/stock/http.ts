@@ -296,7 +296,7 @@ export const setupStockRoutes = () =>
         try {
           const asOfDate = query.asOf
             ? dayjs.tz(query.asOf, "Asia/Jakarta").toDate()
-            : dayjs.tz("Asia/Jakarta").toDate();
+            : dayjs().tz("Asia/Jakarta").toDate();
           const data = await getGCStochPSARSignal(params.symbol, asOfDate);
           return { success: true, data };
         } catch (err) {
@@ -316,7 +316,7 @@ export const setupStockRoutes = () =>
         try {
           const asOfDate = query.asOf
             ? dayjs.tz(query.asOf, "Asia/Jakarta").toDate()
-            : dayjs.tz("Asia/Jakarta").toDate();
+            : dayjs().tz("Asia/Jakarta").toDate();
           const data = await getBottomFishingSignal(params.symbol, asOfDate);
           return { success: true, data };
         } catch (err) {

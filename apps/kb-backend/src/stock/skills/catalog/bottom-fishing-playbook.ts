@@ -991,7 +991,7 @@ export function generatePrediction(
  */
 export async function getBottomFishingSignal(
   symbol: string,
-  asOf: Date = dayjs.tz("Asia/Jakarta").toDate(),
+  asOf: Date = dayjs().tz("Asia/Jakarta").toDate(),
 ): Promise<BottomFishingSignal> {
   // 1. Fetch 1 year of daily data
   const dailyData = await getChartbitData({
