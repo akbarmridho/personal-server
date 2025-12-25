@@ -6,6 +6,8 @@ services:
       - "8021:8080"
     networks:
       - personal_network
+    environment:
+      - ALLOW_WRITE=true
     volumes:
       - ${LOCAL_FOLDER_PATH}:/data
     command: >
@@ -14,7 +16,6 @@ services:
       --stateless
       --
       rust-mcp-filesystem
-      --allow-write true
       /data
     restart: unless-stopped
   notediscovery:
