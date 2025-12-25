@@ -24,6 +24,7 @@ const handles = [
   "cukhurukuque",
   "mikelsaham",
   "kr39__",
+  "RashkaLLC",
 ];
 
 export const searchRumourTargetted = async (params: { daysOld?: number }) => {

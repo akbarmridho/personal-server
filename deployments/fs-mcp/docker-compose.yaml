@@ -1,0 +1,33 @@
+services:
+  mcp-fs:
+    build: .
+    container_name: mcp-fs-proxy
+    ports:
+      - "8021:8080"
+    networks:
+      - personal_network
+    volumes:
+      - ${LOCAL_FOLDER_PATH}:/data
+    command: >
+      --port 8080
+      --host 0.0.0.0
+      --stateless
+      --
+      rust-mcp-filesystem
+      --allow-write true
+      /data
+    restart: unless-stopped
+  notediscovery:
+    image: ghcr.io/gamosoft/notediscovery:0.10.3
+    container_name: notediscovery
+    ports:
+      - "8022:8000"
+    networks:
+      - personal_network
+    volumes:
+      - ${LOCAL_FOLDER_PATH}:/app/data
+    restart: unless-stopped
+
+networks:
+  personal_network:
+    external: true
