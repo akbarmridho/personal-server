@@ -1,4 +1,4 @@
-FROM ghcr.io/sparfenyuk/mcp-proxy:v0.3.2-alpine
+FROM ghcr.io/sparfenyuk/mcp-proxy:v0.10.0
 
 # Install curl to download the binary
 RUN apk add --no-cache curl
