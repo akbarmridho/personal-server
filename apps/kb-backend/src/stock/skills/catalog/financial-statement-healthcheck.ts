@@ -71,6 +71,22 @@ This skill provides a framework for analyzing the quality of a company's financi
 * **Dividend Coverage:** Dividends paid should not exceed Free Cash Flow (FCF).
 * **Dilution:** Avoid companies that are overly aggressive with Stock-Based Compensation (SBC) for employees.
 
+## 4. Advanced Ratios & Integrity Checks
+
+### Solvency & Risk
+*   **Interest Coverage Ratio (ICR)**: $\\frac{\\text{Operating Profit}}{\\text{Interest Expense}}$
+    *   **< 1.0**: DANGER. Cannot pay interest from profits.
+    *   **> 3.0**: Safe.
+*   **Net Gearing Ratio (NGR)**: $\\frac{\\text{Interest Bearing Debt} - \\text{Cash}}{\\text{Equity}}$
+    *   **< 0.5 (50%)**: Ideal.
+
+### Valuation Double-Checks
+*   **Earnings Yield**: $\\frac{\\text{EPS}}{\\text{Price}}$
+    *   Compare with Gov Bond Yield. If Earnings Yield < Bond Yield, stock is expensive (risk premium check).
+*   **EV/EBITDA**: $\\frac{\\text{Enterprise Value}}{\\text{EBITDA}}$
+    *   **< 10x**: Generally considered cheap/undervalued.
+    *   Better than P/E for comparing companies with different debt levels.
+
 ## Key Formulas
 * **Current Ratio:** $$\text{Current Ratio} = \\frac{\text{Current Assets}}{\text{Current Liabilities}}$$
 * **Net Profit Margin:** $$\text{NPM} = \\frac{\text{Net Income}}{\text{Revenue}} \\times 100%$$

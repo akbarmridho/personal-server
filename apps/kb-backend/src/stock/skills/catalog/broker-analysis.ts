@@ -79,18 +79,27 @@ These brokers are identified as primary market movers, conglomerate vehicles, or
 | **MU** | CGS-CIMB (Old Code) | Foreign | Often linked (historically) to **Boy Thohir / MDKA** flows in forums. |
 | **KI** | Ciptadana Sekuritas | Local | Lippo Group affiliated (historically). |
 
-### C. Retail Brokers (The "Unyu-Unyu")
+### C. Retail Brokers (The "Unyu-Unyu" / Market Sentiment)
 
-*High retail concentration. If these are the top buyers, the price is likely being distributed (Bandar selling to Retail).*
+Brokers are categorized by "Caste" based on their typical user base. This helps identifying retail sentiment vs smart money.
 
-| Code | Broker Name | Characteristics |
-| :--- | :--- | :--- |
-| **YP** | Mirae Asset | The definitive retail broker. |
-| **PD** | Indo Premier (IPOT) | Top Retail Value. |
-| **XL** | Stockbit Sekuritas | Popular app-based retail. |
-| **XC** | Ajaib Sekuritas | Popular app-based retail (Gen-Z). |
-| **KK** | Phillip Sekuritas | Retail (POEMS users). |
-| **XCP**| Ajaib | (Duplicate code check: XC is Ajaib). |
+**Highest Caste (Pure Retail)**
+*If these are Top Buyers = Distribution (Bandar selling to Retail).*
+*   **YP (Mirae)**: "Retail King." Values volume & frequency.
+*   **PD (Indo Premier)**: Deep retail penetration.
+*   **XL (Stockbit)**: App-based, often follows influencer calls.
+*   **XC (Ajaib)**: Gen-Z / Newbie retail base.
+
+**Second Caste (Mixed Retail)**
+*   **KK (Phillip)**
+*   **NI (BNI)**
+*   **EP (MNC)** - *Note: Can be Bandar vehicle for MNC stocks.*
+
+**Third Caste (Institutional/VIP Retail)**
+*   **SQ (BCA)**: Wealthier retail clients + Djarum Group insiders.
+
+**Warning Pattern**:
+If a traditionally "Pure Retail" broker (like XL or YP) suddenly shows massive, organized buying volume (e.g., 1T lots), it is a strong signal that a **Bandar IS borrowing that broker** to hide their tracks (Camouflage).
 
 ## 4. Small / Niche Broker List (For Code Reference)
 
