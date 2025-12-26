@@ -16,6 +16,7 @@ services:
       --stateless
       --
       rust-mcp-filesystem
+      --allow-write
       /data
     restart: unless-stopped
   notediscovery:
