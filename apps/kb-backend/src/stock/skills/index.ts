@@ -9,6 +9,7 @@ import { gcOversoldPlaybook } from "./catalog/gc-oversold-playbook.js";
 import { indonesianConglomerates } from "./catalog/indonesian-conglomerates.js";
 import { ipoAnalysis } from "./catalog/ipo-analysis.js";
 import { portfolioManagement } from "./catalog/portfolio-management.js";
+import { riskAnalysis } from "./catalog/risk-analysis.js";
 import { sectorBanking } from "./catalog/sector-banking.js";
 import { sectorCoal } from "./catalog/sector-coal.js";
 import { sectorConstruction } from "./catalog/sector-construction.js";
@@ -50,6 +51,8 @@ const skills: Skill[] = [
   sectorRetailConsumer,
   sectorProperty,
   sectorConstruction,
+
+  riskAnalysis,
 ];
 
 export const listSkills = () => {
