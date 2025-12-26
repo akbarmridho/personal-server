@@ -1,9 +1,11 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import dayjs from "dayjs";
+import pRetry from "p-retry";
 import { z } from "zod";
 import { KV } from "../../infrastructure/db/kv.js";
 import { fetchRawUrlContent } from "../../utils/crawl.js";
+import { logger } from "../../utils/logger.js";
 
 export const QuarterlyDataSchema = z.object({
   currency: z
@@ -50,27 +52,43 @@ export const QuarterlyDataSchema = z.object({
 });
 
 export const getForecastData = async (symbol: string) => {
-  const data = await KV.getOrSet(
-    `stock.tradingview.forecast.${symbol}`,
-    async () => {
-      const rawContent = (await fetchRawUrlContent({
-        url: `https://www.tradingview.com/symbols/IDX-${symbol}/forecast/`,
-        returnFormat: "markdown",
-      })) as string;
+  try {
+    const data = await KV.getOrSet(
+      `stock.tradingview.forecast.${symbol}`,
+      async () => {
+        const rawContent = (await fetchRawUrlContent({
+          url: `https://www.tradingview.com/symbols/IDX-${symbol}/forecast/`,
+          returnFormat: "markdown",
+        })) as string;
 
-      const { object } = await generateObject({
-        model: openrouter("openai/gpt-oss-20b", { models: ["qwen/qwen3-8b"] }),
-        system:
-          "Extract quarterly financial data (EPS, revenue, estimates, and surprise percentages) from the provided content. Parse quarter labels, numeric values, and currency. Distinguish between historical reported data and future forecasts. Return null if the content lacks valid quarterly financial data or doesn't match the expected structure.",
-        prompt: rawContent,
-        schema: QuarterlyDataSchema.nullable(),
-      });
+        const result = await pRetry(
+          async () => {
+            const { object } = await generateObject({
+              model: openrouter("openai/gpt-oss-20b", {
+                models: ["qwen/qwen3-8b"],
+              }),
+              system:
+                "Extract quarterly financial data (EPS, revenue, estimates, and surprise percentages) from the provided content. Parse quarter labels, numeric values, and currency. Distinguish between historical reported data and future forecasts. Return null if the content lacks valid quarterly financial data or doesn't match the expected structure.",
+              prompt: rawContent,
+              schema: QuarterlyDataSchema.nullable(),
+              maxRetries: 3,
+            });
 
-      return object;
-    },
-    dayjs().add(1, "week").toDate(),
-    true,
-  );
+            return object;
+          },
+          { retries: 3 },
+        );
 
-  return data as Record<string, any> | null;
+        return result;
+      },
+      dayjs().add(1, "week").toDate(),
+      true,
+    );
+
+    return data as Record<string, any> | null;
+  } catch (e) {
+    logger.error({ err: e }, "Failed to get forecast data");
+    // use null fallback (missing data) instead of fail tool call
+    return null;
+  }
 };
