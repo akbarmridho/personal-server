@@ -4,6 +4,8 @@ import type {
   ArticleInfo,
 } from "../data-modules/algoresearch/types.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
+import type { YoutubeVideoEntry } from "../data-modules/youtube/crawl.js";
+import type { YoutubeChannel } from "../data-modules/youtube/cron.js";
 import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
 import type { InvestmentDocument } from "./knowledge-service.js";
@@ -36,6 +38,15 @@ type Events = {
   };
   "data/algoresearch-scrape": {
     data: ArticleInfo;
+  };
+  "data/youtube-crawl": {
+    data: YoutubeChannel;
+  };
+  "data/youtube-ingest": {
+    data: {
+      channel: YoutubeChannel;
+      video: YoutubeVideoEntry;
+    };
   };
   "data/document-manual-ingest": {
     data: {

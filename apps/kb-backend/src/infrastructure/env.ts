@@ -12,6 +12,7 @@ export const env = createEnv({
     OPENROUTER_API_KEY: z.string(),
     XAI_API_KEY: z.string(),
     JINA_AI_API_KEY: z.string(),
+    GEMINI_API_KEY: z.string(),
 
     // Server ports
     HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
