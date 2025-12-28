@@ -159,5 +159,12 @@ Focus on capturing the **substance** of the video:
         documents: [payload],
       });
     });
+
+    await step.sendEvent("notify-discord", [
+      {
+        name: "notify/discord-kb-ingestion",
+        data: [payload],
+      },
+    ]);
   },
 );

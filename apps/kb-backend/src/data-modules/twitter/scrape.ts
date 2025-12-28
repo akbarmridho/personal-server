@@ -129,5 +129,12 @@ export const twitterRumourScrape = inngest.createFunction(
         documents: payload,
       });
     });
+
+    await step.sendEvent("notify-discord", [
+      {
+        name: "notify/discord-kb-ingestion",
+        data: payload,
+      },
+    ]);
   },
 );

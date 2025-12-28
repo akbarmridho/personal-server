@@ -26,8 +26,6 @@ const summarizePdf = async (url: string) => {
 **Input Text for Analysis:**
 {EXTRACTED_TEXT_FROM_PDF}
 
----
-
 **Crucial Style & Formatting Rules:**
 1.  **Voice:** Write with energy and conviction. Use active verbs.
     * *Bad:* "It is anticipated that margins may improve."
@@ -35,8 +33,6 @@ const summarizePdf = async (url: string) => {
 2.  **Narrative Flow:** Do **NOT** use tables in the Thesis, Operations, or Vibe sections. Tables kill the narrative flow. Weave data directly into your sentences and **bold** the key metrics.
 3.  **Data Filtering:** **IGNORE** transient noise (daily volume, current price charts, "Last 3M" performance). **KEEP** the Analyst's Target Price, Rating, and Forward-Looking Estimates.
 4.  **Structural Freedom:** The sections below are a guide. If you find high-value information that fits better in a unique category (e.g., "Management Profile," "Geopolitical Angle," "Litigation Update"), **you must create a new Markdown section (##) for it.**
-
----
 
 **Target Sections (Include ONLY if Data is Present):**
 
@@ -140,5 +136,12 @@ export const hpStockUpdateIngest = inngest.createFunction(
         documents: [payload],
       });
     });
+
+    await step.sendEvent("notify-discord", [
+      {
+        name: "notify/discord-kb-ingestion",
+        data: [payload],
+      },
+    ]);
   },
 );
