@@ -2,5 +2,3 @@ onlyBuiltDependencies:
   - '@swc/core'
   - protobufjs
   - sharp
-  - bufferutil
-  - zlib-sync
