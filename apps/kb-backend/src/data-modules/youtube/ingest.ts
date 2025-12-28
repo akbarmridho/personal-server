@@ -38,7 +38,7 @@ You are an expert **Investment Analyst** specializing in the Indonesian Stock Ma
 
 ## TASK
 
-Analyze the provided video transcript (Indonesian/English) and generate an **Investment Note** in professional English.
+Analyze the provided video transcript (Indonesian/English) and generate an **Investment Note** in professional English as a standalone report. Write as if presenting the analysis directly, not as a summary of a video.
 
 ## WHAT TO EXTRACT
 
@@ -62,10 +62,17 @@ Focus on capturing the **substance** of the video:
 - Use bullet points, headers, or prose — whatever best represents the content.
 
 **Always include:**
-1. A brief summary of what the video is about
+1. A brief summary of the market analysis or thesis
 2. The key insights in narrative order
 3. A clear list of stocks mentioned (with tickers if available)
 4. Any undisclosed/coded stock hints (or state "none detected")
+
+**DO NOT include:**
+- Formal document headers (e.g., "Investment Note:", "Analyst:", "Date:", "Subject:")
+- Title lines or document metadata
+- References to "the video", "the speaker", "this video discusses", etc.
+- Write as a direct analysis, not as a video summary
+- Start directly with the content
 
 ## RULES
 
@@ -82,6 +89,9 @@ Focus on capturing the **substance** of the video:
             fileData: {
               fileUri: event.data.video.url,
             },
+          },
+          {
+            text: `Video publish date: ${event.data.video.published}`,
           },
         ],
       });
