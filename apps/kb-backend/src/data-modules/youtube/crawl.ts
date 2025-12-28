@@ -179,6 +179,7 @@ export const youtubeChannelCrawl = inngest.createFunction(
       );
 
       const toIngest = decisions.filter((e) => e.decision.shouldIngest);
+      const toIngestTips = decisions.filter((e) => !e.decision.shouldIngest);
 
       if (toIngest.length > 0) {
         await step.sendEvent(
@@ -186,6 +187,21 @@ export const youtubeChannelCrawl = inngest.createFunction(
           toIngest.map((e) => {
             return {
               name: "data/youtube-ingest",
+              data: {
+                channel: event.data,
+                video: e.video,
+              },
+            };
+          }),
+        );
+      }
+
+      if (toIngestTips.length > 0) {
+        await step.sendEvent(
+          "send-ingest-tips",
+          toIngestTips.map((e) => {
+            return {
+              name: "data/youtube-ingest-tips",
               data: {
                 channel: event.data,
                 video: e.video,

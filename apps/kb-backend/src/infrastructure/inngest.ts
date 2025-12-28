@@ -48,6 +48,12 @@ type Events = {
       video: YoutubeVideoEntry;
     };
   };
+  "data/youtube-ingest-tips": {
+    data: {
+      channel: YoutubeChannel;
+      video: YoutubeVideoEntry;
+    };
+  };
   "data/document-manual-ingest": {
     data: {
       payload: Array<

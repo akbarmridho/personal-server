@@ -15,6 +15,7 @@ import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
 import { youtubeChannelIngest } from "../data-modules/youtube/ingest.js";
+import { youtubeChannelIngestTips } from "../data-modules/youtube/ingest-tips.js";
 import { discordService } from "./discord.js";
 import { env } from "./env.js";
 import { inngest } from "./inngest.js";
@@ -47,7 +48,7 @@ const notifyDiscordKBIngestion = inngest.createFunction(
     await step.run("notify", async () => {
       for (const document of event.data) {
         const markdownContent = document.title
-          ? `${document.title}\n\n${document.content}`
+          ? `**${document.title}**\n\n${document.content}`
           : document.content;
 
         await discordService.sendMessage(
@@ -83,4 +84,5 @@ export const inngestFunctions: InngestFunction.Like[] = [
   youtubeChannelCrawlInit,
   youtubeChannelCrawl,
   youtubeChannelIngest,
+  youtubeChannelIngestTips,
 ];
