@@ -12,7 +12,7 @@ import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
 
 const splitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 3750,
+  chunkSize: 1750,
   chunkOverlap: 0,
   lengthFunction: (text) => text.length,
   separators: [
@@ -92,7 +92,7 @@ class DiscordService {
       throw new Error("Invalid channel");
     }
 
-    const MAX_CONTENT_LENGTH = 3500;
+    const MAX_CONTENT_LENGTH = 1750;
     const truncated =
       content.length > MAX_CONTENT_LENGTH
         ? content.slice(0, 2000) + "\n...\n" + content.slice(-1500)
