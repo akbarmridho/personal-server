@@ -71,7 +71,9 @@ type Events = {
     };
   };
   "notify/discord-kb-ingestion": {
-    data: InvestmentDocument[];
+    data: {
+      payload: InvestmentDocument[];
+    };
   };
 };
 

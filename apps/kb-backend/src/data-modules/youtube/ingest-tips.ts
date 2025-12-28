@@ -104,17 +104,14 @@ Focus on capturing the **educational substance** of the video:
     });
 
     await step.run("notify-discord", async () => {
-      const markdownContent = `**${event.data.video.title}**\n\n${summary}`;
-
       await discordService.createThread(
         env.DISCORD_CHANNEL_YOUTUBE_SUMMARY_TIPS,
         event.data.video.title,
-        markdownContent,
+        summary,
         {
           channel: event.data.channel.channelName,
           url: event.data.video.url,
           published: event.data.video.published,
-          type: "tips",
         },
       );
     });

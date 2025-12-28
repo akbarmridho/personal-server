@@ -133,7 +133,7 @@ export const twitterRumourScrape = inngest.createFunction(
     await step.sendEvent("notify-discord", [
       {
         name: "notify/discord-kb-ingestion",
-        data: payload,
+        data: { payload: payload },
       },
     ]);
   },
