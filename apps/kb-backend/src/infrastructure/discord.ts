@@ -1,6 +1,34 @@
-import { Client, Events, REST, Routes } from "discord.js";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import {
+  ChannelType,
+  Client,
+  Events,
+  REST,
+  Routes,
+  type TextChannel,
+  ThreadAutoArchiveDuration,
+} from "discord.js";
 import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
+
+const splitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 3750,
+  chunkOverlap: 0,
+  lengthFunction: (text) => text.length,
+  separators: [
+    "\n\n",
+    "\n",
+    " ",
+    ".",
+    ",",
+    "\u200b", // Zero-width space
+    "\uff0c", // Fullwidth comma
+    "\u3001", // Ideographic comma
+    "\uff0e", // Fullwidth full stop
+    "\u3002", // Ideographic stop
+    "",
+  ],
+});
 
 class DiscordService {
   private client: Client;
@@ -64,8 +92,14 @@ class DiscordService {
       throw new Error("Invalid channel");
     }
 
+    const MAX_CONTENT_LENGTH = 3500;
+    const truncated =
+      content.length > MAX_CONTENT_LENGTH
+        ? content.slice(0, 2000) + "\n...\n" + content.slice(-1500)
+        : content;
+
     await channel.send({
-      content: content,
+      content: truncated,
       embeds: metadata
         ? [
             {
@@ -79,6 +113,45 @@ class DiscordService {
           ]
         : undefined,
     });
+  }
+
+  async createThread(
+    channelId: string,
+    title: string,
+    content: string,
+    metadata?: Record<string, unknown>,
+  ) {
+    const channel = await this.client.channels.fetch(channelId);
+
+    if (
+      !channel ||
+      (channel.type !== ChannelType.GuildText &&
+        channel.type !== ChannelType.GuildAnnouncement)
+    ) {
+      throw new Error(
+        "Invalid channel: Must be a Text or Announcement channel",
+      );
+    }
+
+    const metadataMarkdown = metadata
+      ? Object.entries(metadata)
+          .map(([key, value]) => `**${key}**: ${value}`)
+          .join("\n")
+      : undefined;
+
+    const chunks = await splitter.splitText(content);
+
+    const thread = await (channel as TextChannel).threads.create({
+      name: title,
+      autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+      type: ChannelType.PublicThread,
+      reason: "Bot generated standalone thread",
+      startMessage: metadataMarkdown || undefined,
+    });
+
+    for (const chunk of chunks) {
+      await thread.send(chunk);
+    }
   }
 }
 

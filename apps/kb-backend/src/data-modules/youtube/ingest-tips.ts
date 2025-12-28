@@ -106,8 +106,9 @@ Focus on capturing the **educational substance** of the video:
     await step.run("notify-discord", async () => {
       const markdownContent = `**${event.data.video.title}**\n\n${summary}`;
 
-      await discordService.sendMessage(
+      await discordService.createThread(
         env.DISCORD_CHANNEL_YOUTUBE_SUMMARY_TIPS,
+        event.data.video.title,
         markdownContent,
         {
           channel: event.data.channel.channelName,

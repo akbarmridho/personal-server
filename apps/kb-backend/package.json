@@ -30,6 +30,7 @@
     "@elysiajs/node": "^1.4.0",
     "@elysiajs/swagger": "1.2.2",
     "@google/genai": "^1.34.0",
+    "@langchain/textsplitters": "^1.0.1",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@t3-oss/env-core": "^0.13.8",
     "@thuantan2060/technicalindicators": "^4.1.3",

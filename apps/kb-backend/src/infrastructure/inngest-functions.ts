@@ -32,9 +32,10 @@ const failureNotification = inngest.createFunction(
   async ({ event }) => {
     const payload = JSON.stringify(event.data.error, null, 2);
 
-    await discordService.sendMessage(
+    await discordService.createThread(
       env.DISCORD_CHANNEL_INNGEST_ERROR,
-      `Inngest run failure:${payload}`,
+      `Inngest run failure`,
+      payload,
     );
   },
 );
@@ -47,13 +48,10 @@ const notifyDiscordKBIngestion = inngest.createFunction(
   async ({ event, step }) => {
     await step.run("notify", async () => {
       for (const document of event.data) {
-        const markdownContent = document.title
-          ? `**${document.title}**\n\n${document.content}`
-          : document.content;
-
-        await discordService.sendMessage(
+        await discordService.createThread(
           env.DISCORD_CHANNEL_ANALYSIS_RUMOUR,
-          markdownContent,
+          document.title || "Analysis/Rumour Ingestion",
+          document.content,
           {
             ...document.source,
             document_date: document.document_date,
