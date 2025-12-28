@@ -36,10 +36,6 @@ export const env = createEnv({
     // knowledge service
     KNOWLEDGE_SERVICE_URL: z.string(),
 
-    // telegram
-    TELEGRAM_CHANNEL_ID: z.string(),
-    TELEGRAM_KEY: z.string(),
-
     // discord
     DISCORD_TOKEN: z.string(),
     DISCORD_APPLICATION_ID: z.string(),

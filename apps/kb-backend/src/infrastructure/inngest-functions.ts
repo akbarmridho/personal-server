@@ -38,8 +38,35 @@ const failureNotification = inngest.createFunction(
   },
 );
 
+const notifyDiscordKBIngestion = inngest.createFunction(
+  {
+    id: "notify-discord-kb-ingestion",
+  },
+  { event: "notify/discord-kb-ingestion" },
+  async ({ event, step }) => {
+    await step.run("notify", async () => {
+      for (const document of event.data) {
+        const markdownContent = document.title
+          ? `${document.title}\n\n${document.content}`
+          : document.content;
+
+        await discordService.sendMessage(
+          env.DISCORD_CHANNEL_ANALYSIS_RUMOUR,
+          markdownContent,
+          {
+            ...document.source,
+            document_date: document.document_date,
+            type: document.type,
+          },
+        );
+      }
+    });
+  },
+);
+
 export const inngestFunctions: InngestFunction.Like[] = [
   failureNotification,
+  notifyDiscordKBIngestion,
   updateCompanies,
   snipsIngestPart,
   snipsCrawl,

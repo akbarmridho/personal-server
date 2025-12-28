@@ -64,6 +64,9 @@ type Events = {
       >;
     };
   };
+  "notify/discord-kb-ingestion": {
+    data: InvestmentDocument[];
+  };
 };
 
 export const inngest = new Inngest({
