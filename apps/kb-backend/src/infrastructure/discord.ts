@@ -8,7 +8,9 @@ class DiscordService {
 
   constructor() {
     this.rest = new REST({ version: "10" }).setToken(env.DISCORD_TOKEN);
-    this.client = new Client({ intents: 6758133188787264 });
+    this.client = new Client({
+      intents: ["Guilds", "GuildMessages", "MessageContent"],
+    });
     this.initialize();
   }
 
