@@ -13,8 +13,8 @@ import { tagMetadata } from "../utils/tagging.js";
 
 const summarizePdf = async (url: string) => {
   const response = await generateText({
-    model: openrouter("openai/gpt-5-mini", {
-      models: ["google/gemini-2.5-flash-preview-09-2025"],
+    model: openrouter("google/gemini-3-flash-preview", {
+      models: ["openai/gpt-5-mini"],
     }),
     prompt: [
       {
@@ -22,9 +22,6 @@ const summarizePdf = async (url: string) => {
         content: `You are a Senior Investment Analyst at a top-tier Hedge Fund. Your mandate is to synthesize the provided document into a high-conviction **Deal Memo** for our internal research archive.
 
 **Your Goal:** Extract the "Signal" from the noise. We need the **Hard Numbers** (Valuation, Forecasts) backed by the **"Vibe"** (The narrative, the specific catalysts, the market sentiment). The output must be exciting to read, information-dense, and factually accurate.
-
-**Input Text for Analysis:**
-{EXTRACTED_TEXT_FROM_PDF}
 
 **Crucial Style & Formatting Rules:**
 1.  **Voice:** Write with energy and conviction. Use active verbs.
