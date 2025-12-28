@@ -39,6 +39,12 @@ export const env = createEnv({
     // telegram
     TELEGRAM_CHANNEL_ID: z.string(),
     TELEGRAM_KEY: z.string(),
+
+    // discord
+    DISCORD_TOKEN: z.string(),
+    DISCORD_APPLICATION_ID: z.string(),
+    DISCORD_CHANNEL_INNGEST_ERROR: z.string(),
+    DISCORD_CHANNEL_ANALYSIS_RUMOUR: z.string(),
   },
   /*
    * Specify what values should be validated by your schemas above.

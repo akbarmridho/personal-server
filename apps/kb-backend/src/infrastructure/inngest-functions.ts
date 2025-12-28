@@ -15,9 +15,9 @@ import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
 import { youtubeChannelIngest } from "../data-modules/youtube/ingest.js";
+import { discordService } from "./discord.js";
 import { env } from "./env.js";
 import { inngest } from "./inngest.js";
-import { telegraf } from "./telegram.js";
 
 const failureNotification = inngest.createFunction(
   {
@@ -31,8 +31,8 @@ const failureNotification = inngest.createFunction(
   async ({ event }) => {
     const payload = JSON.stringify(event.data.error, null, 2);
 
-    await telegraf.telegram.sendMessage(
-      env.TELEGRAM_CHANNEL_ID,
+    await discordService.sendMessage(
+      env.DISCORD_CHANNEL_INNGEST_ERROR,
       `Inngest run failure:${payload}`,
     );
   },
