@@ -133,12 +133,6 @@ class DiscordService {
       );
     }
 
-    const metadataMarkdown = metadata
-      ? Object.entries(metadata)
-          .map(([key, value]) => `**${key}**: ${value}`)
-          .join("\n")
-      : undefined;
-
     const chunks = await splitter.splitText(content);
 
     const thread = await (channel as TextChannel).threads.create({
@@ -146,11 +140,18 @@ class DiscordService {
       autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
       type: ChannelType.PublicThread,
       reason: "Bot generated standalone thread",
-      startMessage: metadataMarkdown || undefined,
     });
 
     for (const chunk of chunks) {
       await thread.send(chunk);
+    }
+
+    if (metadata) {
+      await thread.send(
+        Object.entries(metadata)
+          .map(([key, value]) => `**${key}**: ${value}`)
+          .join("\n"),
+      );
     }
   }
 }
