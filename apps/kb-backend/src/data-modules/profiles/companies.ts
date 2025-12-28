@@ -122,13 +122,15 @@ const createCompanyMatchers = (companies: CompanyMeta[]): CompanyMatcher[] => {
     const nameParts = cleanName.split(/\s+/).filter(Boolean);
     const firstWordLower = nameParts[0]?.toLowerCase();
 
-    // 1. Always match the Symbol (e.g., "BBRI", "(BBRI)", "($BMRI)")
+    // 1. Always match the Symbol (e.g., "BBRI", "(BBRI)", "($BMRI)", "PTRO,")
     // IMPORTANT: Symbols are always 4 letters and MUST be UPPERCASE only.
     // This prevents false matches with common lowercase words.
     // DO NOT change this to case-insensitive matching.
     matchers.push({
       symbol: symbol,
-      pattern: new RegExp(`(\\b|\\$|\\(\\$?)${symbol}(?=\\b|:|\\))`),
+      pattern: new RegExp(
+        `(\\b|\\$|\\(\\$?)${symbol}(?=\\b|[,:;.!?)]|\\*\\*|$)`,
+      ),
     });
 
     // 2. Determine Name Matching Strategy
