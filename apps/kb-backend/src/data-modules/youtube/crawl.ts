@@ -15,7 +15,7 @@ export interface YoutubeVideoEntry {
   description: string;
 }
 
-const getVideosFromChannel = async (
+export const getVideosFromChannel = async (
   channel: YoutubeChannel,
 ): Promise<YoutubeVideoEntry[]> => {
   const parser = new XMLParser({
@@ -128,13 +128,13 @@ Respond strictly with valid JSON matching this schema:
   return result;
 };
 
-interface KVStructure {
+export interface YoutubeKVStructure {
   processedUrls: string[];
 }
 
-// check against KV Cache if already ingested.
-// then use a gate checker to see if the video is relevant.
-// if ok then pass to ingest
+export const youtubeGetCacheKey = (rssURL: string) => {
+  return `data-modules.youtube.processed-urls.${rssURL}`;
+};
 
 export const youtubeChannelCrawl = inngest.createFunction(
   {
@@ -143,7 +143,7 @@ export const youtubeChannelCrawl = inngest.createFunction(
   },
   { event: "data/youtube-crawl" },
   async ({ event, step }) => {
-    const processedUrlsCacheKey = `data-modules.youtube.processed-urls.${event.data.channelRSS}`;
+    const processedUrlsCacheKey = youtubeGetCacheKey(event.data.channelRSS);
 
     const videos = await step.run("fetch-videos", async () => {
       return await getVideosFromChannel(event.data);
@@ -152,7 +152,7 @@ export const youtubeChannelCrawl = inngest.createFunction(
     const currentProgress = await step.run("fetch-progress", async () => {
       const result = await KV.get(processedUrlsCacheKey);
 
-      return result as KVStructure | null;
+      return result as YoutubeKVStructure | null;
     });
 
     const alreadyProcessed: string[] = [];
