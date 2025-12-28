@@ -136,8 +136,6 @@ interface KVStructure {
 // then use a gate checker to see if the video is relevant.
 // if ok then pass to ingest
 
-const processedUrlsCacheKey = "data-modules.youtube.processed-urls";
-
 export const youtubeChannelCrawl = inngest.createFunction(
   {
     id: "youtube-channel-crawl",
@@ -145,6 +143,8 @@ export const youtubeChannelCrawl = inngest.createFunction(
   },
   { event: "data/youtube-crawl" },
   async ({ event, step }) => {
+    const processedUrlsCacheKey = `data-modules.youtube.processed-urls.${event.data.channelRSS}`;
+
     const videos = await step.run("fetch-videos", async () => {
       return await getVideosFromChannel(event.data);
     });
