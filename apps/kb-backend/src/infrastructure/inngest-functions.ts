@@ -47,7 +47,7 @@ const notifyDiscordKBIngestion = inngest.createFunction(
   { event: "notify/discord-kb-ingestion" },
   async ({ event, step }) => {
     await step.run("notify", async () => {
-      for (const document of event.data) {
+      for (const document of event.data.payload) {
         await discordService.createThread(
           env.DISCORD_CHANNEL_ANALYSIS_RUMOUR,
           document.title || "Analysis/Rumour Ingestion",
