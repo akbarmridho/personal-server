@@ -9,22 +9,12 @@ import { env } from "../infrastructure/env.js";
 import { knowledgeService } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";
 import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
-import {
-  GetSectorsReportParams,
-  getSectorsReport,
-} from "./aggregator/sectors-report.js";
-import { getIHSGOverview } from "./endpoints/ihsg/overview.js";
 import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { getCommoditySummary } from "./other-prices/commodity.js";
-import {
-  getForexSummary,
-  type PriceSummaryData,
-} from "./other-prices/forex.js";
 import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { getSkill, listSkills } from "./skills/index.js";
@@ -71,40 +61,40 @@ export const setupStockMcp = async () => {
     },
   });
 
-  server.addTool({
-    name: "get-sectors-report",
-    description:
-      "Returns detailed report for specified subsectors. Use get-sectors first to see available subsector slugs.",
-    parameters: GetSectorsReportParams,
-    execute: async (args) => {
-      logger.info(
-        { subsectors: args.subsectors },
-        "Executing get-sectors-report",
-      );
-      try {
-        const result = await getSectorsReport(args);
-        logger.info(
-          { subsectors: args.subsectors },
-          "Get sectors report completed",
-        );
-        return { type: "text", text: yaml.dump(result) };
-      } catch (error) {
-        logger.error(
-          { error, subsectors: args.subsectors },
-          "Get sectors report failed",
-        );
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-sectors-report",
+  //   description:
+  //     "Returns detailed report for specified subsectors. Use get-sectors first to see available subsector slugs.",
+  //   parameters: GetSectorsReportParams,
+  //   execute: async (args) => {
+  //     logger.info(
+  //       { subsectors: args.subsectors },
+  //       "Executing get-sectors-report",
+  //     );
+  //     try {
+  //       const result = await getSectorsReport(args);
+  //       logger.info(
+  //         { subsectors: args.subsectors },
+  //         "Get sectors report completed",
+  //       );
+  //       return { type: "text", text: yaml.dump(result) };
+  //     } catch (error) {
+  //       logger.error(
+  //         { error, subsectors: args.subsectors },
+  //         "Get sectors report failed",
+  //       );
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
   server.addTool({
     name: "get-companies",
@@ -280,130 +270,130 @@ export const setupStockMcp = async () => {
     },
   });
 
-  server.addTool({
-    name: "get-ihsg-overview",
-    description:
-      "Returns IHSG (Indonesia Stock Exchange Composite Index) overview with market data, technical indicators, and seasonality.",
-    parameters: z.object({}),
-    execute: async () => {
-      logger.info("Executing get-ihsg-overview");
-      try {
-        const data = await getIHSGOverview();
-        logger.info("Get IHSG overview completed");
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error({ error }, "Get IHSG overview failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-ihsg-overview",
+  //   description:
+  //     "Returns IHSG (Indonesia Stock Exchange Composite Index) overview with market data, technical indicators, and seasonality.",
+  //   parameters: z.object({}),
+  //   execute: async () => {
+  //     logger.info("Executing get-ihsg-overview");
+  //     try {
+  //       const data = await getIHSGOverview();
+  //       logger.info("Get IHSG overview completed");
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error({ error }, "Get IHSG overview failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
-  server.addTool({
-    name: "get-forex",
-    description:
-      "Return current and historical forex rates from IDR into various currencies. Available currency: USD, CNY, EUR, JPY, SGD",
-    parameters: z.object({
-      currencies: z
-        .enum(["USD", "CNY", "EUR", "JPY", "SGD"])
-        .array()
-        .describe("The currencies to compare against IDR"),
-    }),
-    execute: async (args) => {
-      logger.info({ args }, "Executing get-forex");
-      try {
-        const result: Record<string, PriceSummaryData> = {};
+  // server.addTool({
+  //   name: "get-forex",
+  //   description:
+  //     "Return current and historical forex rates from IDR into various currencies. Available currency: USD, CNY, EUR, JPY, SGD",
+  //   parameters: z.object({
+  //     currencies: z
+  //       .enum(["USD", "CNY", "EUR", "JPY", "SGD"])
+  //       .array()
+  //       .describe("The currencies to compare against IDR"),
+  //   }),
+  //   execute: async (args) => {
+  //     logger.info({ args }, "Executing get-forex");
+  //     try {
+  //       const result: Record<string, PriceSummaryData> = {};
 
-        const raw = await Promise.all(
-          args.currencies.map(async (currency) => {
-            return {
-              currency,
-              data: await getForexSummary(currency),
-            };
-          }),
-        );
+  //       const raw = await Promise.all(
+  //         args.currencies.map(async (currency) => {
+  //           return {
+  //             currency,
+  //             data: await getForexSummary(currency),
+  //           };
+  //         }),
+  //       );
 
-        for (const each of raw) {
-          result[each.currency] = each.data;
-        }
+  //       for (const each of raw) {
+  //         result[each.currency] = each.data;
+  //       }
 
-        logger.info({ args }, "Get forex completed");
-        return { type: "text", text: yaml.dump(result) };
-      } catch (error) {
-        logger.error({ error, args }, "Get forex failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  //       logger.info({ args }, "Get forex completed");
+  //       return { type: "text", text: yaml.dump(result) };
+  //     } catch (error) {
+  //       logger.error({ error, args }, "Get forex failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
-  server.addTool({
-    name: "get-commodity",
-    description:
-      "Return current and historical commodity prices in USD. Available commodity: GOLD, SILVER, OIL_WTI, OIL_BRENT, COPPER, COAL, NICKEL, CPO",
-    parameters: z.object({
-      commodities: z
-        .enum([
-          "GOLD",
-          "SILVER",
-          "OIL_WTI",
-          "OIL_BRENT",
-          "COPPER",
-          "COAL",
-          "NICKEL",
-          "CPO",
-        ])
-        .array()
-        .describe("The commodities name"),
-    }),
-    execute: async (args) => {
-      logger.info({ args }, "Executing get-forex");
-      try {
-        const result: Record<string, PriceSummaryData> = {};
+  // server.addTool({
+  //   name: "get-commodity",
+  //   description:
+  //     "Return current and historical commodity prices in USD. Available commodity: GOLD, SILVER, OIL_WTI, OIL_BRENT, COPPER, COAL, NICKEL, CPO",
+  //   parameters: z.object({
+  //     commodities: z
+  //       .enum([
+  //         "GOLD",
+  //         "SILVER",
+  //         "OIL_WTI",
+  //         "OIL_BRENT",
+  //         "COPPER",
+  //         "COAL",
+  //         "NICKEL",
+  //         "CPO",
+  //       ])
+  //       .array()
+  //       .describe("The commodities name"),
+  //   }),
+  //   execute: async (args) => {
+  //     logger.info({ args }, "Executing get-forex");
+  //     try {
+  //       const result: Record<string, PriceSummaryData> = {};
 
-        const raw = await Promise.all(
-          args.commodities.map(async (commodity) => {
-            return {
-              commodity,
-              data: await getCommoditySummary(commodity),
-            };
-          }),
-        );
+  //       const raw = await Promise.all(
+  //         args.commodities.map(async (commodity) => {
+  //           return {
+  //             commodity,
+  //             data: await getCommoditySummary(commodity),
+  //           };
+  //         }),
+  //       );
 
-        for (const each of raw) {
-          result[each.commodity] = each.data;
-        }
+  //       for (const each of raw) {
+  //         result[each.commodity] = each.data;
+  //       }
 
-        logger.info({ args }, "Get commodity completed");
-        return { type: "text", text: yaml.dump(result) };
-      } catch (error) {
-        logger.error({ error, args }, "Get commodity failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  //       logger.info({ args }, "Get commodity completed");
+  //       return { type: "text", text: yaml.dump(result) };
+  //     } catch (error) {
+  //       logger.error({ error, args }, "Get commodity failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
   server.addTool({
     name: "get-document",
