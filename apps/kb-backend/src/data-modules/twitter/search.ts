@@ -9,7 +9,7 @@ import OpenAI from "openai";
 import { env } from "../../infrastructure/env.js";
 import { logger } from "../../utils/logger.js";
 
-const handles = [
+export const goldenHandles = [
   "ApestorNyangkut",
   // "JudiSaham",
   "rakyatkapitalis",
@@ -73,10 +73,10 @@ Today date is: ${todayDate}.
 
 ## Search Strategy
 
-- Focus on these handles: ${handles.join(", ")}
+- Focus on these handles: ${goldenHandles.join(", ")}
 - Retrieve the **latest post** (including replies and threads) from these target handles with 100-200 limit.
 - When you find an interesting post, perform full thread fetch on that post.
-- Try to use other tools, like keyword or semantic search to explore more if existing result is insufficient. When use this approach, combine all target handles into a **single keyword or semantic search query** using OR operators (e.g., \`${handles.map((e) => `from:${e}`).join(" OR ")}\`) with \`limit: 100\` instead of making separate queries per account.
+- Try to use other tools, like keyword or semantic search to explore more if existing result is insufficient. When use this approach, combine all target handles into a **single keyword or semantic search query** using OR operators (e.g., \`${goldenHandles.map((e) => `from:${e}`).join(" OR ")}\`) with \`limit: 100\` instead of making separate queries per account.
 - Do not include lang code in the query or tool search.
 - Use Indonesian keywords for search.
 

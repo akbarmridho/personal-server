@@ -18,6 +18,7 @@ import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { getSkill, listSkills } from "./skills/index.js";
+import { searchTwitter } from "./twitter-search.js";
 import { removeKeysRecursive } from "./utils.js";
 
 // why yaml instead of json?
@@ -657,6 +658,45 @@ export const setupStockMcp = async () => {
           { error, symbol: args.symbol },
           "Get bottom fishing signal failed",
         );
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "search-twitter",
+    description:
+      "Search X (Twitter) for stock market information, discussions, and content. Returns relevant tweets with author info, post content, and key insights about Indonesian stock market. Useful for finding real-time market sentiment, rumors, and discussions from influential accounts.",
+    parameters: z.object({
+      queries: z
+        .string()
+        .array()
+        .describe(
+          "Array of search queries (keywords, stock symbols, company names, etc.) to search for on Twitter",
+        ),
+      daysOld: z
+        .number()
+        .describe(
+          "Number of days to limit the search. Default is 60 days (2 months).",
+        )
+        .optional(),
+    }),
+    execute: async (args) => {
+      logger.info({ args }, "Executing search-twitter");
+      try {
+        const data = await searchTwitter(args);
+        logger.info({ queries: args.queries }, "Twitter search completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, args }, "Twitter search failed");
         return {
           content: [
             {
