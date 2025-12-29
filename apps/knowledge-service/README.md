@@ -7,7 +7,7 @@ This document defines the unified Qdrant collection schema for the Investment Kn
 ## Document Types
 
 1. **News** - General market news, sector updates, and ticker-specific news
-2. **Weekly Summary** - Periodic market analysis and outlook
+2. **Filing** - Information directly from the company itself (e.g., annual reports, quarterly statements, official announcements)
 3. **Analysis** - In-depth research from various sources (algoresearch, websites, PDFs, Instagram, etc.)
 4. **Rumour** - Social media threads from Reddit, Twitter, etc.
 
@@ -19,7 +19,7 @@ This document defines the unified Qdrant collection schema for the Investment Kn
 {
     # === Core Fields (Required) ===
     "id": str,                    # UUID v4 generated deterministically from content hash
-    "type": str,                  # One of: "news", "weekly_summary", "analysis", "rumour"
+    "type": str,                  # One of: "news", "filing", "analysis", "rumour"
     "title": str,                 # Document title or headline
     "content": str,               # The actual text content (used for embedding)
     

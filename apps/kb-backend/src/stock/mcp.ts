@@ -453,7 +453,10 @@ export const setupStockMcp = async () => {
           ).join(", ")}`,
         )
         .optional(),
-      types: z.enum(["news", "analysis", "rumour"]).array().optional(),
+      types: z
+        .enum(["news", "filing", "analysis", "rumour"])
+        .array()
+        .optional(),
       date_from: z
         .string()
         .describe("Start date limit in YYYY-MM-DD format")
@@ -501,7 +504,10 @@ export const setupStockMcp = async () => {
         )
         .optional(),
       subsectors: z.string().array().optional(),
-      types: z.enum(["news", "analysis", "rumour"]).array().optional(),
+      types: z
+        .enum(["news", "filing", "analysis", "rumour"])
+        .array()
+        .optional(),
       date_from: z
         .string()
         .describe("Start date limit in YYYY-MM-DD format")

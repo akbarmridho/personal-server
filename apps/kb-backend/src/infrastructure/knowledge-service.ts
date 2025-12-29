@@ -3,7 +3,7 @@ import { logger } from "../utils/logger.js";
 import { takeFirstNTokens } from "../utils/token-count.js";
 import { env } from "./env.js";
 
-export type DocumentType = "news" | "weekly_summary" | "analysis" | "rumour";
+export type DocumentType = "news" | "filing" | "analysis" | "rumour";
 
 export interface InvestmentDocument {
   /** Document ID (provided by caller) */

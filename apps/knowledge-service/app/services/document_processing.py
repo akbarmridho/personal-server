@@ -12,7 +12,7 @@ from typing import Dict, Any
 def prepare_embedding_text(doc: Dict[str, Any]) -> str:
     """
     Prepare enriched content for embedding.
-    Works for all document types (news, weekly_summary, analysis, rumour).
+    Works for all document types (news, filing, analysis, rumour).
     
     Combines structured metadata with content to improve:
     - Company/ticker-specific queries
@@ -98,7 +98,7 @@ def validate_document_schema(doc: Dict[str, Any]) -> bool:
             raise ValueError(f"Document missing required field: {field}")
     
     # Validate document type
-    valid_types = ['news', 'weekly_summary', 'analysis', 'rumour']
+    valid_types = ['news', 'filing', 'analysis', 'rumour']
     if doc['type'] not in valid_types:
         raise ValueError(f"Invalid document type: {doc['type']}. Must be one of {valid_types}")
     

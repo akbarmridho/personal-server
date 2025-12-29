@@ -6,7 +6,7 @@ from enum import Enum
 class DocumentType(str, Enum):
     """Document type enum for investment documents."""
     NEWS = "news"
-    WEEKLY_SUMMARY = "weekly_summary"
+    FILING = "filing"
     ANALYSIS = "analysis"
     RUMOUR = "rumour"
 

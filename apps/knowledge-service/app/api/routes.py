@@ -32,7 +32,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
     
     Documents must include:
     - id: Document ID (provided by caller)
-    - type: One of news, weekly_summary, analysis, rumour
+    - type: One of news, filing, analysis, rumour
     - content, document_date, source (required)
     - Optional metadata: title, symbols, subsectors, subindustries, etc.
     
