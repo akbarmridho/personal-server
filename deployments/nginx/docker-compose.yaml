@@ -14,8 +14,8 @@ services:
     # networks:
     #   - personal_network
     environment:
-      DB_POSTGRES_HOST: postgres_main
-      DB_POSTGRES_PORT: 5432
+      DB_POSTGRES_HOST: localhost
+      DB_POSTGRES_PORT: 5433
       DB_POSTGRES_USER: postgres
       DB_POSTGRES_PASSWORD: postgres
       DB_POSTGRES_NAME: nginx
