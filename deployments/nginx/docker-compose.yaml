@@ -3,15 +3,16 @@ services:
     hostname: nginx_proxy_manager
     image: 'jc21/nginx-proxy-manager:2.12.6'
     restart: unless-stopped
-    ports:
-      - '80:80' # Public HTTP Port
-      - '443:443' # Public HTTPS Port
-      - '81:81' # Admin Web Port
+    network_mode: host
+    # ports:
+    #   - '80:80' # Public HTTP Port
+    #   - '443:443' # Public HTTPS Port
+    #   - '81:81' # Admin Web Port
     volumes:
       - nginx_data:/data
       - nginx_letsencrypt:/etc/letsencrypt
-    networks:
-      - personal_network
+    # networks:
+    #   - personal_network
     environment:
       DB_POSTGRES_HOST: postgres_main
       DB_POSTGRES_PORT: 5432
@@ -26,6 +27,6 @@ volumes:
   nginx_data:
   nginx_letsencrypt:
 
-networks:
-  personal_network:
-    external: true
+# networks:
+#   personal_network:
+#     external: true
