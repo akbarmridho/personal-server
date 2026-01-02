@@ -1,7 +1,7 @@
 services:
   immich-server:
     container_name: immich_server
-    image: ghcr.io/immich-app/immich-server:v2.3.1
+    image: ghcr.io/immich-app/immich-server:v2.4.1
     volumes:
       - immich-filen:/data
       - ./immich_data/thumbs:/data/thumbs
@@ -19,7 +19,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G   # Cap of 1GB RAM
+          memory: 2.5G
     healthcheck:
       test:
         [
@@ -37,7 +37,7 @@ services:
     container_name: immich_machine_learning
     # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
     # Example tag: ${IMMICH_VERSION:-release}-cuda
-    image: ghcr.io/immich-app/immich-machine-learning:v2.3.1
+    image: ghcr.io/immich-app/immich-machine-learning:v2.4.1
     # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
     #   file: hwaccel.ml.yml
     #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
@@ -54,6 +54,10 @@ services:
       start_period: 30s
     networks:
       - personal_network
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   redis:
     container_name: immich_redis
