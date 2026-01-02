@@ -5,10 +5,7 @@
 ```bash
 # Create network with MTU 1280 to match Tailscale's MTU
 # This prevents packet drops/fragmentation issues with HTTPS
-docker network create \
-  --driver bridge \
-  --opt com.docker.network.driver.mtu=1280 \
-  personal_network
+docker network create personal_network
 ```
 
 ## Port List
