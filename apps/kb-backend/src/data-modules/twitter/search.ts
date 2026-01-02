@@ -32,14 +32,13 @@ export const searchRumourTargetted = async (params: { daysOld?: number }) => {
   const client = new OpenAI({
     apiKey: env.XAI_API_KEY,
     baseURL: "https://api.x.ai/v1",
-    timeout: 600_000, // Override default timeout with longer timeout for reasoning models
+    timeout: 600_000,
   });
 
   const todayDate = dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
 
   const searchTool: Record<string, any> = {
     type: "x_search",
-    // allowed_x_handles: handles,
     enable_image_understanding: true,
   };
 
@@ -50,107 +49,105 @@ export const searchRumourTargetted = async (params: { daysOld?: number }) => {
       .format("YYYY-MM-DD");
   }
 
-  // need to change todayDate if newest date is filtered
-  // if (params.newestDate) {
-  //   searchTool.to_date = params.newestDate;
-  // }
-
   const response = await client.responses.create({
     model: "grok-4-1-fast-reasoning",
     input: [
       {
         role: "system",
         content: `
-You are a **Social Media Search Agent** focused on finding **informations, discussions, and rumours about Indonesia Stock Market** on **X (Twitter)**.
-You are helping me gathering news for my "narrative play" investing style.
+You are a **Social Media Research Agent** that curates **stock market discussions and investment theses** from key Indonesian stock market accounts on X (Twitter).
 
-I want you to present any early leads, post discussion, or even rumours. These information doesn't have to contain the stock ticker/symbol or the stock name. This can also
-in form of sector research or anything stock-related in general. Include discussion about "unknown" or "unmentioned" stock as well.
+Your goal: Surface **meaningful conversations** that could inform investment decisions. Think of yourself as building a daily digest for a narrative-driven investor.
 
-I want to know what are the targetted accounts mentioned below are discussing as these are key information for my investment information gathering.
+Today's date: ${todayDate}
 
-Today date is: ${todayDate}.
+## Target Accounts
+
+${goldenHandles.map((h) => `- @${h}`).join("\n")}
 
 ## Search Strategy
 
-- Focus on these handles: ${goldenHandles.join(", ")}
-- Retrieve the **latest post** (including replies and threads) from these target handles with 100-200 limit.
-- When you find an interesting post, perform full thread fetch on that post.
-- Try to use other tools, like keyword or semantic search to explore more if existing result is insufficient. When use this approach, combine all target handles into a **single keyword or semantic search query** using OR operators (e.g., \`${goldenHandles.map((e) => `from:${e}`).join(" OR ")}\`) with \`limit: 100\` instead of making separate queries per account.
-- Do not include lang code in the query or tool search.
-- Use Indonesian keywords for search.
+1. **Primary Search**: Use \`${goldenHandles.map((e) => `from:${e}`).join(" OR ")}\` with limit 200.
+2. **Thread Expansion**: Fetch full threads for posts with substantive replies or ongoing discussion.
+3. **Image Analysis**: Many posts contain charts, screener screenshots, or flow data—extract key information from images.
 
-## Domain Information
+## Quality Filter (IMPORTANT)
 
-- These information rarely label it explicitly as "rumour", "speculation", etc, but as a regular post discussion.
-- Mostly written in Indonesia language (Bahasa Indonesia), but sometimes in English.
-- Sometimes just a screenshoot of stock screener or chart drawing for technical analysis.
-- Sometimes discuss about ownership changes, expansion plan, future prospects, foreign flows, "bandar", corporate actions, etc.
-- Sometimes images/screenshots contains important information, so carefully inspect post images whenever available.
+**Include** posts that meet ANY of these criteria:
+- Has meaningful engagement (several likes, replies, or quote tweets)
+- Contains a specific thesis or actionable insight
+- Part of a thread with back-and-forth discussion
+- Shares data (screener results, flow analysis, chart with annotations)
+- Multiple accounts discussing the same ticker/topic (signal of relevance)
+
+**Exclude** posts that are:
+- Low engagement AND generic commentary (e.g., "market merah hari ini" with 2 likes)
+- Pure retweets without added commentary
+- Stale takes with no new information
+- Personal/off-topic content
+
+When in doubt about a borderline post, **include it** if it mentions a specific ticker with any form of thesis or observation.
+
+## Content Types to Capture
+
+- **Thesis/Conviction Posts**: "I'm accumulating X because..." or "X is undervalued due to..."
+- **Technical Analysis**: Chart patterns, support/resistance, breakout setups
+- **Flow & Bandar Activity**: Foreign flow, broker summary, unusual volume, "bandar masuk/keluar"
+- **Corporate Actions**: Rights issue, M&A, dividends, stock splits, management changes
+- **Sector Plays**: Rotation themes, commodity cycles, macro impact on sectors
+- **Early Signals**: Watchlist mentions, "pantau X", "ada yang menarik di Y"
+- **Contrarian/Debate**: Disagreements on a stock's direction, bull vs bear cases
 
 ## Output Format
 
-Use **exactly** the structure defined inside the \`<output_format>\` block below when generating your final answer.
+Write in **English**. Group related discussions by **ticker, sector, or theme**.
 
-- The \`<output_format>\` block is only a **specification**.
-- **Do not** include \`<output_format>\` or \`</output_format>\` tags in your actual answer.
-- In your real output, only produce the described Markdown content.
-- Write your final answer **in English**, even if the tweets are in Indonesian.
-- Sort rumours by quality from BEST to LEAST significant** - put the most substantial, well-supported rumours first, followed by lighter or more speculative ones.
+---
 
-<output_format>
-For **each thread**, create a section as follows:
+## [Ticker: $XXXX] or [Sector: Banking/Coal/etc] or [Theme: descriptive title]
 
-## Thread Rumour Title [YYYY-MM-DD](Tweet URL)
+**Relevance**: [High | Medium] — brief reason why this matters
+**Date Range**: YYYY-MM-DD to YYYY-MM-DD (or single date)
 
-- A concise, descriptive title summarizing the main rumour in that thread, followed by markdown link with the text is the date of the post/tweet in YYYY-MM-DD format, and the link is full tweet URL.
+### Summary
 
-A "thread" means:
+- Consolidated summary of what's being discussed about this ticker/sector/theme
+- Key claims, price targets, catalysts, or concerns mentioned
+- Note if there's consensus or disagreement among accounts
 
-- The **original/root tweet**, plus:
-- Its replies and sub-replies,
-- Any directly connected discussion,
-- And, where available, quote-tweet discussions.
+### Key Posts & Sources
 
-If **multiple rumours** appear in the same thread:
+| Author | Date | Key Point | Link |
+|--------|------|-----------|------|
+| @handle1 | YYYY-MM-DD | Brief summary of their take | [link](url) |
+| @handle2 | YYYY-MM-DD | Their perspective/addition | [link](url) |
 
-- **Do not split** them into separate sections.
-- Treat the entire thread as **one section** and summarize the conversation as a whole.
+### Notable Discussion (if any)
 
-Under each thread section, include these subsections in this order:
+- Include if there's meaningful back-and-forth in replies
+- \`@handleA\`: "argument or claim"
+- \`@handleB\`: "counter-argument or supporting point"
 
-### Rumour Summary
+---
 
-- Provide a concise summary in **English** describing:
-- What is being rumoured or speculated.
-- Which stock(s) or ticker(s) are involved (only those actually mentioned in the thread; do not invent tickers).
-- The nature of the rumour, such as:
-    - Acquisition or merger
-    - Rights issue or other corporate actions
-    - Price targets or expected moves
-    - "Bandar" activity or operator games
-    - Foreign flow, unusual volume, or insider-style information
+## Grouping Rules
 
-### Key Discussion & Sources (OPTIONAL)
+1. **Same ticker** → Always group together, even if discussed by different accounts
+2. **Related tickers** (e.g., coal stocks ADRO, PTBA, ITMG) → Group under sector if the discussion is about the sector trend
+3. **Thematic discussions** (e.g., "foreign flow rotation", "window dressing plays") → Group under theme
+4. **Standalone insights** → Can be their own section if significant enough and doesn't fit elsewhere
 
-- **Include this section ONLY if there is actual discussion worth summarizing.**
-- If the thread only contains the original tweet with minimal replies, you may omit this section entirely.
-- When present, summarize the discussion:
-- Main claims, counter-claims, and doubts.
-- Clearly indicate **which handles said what**, so the user can verify the sources.
+## Output Expectations
 
-- Present this as bullet points or very short paragraphs, for example:
-- \`@handleA\`: claims there is insider info ("info ordal") about an upcoming corporate action.
-- \`@handleB\`: supports or disputes the claim and gives reasoning (e.g., past price/volume behaviour).
-- \`@handleC\`: adds context, historical examples, or mentions related stocks.
-
-- If some replies explicitly **question the credibility** of the rumour, clearly mention that.
-</output_format>
-  `,
+- Typically **5-15 grouped topics** depending on market activity
+- Quality over quantity—don't pad with low-value content
+- If it's a quiet period with little discussion, it's fine to return fewer topics
+- Sort by **relevance/significance**, not just recency
+`,
       },
       {
         role: "user",
-        content: `Perform research`,
+        content: `Search the target accounts and compile a curated digest of stock market discussions. Group related content by ticker or theme, and filter for quality—skip low-engagement generic posts.`,
       },
     ],
     tools: [searchTool as any],
@@ -158,10 +155,10 @@ Under each thread section, include these subsections in this order:
 
   if (response.status !== "completed") {
     logger.error(response, "response error");
-    throw new Error("Search rumour twitter didn't succeed");
+    throw new Error("Search discussion twitter didn't succeed");
   }
 
-  logger.info(response, "search rumour output");
+  logger.info(response, "search discussion output");
 
   return { result: response.output_text, raw: response };
 };

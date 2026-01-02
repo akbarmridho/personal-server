@@ -679,28 +679,56 @@ export const setupStockMcp = async () => {
 
   server.addTool({
     name: "search-twitter",
-    description:
-      "Search X (Twitter) for stock market information, discussions, and content. Returns relevant tweets with author info, post content, and key insights about Indonesian stock market. Useful for finding real-time market sentiment, rumors, and discussions from influential accounts.",
+    description: `Search X (Twitter) for Indonesian stock market discussions, analysis, and sentiment.
+
+Returns structured results including:
+- Relevant tweets with full content, author, date, and URL
+- Stock tickers mentioned
+- Key insights extracted from posts and images (charts, screeners, flow data)
+- Summary synthesis per query
+
+Best for:
+- Finding discussions about specific stocks/tickers (e.g., "BBRI", "ANTM")
+- Sector sentiment and themes (e.g., "coal sector outlook", "banking stocks")
+- Market events and corporate actions (e.g., "rights issue", "akuisisi")
+- "Bandar" activity, foreign flow discussions, and trading signals
+
+Results prioritize trusted Indonesian stock market accounts but include other relevant sources.`,
     parameters: z.object({
-      queries: z
-        .string()
-        .array()
-        .describe(
-          "Array of search queries (keywords, stock symbols, company names, etc.) to search for on Twitter",
-        ),
+      queries: z.array(z.string()).describe(
+        `Search queries to find on Twitter. Each query is processed separately.
+
+Examples:
+- Stock ticker: "BBRI", "$ANTM", "BRIS saham"
+- Company name: "Bank BRI", "Telkom"
+- Sector/theme: "saham batubara", "coal stocks", "banking sector"
+- Events: "rights issue 2024", "dividen TLKM"
+- General: "saham undervalue", "foreign flow"
+
+Use Indonesian keywords for better results on local market topics.`,
+      ),
       daysOld: z
         .number()
+        .optional()
         .describe(
-          "Number of days to limit the search. Default is 60 days (2 months).",
-        )
-        .optional(),
+          "Number of days to search back. Default is 14 days. Use shorter (3-7) for recent news, longer (30-60) for historical research.",
+        ),
+      prioritizeGoldenHandles: z
+        .boolean()
+        .optional()
+        .describe(
+          "Whether to prioritize results from trusted Indonesian stock market accounts. Default is true. Set to false for broader search.",
+        ),
     }),
     execute: async (args) => {
       logger.info({ args }, "Executing search-twitter");
       try {
         const data = await searchTwitter(args);
-        logger.info({ queries: args.queries }, "Twitter search completed");
-        return { type: "text", text: yaml.dump(data) };
+        logger.info(
+          { queries: args.queries, resultLength: data.result.length },
+          "Twitter search completed",
+        );
+        return { type: "text", text: data.result };
       } catch (error) {
         logger.error({ error, args }, "Twitter search failed");
         return {
