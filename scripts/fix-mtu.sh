@@ -13,7 +13,7 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}Starting Network MTU Fix for '${NETWORK_NAME}'...${NC}"
 
 # 1. Get list of all running containers attached to the network
-echo -e "\n${YELLOW}[1/5] Identifying containers on network '${NETWORK_NAME}'...${NC}"
+echo -e "\n${YELLOW}[1/6] Identifying containers on network '${NETWORK_NAME}'...${NC}"
 CONTAINERS=$(docker network inspect ${NETWORK_NAME} -f '{{range .Containers}}{{.Name}} {{end}}')
 
 if [ -z "$CONTAINERS" ]; then
@@ -24,23 +24,33 @@ fi
 echo -e "${GREEN}Found containers:${NC} $CONTAINERS"
 
 # 2. Stop the containers
-echo -e "\n${YELLOW}[2/5] Stopping containers...${NC}"
+echo -e "\n${YELLOW}[2/6] Stopping containers...${NC}"
 docker stop $CONTAINERS
 
-# 3. Remove the existing network
-echo -e "\n${YELLOW}[3/5] Removing old network...${NC}"
+# 3. Disconnect containers from the old network (CRITICAL STEP)
+echo -e "\n${YELLOW}[3/6] Disconnecting containers from old network...${NC}"
+for container in $CONTAINERS; do
+    docker network disconnect -f ${NETWORK_NAME} $container 2>/dev/null || true
+done
+
+# 4. Remove the existing network
+echo -e "\n${YELLOW}[4/6] Removing old network...${NC}"
 docker network rm ${NETWORK_NAME}
 
-# 4. Recreate the network with MTU 1280
-echo -e "\n${YELLOW}[4/5] Creating new network with MTU ${MTU_SIZE}...${NC}"
+# 5. Recreate the network with MTU 1280
+echo -e "\n${YELLOW}[5/6] Creating new network with MTU ${MTU_SIZE}...${NC}"
 docker network create \
   --driver bridge \
   --opt com.docker.network.driver.mtu=${MTU_SIZE} \
   ${NETWORK_NAME}
 
-# 5. Start the containers again
-echo -e "\n${YELLOW}[5/5] Restarting containers...${NC}"
-docker start $CONTAINERS
+# 6. Reconnect and Start the containers
+echo -e "\n${YELLOW}[6/6] Reconnecting and Starting containers...${NC}"
+for container in $CONTAINERS; do
+    echo "Processing $container..."
+    docker network connect ${NETWORK_NAME} $container
+    docker start $container
+done
 
 echo -e "\n${GREEN}Success! Network recreated with MTU ${MTU_SIZE}.${NC}"
-echo -e "${GREEN}All containers have been restarted.${NC}"
+echo -e "${GREEN}All containers have been reconnected and started.${NC}"
