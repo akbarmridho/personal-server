@@ -1,7 +1,7 @@
 services:
   nginx-proxy-manager:
     hostname: nginx_proxy_manager
-    image: 'jc21/nginx-proxy-manager:2.12.6'
+    image: 'jc21/nginx-proxy-manager:2.13.5'
     restart: unless-stopped
     network_mode: host
     # ports:
