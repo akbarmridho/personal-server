@@ -63,6 +63,7 @@ const BASE_URL = "https://reactor.hpsekuritas.id/hps-strapi/api/insights";
 
 const fetchInsights = async (
   pageSize: number,
+  type: "Market" | "Stocks",
 ): Promise<StrapiResponse<Insight>> => {
   try {
     const response = await axios.get<StrapiResponse<Insight>>(BASE_URL, {
@@ -76,7 +77,7 @@ const fetchInsights = async (
         filters: {
           categories: {
             title: {
-              $eq: "Stocks",
+              $eq: type,
             },
           },
         },
@@ -115,7 +116,7 @@ export const hpStockUpdateCrawl = inngest.createFunction(
 
       const pageSize = latestCrawl?.id ? 4 : 100;
 
-      const response = await fetchInsights(pageSize);
+      const response = await fetchInsights(pageSize, "Stocks");
 
       const toScrape: {
         id: number;
@@ -153,6 +154,78 @@ export const hpStockUpdateCrawl = inngest.createFunction(
         toScrape.map((e) => {
           return {
             name: "data/hp-stock-update-ingest",
+            data: e,
+          };
+        }),
+      );
+
+      // update keystone
+      await step.run("update-keystone", async () => {
+        let newValue = (await KV.get(lastCrawlIDs)) as {
+          id: number;
+        } | null;
+
+        if (toScrape.length > 0) {
+          newValue = { id: Math.max(...toScrape.map((e) => e.id)) };
+        }
+
+        await KV.set(lastCrawlIDs, newValue);
+      });
+    }
+  },
+);
+
+export const hpMarketUpdateCrawl = inngest.createFunction(
+  {
+    id: "hp-market-update-crawl",
+    concurrency: 1,
+  },
+  // daily at 20.35 from monday to friday
+  { cron: "TZ=Asia/Jakarta 35 20 * * 1-5" },
+  async ({ step }) => {
+    const toScrape = await step.run("crawl", async () => {
+      const latestCrawl = (await KV.get(lastCrawlIDs)) as { id: number } | null;
+
+      const pageSize = latestCrawl?.id ? 4 : 400;
+
+      const response = await fetchInsights(pageSize, "Market");
+
+      const toScrape: {
+        id: number;
+        title: string;
+        date: string;
+        url: string;
+      }[] = [];
+
+      for (const doc of response.data) {
+        const pdfUrl = doc.attributes.pdf_url?.data?.attributes?.url ?? "";
+
+        if (!pdfUrl) {
+          continue;
+        }
+
+        if (latestCrawl?.id && doc.id <= latestCrawl.id) {
+          continue;
+        }
+
+        toScrape.push({
+          id: doc.id,
+          title: doc.attributes.title,
+          date: doc.attributes.publishedAt,
+          url: normalizeUrl(pdfUrl),
+        });
+      }
+
+      return toScrape;
+    });
+
+    if (toScrape.length > 0) {
+      // emit events
+      await step.sendEvent(
+        "queue-ingest",
+        toScrape.map((e) => {
+          return {
+            name: "data/hp-market-update-ingest",
             data: e,
           };
         }),

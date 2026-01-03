@@ -2,8 +2,12 @@ import type { InngestFunction } from "inngest";
 import { algoResearchCrawl } from "../data-modules/algoresearch/crawl.js";
 import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
 import { algoresearchScrape } from "../data-modules/algoresearch/scrape.js";
-import { hpStockUpdateCrawl } from "../data-modules/hp-sekuritas/crawl.js";
-import { hpStockUpdateIngest } from "../data-modules/hp-sekuritas/ingest.js";
+import {
+  hpMarketUpdateCrawl,
+  hpStockUpdateCrawl,
+} from "../data-modules/hp-sekuritas/crawl.js";
+import { hpMarketUpdateIngest } from "../data-modules/hp-sekuritas/ingest-market.js";
+import { hpStockUpdateIngest } from "../data-modules/hp-sekuritas/ingest-stock.js";
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
 import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl.js";
@@ -74,7 +78,9 @@ export const inngestFunctions: InngestFunction.Like[] = [
   samuelCompanyReportsCrawl,
   samuelCompanyReportIngest,
   hpStockUpdateCrawl,
+  hpMarketUpdateCrawl,
   hpStockUpdateIngest,
+  hpMarketUpdateIngest,
   algoResearchCrawl,
   algoresearchScrape,
   algoresearchIngest,

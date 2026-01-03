@@ -33,6 +33,14 @@ type Events = {
       url: string;
     };
   };
+  "data/hp-market-update-ingest": {
+    data: {
+      id: number;
+      title: string;
+      date: string;
+      url: string;
+    };
+  };
   "data/algoresearch-ingest": {
     data: ArticleContent;
   };
