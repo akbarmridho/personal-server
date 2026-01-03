@@ -83,7 +83,7 @@ The knowledge service includes automatic deduplication to prevent storing simila
 1. When ingesting documents via the `/documents` endpoint, each document is checked against existing documents
 2. If a document with the same ID already exists, it will be updated (no deduplication check)
 3. For new documents, the system searches for documents within ±7 days (configurable) of the new document's date
-4. Documents with a dense vector similarity score >0.85 (configurable) are considered duplicates and skipped
+4. Documents with a dense vector similarity score >0.87 (configurable) are considered duplicates and skipped
    * Note: The similarity score refers ONLY to the dense vector similarity, not the hybrid score from the full pipeline
    * Deduplication is ONLY performed for documents of type "news". Other types (filing, analysis, rumour) are not deduplicated
 5. The response includes information about skipped documents for transparency
@@ -101,7 +101,7 @@ The system supports multiple date formats for the `document_date` field:
 
 Deduplication settings can be configured via environment variables:
 
-* `DEDUPLICATION_SIMILARITY_THRESHOLD`: Minimum similarity score to consider as duplicate (default: 0.85)
+* `DEDUPLICATION_SIMILARITY_THRESHOLD`: Minimum similarity score to consider as duplicate (default: 0.87)
 * `DEDUPLICATION_DATE_RANGE_DAYS`: Number of days before/after to check for duplicates (default: 7)
 
 ### API Response

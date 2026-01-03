@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: str | None = None
     
     # Deduplication settings
-    DEDUPLICATION_SIMILARITY_THRESHOLD: float = 0.85
+    DEDUPLICATION_SIMILARITY_THRESHOLD: float = 0.87
     DEDUPLICATION_DATE_RANGE_DAYS: int = 7
 
 settings = Settings()

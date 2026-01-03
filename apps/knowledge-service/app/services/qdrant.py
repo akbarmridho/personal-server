@@ -306,13 +306,13 @@ class QdrantService:
         query_vectors: Dict[str, Any],
         document_date: str,
         document_type: str,
-        similarity_threshold: float = 0.85,
+        similarity_threshold: float = 0.87,
         date_range_days: int = 7
     ) -> List[Dict[str, Any]]:
         """
         Find similar documents within a date range to check for duplicates.
         
-        NOTE: The similarity score of 0.85 refers ONLY to the dense vector similarity,
+        NOTE: The similarity score of 0.87 refers ONLY to the dense vector similarity,
         not the hybrid score from the full pipeline.
         NOTE: Deduplication is only performed for documents of type "news".
         
@@ -320,7 +320,7 @@ class QdrantService:
             query_vectors: Dict with 'dense', 'late', and 'sparse' vectors
             document_date: The date of the document to check (various formats supported)
             document_type: The type of document (deduplication only applies to "news")
-            similarity_threshold: Minimum similarity score to consider as duplicate (default: 0.85)
+            similarity_threshold: Minimum similarity score to consider as duplicate (default: 0.87)
             date_range_days: Number of days before/after to check for duplicates (default: 7)
             
         Returns:
