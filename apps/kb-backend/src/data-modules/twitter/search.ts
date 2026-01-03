@@ -106,7 +106,6 @@ Write in **English**. Group related discussions by **ticker, sector, or theme**.
 
 ## [Ticker: $XXXX] or [Sector: Banking/Coal/etc] or [Theme: descriptive title]
 
-**Relevance**: [High | Medium] — brief reason why this matters
 **Date Range**: YYYY-MM-DD to YYYY-MM-DD (or single date)
 
 ### Summary
