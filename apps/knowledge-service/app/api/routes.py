@@ -1,13 +1,14 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.models.investment import (
-    InvestmentIngestRequest, 
-    InvestmentSearchRequest, 
+    InvestmentIngestRequest,
+    InvestmentSearchRequest,
     SearchResult,
     DocumentType
 )
 from app.services.embeddings import EmbeddingService
 from app.services.qdrant import QdrantService
 from app.services.document_processing import prepare_embedding_text, validate_document_schema
+from app.core.config import settings
 from typing import List, Dict, Any, Optional
 
 router = APIRouter()
@@ -37,6 +38,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
     - Optional metadata: title, symbols, subsectors, subindustries, etc.
     
     Uses enriched embeddings combining metadata with content for better retrieval.
+    Includes deduplication check to avoid storing similar documents within a date range.
     """
     emb_svc, qdrant_svc = get_services()
     
@@ -56,19 +58,68 @@ async def ingest_documents(request: InvestmentIngestRequest):
     # Generate embeddings in batch (with batch size of 50 for optimal performance)
     batch_embeddings = await emb_svc.embed_documents(enriched_texts, batch_size=50)
     
+    # Check for duplicates
+    non_duplicate_docs = []
+    non_duplicate_embeddings = []
+    skipped_count = 0
+    skipped_docs = []
+    
+    for doc, vectors in zip(documents, batch_embeddings):
+        # Check if document with same ID already exists
+        existing_doc = await qdrant_svc.retrieve(doc["id"])
+        
+        if existing_doc:
+            # Document with same ID exists, allow update (no deduplication check)
+            non_duplicate_docs.append(doc)
+            non_duplicate_embeddings.append(vectors)
+        else:
+            # New document, check for duplicates (only for news type)
+            similar_docs = await qdrant_svc.find_similar_documents(
+                query_vectors=vectors,
+                document_date=doc["document_date"],
+                document_type=doc["type"],
+                similarity_threshold=settings.DEDUPLICATION_SIMILARITY_THRESHOLD,
+                date_range_days=settings.DEDUPLICATION_DATE_RANGE_DAYS
+            )
+            
+            if similar_docs:
+                # Skip this document as it's too similar to existing ones
+                skipped_count += 1
+                skipped_docs.append({
+                    "id": doc["id"],
+                    "title": doc.get("title", "No title"),
+                    "similar_to": similar_docs[0]["id"],
+                    "similarity_score": similar_docs[0]["score"]
+                })
+            else:
+                # No similar documents found, include this one
+                non_duplicate_docs.append(doc)
+                non_duplicate_embeddings.append(vectors)
+    
     # Combine embeddings with original document payloads
     processed_docs = []
-    for doc, vectors in zip(documents, batch_embeddings):
+    for doc, vectors in zip(non_duplicate_docs, non_duplicate_embeddings):
         processed_docs.append({
             "id": doc["id"],
             "payload": doc,  # Store original structured document
             "vectors": vectors
         })
         
-    # Upsert to Qdrant
-    await qdrant_svc.upsert_documents(processed_docs)
+    # Upsert non-duplicate documents to Qdrant
+    if processed_docs:
+        await qdrant_svc.upsert_documents(processed_docs)
     
-    return {"status": "success", "count": len(processed_docs)}
+    response = {
+        "status": "success",
+        "count": len(processed_docs),
+        "skipped_count": skipped_count
+    }
+    
+    # Include details about skipped documents if any
+    if skipped_docs:
+        response["skipped_documents"] = skipped_docs
+    
+    return response
 
 @router.post("/documents/search", response_model=List[SearchResult])
 async def search_documents(request: InvestmentSearchRequest):

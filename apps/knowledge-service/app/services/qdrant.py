@@ -3,6 +3,7 @@ from app.core.config import settings
 from app.services.embeddings import EmbeddingService
 from typing import List, Dict, Any
 import uuid
+from datetime import datetime, timedelta
 
 class QdrantService:
     def __init__(self):
@@ -299,3 +300,120 @@ class QdrantService:
             "items": [point.model_dump() for point in results],
             "next_page_offset": next_page_offset
         }
+    
+    async def find_similar_documents(
+        self,
+        query_vectors: Dict[str, Any],
+        document_date: str,
+        document_type: str,
+        similarity_threshold: float = 0.85,
+        date_range_days: int = 7
+    ) -> List[Dict[str, Any]]:
+        """
+        Find similar documents within a date range to check for duplicates.
+        
+        NOTE: The similarity score of 0.85 refers ONLY to the dense vector similarity,
+        not the hybrid score from the full pipeline.
+        NOTE: Deduplication is only performed for documents of type "news".
+        
+        Args:
+            query_vectors: Dict with 'dense', 'late', and 'sparse' vectors
+            document_date: The date of the document to check (various formats supported)
+            document_type: The type of document (deduplication only applies to "news")
+            similarity_threshold: Minimum similarity score to consider as duplicate (default: 0.85)
+            date_range_days: Number of days before/after to check for duplicates (default: 7)
+            
+        Returns:
+            List of similar documents with scores
+        """
+        # Only perform deduplication for news documents
+        if document_type.lower() != "news":
+            return []
+        
+        # Parse the document date - try multiple formats
+        date_formats = [
+            # ISO 8601 with timezone
+            "%Y-%m-%dT%H:%M:%S%z",
+            "%Y-%m-%dT%H:%M:%S.%f%z",
+            # ISO 8601 without timezone
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%dT%H:%M:%S.%f",
+            # Date only
+            "%Y-%m-%d",
+            # Common formats
+            "%d/%m/%Y",
+            "%m/%d/%Y",
+            "%Y/%m/%d",
+            "%d-%m-%Y",
+            "%m-%d-%Y",
+            # With time components
+            "%d/%m/%Y %H:%M:%S",
+            "%m/%d/%Y %H:%M:%S",
+            "%Y/%m/%d %H:%M:%S",
+            "%d-%m-%Y %H:%M:%S",
+            "%m-%d-%Y %H:%M:%S",
+        ]
+        
+        doc_date = None
+        for fmt in date_formats:
+            try:
+                doc_date = datetime.strptime(document_date, fmt)
+                break
+            except ValueError:
+                continue
+        
+        # Try ISO format with Z suffix
+        if doc_date is None and document_date.endswith('Z'):
+            try:
+                doc_date = datetime.fromisoformat(document_date.replace('Z', '+00:00'))
+            except ValueError:
+                pass
+        
+        # If all parsing attempts fail, raise an error
+        if doc_date is None:
+            raise ValueError(f"Unable to parse date: {document_date}")
+        
+        # Calculate date range
+        start_date = doc_date - timedelta(days=date_range_days)
+        end_date = doc_date + timedelta(days=date_range_days)
+        
+        # Build filter with date range and document type
+        filter_conditions = [
+            models.FieldCondition(
+                key="document_date",
+                range=models.DatetimeRange(
+                    gte=start_date.isoformat(),
+                    lte=end_date.isoformat()
+                )
+            ),
+            models.FieldCondition(
+                key="type",
+                match=models.MatchValue(value="news")
+            )
+        ]
+        
+        date_filter = models.Filter(must=filter_conditions)
+        
+        # Search for similar documents using ONLY the dense vector for similarity checking
+        results = await self.client.query_points(
+            collection_name=self.collection_name,
+            query=query_vectors["dense"],
+            using="dense",
+            limit=100,
+            filter=date_filter,
+            with_payload=True,
+            score_threshold=similarity_threshold,
+            timeout=60
+        )
+        
+        # Filter results by similarity threshold (in case score_threshold doesn't work as expected)
+        similar_docs = []
+        for point in results.points:
+            if point.score >= similarity_threshold:
+                similar_docs.append({
+                    "id": str(point.id),
+                    "score": point.score,
+                    "payload": point.payload
+                })
+        
+        return similar_docs
