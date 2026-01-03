@@ -11,7 +11,13 @@ This script tests the deduplication functionality by:
 
 import asyncio
 import json
+import sys
+import os
 from datetime import datetime, timedelta
+
+# Add the parent directory to the path so we can import app modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from app.services.embeddings import EmbeddingService
 from app.services.qdrant import QdrantService
 from app.services.document_processing import prepare_embedding_text
@@ -29,7 +35,7 @@ async def test_deduplication():
     base_date = datetime.now().isoformat()
     
     doc1 = {
-        "id": "test-doc-1",
+        "id": "85171938-a778-49eb-83f4-57f1743120a0",
         "type": "news",
         "title": "BBCA Reports Strong Q3 Earnings",
         "content": "Bank Central Asia (BBCA) reported strong third quarter earnings with a 15% increase in net profit compared to the same period last year. The bank's performance was driven by robust loan growth and improved net interest margin.",
@@ -42,7 +48,7 @@ async def test_deduplication():
     
     # Create a very similar document (should be detected as duplicate)
     doc2 = {
-        "id": "test-doc-2",
+        "id": "4343a407-c3a1-4ff6-8bff-54377fb3577e",
         "type": "news",
         "title": "BBCA Q3 Earnings Show 15% Profit Growth",
         "content": "Bank Central Asia (BBCA) announced strong Q3 earnings, showing a 15% increase in net profit year-over-year. The growth was attributed to significant loan expansion and better net interest margin.",
@@ -55,7 +61,7 @@ async def test_deduplication():
     
     # Create a different document (should not be detected as duplicate)
     doc3 = {
-        "id": "test-doc-3",
+        "id": "06ac5836-f4c4-4c5e-84a5-aeca3d4ed88a",
         "type": "news",
         "title": "TLKM Announces New Digital Initiative",
         "content": "Telekomunikasi Indonesia (TLKM) launched a new digital transformation initiative aimed at expanding 5G coverage across major cities. The company plans to invest $2 billion in infrastructure over the next three years.",
@@ -170,7 +176,7 @@ async def test_deduplication():
     
     # Create a document with a different date format
     doc4 = {
-        "id": "test-doc-4",
+        "id": "3c6453d3-178b-4b8d-814b-5bbf9d1920fd",
         "type": "news",
         "title": "BBCA Quarterly Results Announcement",
         "content": "Bank Central Asia has announced its quarterly financial results showing significant growth in net interest margin and loan portfolio.",
@@ -203,7 +209,7 @@ async def test_deduplication():
     
     # Create a filing document (should not be deduplicated)
     doc5 = {
-        "id": "test-doc-5",
+        "id": "daa2325f-9a1e-48ec-ae38-85e44fcd9aa0",
         "type": "filing",
         "title": "BBCA Annual Report 2024",
         "content": "Bank Central Asia annual report for fiscal year 2024, containing comprehensive financial statements and business performance metrics.",
@@ -236,7 +242,7 @@ async def test_deduplication():
         
         # Create an updated version of doc1 with same ID but slightly different content
         updated_doc1 = {
-            "id": "test-doc-1",  # Same ID as original doc1
+            "id": "85171938-a778-49eb-83f4-57f1743120a0",  # Same ID as original doc1
             "type": "news",
             "title": "BBCA Reports Strong Q3 Earnings - Updated",
             "content": "Bank Central Asia (BBCA) reported very strong third quarter earnings with a 16% increase in net profit compared to same period last year. The bank's performance was driven by robust loan growth and improved net interest margin.",  # Slightly different content
@@ -261,7 +267,7 @@ async def test_deduplication():
         print(f"✓ Document {updated_doc1['id']} updated successfully (same ID allowed)")
         
         # Verify document was updated by retrieving it
-        retrieved_doc = await qdrant_service.retrieve("test-doc-1")
+        retrieved_doc = await qdrant_service.retrieve("85171938-a778-49eb-83f4-57f1743120a0")
         if retrieved_doc and retrieved_doc["payload"]["title"] == "BBCA Reports Strong Q3 Earnings - Updated":
             print(f"✓ Document content verified as updated")
         else:

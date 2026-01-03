@@ -400,7 +400,7 @@ class QdrantService:
             query=query_vectors["dense"],
             using="dense",
             limit=100,
-            filter=date_filter,
+            query_filter=date_filter,
             with_payload=True,
             score_threshold=similarity_threshold,
             timeout=60

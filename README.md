@@ -3,8 +3,6 @@
 ## Docker Network
 
 ```bash
-# Create network with MTU 1280 to match Tailscale's MTU
-# This prevents packet drops/fragmentation issues with HTTPS
 docker network create personal_network
 ```
 
