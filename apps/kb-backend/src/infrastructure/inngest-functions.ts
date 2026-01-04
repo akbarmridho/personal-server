@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import type { InngestFunction } from "inngest";
 import { algoResearchCrawl } from "../data-modules/algoresearch/crawl.js";
 import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
@@ -66,7 +67,15 @@ const notifyDiscordKBIngestion = inngest.createFunction(
   { event: "notify/discord-kb-ingestion" },
   async ({ event, step }) => {
     await step.run("notify", async () => {
+      const thirtyDaysAgo = dayjs().subtract(30, "day");
+
       for (const document of event.data.payload) {
+        // ISO 8601 format: '2025-10-31' or '2025-10-31T14:30:00+07:00'
+        // Skip if document is older than 30 days (backfill)
+        if (dayjs(document.document_date).isBefore(thirtyDaysAgo)) {
+          continue;
+        }
+
         await discordService.createThread(
           env.DISCORD_CHANNEL_ANALYSIS_RUMOUR,
           document.title || "Analysis/Rumour Ingestion",
