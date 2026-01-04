@@ -46,7 +46,7 @@ const fetchPdf = async (url: string): Promise<Uint8Array> => {
 };
 
 const detectTargetPages = async (pdfBytes: Uint8Array): Promise<number[]> => {
-  const loadingTask = pdfjsLib.getDocument(pdfBytes);
+  const loadingTask = pdfjsLib.getDocument(pdfBytes.slice());
   const pdfReader = await loadingTask.promise;
   const page1 = await pdfReader.getPage(1);
   const annotations = await page1.getAnnotations();
