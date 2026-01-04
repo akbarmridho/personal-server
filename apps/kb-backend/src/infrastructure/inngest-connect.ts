@@ -7,5 +7,10 @@ export const inngestConnect = async () => {
     apps: [{ client: inngest, functions: inngestFunctions }],
     instanceId: "kb-backend",
     maxWorkerConcurrency: 20,
+    rewriteGatewayEndpoint: (url) => {
+      const clusterUrl = new URL(url);
+      clusterUrl.host = "localhost:8289";
+      return clusterUrl.toString();
+    },
   });
 };
