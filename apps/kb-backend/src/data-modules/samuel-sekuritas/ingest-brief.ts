@@ -56,8 +56,12 @@ const detectTargetPages = async (pdfBytes: Uint8Array): Promise<number[]> => {
 
   const targetPageIndices = new Set<number>();
   for (const link of internalLinks) {
-    const pageIndex = await pdfReader.getPageIndex(link.dest);
-    targetPageIndices.add(pageIndex);
+    try {
+      const pageIndex = await pdfReader.getPageIndex(link.dest);
+      if (pageIndex >= 0 && pageIndex < pdfReader.numPages) {
+        targetPageIndices.add(pageIndex);
+      }
+    } catch (error) {}
   }
 
   const targetIndices = Array.from(targetPageIndices).sort((a, b) => a - b);
