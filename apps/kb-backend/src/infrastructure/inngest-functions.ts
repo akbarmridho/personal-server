@@ -10,8 +10,10 @@ import { hpMarketUpdateIngest } from "../data-modules/hp-sekuritas/ingest-market
 import { hpStockUpdateIngest } from "../data-modules/hp-sekuritas/ingest-stock.js";
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
-import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl.js";
-import { samuelCompanyReportIngest } from "../data-modules/samuel-sekuritas/ingest.js";
+import { samuelMorningBriefCrawl } from "../data-modules/samuel-sekuritas/crawl-brief.js";
+import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl-company.js";
+import { samuelMorningBriefIngest } from "../data-modules/samuel-sekuritas/ingest-brief.js";
+import { samuelCompanyReportIngest } from "../data-modules/samuel-sekuritas/ingest-company.js";
 import { snipsCrawl } from "../data-modules/snips-newsletter/crawl.js";
 import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
@@ -76,7 +78,9 @@ export const inngestFunctions: InngestFunction.Like[] = [
   snipsCrawl,
   snipsScrape,
   samuelCompanyReportsCrawl,
+  samuelMorningBriefCrawl,
   samuelCompanyReportIngest,
+  samuelMorningBriefIngest,
   hpStockUpdateCrawl,
   hpMarketUpdateCrawl,
   hpStockUpdateIngest,

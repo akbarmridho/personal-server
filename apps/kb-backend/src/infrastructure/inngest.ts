@@ -25,6 +25,12 @@ type Events = {
       url: string;
     };
   };
+  "data/samuel-morning-brief-ingest": {
+    data: {
+      pdfUrl: string;
+      date: string;
+    };
+  };
   "data/hp-stock-update-ingest": {
     data: {
       id: number;
