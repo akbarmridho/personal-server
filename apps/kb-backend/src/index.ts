@@ -1,15 +1,17 @@
 import "@dotenvx/dotenvx/config";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
-import { serve } from "inngest/express";
 import { env } from "./infrastructure/env.js";
-import { inngest } from "./infrastructure/inngest.js";
-import { inngestFunctions } from "./infrastructure/inngest-functions.js";
+import { inngestConnect } from "./infrastructure/inngest-connect.js";
 import { setupHTTPServer } from "./server.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
 
 async function main() {
+  const connect = await inngestConnect();
+
+  logger.info(`Inngest connect state ${connect.state}`);
+
   const stockMcpServer = await setupStockMcp();
   const apiHttpServer = setupHTTPServer();
 
@@ -42,10 +44,11 @@ async function main() {
       limit: "32mb",
     }),
   );
-  proxyApp.use(
-    "/api/inngest",
-    serve({ client: inngest, functions: inngestFunctions }),
-  );
+
+  // proxyApp.use(
+  //   "/api/inngest",
+  //   serve({ client: inngest, functions: inngestFunctions }),
+  // );
 
   // proxy the rest to elysia
   proxyApp.use(
@@ -72,7 +75,8 @@ async function main() {
       logger.info("Proxy server closed");
     });
     apiHttpServer.stop();
-    await Promise.all([stockMcpServer.stop()]);
+
+    await Promise.all([stockMcpServer.stop(), connect.close()]);
     process.exit(0);
   };
 
