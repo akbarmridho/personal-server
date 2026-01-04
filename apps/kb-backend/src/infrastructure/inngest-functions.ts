@@ -5,6 +5,7 @@ import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
 import { algoresearchScrape } from "../data-modules/algoresearch/scrape.js";
 import {
   hpMarketUpdateCrawl,
+  hpMarketUpdateCrawlFix,
   hpStockUpdateCrawl,
 } from "../data-modules/hp-sekuritas/crawl.js";
 import { hpMarketUpdateIngest } from "../data-modules/hp-sekuritas/ingest-market.js";
@@ -32,7 +33,6 @@ import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
 import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
-import { youtubeChannelCrawlFix } from "../data-modules/youtube/crawl-fix.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
 import { youtubeChannelIngest } from "../data-modules/youtube/ingest.js";
 import { youtubeChannelIngestTips } from "../data-modules/youtube/ingest-tips.js";
@@ -121,7 +121,7 @@ export const inngestFunctions: InngestFunction.Like[] = [
   youtubeChannelCrawl,
   youtubeChannelIngest,
   youtubeChannelIngestTips,
-  youtubeChannelCrawlFix,
   kisiMonthlyResearchCrawl,
   kisiMonthlyResearchIngest,
+  hpMarketUpdateCrawlFix,
 ];

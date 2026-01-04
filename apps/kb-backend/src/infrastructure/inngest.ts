@@ -117,7 +117,7 @@ type Events = {
       payload: InvestmentDocument[];
     };
   };
-  "admin/youtube-channel-crawl-fix": {
+  "admin/hp-market-crawl-fix": {
     data: {
       message: string; // this will be ignored
     };

@@ -62,9 +62,10 @@ export interface StrapiFile {
 
 const BASE_URL = "https://reactor.hpsekuritas.id/hps-strapi/api/insights";
 
-const fetchInsights = async (
+export const fetchInsights = async (
   pageSize: number,
   type: "Market" | "Stocks",
+  page?: number,
 ): Promise<StrapiResponse<Insight>> => {
   try {
     const response = await axios.get<StrapiResponse<Insight>>(BASE_URL, {
@@ -72,7 +73,7 @@ const fetchInsights = async (
         populate: ["pdf_url", "thumbnail_url", "categories", "subcategories"],
         sort: "updatedAt:desc",
         pagination: {
-          page: 1,
+          page: page ? page : 1,
           pageSize: pageSize,
         },
         filters: {
@@ -248,6 +249,71 @@ export const hpMarketUpdateCrawl = inngest.createFunction(
 
         await KV.set(marketLastCrawlID, newValue);
       });
+    }
+  },
+);
+
+export const hpMarketUpdateCrawlFix = inngest.createFunction(
+  {
+    id: "hp-market-update-crawl-fix",
+    concurrency: 1,
+  },
+  { event: "admin/hp-market-crawl-fix" },
+  async ({ step }) => {
+    const toScrape = await step.run("crawl", async () => {
+      const extract = async (page: number) => {
+        const response = await fetchInsights(100, "Market", page);
+
+        const toScrape: {
+          id: number;
+          title: string;
+          date: string;
+          url: string;
+        }[] = [];
+
+        for (const doc of response.data) {
+          const pdfUrl = doc.attributes.pdf_url?.data?.attributes?.url ?? "";
+
+          if (!pdfUrl) {
+            continue;
+          }
+
+          toScrape.push({
+            id: doc.id,
+            title: doc.attributes.title,
+            date: doc.attributes.publishedAt,
+            url: normalizeUrl(pdfUrl),
+          });
+        }
+
+        return toScrape;
+      };
+
+      const toScrape: {
+        id: number;
+        title: string;
+        date: string;
+        url: string;
+      }[] = [
+        ...(await extract(2)),
+        ...(await extract(3)),
+        ...(await extract(4)),
+      ];
+
+      return toScrape;
+    });
+
+    if (toScrape.length > 0) {
+      // emit events
+      await step.sendEvent(
+        "queue-ingest",
+        toScrape.map((e) => {
+          return {
+            name: "data/hp-market-update-ingest",
+            data: e,
+          };
+        }),
+      );
     }
   },
 );
