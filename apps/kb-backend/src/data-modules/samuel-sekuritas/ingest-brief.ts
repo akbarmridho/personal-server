@@ -12,6 +12,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
+import { logger } from "../../utils/logger.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
@@ -55,13 +56,31 @@ const detectTargetPages = async (pdfBytes: Uint8Array): Promise<number[]> => {
   );
 
   const targetPageIndices = new Set<number>();
+
   for (const link of internalLinks) {
     try {
-      const pageIndex = await pdfReader.getPageIndex(link.dest);
-      if (pageIndex >= 0 && pageIndex < pdfReader.numPages) {
+      let dest = link.dest;
+
+      // FIX: The logs show 'dest' is an array (Explicit Destination).
+      // We must extract the first element (the Ref object) to get the page index.
+      if (Array.isArray(dest)) {
+        dest = dest[0];
+      }
+
+      // Now 'dest' is just { num: 38, gen: 0 }, which getPageIndex understands.
+      const pageIndex = await pdfReader.getPageIndex(dest);
+
+      // Ensure the page index is valid
+      if (
+        pageIndex !== null &&
+        pageIndex >= 0 &&
+        pageIndex < pdfReader.numPages
+      ) {
         targetPageIndices.add(pageIndex);
       }
-    } catch (error) {}
+    } catch (error) {
+      logger.warn({ error: error }, "Failed to resolve link destination:");
+    }
   }
 
   const targetIndices = Array.from(targetPageIndices).sort((a, b) => a - b);
