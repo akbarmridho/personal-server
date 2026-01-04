@@ -97,8 +97,6 @@ async function detectTargetPages(data: Uint8Array): Promise<number[]> {
         .toLowerCase();
       let textMatchIndex: number | null = null;
 
-      logger.info(searchText);
-
       if (searchText) {
         for (const [pIdx, pText] of pageTextMap.entries()) {
           // Don't match the source page itself
@@ -147,8 +145,11 @@ const extractPdfPages = async (
 
 const extractNews = async (url: string) => {
   const pdfBytes = await fetchPdf(url);
-  const pageIndices = await detectTargetPages(pdfBytes);
-  const pdfBuffer = await extractPdfPages(pdfBytes, pageIndices);
+  const pageIndices = await detectTargetPages(new Uint8Array(pdfBytes));
+  const pdfBuffer = await extractPdfPages(
+    new Uint8Array(pdfBytes),
+    pageIndices,
+  );
 
   const response = await generateObject({
     model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
