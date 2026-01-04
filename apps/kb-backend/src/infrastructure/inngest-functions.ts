@@ -8,6 +8,8 @@ import {
 } from "../data-modules/hp-sekuritas/crawl.js";
 import { hpMarketUpdateIngest } from "../data-modules/hp-sekuritas/ingest-market.js";
 import { hpStockUpdateIngest } from "../data-modules/hp-sekuritas/ingest-stock.js";
+import { kisiMonthlyResearchCrawl } from "../data-modules/kisi-sekuritas/crawl.js";
+import { kisiMonthlyResearchIngest } from "../data-modules/kisi-sekuritas/ingest.js";
 import {
   kiwoomDailyNewsCrawl,
   kiwoomEquityReportCrawl,
@@ -111,4 +113,6 @@ export const inngestFunctions: InngestFunction.Like[] = [
   youtubeChannelIngest,
   youtubeChannelIngestTips,
   youtubeChannelCrawlFix,
+  kisiMonthlyResearchCrawl,
+  kisiMonthlyResearchIngest,
 ];

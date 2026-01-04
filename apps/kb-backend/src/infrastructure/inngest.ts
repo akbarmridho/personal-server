@@ -67,6 +67,14 @@ type Events = {
       url: string;
     };
   };
+  "data/kisi-monthly-research-ingest": {
+    data: {
+      id: number;
+      title: string;
+      date: string;
+      url: string;
+    };
+  };
   "data/algoresearch-ingest": {
     data: ArticleContent;
   };

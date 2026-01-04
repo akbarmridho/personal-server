@@ -3,7 +3,8 @@ import normalizeUrl from "normalize-url";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
 
-const lastCrawlIDs = "data-modules.hp.stock-last-crawl-id";
+const stockLastCrawlID = "data-modules.hp.stock-last-crawl-id";
+const marketLastCrawlID = "data-modules.hp.market-last-crawl-id";
 
 export interface StrapiResponse<T> {
   data: T[];
@@ -112,7 +113,9 @@ export const hpStockUpdateCrawl = inngest.createFunction(
   { cron: "TZ=Asia/Jakarta 0 20 * * 1-5" },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
-      const latestCrawl = (await KV.get(lastCrawlIDs)) as { id: number } | null;
+      const latestCrawl = (await KV.get(stockLastCrawlID)) as {
+        id: number;
+      } | null;
 
       const pageSize = latestCrawl?.id ? 4 : 100;
 
@@ -161,7 +164,7 @@ export const hpStockUpdateCrawl = inngest.createFunction(
 
       // update keystone
       await step.run("update-keystone", async () => {
-        let newValue = (await KV.get(lastCrawlIDs)) as {
+        let newValue = (await KV.get(stockLastCrawlID)) as {
           id: number;
         } | null;
 
@@ -169,7 +172,7 @@ export const hpStockUpdateCrawl = inngest.createFunction(
           newValue = { id: Math.max(...toScrape.map((e) => e.id)) };
         }
 
-        await KV.set(lastCrawlIDs, newValue);
+        await KV.set(stockLastCrawlID, newValue);
       });
     }
   },
@@ -184,7 +187,9 @@ export const hpMarketUpdateCrawl = inngest.createFunction(
   { cron: "TZ=Asia/Jakarta 35 20 * * 1-5" },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
-      const latestCrawl = (await KV.get(lastCrawlIDs)) as { id: number } | null;
+      const latestCrawl = (await KV.get(marketLastCrawlID)) as {
+        id: number;
+      } | null;
 
       const pageSize = latestCrawl?.id ? 4 : 400;
 
@@ -233,7 +238,7 @@ export const hpMarketUpdateCrawl = inngest.createFunction(
 
       // update keystone
       await step.run("update-keystone", async () => {
-        let newValue = (await KV.get(lastCrawlIDs)) as {
+        let newValue = (await KV.get(marketLastCrawlID)) as {
           id: number;
         } | null;
 
@@ -241,7 +246,7 @@ export const hpMarketUpdateCrawl = inngest.createFunction(
           newValue = { id: Math.max(...toScrape.map((e) => e.id)) };
         }
 
-        await KV.set(lastCrawlIDs, newValue);
+        await KV.set(marketLastCrawlID, newValue);
       });
     }
   },
