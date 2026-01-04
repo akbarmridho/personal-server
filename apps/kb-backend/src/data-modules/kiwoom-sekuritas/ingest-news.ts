@@ -117,7 +117,7 @@ export const kiwoomInternationalNewsIngest = inngest.createFunction(
   async ({ event, step }) => {
     const data = await step.run("extract", async () => {
       const response = await axios.get(
-        `https://www.kiwoom.co.id/dailynews/detailDailyNewsMain?id=${event.data.id}`,
+        `https://www.kiwoom.co.id/dailynews/detailInternationalNewsMain?id=${event.data.id}`,
       );
 
       const html: string = response.data;
