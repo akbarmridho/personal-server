@@ -17,6 +17,7 @@ import {
   kiwoomDailyNewsIngest,
   kiwoomInternationalNewsIngest,
 } from "../data-modules/kiwoom-sekuritas/ingest-news.js";
+import { kiwoomEquityReportIngest } from "../data-modules/kiwoom-sekuritas/ingest-report.js";
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
 import { samuelMorningBriefCrawl } from "../data-modules/samuel-sekuritas/crawl-brief.js";
@@ -102,6 +103,7 @@ export const inngestFunctions: InngestFunction.Like[] = [
   kiwoomEquityReportCrawl,
   kiwoomDailyNewsIngest,
   kiwoomInternationalNewsIngest,
+  kiwoomEquityReportIngest,
   twitterRumourScrape,
   documentManualIngest,
   youtubeChannelCrawlInit,
