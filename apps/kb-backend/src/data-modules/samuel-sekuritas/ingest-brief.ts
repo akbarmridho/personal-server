@@ -45,52 +45,91 @@ const fetchPdf = async (url: string): Promise<Uint8Array> => {
   );
 };
 
-const detectTargetPages = async (pdfBytes: Uint8Array): Promise<number[]> => {
-  const loadingTask = pdfjsLib.getDocument(pdfBytes.slice());
-  const pdfReader = await loadingTask.promise;
-  const page1 = await pdfReader.getPage(1);
-  const annotations = await page1.getAnnotations();
-
-  const internalLinks = annotations.filter(
-    (ann) => ann.subtype === "Link" && ann.dest,
-  );
+async function detectTargetPages(data: Uint8Array): Promise<number[]> {
+  const loadingTask = pdfjsLib.getDocument({ data });
+  const doc = await loadingTask.promise;
+  const numPages = doc.numPages;
 
   const targetPageIndices = new Set<number>();
 
-  for (const link of internalLinks) {
+  // 1. EXTRACT TEXT FROM ALL PAGES (Needed for the text-match fallback)
+  // Map: PageIndex (0-based) -> Normalized Text
+  const pageTextMap = new Map<number, string>();
+
+  for (let i = 1; i <= numPages; i++) {
     try {
-      let dest = link.dest;
-
-      // FIX: The logs show 'dest' is an array (Explicit Destination).
-      // We must extract the first element (the Ref object) to get the page index.
-      if (Array.isArray(dest)) {
-        dest = dest[0];
-      }
-
-      // Now 'dest' is just { num: 38, gen: 0 }, which getPageIndex understands.
-      const pageIndex = await pdfReader.getPageIndex(dest);
-
-      // Ensure the page index is valid
-      if (
-        pageIndex !== null &&
-        pageIndex >= 0 &&
-        pageIndex < pdfReader.numPages
-      ) {
-        targetPageIndices.add(pageIndex);
-      }
+      const page = await doc.getPage(i);
+      const textContent = await page.getTextContent();
+      const rawText = textContent.items.map((item: any) => item.str).join(" ");
+      // Normalize: lowercase, single spaces
+      pageTextMap.set(i - 1, rawText.replace(/\s+/g, " ").trim().toLowerCase());
     } catch (error) {
-      logger.warn({ error: error }, "Failed to resolve link destination:");
+      // If a page fails to read, we skip it
     }
   }
 
-  const targetIndices = Array.from(targetPageIndices).sort((a, b) => a - b);
+  // 2. GET ANNOTATIONS FROM PAGE 1 ONLY (As requested)
+  const sourcePageIndex = 0; // Page 1 is index 0
+  const page1 = await doc.getPage(1);
+  const annotations = await page1.getAnnotations();
 
-  if (targetIndices.length === 0) {
-    throw new NonRetriableError("No target pages found");
+  for (const anno of annotations) {
+    // Only process Links that have overlaidText
+    if (anno.subtype === "Link" && anno.overlaidText) {
+      let resolvedIndex: number | null = null;
+      let metadataIndex: number | null = null;
+
+      // --- A. Resolve Metadata (The internal PDF link) ---
+      if (anno.dest && Array.isArray(anno.dest) && anno.dest.length > 0) {
+        try {
+          const destRef = anno.dest[0];
+          // getPageIndex returns the 0-based index
+          metadataIndex = await doc.getPageIndex(destRef);
+        } catch (e) {
+          // Metadata invalid
+        }
+      }
+
+      // --- B. Resolve Text Match (The content search) ---
+      const searchText = anno.overlaidText
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+      let textMatchIndex: number | null = null;
+
+      logger.info(searchText);
+
+      if (searchText) {
+        for (const [pIdx, pText] of pageTextMap.entries()) {
+          // Don't match the source page itself
+          if (pIdx === sourcePageIndex) continue;
+
+          if (pText.includes(searchText)) {
+            textMatchIndex = pIdx;
+            break; // Stop at first match
+          }
+        }
+      }
+      // --- C. Decision Logic (Updated) ---
+
+      // CASE 1: Use Text Match by default (Priority)
+      if (textMatchIndex !== null) {
+        resolvedIndex = textMatchIndex;
+      }
+      // CASE 2: Fallback to Metadata if text match failed
+      else if (metadataIndex !== null) {
+        resolvedIndex = metadataIndex;
+      }
+
+      if (resolvedIndex !== null) {
+        targetPageIndices.add(resolvedIndex);
+      }
+    }
   }
 
-  return targetIndices;
-};
+  // Return sorted, unique page indexes
+  return Array.from(targetPageIndices).sort((a, b) => a - b);
+}
 
 const extractPdfPages = async (
   pdfBytes: Uint8Array,
