@@ -5,7 +5,6 @@ import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
 import { algoresearchScrape } from "../data-modules/algoresearch/scrape.js";
 import {
   hpMarketUpdateCrawl,
-  hpMarketUpdateCrawlFix,
   hpStockUpdateCrawl,
 } from "../data-modules/hp-sekuritas/crawl.js";
 import { hpMarketUpdateIngest } from "../data-modules/hp-sekuritas/ingest-market.js";
@@ -123,5 +122,4 @@ export const inngestFunctions: InngestFunction.Like[] = [
   youtubeChannelIngestTips,
   kisiMonthlyResearchCrawl,
   kisiMonthlyResearchIngest,
-  hpMarketUpdateCrawlFix,
 ];

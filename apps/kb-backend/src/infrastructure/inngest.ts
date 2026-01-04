@@ -117,11 +117,6 @@ type Events = {
       payload: InvestmentDocument[];
     };
   };
-  "admin/hp-market-crawl-fix": {
-    data: {
-      message: string; // this will be ignored
-    };
-  };
 };
 
 export const inngest = new Inngest({
