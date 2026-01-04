@@ -4,10 +4,9 @@ import { NonRetriableError } from "inngest";
 import normalizeUrl from "normalize-url";
 import pRetry from "p-retry";
 import { PDFDocument } from "pdf-lib";
-import pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
-import { ta } from "zod/v4/locales";
 import { inngest } from "../../infrastructure/inngest.js";
 import {
   type InvestmentDocument,
