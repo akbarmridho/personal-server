@@ -159,7 +159,7 @@ export const hpMarketUpdateIngest = inngest.createFunction(
 
         return tagged.map((tag) => {
           return {
-            id: uuidv5(`${event.data.id}`, namespace),
+            id: uuidv5(`${event.data.url}-${tag.title}`, namespace),
             type: "news" as const,
             title: tag.title,
             content: tag.content,

@@ -31,6 +31,26 @@ type Events = {
       date: string;
     };
   };
+  "data/kiwoom-daily-news-ingest": {
+    data: {
+      id: number;
+      date: string;
+    };
+  };
+  "data/kiwoom-international-news-ingest": {
+    data: {
+      id: number;
+      date: string;
+    };
+  };
+  "data/kiwoom-equity-report-ingest": {
+    data: {
+      id: number;
+      title: string;
+      date: string;
+      pdfUrl: string;
+    };
+  };
   "data/hp-stock-update-ingest": {
     data: {
       id: number;
