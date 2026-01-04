@@ -465,6 +465,12 @@ export const setupStockMcp = async () => {
         .string()
         .describe("Start date limit in YYYY-MM-DD format")
         .optional(),
+      pure_sector: z
+        .boolean()
+        .describe(
+          "Filter for documents without symbols (pure sector/market news)",
+        )
+        .optional(),
     }),
     execute: async (args) => {
       logger.info({ args }, "Executing list-documents");
@@ -515,6 +521,12 @@ export const setupStockMcp = async () => {
       date_to: z
         .string()
         .describe("End date limit in YYYY-MM-DD format")
+        .optional(),
+      pure_sector: z
+        .boolean()
+        .describe(
+          "Filter for documents without symbols (pure sector/market news)",
+        )
         .optional(),
     }),
     execute: async (args) => {

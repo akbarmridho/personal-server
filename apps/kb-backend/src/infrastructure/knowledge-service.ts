@@ -48,6 +48,7 @@ export interface ListDocumentsParams {
   types?: DocumentType[] | null;
   date_from?: string | null;
   date_to?: string | null;
+  pure_sector?: boolean | null;
 }
 
 export interface DocumentSnapshot {
@@ -73,6 +74,7 @@ export interface SearchRequest {
   types?: DocumentType[] | null;
   date_from?: string | null;
   date_to?: string | null;
+  pure_sector?: boolean | null;
 }
 
 export interface SearchResult {

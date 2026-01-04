@@ -132,6 +132,7 @@ async def search_documents(request: InvestmentSearchRequest):
     - subindustries: List of subindustries
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
+    - pure_sector: Filter for documents without symbols (pure sector/market news)
     """
     emb_svc, qdrant_svc = get_services()
     
@@ -152,12 +153,14 @@ async def search_documents(request: InvestmentSearchRequest):
         filters['date_from'] = request.date_from
     if request.date_to:
         filters['date_to'] = request.date_to
+    if request.pure_sector is not None:
+        filters['pure_sector'] = request.pure_sector
     
     query_filter = qdrant_svc.build_filter(filters) if filters else None
     
     # Search with filter
     results = await qdrant_svc.search(
-        query_vectors, 
+        query_vectors,
         limit=request.limit,
         query_filter=query_filter
     )
@@ -194,7 +197,8 @@ async def list_documents(
     subindustries: Optional[List[str]] = Query(default=None),
     types: Optional[List[DocumentType]] = Query(default=None),
     date_from: Optional[str] = Query(default=None),
-    date_to: Optional[str] = Query(default=None)
+    date_to: Optional[str] = Query(default=None),
+    pure_sector: Optional[bool] = Query(default=None)
 ):
     """
     List/scroll through documents with optional metadata filtering.
@@ -205,6 +209,7 @@ async def list_documents(
     - subindustries: List of subindustries
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
+    - pure_sector: Filter for documents without symbols (pure sector/market news)
     
     Pagination:
     - limit: Number of results per page (1-100)
@@ -226,12 +231,14 @@ async def list_documents(
         filters['date_from'] = date_from
     if date_to:
         filters['date_to'] = date_to
+    if pure_sector is not None:
+        filters['pure_sector'] = pure_sector
     
     scroll_filter = qdrant_svc.build_filter(filters) if filters else None
     
     # Scroll with filter
     result = await qdrant_svc.scroll(
-        limit=limit, 
+        limit=limit,
         offset=offset,
         scroll_filter=scroll_filter
     )

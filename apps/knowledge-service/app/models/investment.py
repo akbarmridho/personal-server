@@ -102,6 +102,10 @@ class InvestmentSearchRequest(BaseModel):
         default=None,
         description="Filter by date range end (ISO format)"
     )
+    pure_sector: Optional[bool] = Field(
+        default=None,
+        description="Filter for documents without symbols (pure sector/market news)"
+    )
 
 
 class SearchResult(BaseModel):

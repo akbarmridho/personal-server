@@ -137,12 +137,21 @@ class QdrantService:
         Build Qdrant filter from dict parameters.
         
         Args:
-            filters: Dict with optional keys: symbols, subsectors, subindustries, types, date_from, date_to
+            filters: Dict with optional keys: symbols, subsectors, subindustries, types, date_from, date_to, pure_sector
             
         Returns:
             Qdrant Filter object
         """
         conditions = []
+        
+        # Pure sector filtering (documents without symbols)
+        if filters.get('pure_sector') is True:
+            conditions.append(
+                models.IsEmptyCondition(
+                    key="symbols",
+                    is_empty=True
+                )
+            )
         
         # Symbol filtering
         if filters.get('symbols'):
