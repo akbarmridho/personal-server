@@ -126,5 +126,5 @@ export const inngest = new Inngest({
   baseUrl: env.INNGEST_BASE_URL,
   logger: logger,
   schemas: new EventSchemas().fromRecord<Events>(),
-  checkpointing: true,
+  checkpointing: false,
 });
