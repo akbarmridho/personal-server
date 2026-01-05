@@ -4,16 +4,16 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import { serve } from "inngest/express";
 import { env } from "./infrastructure/env.js";
 import { inngest } from "./infrastructure/inngest.js";
-import { inngestConnect } from "./infrastructure/inngest-connect.js";
+// import { inngestConnect } from "./infrastructure/inngest-connect.js";
 import { inngestFunctions } from "./infrastructure/inngest-functions.js";
 import { setupHTTPServer } from "./server.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
 
 async function main() {
-  const connect = await inngestConnect();
+  // const connect = await inngestConnect();
 
-  logger.info(`Inngest connect state ${connect.state}`);
+  // logger.info(`Inngest connect state ${connect.state}`);
 
   const stockMcpServer = await setupStockMcp();
   const apiHttpServer = setupHTTPServer();
@@ -85,7 +85,7 @@ async function main() {
     });
     apiHttpServer.stop();
 
-    await Promise.all([stockMcpServer.stop(), connect.close()]);
+    await Promise.all([stockMcpServer.stop()]);
     process.exit(0);
   };
 
