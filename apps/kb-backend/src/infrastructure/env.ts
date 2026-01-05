@@ -24,6 +24,7 @@ export const env = createEnv({
     INNGEST_BASE_URL: z.string(),
     INNGEST_EVENT_KEY: z.string(),
     INNGEST_SIGNING_KEY: z.string(),
+    INNGEST_DEV: z.number().prefault(0),
 
     // aggregator site
     AGGREGATOR_AUTH: z.string(),

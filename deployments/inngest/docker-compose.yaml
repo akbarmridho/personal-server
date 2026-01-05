@@ -2,7 +2,7 @@ services:
   inngest:
     image: inngest/inngest:v1.15.3
     # command: "inngest start -u http://172.17.0.1:3010/api/inngest"
-    command: "inngest start -u http://host.docker.internal:3010/api/inngest"
+    command: "inngest start --signing-key 736563726574 --event-key 736563726574 -u http://host.docker.internal:3010/api/inngest"
     # command: "inngest start"
     ports:
       - "8288:8288"
