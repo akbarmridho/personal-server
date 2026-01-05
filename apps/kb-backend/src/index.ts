@@ -1,8 +1,11 @@
 import "@dotenvx/dotenvx/config";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { serve } from "inngest/express";
 import { env } from "./infrastructure/env.js";
+import { inngest } from "./infrastructure/inngest.js";
 import { inngestConnect } from "./infrastructure/inngest-connect.js";
+import { inngestFunctions } from "./infrastructure/inngest-functions.js";
 import { setupHTTPServer } from "./server.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
@@ -45,10 +48,10 @@ async function main() {
     }),
   );
 
-  // proxyApp.use(
-  //   "/api/inngest",
-  //   serve({ client: inngest, functions: inngestFunctions }),
-  // );
+  proxyApp.use(
+    "/api/inngest",
+    serve({ client: inngest, functions: inngestFunctions }),
+  );
 
   // proxy the rest to elysia
   proxyApp.use(
