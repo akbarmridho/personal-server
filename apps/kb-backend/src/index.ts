@@ -50,7 +50,13 @@ async function main() {
 
   proxyApp.use(
     "/api/inngest",
-    serve({ client: inngest, functions: inngestFunctions }),
+    serve({
+      client: inngest,
+      functions: inngestFunctions,
+      signingKey: env.INNGEST_SIGNING_KEY,
+      streaming: "force",
+      baseUrl: env.INNGEST_BASE_URL,
+    }),
   );
 
   // proxy the rest to elysia

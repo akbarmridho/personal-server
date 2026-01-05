@@ -15,6 +15,6 @@ export const inngestConnect = async () => {
     },
     signingKey: env.INNGEST_SIGNING_KEY,
     streaming: "force",
-    serveHost: "host.docker.internal:3010",
+    baseUrl: env.INNGEST_BASE_URL,
   });
 };
