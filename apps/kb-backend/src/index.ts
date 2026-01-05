@@ -55,7 +55,6 @@ async function main() {
       functions: inngestFunctions,
       signingKey: env.INNGEST_SIGNING_KEY,
       streaming: "force",
-      baseUrl: env.INNGEST_BASE_URL,
     }),
   );
 
