@@ -127,4 +127,5 @@ export const inngest = new Inngest({
   logger: logger,
   schemas: new EventSchemas().fromRecord<Events>(),
   checkpointing: true,
+  appVersion: "0.0.1",
 });
