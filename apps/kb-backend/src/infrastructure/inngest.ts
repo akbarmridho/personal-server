@@ -4,6 +4,7 @@ import type {
   ArticleInfo,
 } from "../data-modules/algoresearch/types.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
+import type { FilingEventData } from "../data-modules/stockbit-filing/ingest.js";
 import type { YoutubeVideoEntry } from "../data-modules/youtube/crawl.js";
 import type { YoutubeChannel } from "../data-modules/youtube/cron.js";
 import { logger } from "../utils/logger.js";
@@ -111,6 +112,14 @@ type Events = {
         >
       >;
     };
+  };
+  "data/stockbit-filing-crawl": {
+    data: {
+      symbol: string;
+    };
+  };
+  "data/stockbit-announcement-ingest": {
+    data: FilingEventData;
   };
   "notify/discord-kb-ingestion": {
     data: {

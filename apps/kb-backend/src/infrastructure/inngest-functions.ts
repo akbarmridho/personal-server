@@ -30,6 +30,8 @@ import { samuelCompanyReportIngest } from "../data-modules/samuel-sekuritas/inge
 import { snipsCrawl } from "../data-modules/snips-newsletter/crawl.js";
 import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
+import { stockbitFilingCrawl } from "../data-modules/stockbit-filing/crawl.js";
+import { stockbitAnnouncementIngest } from "../data-modules/stockbit-filing/ingest.js";
 import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
@@ -122,4 +124,6 @@ export const inngestFunctions: InngestFunction.Like[] = [
   youtubeChannelIngestTips,
   kisiMonthlyResearchCrawl,
   kisiMonthlyResearchIngest,
+  stockbitFilingCrawl,
+  stockbitAnnouncementIngest,
 ];

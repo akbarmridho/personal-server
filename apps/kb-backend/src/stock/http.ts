@@ -7,6 +7,8 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import { sectors } from "../data-modules/profiles/sector.js";
+import { KV } from "../infrastructure/db/kv.js";
+import { inngest } from "../infrastructure/inngest.js";
 import { logger } from "../utils/logger.js";
 import { getCompanies } from "./aggregator/companies.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";
@@ -328,5 +330,182 @@ export const setupStockRoutes = () =>
       {
         params: t.Object({ symbol: t.String() }),
         query: t.Object({ asOf: t.Optional(t.String()) }),
+      },
+    )
+    // Stock Universe Management
+    .post(
+      "/stock-universe/add",
+      async ({ body, set }) => {
+        try {
+          const STOCK_UNIVERSE_KEY =
+            "data-modules.stockbit-filing.stock-universe";
+
+          // Validate and normalize symbols
+          const symbols = body.symbols
+            .map((s) => s.trim().toUpperCase())
+            .filter((s) => s.length > 0);
+
+          if (symbols.length === 0) {
+            set.status = 400;
+            return {
+              success: false,
+              error: "No valid symbols provided",
+            };
+          }
+
+          // Get current stock universe
+          const universe = (await KV.get(STOCK_UNIVERSE_KEY)) as {
+            symbols: string[];
+          } | null;
+          const currentSymbols = universe?.symbols || [];
+
+          // Determine which symbols are new
+          const newSymbols = symbols.filter((s) => !currentSymbols.includes(s));
+          const existingSymbols = symbols.filter((s) =>
+            currentSymbols.includes(s),
+          );
+
+          // Update stock universe
+          const updatedSymbols = [
+            ...new Set([...currentSymbols, ...newSymbols]),
+          ];
+          await KV.set(STOCK_UNIVERSE_KEY, { symbols: updatedSymbols });
+
+          logger.info(
+            `Added ${newSymbols.length} new symbols to stock universe: ${newSymbols.join(", ")}`,
+          );
+
+          // Emit crawl events for NEW symbols only
+          if (newSymbols.length > 0) {
+            await inngest.send(
+              newSymbols.map((symbol) => ({
+                name: "data/stockbit-filing-crawl",
+                data: { symbol },
+              })),
+            );
+
+            logger.info(
+              `Emitted crawl events for ${newSymbols.length} new symbols`,
+            );
+          }
+
+          return {
+            success: true,
+            added: newSymbols,
+            existing: existingSymbols,
+            total: updatedSymbols.length,
+            message: `Added ${newSymbols.length} new symbol(s), ${existingSymbols.length} already existed. Total: ${updatedSymbols.length}`,
+          };
+        } catch (err) {
+          logger.error({ err }, "Error adding symbols to stock universe");
+          set.status = 500;
+          return {
+            success: false,
+            error: (err as Error).message,
+          };
+        }
+      },
+      {
+        body: t.Object({
+          symbols: t.Array(t.String(), {
+            description:
+              'Array of stock symbols to add (e.g., ["BBCA", "TLKM"])',
+          }),
+        }),
+        detail: {
+          summary: "Add symbols to stock universe and trigger sync",
+          description:
+            "Adds new stock symbols to the tracked universe and immediately triggers filing crawl for newly added symbols. Existing symbols are not re-crawled.",
+        },
+      },
+    )
+    .post(
+      "/stock-universe/sync-all",
+      async ({ set }) => {
+        try {
+          const STOCK_UNIVERSE_KEY =
+            "data-modules.stockbit-filing.stock-universe";
+
+          // Get current stock universe
+          const universe = (await KV.get(STOCK_UNIVERSE_KEY)) as {
+            symbols: string[];
+          } | null;
+
+          if (!universe || universe.symbols.length === 0) {
+            return {
+              success: true,
+              symbols: [],
+              count: 0,
+              message:
+                "Stock universe is empty. Add symbols first using /stock-universe/add",
+            };
+          }
+
+          // Emit crawl events for all symbols
+          await inngest.send(
+            universe.symbols.map((symbol) => ({
+              name: "data/stockbit-filing-crawl",
+              data: { symbol },
+            })),
+          );
+
+          logger.info(
+            `Triggered sync for ${universe.symbols.length} symbols: ${universe.symbols.join(", ")}`,
+          );
+
+          return {
+            success: true,
+            symbols: universe.symbols,
+            count: universe.symbols.length,
+            message: `Triggered sync for ${universe.symbols.length} symbol(s)`,
+          };
+        } catch (err) {
+          logger.error({ err }, "Error syncing stock universe");
+          set.status = 500;
+          return {
+            success: false,
+            error: (err as Error).message,
+          };
+        }
+      },
+      {
+        detail: {
+          summary: "Sync all symbols in stock universe",
+          description:
+            "Triggers filing crawl for all symbols currently in the stock universe. This will check for new filings across all three categories (RUPS, Corporate Action, Other) for each symbol.",
+        },
+      },
+    )
+    .get(
+      "/stock-universe/list",
+      async ({ set }) => {
+        try {
+          const STOCK_UNIVERSE_KEY =
+            "data-modules.stockbit-filing.stock-universe";
+
+          const universe = (await KV.get(STOCK_UNIVERSE_KEY)) as {
+            symbols: string[];
+          } | null;
+
+          return {
+            success: true,
+            symbols: universe?.symbols || [],
+            count: universe?.symbols.length || 0,
+          };
+        } catch (err) {
+          logger.error({ err }, "Error listing stock universe");
+          set.status = 500;
+          return {
+            success: false,
+            error: (err as Error).message,
+          };
+        }
+      },
+      {
+        detail: {
+          summary: "List all symbols in stock universe",
+          description:
+            "Returns the complete list of stock symbols currently being tracked for filing ingestion.",
+        },
       },
     );
