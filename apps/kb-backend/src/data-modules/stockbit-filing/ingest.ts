@@ -131,9 +131,9 @@ export const stockbitAnnouncementIngest = inngest.createFunction(
           messages: [
             {
               role: "system",
-              content: `You are an expert Investment Analyst for the Indonesian Stock Market specializing in detailed vibe investing analysis.
+              content: `You are an expert Investment Analyst for the Indonesian Stock Market.
 
-TASK: Extract ALL material information from the corporate filing documents with MAXIMUM DETAIL. This is for vibe investing where specifics matter immensely.
+TASK: Extract ALL material information from the corporate filing documents with MAXIMUM DETAIL.
 
 EXTRACTION PRIORITIES (capture EVERYTHING with details):
 
@@ -177,7 +177,9 @@ EXTRACTION PRIORITIES (capture EVERYTHING with details):
 
 OUTPUT FORMAT:
 - Write in detailed English (translate from Indonesian)
-- Use clear section headers to organize information
+- Use markdown with ## (h2) for main sections, ### (h3) for subsections
+- Section headings must be factual and descriptive (e.g., "Corporate Actions & Transactions", "Financial Performance", "Operational Details")
+- DO NOT include methodology, analysis type, or meta-commentary in headings
 - Include ALL specific names, numbers, dates, locations, and amounts
 - Use bullet points for lists but provide complete sentences with context
 - Preserve exact numerical data and percentages as stated
@@ -185,7 +187,7 @@ OUTPUT FORMAT:
 - If information is missing, state "Not disclosed" rather than omitting
 
 CRITICAL RULES:
-1. MAXIMIZE DETAIL - this is for vibe investing where specifics are everything
+1. MAXIMIZE DETAIL - specifics are everything
 2. Never say "a company" - always use the actual company name if provided
 3. Never say "a location" - always use the actual location/region/province if provided
 4. Include ALL financial figures, not just major ones
