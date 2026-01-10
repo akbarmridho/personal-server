@@ -100,3 +100,7 @@ docker network create personal_network
 
 - `8021` MCP.
 - `8022` Notesdiscovery.
+
+### AI Frontend
+
+- `8023` AI Frontend.
