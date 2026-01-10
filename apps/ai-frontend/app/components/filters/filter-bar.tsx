@@ -1,10 +1,8 @@
 import { X } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { useSubsectors } from "~/hooks/use-subsectors";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
-import {
-  DOCUMENT_TYPE_OPTIONS,
-  SUBSECTOR_OPTIONS,
-} from "~/lib/constants/filters";
+import { DOCUMENT_TYPE_OPTIONS } from "~/lib/constants/filters";
 import { hasActiveFilters } from "~/lib/utils/url-params";
 import { DateFilter } from "./date-filter";
 import { FilterBadge } from "./filter-badge";
@@ -27,6 +25,7 @@ export function FilterBar({
 }: FilterBarProps) {
   const { filters, updateFilters, clearFilters, removeFilter } =
     useTimelineFilters();
+  const { data: subsectors = [] } = useSubsectors();
 
   return (
     <div className="space-y-4">
@@ -149,8 +148,8 @@ export function FilterBar({
               key={subsector}
               label="Subsector"
               value={
-                SUBSECTOR_OPTIONS.find((opt) => opt.value === subsector)
-                  ?.label || subsector
+                subsectors.find((opt) => opt.value === subsector)?.label ||
+                subsector
               }
               onRemove={() =>
                 updateFilters({

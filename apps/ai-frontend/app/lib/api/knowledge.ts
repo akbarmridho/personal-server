@@ -5,6 +5,7 @@ import type {
   ListDocumentsResponse,
   SearchParams,
   SearchResult,
+  Sector,
 } from "./types";
 
 /**
@@ -56,4 +57,10 @@ export async function searchDocuments(
  */
 export async function getDocument(id: string): Promise<InvestmentDocument> {
   return apiGet<InvestmentDocument>(`/knowledge/documents/${id}`);
+}
+/**
+ * Get available subsectors for filtering
+ */
+export async function getSubsectors(): Promise<Sector[]> {
+  return apiGet<Sector[]>("/stock-market-id/sectors");
 }

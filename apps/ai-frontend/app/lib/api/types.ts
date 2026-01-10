@@ -43,6 +43,22 @@ export interface ListDocumentsResponse {
   next_page_offset?: string;
 }
 
+// Sector and Subsector Types
+export interface Subsector {
+  name: string;
+  description: string;
+}
+
+export interface Sector {
+  name: string;
+  subsectors: Subsector[];
+}
+
+export interface SubsectorOption {
+  value: string;
+  label: string;
+}
+
 // Stock Universe Response
 export interface StockUniverseResponse {
   symbols: string[];

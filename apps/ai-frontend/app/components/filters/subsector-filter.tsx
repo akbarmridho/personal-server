@@ -1,4 +1,4 @@
-import { Layers, X } from "lucide-react";
+import { Layers, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { SUBSECTOR_OPTIONS } from "~/lib/constants/filters";
+import { useSubsectors } from "~/hooks/use-subsectors";
 
 interface SubsectorFilterProps {
   value?: string[];
@@ -23,6 +23,7 @@ export function SubsectorFilter({
   onChange,
 }: SubsectorFilterProps) {
   const [open, setOpen] = useState(false);
+  const { data: subsectors = [], isLoading } = useSubsectors();
 
   const handleToggle = (subsector: string) => {
     const newValue = value.includes(subsector)
@@ -42,8 +43,7 @@ export function SubsectorFilter({
     }
     if (value.length === 1) {
       return (
-        SUBSECTOR_OPTIONS.find((opt) => opt.value === value[0])?.label ||
-        value[0]
+        subsectors.find((opt) => opt.value === value[0])?.label || value[0]
       );
     }
     return `${value.length} subsectors`;
@@ -54,7 +54,11 @@ export function SubsectorFilter({
       <div className="flex gap-1">
         <PopoverTrigger asChild>
           <Button variant="outline" className="gap-2">
-            <Layers className="h-4 w-4" />
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Layers className="h-4 w-4" />
+            )}
             {getButtonLabel()}
           </Button>
         </PopoverTrigger>
@@ -75,7 +79,17 @@ export function SubsectorFilter({
           <div className="text-sm font-medium mb-3">Subsectors</div>
           <ScrollArea className="h-[300px]">
             <div className="space-y-2">
-              {SUBSECTOR_OPTIONS.map((option) => (
+              {isLoading && (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              {!isLoading && subsectors.length === 0 && (
+                <div className="text-sm text-center py-8 text-muted-foreground">
+                  No subsectors found
+                </div>
+              )}
+              {subsectors.map((option) => (
                 <div
                   key={option.value}
                   className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-2 rounded"
