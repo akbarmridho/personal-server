@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { useSubsectors } from "~/hooks/use-subsectors";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
@@ -27,13 +28,40 @@ export function FilterBar({
     useTimelineFilters();
   const { data: subsectors = [] } = useSubsectors();
 
+  // Memoize handlers to prevent infinite loops in child components
+  const handleSearchChange = useCallback(
+    (search: string | undefined) => updateFilters({ search }),
+    [updateFilters],
+  );
+
+  const handleDateChange = useCallback(
+    (dateRange: { date_from?: string; date_to?: string } | undefined) =>
+      updateFilters({
+        date_from: dateRange?.date_from,
+        date_to: dateRange?.date_to,
+      }),
+    [updateFilters],
+  );
+
+  const handleTypeChange = useCallback(
+    (types: any) => updateFilters({ types }),
+    [updateFilters],
+  );
+
+  const handleSymbolsChange = useCallback(
+    (symbols: any) => updateFilters({ symbols }),
+    [updateFilters],
+  );
+
+  const handleSubsectorsChange = useCallback(
+    (subsectors: any) => updateFilters({ subsectors }),
+    [updateFilters],
+  );
+
   return (
     <div className="space-y-4">
       {/* Search Input - Full Width */}
-      <SearchFilter
-        value={filters.search}
-        onChange={(search) => updateFilters({ search })}
-      />
+      <SearchFilter value={filters.search} onChange={handleSearchChange} />
 
       {/* Filter Buttons Row */}
       <div className="flex flex-wrap gap-2">
@@ -44,25 +72,17 @@ export function FilterBar({
               ? { date_from: filters.date_from, date_to: filters.date_to }
               : undefined
           }
-          onChange={(dateRange) =>
-            updateFilters({
-              date_from: dateRange?.date_from,
-              date_to: dateRange?.date_to,
-            })
-          }
+          onChange={handleDateChange}
         />
 
         {/* Type Filter */}
-        <TypeFilter
-          value={filters.types}
-          onChange={(types) => updateFilters({ types })}
-        />
+        <TypeFilter value={filters.types} onChange={handleTypeChange} />
 
         {/* Ticker Filter (Ticker Timeline Only) */}
         {showTickerFilter && (
           <TickerFilter
             value={filters.symbols}
-            onChange={(symbols) => updateFilters({ symbols })}
+            onChange={handleSymbolsChange}
           />
         )}
 
@@ -70,7 +90,7 @@ export function FilterBar({
         {showSubsectorFilter && (
           <SubsectorFilter
             value={filters.subsectors}
-            onChange={(subsectors) => updateFilters({ subsectors })}
+            onChange={handleSubsectorsChange}
           />
         )}
 

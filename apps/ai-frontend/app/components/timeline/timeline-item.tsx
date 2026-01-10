@@ -91,19 +91,23 @@ export function TimelineItem({
         </div>
 
         {/* Title */}
-        {document.title && (
-          <h3 className="text-lg font-semibold leading-tight mt-2">
-            {document.title}
-          </h3>
-        )}
+        <h3 className="text-lg font-semibold leading-tight mt-2">
+          {document.title || `Untitled ${document.type} document`}
+        </h3>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {/* Content */}
-        <MarkdownRenderer
-          content={content}
-          className={`${!isExpanded && hasMore ? "line-clamp-3" : ""}`}
-        />
+        {content ? (
+          <MarkdownRenderer
+            content={content}
+            className={`${!isExpanded && hasMore ? "line-clamp-3" : ""}`}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground italic">
+            No preview available
+          </p>
+        )}
 
         {/* Expand/Collapse button */}
         {hasMore && (
