@@ -106,7 +106,7 @@ Focus on capturing the **educational substance** of the video:
     await step.run("notify-discord", async () => {
       await discordService.createThread(
         env.DISCORD_CHANNEL_YOUTUBE_SUMMARY_TIPS,
-        event.data.video.title,
+        event.data.video.title.slice(0, 100),
         summary,
         {
           channel: event.data.channel.channelName,

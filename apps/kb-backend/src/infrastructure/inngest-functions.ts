@@ -78,9 +78,12 @@ const notifyDiscordKBIngestion = inngest.createFunction(
           continue;
         }
 
+        const threadTitle = (
+          document.title || "Analysis/Rumour Ingestion"
+        ).slice(0, 100);
         await discordService.createThread(
           env.DISCORD_CHANNEL_ANALYSIS_RUMOUR,
-          document.title || "Analysis/Rumour Ingestion",
+          threadTitle,
           document.content,
           {
             ...document.source,
