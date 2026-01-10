@@ -476,7 +476,7 @@ export const setupStockMcp = async () => {
       logger.info({ args }, "Executing list-documents");
       try {
         // todo don't return all
-        const data = await knowledgeService.listDocuments(args);
+        const data = await knowledgeService.listDocumentsPreview(args);
 
         logger.info({ args }, "List documents completed");
         return { type: "text", text: yaml.dump(data) };

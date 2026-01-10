@@ -41,20 +41,6 @@ export const setupKnowledgeRoutes = () =>
         }),
       },
     )
-    .get(
-      "/documents/:id",
-      async ({ params, set }) => {
-        try {
-          const result = await knowledgeService.getDocument(params.id);
-          return { success: true, data: result };
-        } catch (err) {
-          logger.error({ err }, "Get document failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      { params: t.Object({ id: t.String() }) },
-    )
     .post(
       "/documents/search",
       async ({ body, set }) => {

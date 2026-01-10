@@ -60,8 +60,13 @@ export interface DocumentSnapshot {
   symbols?: string[] | null;
 }
 
-export interface ListDocumentsResponse {
+export interface ListDocumentsPreviewResponse {
   items: DocumentSnapshot[];
+  next_page_offset?: string;
+}
+
+export interface ListDocumentsResponse {
+  items: Omit<SearchResult, "score">[];
   next_page_offset?: string;
 }
 
@@ -131,9 +136,9 @@ export class KnowledgeService {
     }
   }
 
-  async listDocuments(
+  async listDocumentsPreview(
     params: ListDocumentsParams,
-  ): Promise<ListDocumentsResponse> {
+  ): Promise<ListDocumentsPreviewResponse> {
     const response = await this.client.get<{
       items: Array<{ id: string; payload: InvestmentDocument }>;
       next_page_offset?: string;
@@ -148,6 +153,20 @@ export class KnowledgeService {
         document_date: item.payload.document_date,
         symbols: item.payload.symbols,
       })),
+      next_page_offset: response.data.next_page_offset,
+    };
+  }
+
+  async listDocuments(
+    params: ListDocumentsParams,
+  ): Promise<ListDocumentsResponse> {
+    const response = await this.client.get<{
+      items: Array<{ id: string; payload: InvestmentDocument }>;
+      next_page_offset?: string;
+    }>("/documents", { params });
+
+    return {
+      items: response.data.items,
       next_page_offset: response.data.next_page_offset,
     };
   }
