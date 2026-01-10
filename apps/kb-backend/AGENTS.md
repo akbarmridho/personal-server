@@ -136,10 +136,16 @@ Crawl → Scrape → Parse → Tag → Ingest to Knowledge Service → Discord N
 ### Notifications
 
 - **Discord Integration** (`src/infrastructure/discord.ts`)
-  - Ingestion notifications: `notify/discord-kb-ingestion`
-  - Failure notifications: Inngest function failure handler
-  - Rate-limited (2 per 6h for failures)
-  - Skips backfill data (>30 days old)
+  - **Ingestion Notifications**: `notify/discord-kb-ingest`
+    - Automatic notifications for completed document ingestion
+  - **Failure Notifications**: Inngest function failure handler
+    - Rate-limited (2 per 6h for failures)
+    - Skips backfill data (>30 days old)
+  - **Manual Ingestion Bot** (`src/data-modules/discord-manual/`)
+    - Discord slash commands for user-driven document submission
+    - Supports PDF and text ingestion via `/ingest-pdf` and `/ingest-text`
+    - Interactive modals for metadata input
+    - Real-time feedback on ingestion status
 
 ## Stock Market API (`src/stock/`)
 
