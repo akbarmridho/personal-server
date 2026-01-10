@@ -20,9 +20,9 @@ export function useTimelineQuery(
   filters: TimelineFilters,
   pure_sector?: boolean,
 ):
-  | UseInfiniteQueryResult<ListDocumentsResponse>
+  | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
   | UseQueryResult<SearchResult[]> {
-  const hasSearchQuery = filters.search && filters.search.trim().length > 0;
+  const hasSearchQuery = !!(filters.search && filters.search.trim().length > 0);
 
   // Prepare filter parameters
   const filterParams = {
@@ -34,23 +34,22 @@ export function useTimelineQuery(
     pure_sector,
   };
 
-  if (hasSearchQuery) {
-    // SEARCH MODE: Use search endpoint (no pagination)
-    const searchParams = {
-      query: filters.search!,
-      limit: 100, // Higher limit for search results
-      ...filterParams,
-    };
+  // 1. SEARCH QUERY (Single query, no pagination)
+  const searchParams = {
+    query: filters.search || "",
+    limit: 100,
+    ...filterParams,
+  };
 
-    return useQuery({
-      queryKey: queryKeys.timeline.search(searchParams),
-      queryFn: () => searchDocuments(searchParams),
-      staleTime: 5 * 60 * 1000,
-    }) as UseQueryResult<SearchResult[]>;
-  }
+  const searchQuery = useQuery({
+    queryKey: queryKeys.timeline.search(searchParams),
+    queryFn: () => searchDocuments(searchParams),
+    staleTime: 5 * 60 * 1000,
+    enabled: hasSearchQuery,
+  });
 
-  // LIST MODE: Use list endpoint with infinite scroll
-  return useInfiniteQuery({
+  // 2. LIST QUERY (Infinite scroll)
+  const listQuery = useInfiniteQuery({
     queryKey: queryKeys.timeline.list({
       ...filterParams,
       limit: DEFAULT_LIMIT,
@@ -64,7 +63,10 @@ export function useTimelineQuery(
     getNextPageParam: (lastPage) => lastPage.next_page_offset ?? undefined,
     initialPageParam: undefined as string | undefined,
     staleTime: 5 * 60 * 1000,
-  }) as UseInfiniteQueryResult<ListDocumentsResponse>;
+    enabled: !hasSearchQuery,
+  });
+
+  return (hasSearchQuery ? searchQuery : listQuery) as any;
 }
 
 /**
@@ -72,7 +74,7 @@ export function useTimelineQuery(
  */
 export function isSearchMode(
   result:
-    | UseInfiniteQueryResult<ListDocumentsResponse>
+    | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
     | UseQueryResult<SearchResult[]>,
 ): result is UseQueryResult<SearchResult[]> {
   return !("hasNextPage" in result);
@@ -83,7 +85,7 @@ export function isSearchMode(
  */
 export function getTimelineItems(
   result:
-    | UseInfiniteQueryResult<ListDocumentsResponse>
+    | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
     | UseQueryResult<SearchResult[]>,
 ): Omit<SearchResult, "score">[] {
   if (isSearchMode(result)) {
@@ -92,12 +94,8 @@ export function getTimelineItems(
   }
 
   // List mode: flatten all pages
-  // Type assertion safe here because we know it's not search mode
-  const infiniteResult =
-    result as UseInfiniteQueryResult<ListDocumentsResponse>;
-  const pages = (
-    infiniteResult.data as InfiniteData<ListDocumentsResponse> | undefined
-  )?.pages;
+  const pages = (result.data as InfiniteData<ListDocumentsResponse> | undefined)
+    ?.pages;
   if (!pages) return [];
   return pages.flatMap((page: ListDocumentsResponse) => page.items);
 }

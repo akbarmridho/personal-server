@@ -37,16 +37,17 @@ export async function listDocuments(
 export async function searchDocuments(
   params: SearchParams,
 ): Promise<SearchResult[]> {
-  const body = {
+  const body: any = {
     query: params.query,
     limit: params.limit,
-    symbols: params.symbols || null,
-    subsectors: params.subsectors || null,
-    types: params.types || null,
-    date_from: params.date_from || null,
-    date_to: params.date_to || null,
-    pure_sector: params.pure_sector || null,
   };
+
+  if (params.symbols?.length) body.symbols = params.symbols;
+  if (params.subsectors?.length) body.subsectors = params.subsectors;
+  if (params.types?.length) body.types = params.types;
+  if (params.date_from) body.date_from = params.date_from;
+  if (params.date_to) body.date_to = params.date_to;
+  if (params.pure_sector !== undefined) body.pure_sector = params.pure_sector;
 
   return apiPost<SearchResult[]>("/knowledge/documents/search", body);
 }

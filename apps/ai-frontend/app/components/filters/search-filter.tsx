@@ -28,10 +28,13 @@ export function SearchFilter({
 
   // Sync with external value changes
   useEffect(() => {
-    if (value !== inputValue) {
+    // Only update inputValue if the external value changed to something
+    // different from what we've already debounced.
+    // This prevents the input from being cleared/reset while typing.
+    if (value !== debouncedValue) {
       setInputValue(value || "");
     }
-  }, [value, inputValue]);
+  }, [value, debouncedValue]);
 
   return (
     <div className="relative">
