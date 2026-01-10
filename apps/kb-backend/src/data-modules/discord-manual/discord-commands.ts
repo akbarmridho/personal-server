@@ -4,12 +4,9 @@ import utc from "dayjs/plugin/utc.js";
 import {
   ActionRowBuilder,
   type ChatInputCommandInteraction,
-  LabelBuilder,
   ModalBuilder,
   type ModalSubmitInteraction,
   SlashCommandBuilder,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
@@ -24,6 +21,7 @@ dayjs.extend(timezone);
 
 // Constants
 const PDF_MAX_SIZE_MB = 10;
+const TEXT_MAX_SIZE_MB = 5;
 
 // Temporary storage for attachment info (to avoid exceeding customId 100 char limit)
 const attachmentTempStorage = new Map<
@@ -79,6 +77,39 @@ function validatePdfAttachment(attachment: {
   }
 }
 
+/**
+ * Validates Discord attachment for text/markdown file upload
+ */
+function validateTextAttachment(attachment: {
+  name: string;
+  contentType: string | null;
+  size: number;
+}): void {
+  const lowerName = attachment.name.toLowerCase();
+
+  // Validate file type
+  const isTextOrMarkdown =
+    attachment.contentType?.includes("text") ||
+    lowerName.endsWith(".txt") ||
+    lowerName.endsWith(".md") ||
+    lowerName.endsWith(".markdown");
+
+  if (!isTextOrMarkdown) {
+    throw new Error(
+      "Invalid file type. Please attach a text file (.txt, .md, or .markdown extension required).",
+    );
+  }
+
+  // Validate file size
+  const maxSizeBytes = TEXT_MAX_SIZE_MB * 1024 * 1024;
+
+  if (attachment.size > maxSizeBytes) {
+    throw new Error(
+      `File too large. Maximum size is ${TEXT_MAX_SIZE_MB}MB (${(attachment.size / 1024 / 1024).toFixed(2)}MB provided).`,
+    );
+  }
+}
+
 // ============================================================================
 // Slash Command Definitions
 // ============================================================================
@@ -108,6 +139,22 @@ export const commands = [
   new SlashCommandBuilder()
     .setName("ingest-text")
     .setDescription("Ingest text content manually (news or analysis)")
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("input")
+        .setDescription("Ingest text via manual input (max 4000 chars)"),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("file")
+        .setDescription("Ingest text from file upload (.txt, .md, .markdown)")
+        .addAttachmentOption((option) =>
+          option
+            .setName("file")
+            .setDescription("Text or markdown file to ingest")
+            .setRequired(true),
+        ),
+    )
     .toJSON(),
 ];
 
@@ -156,58 +203,73 @@ function createPdfFileModal(tempId: string): ModalBuilder {
 }
 
 function createTextInputModal(): ModalBuilder {
-  const typeSelect = new StringSelectMenuBuilder()
-    .setCustomId("type")
-    .setPlaceholder("Select document type")
-    .setRequired(true)
-    .addOptions(
-      new StringSelectMenuOptionBuilder()
-        .setLabel("News")
-        .setDescription("News article or report")
-        .setValue("news"),
-      new StringSelectMenuOptionBuilder()
-        .setLabel("Analysis")
-        .setDescription("Analysis or research document")
-        .setValue("analysis"),
-    );
-
-  const titleLabel = new LabelBuilder()
-    .setLabel("Title")
-    .setTextInputComponent(
-      new TextInputBuilder()
-        .setCustomId("title")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true),
-    );
-
-  const contentLabel = new LabelBuilder()
-    .setLabel("Content")
-    .setTextInputComponent(
-      new TextInputBuilder()
-        .setCustomId("content")
-        .setStyle(TextInputStyle.Paragraph)
-        .setRequired(true)
-        .setMaxLength(4000),
-    );
-
-  const typeLabel = new LabelBuilder()
-    .setLabel("Document Type")
-    .setStringSelectMenuComponent(typeSelect);
-
-  const dateLabel = new LabelBuilder()
-    .setLabel("Document Date (Optional)")
-    .setTextInputComponent(
-      new TextInputBuilder()
-        .setCustomId("document-date")
-        .setStyle(TextInputStyle.Short)
-        .setRequired(false)
-        .setPlaceholder("YYYY-MM-DD (defaults to today)"),
-    );
-
   return new ModalBuilder()
     .setCustomId("modal-text-input")
     .setTitle("Ingest Text Document")
-    .addLabelComponents(titleLabel, contentLabel, typeLabel, dateLabel);
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("title")
+          .setLabel("Title")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("type")
+          .setLabel("Document Type (news or analysis)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setPlaceholder("news or analysis"),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("content")
+          .setLabel("Content")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+          .setMaxLength(4000),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("document-date")
+          .setLabel("Document Date (Optional)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setPlaceholder("YYYY-MM-DD (defaults to today)"),
+      ),
+    );
+}
+
+function createTextFileModal(tempId: string): ModalBuilder {
+  return new ModalBuilder()
+    .setCustomId(`modal-text-file:${tempId}`)
+    .setTitle("Ingest Text File")
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("title")
+          .setLabel("Title")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("type")
+          .setLabel("Document Type (news or analysis)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setPlaceholder("news or analysis"),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("document-date")
+          .setLabel("Document Date (Optional)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setPlaceholder("YYYY-MM-DD (defaults to today)"),
+      ),
+    );
 }
 
 // ============================================================================
@@ -272,13 +334,62 @@ export async function handleIngestPdfFile(
   }
 }
 
-export async function handleIngestText(
+export async function handleIngestTextInput(
   interaction: ChatInputCommandInteraction,
 ) {
-  logger.info({ user: interaction.user.tag }, "Handling /ingest-text command");
+  logger.info(
+    { user: interaction.user.tag },
+    "Handling /ingest-text input command",
+  );
 
   const modal = createTextInputModal();
   await interaction.showModal(modal);
+}
+
+export async function handleIngestTextFile(
+  interaction: ChatInputCommandInteraction,
+) {
+  logger.info(
+    { user: interaction.user.tag },
+    "Handling /ingest-text file command",
+  );
+
+  try {
+    // Get file attachment from interaction
+    const attachment = interaction.options.getAttachment("file", true);
+
+    // Validate file type and size
+    validateTextAttachment({
+      name: attachment.name,
+      contentType: attachment.contentType,
+      size: attachment.size,
+    });
+
+    // Store attachment info in temporary Map (customId has 100 char limit)
+    const tempId = uuidv4();
+    attachmentTempStorage.set(tempId, {
+      url: attachment.url,
+      filename: attachment.name,
+      size: attachment.size,
+      // @ts-expect-error - add timestamp for cleanup
+      _timestamp: Date.now(),
+    });
+
+    logger.debug(`Stored attachment info with temp ID: ${tempId}`);
+
+    // Show modal for title, type, and date input
+    const modal = createTextFileModal(tempId);
+    await interaction.showModal(modal);
+  } catch (error) {
+    logger.error(
+      `Error in handleIngestTextFile: ${error instanceof Error ? error.message : String(error)}`,
+    );
+
+    await interaction.reply({
+      content: `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      ephemeral: true,
+    });
+  }
 }
 
 // ============================================================================
@@ -411,7 +522,7 @@ export async function handlePdfFileModalSubmit(
   }
 }
 
-export async function handleTextModalSubmit(
+export async function handleTextInputModalSubmit(
   interaction: ModalSubmitInteraction,
 ) {
   await interaction.deferReply({ ephemeral: true });
@@ -428,7 +539,7 @@ export async function handleTextModalSubmit(
 
     logger.info(
       { title, type: typeInput, userDate, user: interaction.user.tag },
-      "Processing text submission",
+      "Processing text input submission",
     );
 
     // 2. Validate document type
@@ -459,7 +570,7 @@ export async function handleTextModalSubmit(
 
     logger.info(
       { docId, title, type, date: finalDate },
-      "Emitting manual ingest event for text",
+      "Emitting manual ingest event for text input",
     );
 
     // 6. Emit to Inngest
@@ -474,7 +585,110 @@ export async function handleTextModalSubmit(
     });
   } catch (error) {
     logger.error(
-      `Error in handleTextModalSubmit: ${error instanceof Error ? error.message : String(error)}`,
+      `Error in handleTextInputModalSubmit: ${error instanceof Error ? error.message : String(error)}`,
+    );
+
+    await interaction.editReply({
+      content: `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+    });
+  }
+}
+
+export async function handleTextFileModalSubmit(
+  interaction: ModalSubmitInteraction,
+) {
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    // 1. Extract temp ID from customId and get attachment info
+    const tempId = interaction.customId.split(":")[1];
+    const attachmentInfo = attachmentTempStorage.get(tempId);
+
+    if (!attachmentInfo) {
+      throw new Error("Attachment info not found. Please try again.");
+    }
+
+    // 2. Extract fields from modal
+    const title = interaction.fields.getTextInputValue("title");
+    const typeInput = interaction.fields
+      .getTextInputValue("type")
+      .toLowerCase();
+    const userDate =
+      interaction.fields.getTextInputValue("document-date") || null;
+
+    logger.info(
+      {
+        filename: attachmentInfo.filename,
+        title,
+        type: typeInput,
+        userDate,
+        user: interaction.user.tag,
+      },
+      "Processing text file submission",
+    );
+
+    // 3. Validate document type
+    if (!["news", "analysis"].includes(typeInput)) {
+      throw new Error('Type must be "news" or "analysis"');
+    }
+    const type = typeInput as "news" | "analysis";
+
+    // 4. Determine date
+    const finalDate =
+      userDate || dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
+
+    // 5. Fetch content from Discord CDN
+    const response = await fetch(attachmentInfo.url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`);
+    }
+    const content = await response.text();
+
+    // 6. Generate deterministic ID from content
+    const docId = uuidv5(content, MANUAL_NAMESPACE);
+
+    // 7. Create event payload
+    const payload = {
+      id: docId,
+      type: type,
+      title: title,
+      content: content,
+      document_date: finalDate,
+      source: {
+        name: "manual",
+        filename: attachmentInfo.filename,
+      },
+      urls: [],
+    };
+
+    logger.info(
+      {
+        docId,
+        title,
+        type,
+        date: finalDate,
+        filename: attachmentInfo.filename,
+      },
+      "Emitting manual ingest event for text file",
+    );
+
+    // 8. Emit to Inngest
+    await inngest.send({
+      name: "data/document-manual-ingest",
+      data: { payload: [payload] },
+    });
+
+    // 9. Clean up temp storage
+    attachmentTempStorage.delete(tempId);
+    logger.debug(`Cleaned up temp storage entry: ${tempId}`);
+
+    // 10. Reply with success
+    await interaction.editReply({
+      content: `✅ Text ingestion started!\n**File**: ${attachmentInfo.filename}\n**Type**: ${type}\n**Title**: ${title}\n**Date**: ${finalDate}\n**ID**: \`${docId}\``,
+    });
+  } catch (error) {
+    logger.error(
+      `Error in handleTextFileModalSubmit: ${error instanceof Error ? error.message : String(error)}`,
     );
 
     await interaction.editReply({

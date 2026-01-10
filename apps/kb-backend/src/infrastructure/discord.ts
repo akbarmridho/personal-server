@@ -12,10 +12,12 @@ import {
   commands,
   handleIngestPdfFile,
   handleIngestPdfUrl,
-  handleIngestText,
+  handleIngestTextFile,
+  handleIngestTextInput,
   handlePdfFileModalSubmit,
   handlePdfUrlModalSubmit,
-  handleTextModalSubmit,
+  handleTextFileModalSubmit,
+  handleTextInputModalSubmit,
 } from "../data-modules/discord-manual/discord-commands.js";
 import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
@@ -96,7 +98,12 @@ class DiscordService {
             await handleIngestPdfFile(interaction);
           }
         } else if (interaction.commandName === "ingest-text") {
-          await handleIngestText(interaction);
+          const subcommand = interaction.options.getSubcommand();
+          if (subcommand === "input") {
+            await handleIngestTextInput(interaction);
+          } else if (subcommand === "file") {
+            await handleIngestTextFile(interaction);
+          }
         }
       }
 
@@ -107,7 +114,9 @@ class DiscordService {
         } else if (interaction.customId.startsWith("modal-pdf-file:")) {
           await handlePdfFileModalSubmit(interaction);
         } else if (interaction.customId === "modal-text-input") {
-          await handleTextModalSubmit(interaction);
+          await handleTextInputModalSubmit(interaction);
+        } else if (interaction.customId.startsWith("modal-text-file:")) {
+          await handleTextFileModalSubmit(interaction);
         }
       }
     });
