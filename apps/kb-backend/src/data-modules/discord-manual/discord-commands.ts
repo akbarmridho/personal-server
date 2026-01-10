@@ -4,9 +4,12 @@ import utc from "dayjs/plugin/utc.js";
 import {
   ActionRowBuilder,
   type ChatInputCommandInteraction,
+  LabelBuilder,
   ModalBuilder,
   type ModalSubmitInteraction,
   SlashCommandBuilder,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
@@ -153,42 +156,58 @@ function createPdfFileModal(tempId: string): ModalBuilder {
 }
 
 function createTextInputModal(): ModalBuilder {
+  const typeSelect = new StringSelectMenuBuilder()
+    .setCustomId("type")
+    .setPlaceholder("Select document type")
+    .setRequired(true)
+    .addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel("News")
+        .setDescription("News article or report")
+        .setValue("news"),
+      new StringSelectMenuOptionBuilder()
+        .setLabel("Analysis")
+        .setDescription("Analysis or research document")
+        .setValue("analysis"),
+    );
+
+  const titleLabel = new LabelBuilder()
+    .setLabel("Title")
+    .setTextInputComponent(
+      new TextInputBuilder()
+        .setCustomId("title")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true),
+    );
+
+  const contentLabel = new LabelBuilder()
+    .setLabel("Content")
+    .setTextInputComponent(
+      new TextInputBuilder()
+        .setCustomId("content")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true)
+        .setMaxLength(4000),
+    );
+
+  const typeLabel = new LabelBuilder()
+    .setLabel("Document Type")
+    .setStringSelectMenuComponent(typeSelect);
+
+  const dateLabel = new LabelBuilder()
+    .setLabel("Document Date (Optional)")
+    .setTextInputComponent(
+      new TextInputBuilder()
+        .setCustomId("document-date")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(false)
+        .setPlaceholder("YYYY-MM-DD (defaults to today)"),
+    );
+
   return new ModalBuilder()
     .setCustomId("modal-text-input")
     .setTitle("Ingest Text Document")
-    .addComponents(
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId("title")
-          .setLabel("Title")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true),
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId("content")
-          .setLabel("Content")
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(true)
-          .setMaxLength(4000), // Discord modal limit
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId("type")
-          .setLabel("Type (news or analysis)")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setPlaceholder("news"),
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId("document-date")
-          .setLabel("Document Date (Optional)")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(false)
-          .setPlaceholder("YYYY-MM-DD (defaults to today)"),
-      ),
-    );
+    .addLabelComponents(titleLabel, contentLabel, typeLabel, dateLabel);
 }
 
 // ============================================================================

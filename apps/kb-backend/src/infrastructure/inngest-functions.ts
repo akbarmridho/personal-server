@@ -46,8 +46,8 @@ const failureNotification = inngest.createFunction(
   {
     id: "handle-any-fn-failure",
     rateLimit: {
-      limit: 2,
-      period: "6h",
+      limit: 5,
+      period: "1h",
     },
   },
   { event: "inngest/function.failed" },
