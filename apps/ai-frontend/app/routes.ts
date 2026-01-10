@@ -13,4 +13,7 @@ export default [
     route("timeline/ticker", "routes/timeline.ticker.tsx"),
     route("timeline/general", "routes/timeline.general.tsx"),
   ]),
+
+  // Catch-all route for unmatched paths
+  route("*", "routes/$.tsx"),
 ] satisfies RouteConfig;
