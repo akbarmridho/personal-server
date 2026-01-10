@@ -1,4 +1,5 @@
 import {
+  type InfiniteData,
   type UseInfiniteQueryResult,
   type UseQueryResult,
   useInfiniteQuery,
@@ -95,5 +96,12 @@ export function getTimelineItems(
   }
 
   // List mode: flatten all pages
-  return result.data?.pages.flatMap((page) => page.items) || [];
+  // Type assertion safe here because we know it's not search mode
+  const infiniteResult =
+    result as UseInfiniteQueryResult<ListDocumentsResponse>;
+  const pages = (
+    infiniteResult.data as InfiniteData<ListDocumentsResponse> | undefined
+  )?.pages;
+  if (!pages) return [];
+  return pages.flatMap((page: ListDocumentsResponse) => page.items);
 }

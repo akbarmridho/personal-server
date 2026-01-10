@@ -31,7 +31,7 @@ export function SearchFilter({
     if (value !== inputValue) {
       setInputValue(value || "");
     }
-  }, [value]);
+  }, [value, inputValue]);
 
   return (
     <div className="relative">

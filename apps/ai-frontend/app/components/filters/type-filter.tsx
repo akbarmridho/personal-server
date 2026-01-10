@@ -75,6 +75,14 @@ export function TypeFilter({ value = [], onChange }: TypeFilterProps) {
               key={option.value}
               className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-2 rounded"
               onClick={() => handleToggle(option.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggle(option.value);
+                }
+              }}
+              role="button"
+              tabIndex={0}
             >
               <Checkbox
                 id={`type-${option.value}`}
