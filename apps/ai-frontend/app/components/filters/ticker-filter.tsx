@@ -60,26 +60,18 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
     [stockUniverse?.symbols],
   );
 
-  // Check if "Stock Universe" filter is active
-  const isStockUniverseActive = value.includes(STOCK_UNIVERSE_VALUE);
+  // Check if "Stock Universe" filter is active (all universe symbols are selected)
+  const isStockUniverseActive = useMemo(() => {
+    if (!stockUniverse?.symbols || stockUniverse.symbols.length === 0) return false;
+    if (value.length !== stockUniverse.symbols.length) return false;
+    // Check if every universe symbol is in the selected values
+    return stockUniverse.symbols.every((symbol) => value.includes(symbol));
+  }, [value, stockUniverse?.symbols]);
 
-  // Filter companies based on active filters
-  const filteredCompanies = useMemo(() => {
-    if (!companies) return [];
+  // No need to filter companies - we show all and mark selected ones
 
-    // If Stock Universe is selected, filter to only show universe symbols
-    if (isStockUniverseActive) {
-      return companies.filter((c) => stockUniverseSet.has(c.symbol));
-    }
-
-    return companies;
-  }, [companies, isStockUniverseActive, stockUniverseSet]);
-
-  // Get selected tickers (excluding the special Stock Universe value)
-  const selectedTickers = useMemo(
-    () => value.filter((v) => v !== STOCK_UNIVERSE_VALUE),
-    [value],
-  );
+  // Get selected tickers (now just the value array itself)
+  const selectedTickers = value;
 
   // Combined filtering logic using MiniSearch
   const { displayedSelected, displayedAll, showStockUniversePreset } =
@@ -90,10 +82,10 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
         fuzzy: 0.2,
       };
 
-      if (!search.trim() || !miniSearch) {
+      if (!search.trim() || !miniSearch || !companies) {
         return {
           displayedSelected: selectedTickers,
-          displayedAll: filteredCompanies.filter(
+          displayedAll: (companies || []).filter(
             (c) => !selectedTickers.includes(c.symbol),
           ),
           showStockUniversePreset: true,
@@ -107,7 +99,7 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
         symbolToScore.has(s),
       );
 
-      const displayedAllMatches = filteredCompanies
+      const displayedAllMatches = companies
         .filter(
           (c) =>
             !selectedTickers.includes(c.symbol) && symbolToScore.has(c.symbol),
@@ -127,15 +119,16 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
         displayedAll: displayedAllMatches,
         showStockUniversePreset,
       };
-    }, [search, miniSearch, selectedTickers, filteredCompanies]);
+    }, [search, miniSearch, selectedTickers, companies]);
 
   const handleToggle = (symbol: string) => {
     if (symbol === STOCK_UNIVERSE_VALUE) {
-      // Toggle Stock Universe filter
+      // Toggle Stock Universe filter - set to ALL universe symbols
+      const universeSymbols = stockUniverse?.symbols || [];
       const newValue = isStockUniverseActive
-        ? value.filter((v) => v !== STOCK_UNIVERSE_VALUE)
-        : [...value, STOCK_UNIVERSE_VALUE];
-      onChange(newValue.length > 0 ? newValue : undefined);
+        ? undefined // Clear all when toggling off
+        : universeSymbols; // Set to all universe symbols when toggling on
+      onChange(newValue);
       return;
     }
 

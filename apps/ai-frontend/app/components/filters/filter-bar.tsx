@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { useSubsectors } from "~/hooks/use-subsectors";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
@@ -7,7 +7,7 @@ import { DOCUMENT_TYPE_OPTIONS } from "~/lib/constants/filters";
 import { hasActiveFilters } from "~/lib/utils/url-params";
 import { DateFilter } from "./date-filter";
 import { FilterBadge } from "./filter-badge";
-import { SearchFilter } from "./search-filter";
+import { SearchFilter, type SearchFilterRef } from "./search-filter";
 import { SubsectorFilter } from "./subsector-filter";
 import { TickerFilter } from "./ticker-filter";
 import { TypeFilter } from "./type-filter";
@@ -15,6 +15,7 @@ import { TypeFilter } from "./type-filter";
 interface FilterBarProps {
   showTickerFilter?: boolean;
   showSubsectorFilter?: boolean;
+  onSearchChange?: (search: string | undefined) => void;
 }
 
 /**
@@ -23,16 +24,29 @@ interface FilterBarProps {
 export function FilterBar({
   showTickerFilter = false,
   showSubsectorFilter = false,
+  onSearchChange,
 }: FilterBarProps) {
   const { filters, updateFilters, clearFilters, removeFilter } =
     useTimelineFilters();
   const { data: subsectors = [] } = useSubsectors();
+  const [searchValue, setSearchValue] = useState<string | undefined>();
+  const searchRef = useRef<SearchFilterRef>(null);
 
-  // Memoize handlers to prevent infinite loops in child components
+  // Handle search change (local state, not URL)
   const handleSearchChange = useCallback(
-    (search: string | undefined) => updateFilters({ search }),
-    [updateFilters],
+    (search: string | undefined) => {
+      setSearchValue(search);
+      onSearchChange?.(search);
+    },
+    [onSearchChange],
   );
+
+  // Clear search input
+  const clearSearch = useCallback(() => {
+    searchRef.current?.clear();
+    setSearchValue(undefined);
+    onSearchChange?.(undefined);
+  }, [onSearchChange]);
 
   const handleDateChange = useCallback(
     (dateRange: { date_from?: string; date_to?: string } | undefined) =>
@@ -61,7 +75,7 @@ export function FilterBar({
   return (
     <div className="space-y-4">
       {/* Search Input - Full Width */}
-      <SearchFilter value={filters.search} onChange={handleSearchChange} />
+      <SearchFilter ref={searchRef} onChange={handleSearchChange} />
 
       {/* Filter Buttons Row */}
       <div className="flex flex-wrap gap-2">
@@ -95,11 +109,14 @@ export function FilterBar({
         )}
 
         {/* Clear All Button */}
-        {hasActiveFilters(filters) && (
+        {(hasActiveFilters(filters) || searchValue) && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={clearFilters}
+            onClick={() => {
+              clearFilters();
+              clearSearch();
+            }}
             className="gap-2"
           >
             <X className="h-4 w-4" />
@@ -109,14 +126,14 @@ export function FilterBar({
       </div>
 
       {/* Active Filter Badges */}
-      {hasActiveFilters(filters) && (
+      {(hasActiveFilters(filters) || searchValue) && (
         <div className="flex flex-wrap gap-2">
           {/* Search Badge */}
-          {filters.search && (
+          {searchValue && (
             <FilterBadge
               label="Search"
-              value={filters.search}
-              onRemove={() => removeFilter("search")}
+              value={searchValue}
+              onRemove={clearSearch}
             />
           )}
 

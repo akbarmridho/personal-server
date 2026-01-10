@@ -13,16 +13,14 @@ export interface TimelineFilters {
 }
 
 /**
- * Serialize filters to URLSearchParams
+ * Serialize filters to URLSearchParams (search is excluded - managed locally)
  */
 export function serializeFilters(
   filters: TimelineFilters,
 ): Record<string, string> {
   const params: Record<string, string> = {};
 
-  if (filters.search) {
-    params.search = filters.search;
-  }
+  // Note: search is intentionally excluded from URL params
 
   if (filters.date_from) {
     params.date_from = filters.date_from;
@@ -48,17 +46,14 @@ export function serializeFilters(
 }
 
 /**
- * Deserialize URLSearchParams to filters
+ * Deserialize URLSearchParams to filters (search is excluded - managed locally)
  */
 export function deserializeFilters(
   searchParams: URLSearchParams,
 ): TimelineFilters {
   const filters: TimelineFilters = {};
 
-  const search = searchParams.get("search");
-  if (search) {
-    filters.search = search;
-  }
+  // Note: search is intentionally excluded from URL params
 
   const dateFrom = searchParams.get("date_from");
   if (dateFrom) {

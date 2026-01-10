@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { FilterBar } from "~/components/filters/filter-bar";
 import { TimelineContainer } from "~/components/timeline/timeline-container";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
@@ -19,6 +20,10 @@ export function meta({}: Route.MetaArgs) {
  */
 export default function TickerTimeline() {
   const { filters } = useTimelineFilters();
+  const [search, setSearch] = useState<string | undefined>();
+
+  // Combine URL filters with local search state
+  const combinedFilters = { ...filters, search };
 
   return (
     <div className="space-y-6">
@@ -31,10 +36,10 @@ export default function TickerTimeline() {
       </div>
 
       {/* Filters */}
-      <FilterBar showTickerFilter />
+      <FilterBar showTickerFilter onSearchChange={setSearch} />
 
       {/* Timeline */}
-      <TimelineContainer filters={filters} />
+      <TimelineContainer filters={combinedFilters} />
     </div>
   );
 }

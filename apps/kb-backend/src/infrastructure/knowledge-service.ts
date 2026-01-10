@@ -97,6 +97,27 @@ export class KnowledgeService {
       headers: {
         "Content-Type": "application/json",
       },
+      paramsSerializer: {
+        // Serialize arrays with repeated keys (FastAPI compatible format)
+        // e.g., types=news&types=analysis instead of types[]=news&types[]=analysis
+        serialize: (params) => {
+          const searchParams = new URLSearchParams();
+          for (const [key, value] of Object.entries(params)) {
+            if (value === null || value === undefined) {
+              continue;
+            }
+            if (Array.isArray(value)) {
+              // Repeat the key for each array element
+              for (const item of value) {
+                searchParams.append(key, String(item));
+              }
+            } else {
+              searchParams.append(key, String(value));
+            }
+          }
+          return searchParams.toString();
+        },
+      },
     });
   }
 
