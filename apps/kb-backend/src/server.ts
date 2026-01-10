@@ -5,6 +5,7 @@ import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 import { pluginGracefulServer } from "graceful-server-elysia";
 import { env } from "./infrastructure/env.js";
+import { setupKnowledgeRoutes } from "./knowledge/http.js";
 import { setupStockRoutes } from "./stock/http.js";
 import { logger } from "./utils/logger.js";
 
@@ -40,6 +41,9 @@ export const setupHTTPServer = () => {
 
     // attach stock routes under /stock prefix
     .use(setupStockRoutes())
+
+    // attach knowledge routes under /knowledge prefix
+    .use(setupKnowledgeRoutes())
 
     .listen(env.API_SERVER_PORT, ({ hostname, port }) => {
       logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
