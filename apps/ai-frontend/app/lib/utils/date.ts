@@ -15,21 +15,21 @@ export const JAKARTA_TZ = "Asia/Jakarta";
  * Format date to display format (e.g., "Jan 15, 2025")
  */
 export function formatDate(date: string | Date): string {
-  return dayjs(date).tz(JAKARTA_TZ).format("MMM D, YYYY");
+  return dayjs(date).tz(JAKARTA_TZ).format("dddd, D MMMM YYYY");
 }
 
 /**
  * Format datetime to display format (e.g., "Jan 15, 2025 14:30")
  */
 export function formatDateTime(date: string | Date): string {
-  return dayjs(date).tz(JAKARTA_TZ).format("MMM D, YYYY HH:mm");
+  return dayjs(date).tz(JAKARTA_TZ).format("dddd, D MMMM YYYY HH:mm");
 }
 
 /**
  * Format date to short format (e.g., "Jan 15")
  */
 export function formatDateShort(date: string | Date): string {
-  return dayjs(date).tz(JAKARTA_TZ).format("MMM D");
+  return dayjs(date).tz(JAKARTA_TZ).format("D MMMM");
 }
 
 /**

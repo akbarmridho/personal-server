@@ -1,9 +1,9 @@
 import { Building2, Check, Star, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import MiniSearch from "minisearch";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -32,8 +32,27 @@ interface TickerFilterProps {
  */
 export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const { data: companies, isLoading: isLoadingCompanies } = useAllCompanies();
   const { data: stockUniverse } = useStockUniverse();
+
+  const miniSearch = useMemo(() => {
+    if (!companies) return null;
+    const ms = new MiniSearch({
+      fields: ["symbol", "name"],
+      storeFields: ["symbol", "name"],
+      idField: "symbol",
+    });
+    ms.addAll(companies);
+    return ms;
+  }, [companies]);
+
+  // Clear search when popover closes
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+    }
+  }, [open]);
 
   // Create a Set for faster lookup of stock universe symbols
   const stockUniverseSet = useMemo(
@@ -61,6 +80,54 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
     () => value.filter((v) => v !== STOCK_UNIVERSE_VALUE),
     [value],
   );
+
+  // Combined filtering logic using MiniSearch
+  const { displayedSelected, displayedAll, showStockUniversePreset } =
+    useMemo(() => {
+      const searchOptions = {
+        boost: { symbol: 2 },
+        prefix: true,
+        fuzzy: 0.2,
+      };
+
+      if (!search.trim() || !miniSearch) {
+        return {
+          displayedSelected: selectedTickers,
+          displayedAll: filteredCompanies.filter(
+            (c) => !selectedTickers.includes(c.symbol),
+          ),
+          showStockUniversePreset: true,
+        };
+      }
+
+      const results = miniSearch.search(search, searchOptions);
+      const symbolToScore = new Map(results.map((r) => [r.id, r.score]));
+
+      const displayedSelectedMatches = selectedTickers.filter((s) =>
+        symbolToScore.has(s),
+      );
+
+      const displayedAllMatches = filteredCompanies
+        .filter(
+          (c) =>
+            !selectedTickers.includes(c.symbol) && symbolToScore.has(c.symbol),
+        )
+        .sort(
+          (a, b) =>
+            (symbolToScore.get(b.symbol) || 0) -
+            (symbolToScore.get(a.symbol) || 0),
+        );
+
+      const showStockUniversePreset = "stock universe"
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+      return {
+        displayedSelected: displayedSelectedMatches,
+        displayedAll: displayedAllMatches,
+        showStockUniversePreset,
+      };
+    }, [search, miniSearch, selectedTickers, filteredCompanies]);
 
   const handleToggle = (symbol: string) => {
     if (symbol === STOCK_UNIVERSE_VALUE) {
@@ -129,31 +196,12 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
       </div>
 
       <PopoverContent className="w-[350px] p-0" align="start">
-        <Command
-          filter={(value, search) => {
-            // Custom filter to search both symbol and company name
-            const item = filteredCompanies.find(
-              (c) => `${c.symbol} - ${c.name}` === value,
-            );
-            if (item) {
-              const searchLower = search.toLowerCase();
-              const symbolMatch = item.symbol
-                .toLowerCase()
-                .includes(searchLower);
-              const nameMatch = item.name.toLowerCase().includes(searchLower);
-              return symbolMatch || nameMatch ? 1 : 0;
-            }
-            // Filter for Stock Universe option
-            if (value === "Stock Universe") {
-              return search.toLowerCase().includes("stock") ||
-                search.toLowerCase().includes("universe")
-                ? 1
-                : 0;
-            }
-            return 0;
-          }}
-        >
-          <CommandInput placeholder="Search tickers by code or name..." />
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Search tickers by code or name..."
+            value={search}
+            onValueChange={setSearch}
+          />
           <CommandList>
             {isLoadingCompanies ? (
               <div className="p-4 space-y-2">
@@ -163,12 +211,18 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
               </div>
             ) : (
               <>
-                <CommandEmpty>No tickers found.</CommandEmpty>
+                {displayedSelected.length === 0 &&
+                  displayedAll.length === 0 &&
+                  !showStockUniversePreset && (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      No tickers found.
+                    </div>
+                  )}
 
                 {/* Selected Tickers Group */}
-                {selectedTickers.length > 0 && (
+                {displayedSelected.length > 0 && (
                   <CommandGroup heading="Selected">
-                    {selectedTickers.map((symbol) => {
+                    {displayedSelected.map((symbol) => {
                       const company = companies?.find(
                         (c) => c.symbol === symbol,
                       );
@@ -176,7 +230,7 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
                       return (
                         <CommandItem
                           key={symbol}
-                          value={`${symbol} - ${company.name}`}
+                          value={`${symbol} ${company.name}`}
                           onSelect={() => handleToggle(symbol)}
                           className="cursor-pointer"
                         >
@@ -191,33 +245,33 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
                 )}
 
                 {/* Stock Universe Option */}
-                <CommandGroup heading="Presets">
-                  <CommandItem
-                    value="Stock Universe"
-                    onSelect={() => handleToggle(STOCK_UNIVERSE_VALUE)}
-                    className="cursor-pointer"
-                  >
-                    {isStockUniverseActive ? (
-                      <Check className="mr-2 h-4 w-4" />
-                    ) : (
-                      <div className="mr-2 h-4 w-4" />
-                    )}
-                    <Star className="mr-2 h-4 w-4 text-yellow-500" />
-                    <span className="font-medium">Stock Universe</span>
-                  </CommandItem>
-                </CommandGroup>
+                {showStockUniversePreset && (
+                  <CommandGroup heading="Presets">
+                    <CommandItem
+                      value="Stock Universe"
+                      onSelect={() => handleToggle(STOCK_UNIVERSE_VALUE)}
+                      className="cursor-pointer"
+                    >
+                      {isStockUniverseActive ? (
+                        <Check className="mr-2 h-4 w-4" />
+                      ) : (
+                        <div className="mr-2 h-4 w-4" />
+                      )}
+                      <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                      <span className="font-medium">Stock Universe</span>
+                    </CommandItem>
+                  </CommandGroup>
+                )}
 
                 {/* All Available Tickers */}
-                <CommandGroup
-                  heading={`All Tickers (${filteredCompanies.length})`}
-                >
-                  {filteredCompanies
-                    .filter((c) => !selectedTickers.includes(c.symbol))
-                    .slice(0, 200)
-                    .map((company) => (
+                {displayedAll.length > 0 && (
+                  <CommandGroup
+                    heading={`All Tickers (${displayedAll.length})`}
+                  >
+                    {displayedAll.map((company) => (
                       <CommandItem
                         key={company.symbol}
-                        value={`${company.symbol} - ${company.name}`}
+                        value={`${company.symbol} ${company.name}`}
                         onSelect={() => handleToggle(company.symbol)}
                         className="cursor-pointer"
                       >
@@ -228,20 +282,8 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
                         )}
                       </CommandItem>
                     ))}
-                  {filteredCompanies.filter(
-                    (c) => !selectedTickers.includes(c.symbol),
-                  ).length > 200 && (
-                    <CommandItem disabled className="cursor-default">
-                      <span className="text-sm text-muted-foreground">
-                        ...and{" "}
-                        {filteredCompanies.filter(
-                          (c) => !selectedTickers.includes(c.symbol),
-                        ).length - 200}{" "}
-                        more (use search to find specific tickers)
-                      </span>
-                    </CommandItem>
-                  )}
-                </CommandGroup>
+                  </CommandGroup>
+                )}
               </>
             )}
           </CommandList>

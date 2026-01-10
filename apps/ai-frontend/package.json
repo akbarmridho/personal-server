@@ -30,6 +30,7 @@
     "dayjs": "^1.11.19",
     "isbot": "^5.1.31",
     "lucide-react": "^0.562.0",
+    "minisearch": "^7.2.0",
     "react": "^19.2.3",
     "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.3",
