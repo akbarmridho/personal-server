@@ -59,6 +59,13 @@ export const setupStockRoutes = () =>
       "/stock",
       async ({ query, set }) => {
         try {
+          // If no query params, return all companies
+          if (!query.subsectors && !query.symbols) {
+            const result = await getCompanies({});
+            if (!result.success) set.status = 400;
+            return result;
+          }
+
           const body = query.subsectors
             ? { subsectors: query.subsectors.split(",") }
             : { symbols: query.symbols!.split(",") };

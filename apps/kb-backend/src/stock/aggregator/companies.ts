@@ -1,35 +1,40 @@
 import z from "zod";
-import { fetchRawCompanies } from "../../data-modules/profiles/companies.js";
+import {
+  type CompanyMeta,
+  fetchRawCompanies,
+} from "../../data-modules/profiles/companies.js";
 import {
   normalizeSector,
   supportedSubsectors,
 } from "../../data-modules/profiles/sector.js";
 import { logger } from "../../utils/logger.js";
 
-export const GetCompaniesParams = z
-  .object({
-    subsectors: z
-      .string()
-      .array()
-      .describe(
-        `Array of subsector. Supported slugs: ${Array.from(
-          supportedSubsectors,
-        ).join(", ")}`,
-      )
-      .optional(),
-    symbols: z.string().array().describe("Array of stock symbols").optional(),
-  })
-  .refine((data) => data.subsectors || data.symbols, {
-    message: "Either subsectors or symbols must be provided",
-  });
+export const GetCompaniesParams = z.object({
+  subsectors: z
+    .string()
+    .array()
+    .describe(
+      `Array of subsector. Supported slugs: ${Array.from(
+        supportedSubsectors,
+      ).join(", ")}`,
+    )
+    .optional(),
+  symbols: z.string().array().describe("Array of stock symbols").optional(),
+});
 
 export const getCompanies = async (
   input: z.infer<typeof GetCompaniesParams>,
 ): Promise<
-  { success: true; data: any } | { success: false; message: string }
+  { success: true; data: CompanyMeta[] } | { success: false; message: string }
 > => {
   try {
     const data = await fetchRawCompanies();
+
+    // If no filters provided, return all companies sorted by symbol
+    if (!input.subsectors && !input.symbols) {
+      const sorted = data.sort((a, b) => a.symbol.localeCompare(b.symbol));
+      return { success: true, data: sorted };
+    }
 
     if (input.subsectors) {
       const normalizedInput = input.subsectors.map((s) =>

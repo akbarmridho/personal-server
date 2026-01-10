@@ -51,6 +51,22 @@ export interface StockUniverseResponse {
   count: number;
 }
 
+// Company with name
+export interface Company {
+  symbol: string;
+  name: string;
+  sector: string;
+  subSector: string;
+  industry: string;
+  subIndustry: string;
+}
+
+// All Companies Response
+export interface AllCompaniesResponse {
+  success: boolean;
+  data: Company[];
+}
+
 // API Response Wrapper
 export interface ApiResponse<T> {
   success: boolean;

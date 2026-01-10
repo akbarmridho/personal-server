@@ -27,4 +27,10 @@ export const queryKeys = {
     all: ["stock-universe"] as const,
     list: () => [...queryKeys.stockUniverse.all, "list"] as const,
   },
+
+  // All companies
+  allCompanies: {
+    all: ["all-companies"] as const,
+    list: () => [...queryKeys.allCompanies.all, "list"] as const,
+  },
 } as const;
