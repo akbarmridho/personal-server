@@ -1,6 +1,7 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
-import axios from "axios";
+import { Impit } from "impit";
+import { NonRetriableError } from "inngest";
 import { z } from "zod";
 import { logger } from "../../utils/logger.js";
 
@@ -30,11 +31,17 @@ export type PdfExtraction = z.infer<typeof PdfExtractionSchema>;
  * Supports multiple Google Drive URL formats
  */
 export function convertGoogleDriveUrl(url: string): string {
+  // Check if domain is actually Google Drive
+  if (!url.includes("drive.google.com") && !url.includes("docs.google.com")) {
+    logger.debug("URL is not a Google Drive URL");
+    return url;
+  }
+
   // Pattern 1: /file/d/{fileId}/view or /file/d/{fileId}/view?...
   const fileMatch = url.match(/\/file\/d\/([^/?]+)/);
   if (fileMatch) {
     const fileId = fileMatch[1];
-    logger.info(`Converting Google Drive URL with file ID: ${fileId}`);
+    logger.debug(`Converting Google Drive URL with file ID: ${fileId}`);
     return `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
 
@@ -42,12 +49,12 @@ export function convertGoogleDriveUrl(url: string): string {
   const idMatch = url.match(/[?&]id=([^&]+)/);
   if (idMatch) {
     const fileId = idMatch[1];
-    logger.info(`Converting Google Drive URL with id param: ${fileId}`);
+    logger.debug(`Converting Google Drive URL with id param: ${fileId}`);
     return `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
 
-  // Not a Google Drive URL or already in download format
-  logger.debug("URL is not a Google Drive URL or already in download format");
+  // Already in download format or unrecognized Google Drive URL
+  logger.debug("URL is already in download format or unrecognized format");
   return url;
 }
 
@@ -66,18 +73,31 @@ export async function extractPdfContentWithLLM(
     `Extracting PDF content from: ${pdfUrl}`,
   );
 
-  try {
-    // Download PDF first
-    const downloadResponse = await axios.get(pdfUrl, {
-      responseType: "arraybuffer",
-    });
+  // Download PDF using Impit
+  const impit = new Impit({ browser: "chrome" });
 
-    const pdfBuffer = Buffer.from(downloadResponse.data);
+  try {
+    const downloadResponse = await impit.fetch(pdfUrl);
+
+    if (downloadResponse.status === 401 || downloadResponse.status === 403) {
+      throw new NonRetriableError(
+        `Access denied to PDF: ${downloadResponse.status} ${downloadResponse.statusText}`,
+      );
+    }
+
+    if (!downloadResponse.ok) {
+      throw new Error(
+        `Failed to download PDF: ${downloadResponse.status} ${downloadResponse.statusText}`,
+      );
+    }
+
+    const pdfBuffer = Buffer.from(await downloadResponse.arrayBuffer());
 
     // Extract filename from Content-Disposition header if not provided
     if (!filename) {
-      const contentDisposition =
-        downloadResponse.headers["content-disposition"];
+      const contentDisposition = downloadResponse.headers.get(
+        "content-disposition",
+      );
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
         if (filenameMatch) {
@@ -156,11 +176,9 @@ YOUR GOAL: Reconstruct the provided PDF document into a high-fidelity text-based
 
     return response.object;
   } catch (error) {
-    logger.error(
-      `Error extracting PDF content: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    throw new Error(
-      `Failed to extract PDF content: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
+    if (error instanceof NonRetriableError) {
+      throw error;
+    }
+    throw error;
   }
 }
