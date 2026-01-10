@@ -8,7 +8,6 @@ import {
   type TextChannel,
   ThreadAutoArchiveDuration,
 } from "discord.js";
-import { logger } from "../utils/logger.js";
 import {
   commands,
   handleIngestPdfFile,
@@ -17,7 +16,8 @@ import {
   handlePdfFileModalSubmit,
   handlePdfUrlModalSubmit,
   handleTextModalSubmit,
-} from "./discord-commands.js";
+} from "../data-modules/discord-manual/discord-commands.js";
+import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
 
 const splitter = new RecursiveCharacterTextSplitter({

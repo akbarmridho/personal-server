@@ -12,8 +12,8 @@ import {
 } from "discord.js";
 import normalizeUrl from "normalize-url";
 import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
-import { logger } from "../utils/logger.js";
-import { inngest } from "./inngest.js";
+import { inngest } from "../../infrastructure/inngest.js";
+import { logger } from "../../utils/logger.js";
 import { convertGoogleDriveUrl, MANUAL_NAMESPACE } from "./pdf-processor.js";
 
 dayjs.extend(utc);

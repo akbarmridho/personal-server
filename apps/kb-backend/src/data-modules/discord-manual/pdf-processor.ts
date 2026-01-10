@@ -2,7 +2,7 @@ import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import axios from "axios";
 import { z } from "zod";
-import { logger } from "../utils/logger.js";
+import { logger } from "../../utils/logger.js";
 
 // UUID v5 namespace for manual ingestion module
 export const MANUAL_NAMESPACE = "a7e4c8f2-9d3b-4e1a-8c6f-5b2a9d7e4c3f";
