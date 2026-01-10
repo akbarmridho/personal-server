@@ -148,8 +148,9 @@ class QdrantService:
         if filters.get('pure_sector') is True:
             conditions.append(
                 models.IsEmptyCondition(
-                    key="symbols",
-                    is_empty=True
+                    is_empty=models.PayloadField(
+                        key="symbols",
+                    ),
                 )
             )
         
