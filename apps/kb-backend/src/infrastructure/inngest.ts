@@ -97,6 +97,14 @@ type Events = {
       video: YoutubeVideoEntry;
     };
   };
+  "data/pdf-manual-ingest": {
+    data: {
+      pdfUrl: string;
+      filename?: string;
+      documentDate: string;
+      source: Record<string, string>;
+    };
+  };
   "data/document-manual-ingest": {
     data: {
       payload: Array<

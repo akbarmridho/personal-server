@@ -1,0 +1,465 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
+import {
+  ActionRowBuilder,
+  type ChatInputCommandInteraction,
+  ModalBuilder,
+  type ModalSubmitInteraction,
+  SlashCommandBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+} from "discord.js";
+import normalizeUrl from "normalize-url";
+import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
+import { logger } from "../utils/logger.js";
+import { inngest } from "./inngest.js";
+import { convertGoogleDriveUrl, MANUAL_NAMESPACE } from "./pdf-processor.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Constants
+const PDF_MAX_SIZE_MB = 10;
+
+// Temporary storage for attachment info (to avoid exceeding customId 100 char limit)
+const attachmentTempStorage = new Map<
+  string,
+  { url: string; filename: string; size: number }
+>();
+
+// Clean up temp storage entries older than 30 minutes
+setInterval(
+  () => {
+    const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+    for (const [key, value] of attachmentTempStorage.entries()) {
+      // @ts-expect-error - accessing internal timestamp
+      if (value._timestamp && value._timestamp < thirtyMinutesAgo) {
+        attachmentTempStorage.delete(key);
+        logger.debug(`Cleaned up temp storage entry: ${key}`);
+      }
+    }
+  },
+  5 * 60 * 1000,
+); // Run cleanup every 5 minutes
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Validates Discord attachment for PDF file upload
+ */
+function validatePdfAttachment(attachment: {
+  name: string;
+  contentType: string | null;
+  size: number;
+}): void {
+  // Validate file type
+  const isPdf =
+    attachment.contentType?.includes("pdf") ||
+    attachment.name.toLowerCase().endsWith(".pdf");
+
+  if (!isPdf) {
+    throw new Error(
+      "Invalid file type. Please attach a PDF file (.pdf extension required).",
+    );
+  }
+
+  // Validate file size
+  const maxSizeBytes = PDF_MAX_SIZE_MB * 1024 * 1024;
+
+  if (attachment.size > maxSizeBytes) {
+    throw new Error(
+      `File too large. Maximum size is ${PDF_MAX_SIZE_MB}MB (${(attachment.size / 1024 / 1024).toFixed(2)}MB provided).`,
+    );
+  }
+}
+
+// ============================================================================
+// Slash Command Definitions
+// ============================================================================
+
+export const commands = [
+  new SlashCommandBuilder()
+    .setName("ingest-pdf")
+    .setDescription("Ingest a PDF document for analysis")
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("url")
+        .setDescription("Ingest PDF from URL (direct or Google Drive)"),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName("file")
+        .setDescription("Ingest PDF from file upload")
+        .addAttachmentOption((option) =>
+          option
+            .setName("file")
+            .setDescription("PDF file to ingest")
+            .setRequired(true),
+        ),
+    )
+    .toJSON(),
+
+  new SlashCommandBuilder()
+    .setName("ingest-text")
+    .setDescription("Ingest text content manually (news or analysis)")
+    .toJSON(),
+];
+
+// ============================================================================
+// Modal Builders
+// ============================================================================
+
+function createPdfUrlModal(): ModalBuilder {
+  return new ModalBuilder()
+    .setCustomId("modal-pdf-url")
+    .setTitle("Ingest PDF from URL")
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("pdf-url")
+          .setLabel("PDF URL (Direct or Google Drive)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setPlaceholder("https://..."),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("document-date")
+          .setLabel("Document Date (Optional)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setPlaceholder("YYYY-MM-DD (defaults to today)"),
+      ),
+    );
+}
+
+function createPdfFileModal(tempId: string): ModalBuilder {
+  return new ModalBuilder()
+    .setCustomId(`modal-pdf-file:${tempId}`)
+    .setTitle("Ingest PDF from File")
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("document-date")
+          .setLabel("Document Date (Optional)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setPlaceholder("YYYY-MM-DD (defaults to today)"),
+      ),
+    );
+}
+
+function createTextInputModal(): ModalBuilder {
+  return new ModalBuilder()
+    .setCustomId("modal-text-input")
+    .setTitle("Ingest Text Document")
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("title")
+          .setLabel("Title")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("content")
+          .setLabel("Content")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+          .setMaxLength(4000), // Discord modal limit
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("type")
+          .setLabel("Type (news or analysis)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setPlaceholder("news"),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("document-date")
+          .setLabel("Document Date (Optional)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setPlaceholder("YYYY-MM-DD (defaults to today)"),
+      ),
+    );
+}
+
+// ============================================================================
+// Command Handlers
+// ============================================================================
+
+export async function handleIngestPdfUrl(
+  interaction: ChatInputCommandInteraction,
+) {
+  logger.info(
+    { user: interaction.user.tag },
+    "Handling /ingest-pdf url command",
+  );
+
+  const modal = createPdfUrlModal();
+  await interaction.showModal(modal);
+}
+
+export async function handleIngestPdfFile(
+  interaction: ChatInputCommandInteraction,
+) {
+  logger.info(
+    { user: interaction.user.tag },
+    "Handling /ingest-pdf file command",
+  );
+
+  try {
+    // Get file attachment from interaction
+    const attachment = interaction.options.getAttachment("file", true);
+
+    // Validate file type and size
+    validatePdfAttachment({
+      name: attachment.name,
+      contentType: attachment.contentType,
+      size: attachment.size,
+    });
+
+    // Store attachment info in temporary Map (customId has 100 char limit)
+    const tempId = uuidv4();
+    attachmentTempStorage.set(tempId, {
+      url: attachment.url,
+      filename: attachment.name,
+      size: attachment.size,
+      // @ts-expect-error - add timestamp for cleanup
+      _timestamp: Date.now(),
+    });
+
+    logger.debug(`Stored attachment info with temp ID: ${tempId}`);
+
+    // Show modal for date input
+    const modal = createPdfFileModal(tempId);
+    await interaction.showModal(modal);
+  } catch (error) {
+    logger.error(
+      `Error in handleIngestPdfFile: ${error instanceof Error ? error.message : String(error)}`,
+    );
+
+    await interaction.reply({
+      content: `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      ephemeral: true,
+    });
+  }
+}
+
+export async function handleIngestText(
+  interaction: ChatInputCommandInteraction,
+) {
+  logger.info({ user: interaction.user.tag }, "Handling /ingest-text command");
+
+  const modal = createTextInputModal();
+  await interaction.showModal(modal);
+}
+
+// ============================================================================
+// Modal Submit Handlers
+// ============================================================================
+
+export async function handlePdfUrlModalSubmit(
+  interaction: ModalSubmitInteraction,
+) {
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    // 1. Extract URL and optional date from modal
+    const pdfUrl = interaction.fields.getTextInputValue("pdf-url");
+    const userDate =
+      interaction.fields.getTextInputValue("document-date") || null;
+
+    logger.info(
+      { url: pdfUrl, userDate, user: interaction.user.tag },
+      "Processing PDF URL submission",
+    );
+
+    // 2. Convert Google Drive URLs to direct download URLs
+    const processedUrl = convertGoogleDriveUrl(pdfUrl);
+    const normalizedUrl = normalizeUrl(processedUrl);
+
+    // 3. Determine date (user input or today)
+    const documentDate =
+      userDate || dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
+
+    logger.info(
+      { url: normalizedUrl, date: documentDate },
+      "Emitting PDF manual ingest event for URL",
+    );
+
+    // 4. Emit to Inngest PDF processing function
+    await inngest.send({
+      name: "data/pdf-manual-ingest",
+      data: {
+        pdfUrl: normalizedUrl,
+        documentDate: documentDate,
+        source: {
+          name: "manual",
+          url: normalizedUrl,
+        },
+      },
+    });
+
+    // 5. Reply with success
+    await interaction.editReply({
+      content: `✅ PDF ingestion queued!\n**URL**: ${normalizedUrl}\n**Date**: ${documentDate}\n\nProcessing will happen in the background. Check Discord notifications for completion.`,
+    });
+  } catch (error) {
+    logger.error(
+      `Error in handlePdfUrlModalSubmit: ${error instanceof Error ? error.message : String(error)}`,
+    );
+
+    await interaction.editReply({
+      content: `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+    });
+  }
+}
+
+export async function handlePdfFileModalSubmit(
+  interaction: ModalSubmitInteraction,
+) {
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    // 1. Extract temp ID from customId and get attachment info
+    const tempId = interaction.customId.split(":")[1];
+    const attachmentInfo = attachmentTempStorage.get(tempId);
+
+    if (!attachmentInfo) {
+      throw new Error("Attachment info not found. Please try again.");
+    }
+
+    // 2. Extract optional date from modal
+    const userDate =
+      interaction.fields.getTextInputValue("document-date") || null;
+
+    logger.info(
+      {
+        filename: attachmentInfo.filename,
+        userDate,
+        user: interaction.user.tag,
+      },
+      "Processing PDF file submission",
+    );
+
+    // 3. Determine date (user input or today)
+    const documentDate =
+      userDate || dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
+
+    logger.info(
+      { filename: attachmentInfo.filename, date: documentDate },
+      "Emitting PDF manual ingest event for file",
+    );
+
+    // 4. Emit to Inngest PDF processing function
+    await inngest.send({
+      name: "data/pdf-manual-ingest",
+      data: {
+        pdfUrl: attachmentInfo.url, // Discord CDN URL
+        filename: attachmentInfo.filename,
+        documentDate: documentDate,
+        source: {
+          name: "manual",
+          filename: attachmentInfo.filename,
+        },
+      },
+    });
+
+    // 5. Clean up temp storage
+    attachmentTempStorage.delete(tempId);
+    logger.debug(`Cleaned up temp storage entry: ${tempId}`);
+
+    // 6. Reply with success
+    await interaction.editReply({
+      content: `✅ PDF ingestion queued!\n**File**: ${attachmentInfo.filename}\n**Date**: ${documentDate}\n\nProcessing will happen in the background. Check Discord notifications for completion.`,
+    });
+  } catch (error) {
+    logger.error(
+      `Error in handlePdfFileModalSubmit: ${error instanceof Error ? error.message : String(error)}`,
+    );
+
+    await interaction.editReply({
+      content: `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+    });
+  }
+}
+
+export async function handleTextModalSubmit(
+  interaction: ModalSubmitInteraction,
+) {
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    // 1. Extract fields from modal
+    const title = interaction.fields.getTextInputValue("title");
+    const content = interaction.fields.getTextInputValue("content");
+    const typeInput = interaction.fields
+      .getTextInputValue("type")
+      .toLowerCase();
+    const userDate =
+      interaction.fields.getTextInputValue("document-date") || null;
+
+    logger.info(
+      { title, type: typeInput, userDate, user: interaction.user.tag },
+      "Processing text submission",
+    );
+
+    // 2. Validate document type
+    if (!["news", "analysis"].includes(typeInput)) {
+      throw new Error('Type must be "news" or "analysis"');
+    }
+    const type = typeInput as "news" | "analysis";
+
+    // 3. Determine date
+    const finalDate =
+      userDate || dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
+
+    // 4. Generate deterministic ID from content
+    const docId = uuidv5(content, MANUAL_NAMESPACE);
+
+    // 5. Create event payload
+    const payload = {
+      id: docId,
+      type: type,
+      title: title,
+      content: content,
+      document_date: finalDate,
+      source: {
+        name: "manual",
+      },
+      urls: [],
+    };
+
+    logger.info(
+      { docId, title, type, date: finalDate },
+      "Emitting manual ingest event for text",
+    );
+
+    // 6. Emit to Inngest
+    await inngest.send({
+      name: "data/document-manual-ingest",
+      data: { payload: [payload] },
+    });
+
+    // 7. Reply with success
+    await interaction.editReply({
+      content: `✅ Text ingestion started!\n**Type**: ${type}\n**Title**: ${title}\n**Date**: ${finalDate}\n**ID**: \`${docId}\``,
+    });
+  } catch (error) {
+    logger.error(
+      `Error in handleTextModalSubmit: ${error instanceof Error ? error.message : String(error)}`,
+    );
+
+    await interaction.editReply({
+      content: `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+    });
+  }
+}

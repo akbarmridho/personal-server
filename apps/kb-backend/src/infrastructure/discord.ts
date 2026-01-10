@@ -9,6 +9,15 @@ import {
   ThreadAutoArchiveDuration,
 } from "discord.js";
 import { logger } from "../utils/logger.js";
+import {
+  commands,
+  handleIngestPdfFile,
+  handleIngestPdfUrl,
+  handleIngestText,
+  handlePdfFileModalSubmit,
+  handlePdfUrlModalSubmit,
+  handleTextModalSubmit,
+} from "./discord-commands.js";
 import { env } from "./env.js";
 
 const splitter = new RecursiveCharacterTextSplitter({
@@ -49,18 +58,19 @@ class DiscordService {
   }
 
   private async registerCommands() {
-    const commands = [
+    const allCommands = [
       {
         name: "ping",
         description: "Replies with Pong!",
       },
+      ...commands, // Include manual ingestion commands
     ];
 
     try {
       logger.info("Started refreshing application (/) commands.");
       await this.rest.put(
         Routes.applicationCommands(env.DISCORD_APPLICATION_ID),
-        { body: commands },
+        { body: allCommands },
       );
       logger.info("Successfully reloaded application (/) commands.");
     } catch (error) {
@@ -74,10 +84,31 @@ class DiscordService {
     });
 
     this.client.on(Events.InteractionCreate, async (interaction) => {
-      if (!interaction.isChatInputCommand()) return;
+      // Handle chat input commands
+      if (interaction.isChatInputCommand()) {
+        if (interaction.commandName === "ping") {
+          await interaction.reply("Pong!");
+        } else if (interaction.commandName === "ingest-pdf") {
+          const subcommand = interaction.options.getSubcommand();
+          if (subcommand === "url") {
+            await handleIngestPdfUrl(interaction);
+          } else if (subcommand === "file") {
+            await handleIngestPdfFile(interaction);
+          }
+        } else if (interaction.commandName === "ingest-text") {
+          await handleIngestText(interaction);
+        }
+      }
 
-      if (interaction.commandName === "ping") {
-        await interaction.reply("Pong!");
+      // Handle modal submissions
+      if (interaction.isModalSubmit()) {
+        if (interaction.customId === "modal-pdf-url") {
+          await handlePdfUrlModalSubmit(interaction);
+        } else if (interaction.customId.startsWith("modal-pdf-file:")) {
+          await handlePdfFileModalSubmit(interaction);
+        } else if (interaction.customId === "modal-text-input") {
+          await handleTextModalSubmit(interaction);
+        }
       }
     });
   }
