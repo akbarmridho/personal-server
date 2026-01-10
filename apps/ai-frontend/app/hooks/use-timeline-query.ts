@@ -6,11 +6,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { listDocuments, searchDocuments } from "~/lib/api/knowledge";
-import type {
-  DocumentSnapshot,
-  ListDocumentsResponse,
-  SearchResult,
-} from "~/lib/api/types";
+import type { ListDocumentsResponse, SearchResult } from "~/lib/api/types";
 import { DEFAULT_LIMIT } from "~/lib/constants/filters";
 import { queryKeys } from "~/lib/constants/query-keys";
 import type { TimelineFilters } from "~/lib/utils/url-params";
@@ -89,7 +85,7 @@ export function getTimelineItems(
   result:
     | UseInfiniteQueryResult<ListDocumentsResponse>
     | UseQueryResult<SearchResult[]>,
-): (DocumentSnapshot | SearchResult)[] {
+): Omit<SearchResult, "score">[] {
   if (isSearchMode(result)) {
     // Search mode: return search results
     return result.data || [];

@@ -3,12 +3,12 @@ import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
-import type { DocumentSnapshot, SearchResult } from "~/lib/api/types";
+import type { SearchResult } from "~/lib/api/types";
 import { formatDate } from "~/lib/utils/date";
 import { MarkdownRenderer } from "../markdown-renderer";
 
 interface TimelineItemProps {
-  item: DocumentSnapshot | SearchResult;
+  item: Omit<SearchResult, "score">;
   isSearchMode?: boolean;
 }
 
@@ -21,30 +21,11 @@ export function TimelineItem({
 }: TimelineItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Extract document and similarity score
-  const document =
-    "document" in item
-      ? (item as SearchResult).document
-      : (item as DocumentSnapshot);
-  const similarityScore =
-    "similarity_score" in item ? item.similarity_score : null;
+  const content = isExpanded
+    ? item.payload.content
+    : item.payload.content.slice(0, 500) + "...";
 
-  // Determine content to display
-  // SearchResult has full InvestmentDocument with content
-  // DocumentSnapshot has only preview
-  const content = (() => {
-    if ("document" in item) {
-      // SearchResult mode - has full content
-      const doc = (item as SearchResult).document;
-      return isExpanded ? doc.content : doc.content.slice(0, 200) + "...";
-    }
-    // List mode - DocumentSnapshot with preview
-    const snapshot = item as DocumentSnapshot;
-    return isExpanded ? snapshot.preview : snapshot.preview;
-  })();
-
-  const hasMore =
-    "document" in item && (item as SearchResult).document.content.length > 200;
+  const hasMore = item.payload.content.length > 500;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -54,26 +35,19 @@ export function TimelineItem({
           <div className="flex flex-wrap gap-2 flex-1">
             {/* Document type badge */}
             <Badge variant="outline" className="capitalize">
-              {document.type}
+              {item.payload.type}
             </Badge>
 
-            {/* Similarity score (search mode only) */}
-            {similarityScore !== null && (
-              <Badge variant="secondary">
-                {(similarityScore * 100).toFixed(1)}% match
-              </Badge>
-            )}
-
             {/* Symbol badges */}
-            {document.symbols?.map((symbol) => (
+            {item.payload.symbols?.map((symbol) => (
               <Badge key={symbol} variant="default">
                 {symbol}
               </Badge>
             ))}
 
             {/* Subsector badges (if no symbols) */}
-            {!document.symbols?.length &&
-              document.subsectors?.map((subsector) => (
+            {!item.payload.symbols?.length &&
+              item.payload.subsectors?.map((subsector) => (
                 <Badge
                   key={subsector}
                   variant="secondary"
@@ -86,13 +60,13 @@ export function TimelineItem({
 
           {/* Date */}
           <div className="text-sm text-muted-foreground whitespace-nowrap">
-            {formatDate(document.document_date)}
+            {formatDate(item.payload.document_date)}
           </div>
         </div>
 
         {/* Title */}
         <h3 className="text-lg font-semibold leading-tight mt-2">
-          {document.title || `Untitled ${document.type} document`}
+          {document.title || `${item.payload.content.split(".")[0]}`}
         </h3>
       </CardHeader>
 
@@ -134,15 +108,12 @@ export function TimelineItem({
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t text-sm text-muted-foreground">
           {/* Source */}
-          <div>
-            Source:{" "}
-            {document.source?.platform || document.source?.type || "Unknown"}
-          </div>
+          <div>Source: {item.payload.source?.name || "Unknown"}</div>
 
           {/* URLs */}
-          {document.urls && document.urls.length > 0 && (
+          {item.payload.source?.url && (
             <a
-              href={document.urls[0]}
+              href={item.payload.source?.url}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-primary hover:underline"

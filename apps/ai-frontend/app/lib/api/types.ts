@@ -16,30 +16,16 @@ export interface InvestmentDocument {
   indices?: string[];
 }
 
-// Document Snapshot (for list mode - preview only)
-export interface DocumentSnapshot {
-  id: string;
-  type: DocumentType;
-  title?: string;
-  preview: string; // 100 token preview of content
-  document_date: string;
-  source: Record<string, string>;
-  urls?: string[];
-  symbols?: string[];
-  subsectors?: string[];
-  subindustries?: string[];
-  indices?: string[];
-}
-
 // Search Result (includes similarity score)
 export interface SearchResult {
-  document: InvestmentDocument;
-  similarity_score: number;
+  payload: InvestmentDocument;
+  id: string;
+  score: number;
 }
 
 // List Documents Response
 export interface ListDocumentsResponse {
-  items: DocumentSnapshot[];
+  items: Omit<SearchResult, "score">[];
   next_page_offset?: string;
 }
 

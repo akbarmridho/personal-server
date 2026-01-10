@@ -1,7 +1,6 @@
 import { apiGet, apiPost } from "./client";
 import type {
   FilterParams,
-  InvestmentDocument,
   ListDocumentsResponse,
   SearchParams,
   SearchResult,
@@ -52,12 +51,6 @@ export async function searchDocuments(
   return apiPost<SearchResult[]>("/knowledge/documents/search", body);
 }
 
-/**
- * Get single document by ID
- */
-export async function getDocument(id: string): Promise<InvestmentDocument> {
-  return apiGet<InvestmentDocument>(`/knowledge/documents/${id}`);
-}
 /**
  * Get available subsectors for filtering
  */

@@ -107,14 +107,9 @@ export function TimelineContainer({
   return (
     <div className="space-y-4">
       {/* Timeline items */}
-      {items.map((item, index) => {
-        const id = "document" in item ? item.document.id : item.id;
+      {items.map((item) => {
         return (
-          <TimelineItem
-            key={`${id}-${index}`}
-            item={item}
-            isSearchMode={isSearch}
-          />
+          <TimelineItem key={item.id} item={item} isSearchMode={isSearch} />
         );
       })}
 
