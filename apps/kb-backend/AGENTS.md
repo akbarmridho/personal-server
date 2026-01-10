@@ -74,7 +74,19 @@ Inngest-powered pipelines for ingesting investment documents from multiple sourc
    - **KISI Sekuritas** (`kisi-sekuritas/`)
      - Monthly research: `data/kisi-monthly-research-ingest`
 
-3. **Social Media & Newsletters**
+3. **Corporate Filings** (`stockbit-filing/`)
+   - Stockbit official company announcements and regulatory filings
+   - **Three Report Types**:
+     - RUPS (Rapat Umum Pemegang Saham) - Annual General Meetings
+     - CORPORATE_ACTION - M&A, JVs, divestitures, acquisitions
+     - OTHER - Various regulatory announcements
+   - **Smart Filtering**: Keyword-based with AND/OR logic, excludes financial reports and dividends
+   - **LLM Processing**: OpenRouter Google Gemini 2.5 Flash for PDF summarization
+   - **Events**: `data/stockbit-filing-crawl`, `data/stockbit-announcement-ingest`
+   - **Document Type**: "filing"
+   - **Features**: Incremental crawl with state management, configurable concurrency
+
+4. **Social Media & Newsletters**
    - **Twitter/X** (`twitter/`)
      - Rumour scraping: `data/twitter-rumour-scrape`
    - **Snips Newsletter** (`snips-newsletter/`)
@@ -85,11 +97,26 @@ Inngest-powered pipelines for ingesting investment documents from multiple sourc
      - Video ingestion: `data/youtube-ingest`
      - Tips ingestion: `data/youtube-ingest-tips`
 
-4. **Manual Ingestion** (`manual/`)
-   - API endpoint for manual document submission
-   - Event: `data/document-manual-ingest`
+5. **Manual Ingestion**
+   - **API Endpoint** (`manual/`)
+     - HTTP endpoint for manual document submission
+     - Event: `data/document-manual-ingest`
+   - **Discord Bot** (`discord-manual/`)
+     - Discord slash commands for user-friendly document submission
+     - **PDF Ingestion** (`/ingest-pdf [url|file]`):
+       - URL mode: Direct PDF URLs or Google Drive links
+       - File mode: Upload PDF files (max 10MB)
+       - LLM extraction with Google Gemini for content structuring
+       - Event: `data/pdf-manual-ingest`
+     - **Text Ingestion** (`/ingest-text [input|file]`):
+       - Input mode: Manual text entry (max 4000 chars)
+       - File mode: Upload .txt/.md/.markdown files (max 5MB)
+       - Types: "news" or "analysis"
+       - Event: `data/document-manual-ingest`
+     - **Features**: Modal-based interactions, file validation, deterministic IDs (UUID v5)
+     - **Files**: `discord-commands.ts`, `pdf-processor.ts`
 
-5. **Company Profiles** (`profiles/`)
+6. **Company Profiles** (`profiles/`)
    - Company master data updates
    - Sector/subsector/industry mapping
 
@@ -240,6 +267,7 @@ pnpm kysely:gen
 ## Configuration
 
 Environment variables managed via:
+
 - `@dotenvx/dotenvx` - Encrypted .env support
 - `@t3-oss/env-core` - Zod validation
 - File: `./src/infrastructure/env.ts`
@@ -257,17 +285,20 @@ Environment variables managed via:
 ## API Documentation
 
 Swagger UI available at:
+
 - HTTP endpoint: `http://localhost:{HTTP_SERVER_PORT}/docs`
 - Provider: Scalar (modern Swagger UI)
 
 ## MCP Server Access
 
 Stock MCP server accessible at:
+
 - Endpoint: `http://localhost:{HTTP_SERVER_PORT}/mcps/stock`
 - Transport: `httpStream` (SSE-based, stateless)
 - Format: YAML responses (optimized for LLMs)
 
 To test with MCP Inspector:
+
 ```bash
 pnpm mcp-inspector
 ```
@@ -275,6 +306,7 @@ pnpm mcp-inspector
 ## Logging
 
 Structured logging with Pino:
+
 - Pretty printing in development (`pino-pretty`)
 - JSON logging in production
 - Request/response logging via `@bogeychan/elysia-logger`
