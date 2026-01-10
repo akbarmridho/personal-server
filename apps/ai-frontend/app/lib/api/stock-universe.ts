@@ -1,5 +1,5 @@
 import { apiGet } from "./client";
-import type { AllCompaniesResponse, StockUniverseResponse } from "./types";
+import type { Company, StockUniverseResponse } from "./types";
 
 /**
  * Get list of all available stock symbols
@@ -13,6 +13,6 @@ export async function getStockUniverse(): Promise<StockUniverseResponse> {
  * Get all companies with ticker symbols and names
  * Used for ticker selection dropdown
  */
-export async function getAllCompanies(): Promise<AllCompaniesResponse> {
-  return apiGet<AllCompaniesResponse>("/stock-market-id/stock");
+export async function getAllCompanies(): Promise<Company[]> {
+  return apiGet<Company[]>("/stock-market-id/stock");
 }

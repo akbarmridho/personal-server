@@ -25,6 +25,5 @@ export function useAllCompanies() {
     queryFn: getAllCompanies,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours (stock list changes infrequently)
     gcTime: 48 * 60 * 60 * 1000, // 48 hours
-    select: (response) => response.data,
   });
 }

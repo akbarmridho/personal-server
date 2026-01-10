@@ -42,12 +42,13 @@ export async function apiFetch<T>(
     const data = await response.json();
 
     // Handle ApiResponse wrapper format
-    if ("success" in data) {
-      const apiResponse = data as ApiResponse<T>;
-      if (!apiResponse.success) {
-        throw new ApiError(500, apiResponse.error || "API request failed");
+    if (data && typeof data === "object" && "success" in data) {
+      if (!data.success) {
+        throw new ApiError(500, (data as any).error || "API request failed");
       }
-      return apiResponse.data as T;
+      // If there's a 'data' property, return its content, otherwise return the whole object
+      // This handles both {success: true, data: T} and {success: true, ...T} formats
+      return ("data" in data ? (data as any).data : data) as T;
     }
 
     return data as T;
