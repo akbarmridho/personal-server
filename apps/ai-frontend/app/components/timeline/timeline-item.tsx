@@ -21,11 +21,12 @@ export function TimelineItem({
 }: TimelineItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const content = isExpanded
-    ? item.payload.content
-    : item.payload.content.slice(0, 500) + "...";
+  const content =
+    isExpanded || item.payload.content.length < 500
+      ? item.payload.content
+      : item.payload.content.slice(0, 500) + "...";
 
-  const hasMore = item.payload.content.length > 500;
+  const hasMore = item.payload.content.length >= 500;
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -53,7 +54,7 @@ export function TimelineItem({
                   variant="secondary"
                   className="capitalize"
                 >
-                  {subsector.replace(/_/g, " ")}
+                  {subsector.replaceAll("-", " ").replaceAll(" and ", " & ")}
                 </Badge>
               ))}
           </div>
@@ -66,7 +67,12 @@ export function TimelineItem({
 
         {/* Title */}
         <h3 className="text-lg font-semibold leading-tight mt-2">
-          {document.title || `${item.payload.content.split(".")[0]}`}
+          {item.payload.title ||
+            item.payload.content
+              .match(/^.+?[.!?](?:\s|$)/)?.[0]
+              ?.trim()
+              .replace(/[.!?]$/, "") ||
+            item.payload.content.slice(0, 100)}
         </h3>
       </CardHeader>
 
