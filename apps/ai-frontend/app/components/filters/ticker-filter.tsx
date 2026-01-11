@@ -17,6 +17,7 @@ import {
 import { Skeleton } from "~/components/ui/skeleton";
 import { useAllCompanies, useStockUniverse } from "~/hooks/use-stock-universe";
 import type { Company } from "~/lib/api/types";
+import { cn } from "~/lib/utils";
 
 // Special value for "Stock Universe" filter
 const STOCK_UNIVERSE_VALUE = "__STOCK_UNIVERSE__";
@@ -24,13 +25,18 @@ const STOCK_UNIVERSE_VALUE = "__STOCK_UNIVERSE__";
 interface TickerFilterProps {
   value?: string[];
   onChange: (value: string[] | undefined) => void;
+  fullWidth?: boolean;
 }
 
 /**
  * Multi-select ticker filter with search combobox
  * Shows all tickers by default with "Stock Universe" as a selectable choice
  */
-export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
+export function TickerFilter({
+  value = [],
+  onChange,
+  fullWidth = false,
+}: TickerFilterProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { data: companies, isLoading: isLoadingCompanies } = useAllCompanies();
@@ -62,7 +68,8 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
 
   // Check if "Stock Universe" filter is active (all universe symbols are selected)
   const isStockUniverseActive = useMemo(() => {
-    if (!stockUniverse?.symbols || stockUniverse.symbols.length === 0) return false;
+    if (!stockUniverse?.symbols || stockUniverse.symbols.length === 0)
+      return false;
     if (value.length !== stockUniverse.symbols.length) return false;
     // Check if every universe symbol is in the selected values
     return stockUniverse.symbols.every((symbol) => value.includes(symbol));
@@ -154,7 +161,9 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
     if (selectedTickers.length === 1) {
       return selectedTickers[0];
     }
-    return `${selectedTickers.length} ticker${selectedTickers.length > 1 ? "s" : ""}`;
+    return `${selectedTickers.length} ticker${
+      selectedTickers.length > 1 ? "s" : ""
+    }`;
   };
 
   // Get display name for a company or the Stock Universe option
@@ -169,11 +178,14 @@ export function TickerFilter({ value = [], onChange }: TickerFilterProps) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="flex gap-1">
+      <div className={cn("flex gap-1", fullWidth && "w-full")}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <Building2 className="h-4 w-4" />
-            {getButtonLabel()}
+          <Button
+            variant="outline"
+            className={cn("gap-2", fullWidth && "w-full justify-start min-w-0")}
+          >
+            <Building2 className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{getButtonLabel()}</span>
           </Button>
         </PopoverTrigger>
         {value.length > 0 && (

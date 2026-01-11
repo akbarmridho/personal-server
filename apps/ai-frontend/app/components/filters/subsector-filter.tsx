@@ -9,10 +9,12 @@ import {
 } from "~/components/ui/popover";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useSubsectors } from "~/hooks/use-subsectors";
+import { cn } from "~/lib/utils";
 
 interface SubsectorFilterProps {
   value?: string[];
   onChange: (value: string[] | undefined) => void;
+  fullWidth?: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ interface SubsectorFilterProps {
 export function SubsectorFilter({
   value = [],
   onChange,
+  fullWidth = false,
 }: SubsectorFilterProps) {
   const [open, setOpen] = useState(false);
   const { data: subsectors = [], isLoading } = useSubsectors();
@@ -51,15 +54,18 @@ export function SubsectorFilter({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="flex gap-1">
+      <div className={cn("flex gap-1", fullWidth && "w-full")}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className={cn("gap-2", fullWidth && "w-full justify-start min-w-0")}
+          >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin shrink-0" />
             ) : (
-              <Layers className="h-4 w-4" />
+              <Layers className="h-4 w-4 shrink-0" />
             )}
-            {getButtonLabel()}
+            <span className="min-w-0 flex-1 truncate">{getButtonLabel()}</span>
           </Button>
         </PopoverTrigger>
         {value.length > 0 && (

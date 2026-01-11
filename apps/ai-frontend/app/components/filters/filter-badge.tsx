@@ -13,8 +13,11 @@ interface FilterBadgeProps {
  */
 export function FilterBadge({ label, value, onRemove }: FilterBadgeProps) {
   return (
-    <Badge variant="secondary" className="gap-1 pr-1">
-      <span className="text-xs">
+    <Badge
+      variant="secondary"
+      className="gap-1 pr-1 max-w-full overflow-hidden"
+    >
+      <span className="text-xs truncate">
         <span className="font-medium">{label}:</span> {value}
       </span>
       <Button

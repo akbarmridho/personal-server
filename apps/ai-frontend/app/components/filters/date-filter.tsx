@@ -8,8 +8,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-
 import { DATE_PRESETS } from "~/lib/constants/filters";
+import { cn } from "~/lib/utils";
 import { toISODate } from "~/lib/utils/date";
 
 interface DateFilterProps {
@@ -17,12 +17,17 @@ interface DateFilterProps {
   onChange: (
     value: { date_from?: string; date_to?: string } | undefined,
   ) => void;
+  fullWidth?: boolean;
 }
 
 /**
  * Date filter with presets and custom date range picker
  */
-export function DateFilter({ value, onChange }: DateFilterProps) {
+export function DateFilter({
+  value,
+  onChange,
+  fullWidth = false,
+}: DateFilterProps) {
   const [open, setOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     if (value?.date_from && value?.date_to) {
@@ -78,11 +83,14 @@ export function DateFilter({ value, onChange }: DateFilterProps) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="flex gap-1">
+      <div className={cn("flex gap-1", fullWidth && "w-full")}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            {getButtonLabel()}
+          <Button
+            variant="outline"
+            className={cn("gap-2", fullWidth && "w-full justify-start min-w-0")}
+          >
+            <Calendar className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{getButtonLabel()}</span>
           </Button>
         </PopoverTrigger>
         {value && (

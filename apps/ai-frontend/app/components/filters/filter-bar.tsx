@@ -97,12 +97,17 @@ export function FilterBar({
                   : undefined
               }
               onChange={handleDateChange}
+              fullWidth={compact}
             />
           </div>
 
           {/* Type Filter */}
           <div className={compact ? "w-full" : ""}>
-            <TypeFilter value={filters.types} onChange={handleTypeChange} />
+            <TypeFilter
+              value={filters.types}
+              onChange={handleTypeChange}
+              fullWidth={compact}
+            />
           </div>
 
           {/* Ticker Filter (Ticker Timeline Only) */}
@@ -111,6 +116,7 @@ export function FilterBar({
               <TickerFilter
                 value={filters.symbols}
                 onChange={handleSymbolsChange}
+                fullWidth={compact}
               />
             </div>
           )}
@@ -121,6 +127,7 @@ export function FilterBar({
               <SubsectorFilter
                 value={filters.subsectors}
                 onChange={handleSubsectorsChange}
+                fullWidth={compact}
               />
             </div>
           )}
@@ -144,7 +151,7 @@ export function FilterBar({
 
         {/* Active Filter Badges */}
         {(hasActiveFilters(filters) || searchValue) && (
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1 max-w-full overflow-hidden">
             {/* Search Badge */}
             {searchValue && (
               <FilterBadge

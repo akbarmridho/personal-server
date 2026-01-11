@@ -9,16 +9,22 @@ import {
 } from "~/components/ui/popover";
 import type { DocumentType } from "~/lib/api/types";
 import { DOCUMENT_TYPE_OPTIONS } from "~/lib/constants/filters";
+import { cn } from "~/lib/utils";
 
 interface TypeFilterProps {
   value?: DocumentType[];
   onChange: (value: DocumentType[] | undefined) => void;
+  fullWidth?: boolean;
 }
 
 /**
  * Multi-select type filter
  */
-export function TypeFilter({ value = [], onChange }: TypeFilterProps) {
+export function TypeFilter({
+  value = [],
+  onChange,
+  fullWidth = false,
+}: TypeFilterProps) {
   const [open, setOpen] = useState(false);
 
   const handleToggle = (type: DocumentType) => {
@@ -48,11 +54,14 @@ export function TypeFilter({ value = [], onChange }: TypeFilterProps) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="flex gap-1">
+      <div className={cn("flex gap-1", fullWidth && "w-full")}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <FileType className="h-4 w-4" />
-            {getButtonLabel()}
+          <Button
+            variant="outline"
+            className={cn("gap-2", fullWidth && "w-full justify-start min-w-0")}
+          >
+            <FileType className="h-4 w-4 shrink-0" />
+            <span className="min-w-0 flex-1 truncate">{getButtonLabel()}</span>
           </Button>
         </PopoverTrigger>
         {value.length > 0 && (
@@ -76,7 +85,7 @@ export function TypeFilter({ value = [], onChange }: TypeFilterProps) {
               className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-2 rounded"
               onClick={() => handleToggle(option.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   handleToggle(option.value);
                 }
