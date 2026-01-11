@@ -6,7 +6,7 @@ import {
 import { logger } from "../utils/logger.js";
 
 export const setupKnowledgeRoutes = () =>
-  new Elysia({ prefix: "/knowledge", tags: ["Knowledge Base"] })
+  new Elysia({ prefix: "/knowledge" })
     .get(
       "/documents",
       async ({ query, set }) => {
@@ -39,6 +39,12 @@ export const setupKnowledgeRoutes = () =>
           date_to: t.Optional(t.String()),
           pure_sector: t.Optional(t.Boolean()),
         }),
+        detail: {
+          tags: ["Knowledge Base"],
+          summary: "List documents from knowledge base",
+          description:
+            "Returns a paginated list of documents with optional filters for symbols, subsectors, document types, and date ranges. Returns 100-token previews of document content.",
+        },
       },
     )
     .post(
@@ -73,5 +79,11 @@ export const setupKnowledgeRoutes = () =>
           date_to: t.Optional(t.String()),
           pure_sector: t.Optional(t.Boolean()),
         }),
+        detail: {
+          tags: ["Knowledge Base"],
+          summary: "Semantic search in knowledge base",
+          description:
+            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Supports filters for symbols, subsectors, document types, and date ranges. Returns documents ranked by relevance with similarity scores.",
+        },
       },
     );

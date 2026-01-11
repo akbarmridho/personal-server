@@ -27,18 +27,29 @@ import { stockbitAuth } from "./stockbit/auth.js";
 import { removeKeysRecursive } from "./utils.js";
 
 export const setupStockRoutes = () =>
-  new Elysia({ prefix: "/stock-market-id", tags: ["Stock Market (Indonesia)"] })
-    .get("/sectors", async ({ set }) => {
-      try {
-        const subsectors = removeKeysRecursive(sectors, ["industries"]);
+  new Elysia({ prefix: "/stock-market-id" })
+    .get(
+      "/sectors",
+      async ({ set }) => {
+        try {
+          const subsectors = removeKeysRecursive(sectors, ["industries"]);
 
-        return { success: true, data: subsectors };
-      } catch (err) {
-        logger.error({ err }, "Get sectors failed");
-        set.status = 500;
-        return { success: false, error: (err as Error).message };
-      }
-    })
+          return { success: true, data: subsectors };
+        } catch (err) {
+          logger.error({ err }, "Get sectors failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        detail: {
+          tags: ["Sectors & Companies"],
+          summary: "Get all sectors and subsectors",
+          description:
+            "Returns the list of all sectors and subsectors in the Indonesian stock market",
+        },
+      },
+    )
     .get(
       "/sectors/report",
       async ({ query, set }) => {
@@ -53,7 +64,15 @@ export const setupStockRoutes = () =>
           return { success: false, message: (err as Error).message };
         }
       },
-      { query: t.Object({ subsectors: t.String() }) },
+      {
+        query: t.Object({ subsectors: t.String() }),
+        detail: {
+          tags: ["Sectors & Companies"],
+          summary: "Get sector performance report",
+          description:
+            "Returns performance metrics for specified subsectors including top gainers and losers",
+        },
+      },
     )
     .get(
       "/stock",
@@ -83,6 +102,12 @@ export const setupStockRoutes = () =>
           subsectors: t.Optional(t.String()),
           symbols: t.Optional(t.String()),
         }),
+        detail: {
+          tags: ["Sectors & Companies"],
+          summary: "Get companies by subsector or symbol",
+          description:
+            "Returns list of companies filtered by subsectors or specific symbols. Returns all companies if no filters specified.",
+        },
       },
     )
     .get(
@@ -97,7 +122,15 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ symbol: t.String() }) },
+      {
+        params: t.Object({ symbol: t.String() }),
+        detail: {
+          tags: ["Stock Fundamentals"],
+          summary: "Get stock fundamental data",
+          description:
+            "Returns fundamental analysis data for a stock including valuation metrics, growth rates, and financial ratios",
+        },
+      },
     )
     .get(
       "/stock/:symbol/bandarmology",
@@ -125,6 +158,12 @@ export const setupStockRoutes = () =>
             ]),
           ),
         }),
+        detail: {
+          tags: ["Stock Technical Analysis"],
+          summary: "Get stock bandarmology data",
+          description:
+            "Returns bandarmology (smart money) analysis including foreign/domestic flow, broker activity, and accumulation/distribution patterns",
+        },
       },
     )
     .get(
@@ -163,6 +202,12 @@ export const setupStockRoutes = () =>
             ]),
           ),
         }),
+        detail: {
+          tags: ["Stock Fundamentals"],
+          summary: "Get stock financial statements",
+          description:
+            "Returns income statement, balance sheet, or cash flow data. Supports quarterly, annual, and TTM (trailing twelve months) views.",
+        },
       },
     )
     .get(
@@ -177,7 +222,15 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ symbol: t.String() }) },
+      {
+        params: t.Object({ symbol: t.String() }),
+        detail: {
+          tags: ["Stock Fundamentals"],
+          summary: "Get stock management team",
+          description:
+            "Returns information about the company's board of directors and key management personnel",
+        },
+      },
     )
     .get(
       "/stock/:symbol/ownership",
@@ -191,7 +244,15 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ symbol: t.String() }) },
+      {
+        params: t.Object({ symbol: t.String() }),
+        detail: {
+          tags: ["Stock Fundamentals"],
+          summary: "Get stock ownership structure",
+          description:
+            "Returns major shareholders and ownership distribution including institutional and insider holdings",
+        },
+      },
     )
     .get(
       "/stock/:symbol/technical",
@@ -205,18 +266,37 @@ export const setupStockRoutes = () =>
           return { success: false, error: (err as Error).message };
         }
       },
-      { params: t.Object({ symbol: t.String() }) },
+      {
+        params: t.Object({ symbol: t.String() }),
+        detail: {
+          tags: ["Stock Technical Analysis"],
+          summary: "Get stock technical indicators",
+          description:
+            "Returns technical analysis indicators including moving averages, RSI, MACD, Bollinger Bands, and price action patterns",
+        },
+      },
     )
-    .get("/ihsg/technical", async ({ set }) => {
-      try {
-        const data = await getIHSGOverview();
-        return { success: true, data };
-      } catch (err) {
-        logger.error({ err }, "Get IHSG Overview failed");
-        set.status = 500;
-        return { success: false, error: (err as Error).message };
-      }
-    })
+    .get(
+      "/ihsg/technical",
+      async ({ set }) => {
+        try {
+          const data = await getIHSGOverview();
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get IHSG Overview failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        detail: {
+          tags: ["Market Data"],
+          summary: "Get IHSG (Indonesian Composite Index) technical overview",
+          description:
+            "Returns technical analysis of the IHSG index including trend indicators and market sentiment",
+        },
+      },
+    )
     .get(
       "/forex",
       async ({ query, set }) => {
@@ -239,6 +319,12 @@ export const setupStockRoutes = () =>
             t.Literal("SGD"),
           ]),
         }),
+        detail: {
+          tags: ["Market Data"],
+          summary: "Get forex rates",
+          description:
+            "Returns exchange rates and technical indicators for major currencies against Indonesian Rupiah (IDR)",
+        },
       },
     )
     .get(
@@ -266,6 +352,12 @@ export const setupStockRoutes = () =>
             t.Literal("CPO"),
           ]),
         }),
+        detail: {
+          tags: ["Market Data"],
+          summary: "Get commodity prices",
+          description:
+            "Returns current prices and technical indicators for major commodities including precious metals, energy, and agricultural products",
+        },
       },
     )
     .post(
@@ -287,18 +379,35 @@ export const setupStockRoutes = () =>
           accessToken: t.String(),
           // accessExpiredAt: t.String(),
         }),
+        detail: {
+          tags: ["Authentication"],
+          summary: "Set Stockbit access token",
+          description:
+            "Stores Stockbit API access token for authenticated requests to Stockbit services",
+        },
       },
     )
-    .get("/stockbit-auth/test", async ({ set }) => {
-      try {
-        await stockbitAuth.test();
-        return { success: true };
-      } catch (err) {
-        logger.error({ err }, "Test auth failed");
-        set.status = 500;
-        return { success: false, error: (err as Error).message };
-      }
-    })
+    .get(
+      "/stockbit-auth/test",
+      async ({ set }) => {
+        try {
+          await stockbitAuth.test();
+          return { success: true };
+        } catch (err) {
+          logger.error({ err }, "Test auth failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        detail: {
+          tags: ["Authentication"],
+          summary: "Test Stockbit authentication",
+          description:
+            "Validates the stored Stockbit access token by making a test API request",
+        },
+      },
+    )
     .get(
       "/playbook/gc-oversold/:symbol",
       async ({ params, query, set }) => {
@@ -317,6 +426,12 @@ export const setupStockRoutes = () =>
       {
         params: t.Object({ symbol: t.String() }),
         query: t.Object({ asOf: t.Optional(t.String()) }),
+        detail: {
+          tags: ["Trading Playbooks"],
+          summary: "Golden Cross + Oversold playbook signal",
+          description:
+            "Returns swing trading setup combining Golden Cross, Stochastic Oversold, and PSAR indicators. Phases: FORMING, READY, TRIGGERED, ACTIVE.",
+        },
       },
     )
     .get(
@@ -337,6 +452,12 @@ export const setupStockRoutes = () =>
       {
         params: t.Object({ symbol: t.String() }),
         query: t.Object({ asOf: t.Optional(t.String()) }),
+        detail: {
+          tags: ["Trading Playbooks"],
+          summary: "Bottom fishing playbook signal",
+          description:
+            "Returns market crash reversal signals using weekly RSI, volume spikes, and Heikin Ashi patterns. Phases: WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED.",
+        },
       },
     )
     // Stock Universe Management
@@ -420,6 +541,7 @@ export const setupStockRoutes = () =>
           }),
         }),
         detail: {
+          tags: ["Stock Universe Management"],
           summary: "Add symbols to stock universe and trigger sync",
           description:
             "Adds new stock symbols to the tracked universe and immediately triggers filing crawl for newly added symbols. Existing symbols are not re-crawled.",
@@ -477,6 +599,7 @@ export const setupStockRoutes = () =>
       },
       {
         detail: {
+          tags: ["Stock Universe Management"],
           summary: "Sync all symbols in stock universe",
           description:
             "Triggers filing crawl for all symbols currently in the stock universe. This will check for new filings across all three categories (RUPS, Corporate Action, Other) for each symbol.",
@@ -510,6 +633,7 @@ export const setupStockRoutes = () =>
       },
       {
         detail: {
+          tags: ["Stock Universe Management"],
           summary: "List all symbols in stock universe",
           description:
             "Returns the complete list of stock symbols currently being tracked for filing ingestion.",
