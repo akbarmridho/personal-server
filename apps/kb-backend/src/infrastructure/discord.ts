@@ -17,7 +17,9 @@ import {
   handlePdfFileModalSubmit,
   handlePdfUrlModalSubmit,
   handleTextFileModalSubmit,
+  handleTextFileTypeSelect,
   handleTextInputModalSubmit,
+  handleTextInputTypeSelect,
 } from "../data-modules/discord-manual/discord-commands.js";
 import { logger } from "../utils/logger.js";
 import { env } from "./env.js";
@@ -113,10 +115,19 @@ class DiscordService {
           await handlePdfUrlModalSubmit(interaction);
         } else if (interaction.customId.startsWith("modal-pdf-file:")) {
           await handlePdfFileModalSubmit(interaction);
-        } else if (interaction.customId === "modal-text-input") {
+        } else if (interaction.customId.startsWith("modal-text-input:")) {
           await handleTextInputModalSubmit(interaction);
         } else if (interaction.customId.startsWith("modal-text-file:")) {
           await handleTextFileModalSubmit(interaction);
+        }
+      }
+
+      // Handle select menu interactions
+      if (interaction.isStringSelectMenu()) {
+        if (interaction.customId === "select-text-input-type") {
+          await handleTextInputTypeSelect(interaction);
+        } else if (interaction.customId.startsWith("select-text-file-type:")) {
+          await handleTextFileTypeSelect(interaction);
         }
       }
     });

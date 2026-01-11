@@ -7,6 +7,9 @@ import {
   ModalBuilder,
   type ModalSubmitInteraction,
   SlashCommandBuilder,
+  StringSelectMenuBuilder,
+  type StringSelectMenuInteraction,
+  StringSelectMenuOptionBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
@@ -138,7 +141,7 @@ export const commands = [
 
   new SlashCommandBuilder()
     .setName("ingest-text")
-    .setDescription("Ingest text content manually (news or analysis)")
+    .setDescription("Ingest text content manually (news, analysis, or rumour)")
     .addSubcommand((subcommand) =>
       subcommand
         .setName("input")
@@ -157,6 +160,36 @@ export const commands = [
     )
     .toJSON(),
 ];
+
+// ============================================================================
+// Select Menu & Modal Builders
+// ============================================================================
+
+function createDocumentTypeSelectMenu(
+  customId: string,
+): ActionRowBuilder<StringSelectMenuBuilder> {
+  const selectMenu = new StringSelectMenuBuilder()
+    .setCustomId(customId)
+    .setPlaceholder("Choose document type")
+    .addOptions(
+      new StringSelectMenuOptionBuilder()
+        .setLabel("News")
+        .setDescription("Market news, sector updates, ticker-specific news")
+        .setValue("news"),
+      new StringSelectMenuOptionBuilder()
+        .setLabel("Analysis")
+        .setDescription("In-depth research and analysis")
+        .setValue("analysis"),
+      new StringSelectMenuOptionBuilder()
+        .setLabel("Rumour")
+        .setDescription("Social media threads, rumors, and speculation")
+        .setValue("rumour"),
+    );
+
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    selectMenu,
+  );
+}
 
 // ============================================================================
 // Modal Builders
@@ -202,10 +235,10 @@ function createPdfFileModal(tempId: string): ModalBuilder {
     );
 }
 
-function createTextInputModal(): ModalBuilder {
+function createTextInputModal(docType: string): ModalBuilder {
   return new ModalBuilder()
-    .setCustomId("modal-text-input")
-    .setTitle("Ingest Text Document")
+    .setCustomId(`modal-text-input:${docType}`)
+    .setTitle(`Ingest Text Document (${docType})`)
     .addComponents(
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -213,14 +246,6 @@ function createTextInputModal(): ModalBuilder {
           .setLabel("Title")
           .setStyle(TextInputStyle.Short)
           .setRequired(true),
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId("type")
-          .setLabel("Document Type (news or analysis)")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setPlaceholder("news or analysis"),
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -241,10 +266,10 @@ function createTextInputModal(): ModalBuilder {
     );
 }
 
-function createTextFileModal(tempId: string): ModalBuilder {
+function createTextFileModal(tempId: string, docType: string): ModalBuilder {
   return new ModalBuilder()
-    .setCustomId(`modal-text-file:${tempId}`)
-    .setTitle("Ingest Text File")
+    .setCustomId(`modal-text-file:${tempId}:${docType}`)
+    .setTitle(`Ingest Text File (${docType})`)
     .addComponents(
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -252,14 +277,6 @@ function createTextFileModal(tempId: string): ModalBuilder {
           .setLabel("Title")
           .setStyle(TextInputStyle.Short)
           .setRequired(true),
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId("type")
-          .setLabel("Document Type (news or analysis)")
-          .setStyle(TextInputStyle.Short)
-          .setRequired(true)
-          .setPlaceholder("news or analysis"),
       ),
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
@@ -342,8 +359,14 @@ export async function handleIngestTextInput(
     "Handling /ingest-text input command",
   );
 
-  const modal = createTextInputModal();
-  await interaction.showModal(modal);
+  const selectMenu = createDocumentTypeSelectMenu("select-text-input-type");
+
+  await interaction.reply({
+    content:
+      "📝 **Select Document Type**\nChoose the type of document you want to ingest:",
+    components: [selectMenu],
+    ephemeral: true,
+  });
 }
 
 export async function handleIngestTextFile(
@@ -377,9 +400,16 @@ export async function handleIngestTextFile(
 
     logger.debug(`Stored attachment info with temp ID: ${tempId}`);
 
-    // Show modal for title, type, and date input
-    const modal = createTextFileModal(tempId);
-    await interaction.showModal(modal);
+    // Show select menu for document type selection
+    const selectMenu = createDocumentTypeSelectMenu(
+      `select-text-file-type:${tempId}`,
+    );
+
+    await interaction.reply({
+      content: `📄 **Select Document Type for: ${attachment.name}**\nChoose the type of document you want to ingest:`,
+      components: [selectMenu],
+      ephemeral: true,
+    });
   } catch (error) {
     logger.error(
       `Error in handleIngestTextFile: ${error instanceof Error ? error.message : String(error)}`,
@@ -390,6 +420,39 @@ export async function handleIngestTextFile(
       ephemeral: true,
     });
   }
+}
+
+// ============================================================================
+// Select Menu Handlers
+// ============================================================================
+
+export async function handleTextInputTypeSelect(
+  interaction: StringSelectMenuInteraction,
+) {
+  const selectedType = interaction.values[0];
+
+  logger.info(
+    { type: selectedType, user: interaction.user.tag },
+    "User selected document type for text input",
+  );
+
+  const modal = createTextInputModal(selectedType);
+  await interaction.showModal(modal);
+}
+
+export async function handleTextFileTypeSelect(
+  interaction: StringSelectMenuInteraction,
+) {
+  const selectedType = interaction.values[0];
+  const tempId = interaction.customId.split(":")[1];
+
+  logger.info(
+    { type: selectedType, tempId, user: interaction.user.tag },
+    "User selected document type for text file",
+  );
+
+  const modal = createTextFileModal(tempId, selectedType);
+  await interaction.showModal(modal);
 }
 
 // ============================================================================
@@ -528,25 +591,23 @@ export async function handleTextInputModalSubmit(
   await interaction.deferReply({ ephemeral: true });
 
   try {
-    // 1. Extract fields from modal
+    // 1. Extract document type from customId and fields from modal
+    const docType = interaction.customId.split(":")[1];
     const title = interaction.fields.getTextInputValue("title");
     const content = interaction.fields.getTextInputValue("content");
-    const typeInput = interaction.fields
-      .getTextInputValue("type")
-      .toLowerCase();
     const userDate =
       interaction.fields.getTextInputValue("document-date") || null;
 
     logger.info(
-      { title, type: typeInput, userDate, user: interaction.user.tag },
+      { title, type: docType, userDate, user: interaction.user.tag },
       "Processing text input submission",
     );
 
     // 2. Validate document type
-    if (!["news", "analysis"].includes(typeInput)) {
-      throw new Error('Type must be "news" or "analysis"');
+    if (!["news", "analysis", "rumour"].includes(docType)) {
+      throw new Error('Type must be "news", "analysis", or "rumour"');
     }
-    const type = typeInput as "news" | "analysis";
+    const type = docType as "news" | "analysis" | "rumour";
 
     // 3. Determine date
     const finalDate =
@@ -600,8 +661,10 @@ export async function handleTextFileModalSubmit(
   await interaction.deferReply({ ephemeral: true });
 
   try {
-    // 1. Extract temp ID from customId and get attachment info
-    const tempId = interaction.customId.split(":")[1];
+    // 1. Extract temp ID and document type from customId, and get attachment info
+    const customIdParts = interaction.customId.split(":");
+    const tempId = customIdParts[1];
+    const docType = customIdParts[2];
     const attachmentInfo = attachmentTempStorage.get(tempId);
 
     if (!attachmentInfo) {
@@ -610,9 +673,6 @@ export async function handleTextFileModalSubmit(
 
     // 2. Extract fields from modal
     const title = interaction.fields.getTextInputValue("title");
-    const typeInput = interaction.fields
-      .getTextInputValue("type")
-      .toLowerCase();
     const userDate =
       interaction.fields.getTextInputValue("document-date") || null;
 
@@ -620,7 +680,7 @@ export async function handleTextFileModalSubmit(
       {
         filename: attachmentInfo.filename,
         title,
-        type: typeInput,
+        type: docType,
         userDate,
         user: interaction.user.tag,
       },
@@ -628,10 +688,10 @@ export async function handleTextFileModalSubmit(
     );
 
     // 3. Validate document type
-    if (!["news", "analysis"].includes(typeInput)) {
-      throw new Error('Type must be "news" or "analysis"');
+    if (!["news", "analysis", "rumour"].includes(docType)) {
+      throw new Error('Type must be "news", "analysis", or "rumour"');
     }
-    const type = typeInput as "news" | "analysis";
+    const type = docType as "news" | "analysis" | "rumour";
 
     // 4. Determine date
     const finalDate =
