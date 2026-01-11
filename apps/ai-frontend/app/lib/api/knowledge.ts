@@ -17,7 +17,7 @@ export async function listDocuments(
   const queryParams: Record<string, string> = {};
 
   if (params.limit) queryParams.limit = String(params.limit);
-  if (params.offset) queryParams.offset = params.offset;
+  if (params.offset) queryParams.offset = String(params.offset);
   if (params.symbols?.length) queryParams.symbols = params.symbols.join(",");
   if (params.subsectors?.length)
     queryParams.subsectors = params.subsectors.join(",");
@@ -37,7 +37,7 @@ export async function listDocuments(
 export async function searchDocuments(
   params: SearchParams,
 ): Promise<SearchResult[]> {
-  const body: any = {
+  const body: Record<string, unknown> = {
     query: params.query,
     limit: params.limit,
   };

@@ -1,8 +1,9 @@
 import { X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { Button } from "~/components/ui/button";
 import { useSubsectors } from "~/hooks/use-subsectors";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
+import type { DocumentType } from "~/lib/api/types";
 import { DOCUMENT_TYPE_OPTIONS } from "~/lib/constants/filters";
 import { hasActiveFilters } from "~/lib/utils/url-params";
 import { DateFilter } from "./date-filter";
@@ -15,7 +16,6 @@ import { TypeFilter } from "./type-filter";
 interface FilterBarProps {
   showTickerFilter?: boolean;
   showSubsectorFilter?: boolean;
-  onSearchChange?: (search: string | undefined) => void;
   compact?: boolean;
 }
 
@@ -25,30 +25,25 @@ interface FilterBarProps {
 export function FilterBar({
   showTickerFilter = false,
   showSubsectorFilter = false,
-  onSearchChange,
   compact = false,
 }: FilterBarProps) {
-  const { filters, updateFilters, clearFilters, removeFilter } =
-    useTimelineFilters();
+  const { filters, updateFilters, clearFilters } = useTimelineFilters();
   const { data: subsectors = [] } = useSubsectors();
-  const [searchValue, setSearchValue] = useState<string | undefined>();
   const searchRef = useRef<SearchFilterRef>(null);
 
-  // Handle search change (local state, not URL)
+  // Handle search change (sync to URL)
   const handleSearchChange = useCallback(
     (search: string | undefined) => {
-      setSearchValue(search);
-      onSearchChange?.(search);
+      updateFilters({ search });
     },
-    [onSearchChange],
+    [updateFilters],
   );
 
   // Clear search input
   const clearSearch = useCallback(() => {
     searchRef.current?.clear();
-    setSearchValue(undefined);
-    onSearchChange?.(undefined);
-  }, [onSearchChange]);
+    updateFilters({ search: undefined });
+  }, [updateFilters]);
 
   const handleDateChange = useCallback(
     (dateRange: { date_from?: string; date_to?: string } | undefined) =>
@@ -60,17 +55,17 @@ export function FilterBar({
   );
 
   const handleTypeChange = useCallback(
-    (types: any) => updateFilters({ types }),
+    (types: DocumentType[] | undefined) => updateFilters({ types }),
     [updateFilters],
   );
 
   const handleSymbolsChange = useCallback(
-    (symbols: any) => updateFilters({ symbols }),
+    (symbols: string[] | undefined) => updateFilters({ symbols }),
     [updateFilters],
   );
 
   const handleSubsectorsChange = useCallback(
-    (subsectors: any) => updateFilters({ subsectors }),
+    (subsectors: string[] | undefined) => updateFilters({ subsectors }),
     [updateFilters],
   );
 
@@ -84,7 +79,11 @@ export function FilterBar({
     <div className={containerClasses}>
       <div className={contentClasses}>
         {/* Search Input */}
-        <SearchFilter ref={searchRef} onChange={handleSearchChange} />
+        <SearchFilter
+          ref={searchRef}
+          value={filters.search}
+          onChange={handleSearchChange}
+        />
 
         {/* Filter Buttons Row */}
         <div className={`flex flex-wrap gap-2 ${compact ? "flex-col" : ""}`}>
@@ -133,13 +132,13 @@ export function FilterBar({
           )}
 
           {/* Clear All Button */}
-          {(hasActiveFilters(filters) || searchValue) && (
+          {hasActiveFilters(filters) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
                 clearFilters();
-                clearSearch();
+                searchRef.current?.clear();
               }}
               className={`gap-2 h-9 px-3 ${compact ? "w-full justify-start" : ""}`}
             >
@@ -150,13 +149,13 @@ export function FilterBar({
         </div>
 
         {/* Active Filter Badges */}
-        {(hasActiveFilters(filters) || searchValue) && (
+        {hasActiveFilters(filters) && (
           <div className="flex flex-wrap gap-2 pt-1 max-w-full overflow-hidden">
             {/* Search Badge */}
-            {searchValue && (
+            {filters.search && (
               <FilterBadge
                 label="Search"
-                value={searchValue}
+                value={filters.search}
                 onRemove={clearSearch}
               />
             )}

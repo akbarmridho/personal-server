@@ -12,6 +12,7 @@ import { SEARCH_DEBOUNCE_MS } from "~/lib/constants/filters";
 
 interface SearchFilterProps {
   onChange: (value: string | undefined) => void;
+  value?: string;
   placeholder?: string;
 }
 
@@ -20,15 +21,20 @@ export interface SearchFilterRef {
 }
 
 /**
- * Search input with debounced onChange (local state only, not synced to URL)
+ * Search input with debounced onChange
  */
 export const SearchFilter = forwardRef<SearchFilterRef, SearchFilterProps>(
   function SearchFilter(
-    { onChange, placeholder = "Search documents..." },
+    { onChange, value, placeholder = "Search documents..." },
     ref,
   ) {
-    const [inputValue, setInputValue] = useState("");
+    const [inputValue, setInputValue] = useState(value || "");
     const debouncedValue = useDebouncedValue(inputValue, SEARCH_DEBOUNCE_MS);
+
+    // Sync input value when external value changes
+    useEffect(() => {
+      setInputValue(value || "");
+    }, [value]);
 
     // Store latest onChange callback in a ref to avoid effect re-runs
     const onChangeRef = useRef(onChange);

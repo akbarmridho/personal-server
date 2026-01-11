@@ -19,7 +19,7 @@ export function useTimelineFilters() {
     [searchParams],
   );
 
-  // Update filters and sync to URL (search is managed locally, not in URL)
+  // Update filters and sync to URL
   const updateFilters = useCallback(
     (updates: Partial<TimelineFilters>) => {
       // Use functional update to get latest params and avoid stale closures
@@ -28,10 +28,10 @@ export function useTimelineFilters() {
           const currentFilters = deserializeFilters(prevParams);
           const newFilters = { ...currentFilters, ...updates };
 
-          // Remove undefined/empty values (search is excluded from URL)
+          // Remove undefined/empty values
           const cleanedFilters: TimelineFilters = {};
 
-          // Note: search is intentionally excluded from URL params
+          if (newFilters.search) cleanedFilters.search = newFilters.search;
           if (newFilters.date_from)
             cleanedFilters.date_from = newFilters.date_from;
           if (newFilters.date_to) cleanedFilters.date_to = newFilters.date_to;
