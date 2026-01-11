@@ -13,6 +13,28 @@ interface TimelineItemProps {
 }
 
 /**
+ * Generate a title from content when title is missing
+ */
+function generateTitle(content: string): string {
+  const firstSentence = content
+    .match(/^.+?[.!?](?:\s|$)/)?.[0]
+    ?.trim()
+    .replace(/[.!?]$/, "");
+
+  const first8Words = content.split(/\s+/).slice(0, 8).join(" ");
+
+  // Use first 8 words if first sentence is too short (<= 3 words) or too long (> 15 words)
+  if (firstSentence) {
+    const wordCount = firstSentence.split(/\s+/).length;
+    if (wordCount > 3 && wordCount <= 12) {
+      return firstSentence;
+    }
+  }
+
+  return first8Words || content.slice(0, 100);
+}
+
+/**
  * Expandable timeline item card
  */
 export function TimelineItem({
@@ -67,12 +89,7 @@ export function TimelineItem({
 
         {/* Title */}
         <h3 className="text-lg font-semibold leading-tight mt-2">
-          {item.payload.title ||
-            item.payload.content
-              .match(/^.+?[.!?](?:\s|$)/)?.[0]
-              ?.trim()
-              .replace(/[.!?]$/, "") ||
-            item.payload.content.slice(0, 100)}
+          {item.payload.title || generateTitle(item.payload.content)}
         </h3>
       </CardHeader>
 

@@ -14,10 +14,7 @@ export function useSubsectors(): UseQueryResult<SubsectorOption[], Error> {
         .flatMap((sector) => sector.subsectors)
         .map((sub) => ({
           value: sub.name,
-          label: sub.name
-            .split("-")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" "),
+          label: sub.name.replaceAll("-", " ").replaceAll(" and ", " & "),
         }))
         .sort((a, b) => a.label.localeCompare(b.label));
 

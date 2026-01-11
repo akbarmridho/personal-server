@@ -110,7 +110,7 @@ export function SubsectorFilter({
                   />
                   <label
                     htmlFor={`subsector-${option.value}`}
-                    className="text-sm cursor-pointer flex-1"
+                    className="text-sm cursor-pointer flex-1 capitalize"
                   >
                     {option.label}
                   </label>
