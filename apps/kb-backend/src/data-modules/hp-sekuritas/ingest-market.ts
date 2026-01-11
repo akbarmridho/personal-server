@@ -68,7 +68,7 @@ const extractNews = async (url: string) => {
 
   const response = await generateObject({
     model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
-      models: ["google/gemini-2.5-flash-preview-09-2025"],
+      models: ["google/gemini-3-flash-preview"],
     }),
     schema: NewsSchema,
     temperature: 0,
