@@ -191,7 +191,7 @@ async def get_document(document_id: str):
 @router.get("/documents", response_model=Dict[str, Any])
 async def list_documents(
     limit: int = Query(default=10, ge=1, le=100),
-    offset: Optional[str] = Query(default=None),
+    offset: Optional[int] = Query(default=None, ge=0),
     symbols: Optional[List[str]] = Query(default=None),
     subsectors: Optional[List[str]] = Query(default=None),
     subindustries: Optional[List[str]] = Query(default=None),
@@ -202,7 +202,7 @@ async def list_documents(
 ):
     """
     List/scroll through documents with optional metadata filtering.
-    
+
     Supports filtering by:
     - symbols: List of symbols
     - subsectors: List of subsectors
@@ -210,10 +210,10 @@ async def list_documents(
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
     - pure_sector: Filter for documents without symbols (pure sector/market news)
-    
+
     Pagination:
     - limit: Number of results per page (1-100)
-    - offset: Pagination offset from previous response's next_page_offset
+    - offset: Numeric pagination offset from previous response's next_page_offset (default: 0)
     """
     _, qdrant_svc = get_services()
     

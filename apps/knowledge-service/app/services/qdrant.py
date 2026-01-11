@@ -310,36 +310,48 @@ class QdrantService:
         return point[0].model_dump()
 
     async def scroll(
-        self, 
-        limit: int = 10, 
-        offset: str = None,
+        self,
+        limit: int = 10,
+        offset: int = None,
         scroll_filter: models.Filter = None
     ) -> Dict[str, Any]:
         """
-        Scroll through documents with optional filtering.
-        
+        Scroll through documents with optional filtering and ordering.
+
+        Uses query_points instead of scroll to support ordering with pagination.
+
         Args:
             limit: Number of results per page
-            offset: Pagination offset
+            offset: Numeric pagination offset (default: 0)
             scroll_filter: Optional Qdrant Filter object for metadata filtering
         """
-        results, next_page_offset = await self.client.scroll(
+        if offset is None:
+            offset = 0
+
+        # Use query_points with ordering support
+        results = await self.client.query_points(
             collection_name=self.collection_name,
+            query=models.Query(
+                order_by=models.OrderBy(
+                    key="document_date",
+                    direction=models.Direction.DESC
+                ),
+            ),
             limit=limit,
             offset=offset,
-            scroll_filter=scroll_filter,
-            order_by=models.OrderBy(
-                key="document_date",
-                direction=models.Direction.DESC
-            ),
+            query_filter=scroll_filter,
             with_payload=True,
             with_vectors=False,
             timeout=60
         )
-        
+
+        # Calculate if there are more pages
+        has_more = len(results.points) == limit
+        next_offset = offset + limit if has_more else None
+
         return {
-            "items": [point.model_dump() for point in results],
-            "next_page_offset": next_page_offset
+            "items": [point.model_dump() for point in results.points],
+            "next_page_offset": next_offset
         }
     
     async def find_similar_documents(

@@ -61,7 +61,7 @@ export function useTimelineQuery(
         offset: pageParam,
       }),
     getNextPageParam: (lastPage) => lastPage.next_page_offset ?? undefined,
-    initialPageParam: undefined as string | undefined,
+    initialPageParam: undefined as number | undefined,
     staleTime: 5 * 60 * 1000,
     enabled: !hasSearchQuery,
   });

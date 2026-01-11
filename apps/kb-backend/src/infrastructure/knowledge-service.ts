@@ -41,7 +41,7 @@ export interface IngestResponse {
 
 export interface ListDocumentsParams {
   limit?: number;
-  offset?: string | null;
+  offset?: number | null;
   symbols?: string[] | null;
   subsectors?: string[] | null;
   subindustries?: string[] | null;
@@ -62,12 +62,12 @@ export interface DocumentSnapshot {
 
 export interface ListDocumentsPreviewResponse {
   items: DocumentSnapshot[];
-  next_page_offset?: string;
+  next_page_offset?: number;
 }
 
 export interface ListDocumentsResponse {
   items: Omit<SearchResult, "score">[];
-  next_page_offset?: string;
+  next_page_offset?: number;
 }
 
 export interface SearchRequest {

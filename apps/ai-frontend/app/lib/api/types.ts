@@ -26,7 +26,7 @@ export interface SearchResult {
 // List Documents Response
 export interface ListDocumentsResponse {
   items: Omit<SearchResult, "score">[];
-  next_page_offset?: string;
+  next_page_offset?: number;
 }
 
 // Sector and Subsector Types
@@ -77,7 +77,7 @@ export interface ApiResponse<T> {
 // Filter Parameters (for API requests)
 export interface FilterParams {
   limit?: number;
-  offset?: string;
+  offset?: number;
   symbols?: string[];
   subsectors?: string[];
   types?: DocumentType[];
