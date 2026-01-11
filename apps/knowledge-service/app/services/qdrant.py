@@ -329,12 +329,14 @@ class QdrantService:
             offset = 0
 
         # Use query_points with ordering support
-        # When using order_by without a query vector, pass order_by directly
+        # Use OrderByQuery to order documents without vector search
         results = await self.client.query_points(
             collection_name=self.collection_name,
-            query=models.OrderBy(
-                key="document_date",
-                direction=models.Direction.DESC
+            query=models.OrderByQuery(
+                order_by=models.OrderBy(
+                    key="document_date",
+                    direction=models.Direction.DESC
+                )
             ),
             limit=limit,
             offset=offset,
