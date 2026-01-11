@@ -1,8 +1,13 @@
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Link as LinkIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader } from "~/components/ui/card";
+import { Card } from "~/components/ui/card";
 import type { SearchResult } from "~/lib/api/types";
 import { formatDate } from "~/lib/utils/date";
 import { MarkdownRenderer } from "../markdown-renderer";
@@ -35,7 +40,7 @@ function generateTitle(content: string): string {
 }
 
 /**
- * Expandable timeline item card
+ * Expandable timeline item card - Compact & Glassmorphism Design
  */
 export function TimelineItem({
   item,
@@ -50,103 +55,115 @@ export function TimelineItem({
 
   const hasMore = item.payload.content.length >= 500;
 
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          {/* Metadata badges */}
-          <div className="flex flex-wrap gap-2 flex-1">
-            {/* Document type badge */}
-            <Badge variant="outline" className="capitalize">
-              {item.payload.type}
-            </Badge>
+  // Title generation
+  const title = item.payload.title || generateTitle(item.payload.content);
 
-            {/* Symbol badges */}
+  return (
+    <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg border-border/50 bg-background/60 dark:bg-slate-900/40 backdrop-blur-md">
+      {/* Visual accent line on left based on type (optional, adding subtle detail) */}
+      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary/20 dark:bg-primary/40 group-hover:bg-primary transition-colors" />
+
+      <div className="p-4 pl-5 flex flex-col gap-3">
+        {/* --- Header Row: Title & Meta --- */}
+        <div className="flex justify-between items-start gap-3">
+          <div className="space-y-1 min-w-0 flex-1">
+            <h3 className="font-semibold text-base leading-snug tracking-tight text-foreground/95 group-hover:text-primary transition-colors">
+              {title}
+            </h3>
+
+            {/* Date - Mobile/Compact friendly */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
+              <Calendar className="w-3 h-3" />
+              <span>{formatDate(item.payload.document_date)}</span>
+            </div>
+          </div>
+
+          {/* Doc Type Badge */}
+          <Badge
+            variant="outline"
+            className="shrink-0 text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
+          >
+            {item.payload.type}
+          </Badge>
+        </div>
+
+        {/* --- Content Body --- */}
+        <div className="text-sm text-muted-foreground/90 leading-relaxed font-light">
+          <MarkdownRenderer
+            content={content}
+            className={`prose-sm dark:prose-invert ${!isExpanded && hasMore ? "line-clamp-3" : ""}`}
+          />
+
+          {hasMore && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="mt-1 flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors focus:outline-none"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3 h-3" /> Show less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3 h-3" /> Read more
+                </>
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* --- Footer Row: Metadata --- */}
+        <div className="flex items-center justify-between pt-3 border-t border-border/40 mt-1">
+          {/* Left: Tags */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Symbols */}
             {item.payload.symbols?.map((symbol) => (
-              <Badge key={symbol} variant="default">
+              <Badge
+                key={symbol}
+                variant="secondary"
+                className="h-5 px-2 text-[10px] font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground transition-colors cursor-default"
+              >
                 {symbol}
               </Badge>
             ))}
 
-            {/* Subsector badges (if no symbols) */}
+            {/* Subsectors (if no symbols) */}
             {!item.payload.symbols?.length &&
               item.payload.subsectors?.map((subsector) => (
                 <Badge
                   key={subsector}
-                  variant="secondary"
-                  className="capitalize"
+                  variant="outline"
+                  className="h-5 px-2 text-[10px] bg-background/50 text-muted-foreground border-border/50 flex items-center gap-1"
                 >
-                  {subsector.replaceAll("-", " ").replaceAll(" and ", " & ")}
+                  <Building2 className="w-3 h-3 opacity-60" />
+                  <span className="capitalize">
+                    {subsector.replaceAll("-", " ").replaceAll(" and ", " & ")}
+                  </span>
                 </Badge>
               ))}
           </div>
 
-          {/* Date */}
-          <div className="text-sm text-muted-foreground whitespace-nowrap">
-            {formatDate(item.payload.document_date)}
+          {/* Right: Source */}
+          <div className="flex items-center gap-3 shrink-0 pl-2">
+            {item.payload.source && (
+              <a
+                href={item.payload.source.url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group/link"
+              >
+                <LinkIcon className="w-3 h-3 group-hover/link:stroke-primary" />
+                <span className="max-w-[120px] truncate hidden sm:inline-block">
+                  {item.payload.source.name || "Source"}
+                </span>
+              </a>
+            )}
           </div>
         </div>
-
-        {/* Title */}
-        <h3 className="text-lg font-semibold leading-tight mt-2">
-          {item.payload.title || generateTitle(item.payload.content)}
-        </h3>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Content */}
-        {content ? (
-          <MarkdownRenderer
-            content={content}
-            className={`${!isExpanded && hasMore ? "line-clamp-3" : ""}`}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground italic">
-            No preview available
-          </p>
-        )}
-
-        {/* Expand/Collapse button */}
-        {hasMore && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full"
-          >
-            {isExpanded ? (
-              <>
-                <ChevronUp className="h-4 w-4 mr-2" />
-                Show less
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4 mr-2" />
-                Show more
-              </>
-            )}
-          </Button>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t text-sm text-muted-foreground">
-          {/* Source */}
-          <div>Source: {item.payload.source?.name || "Unknown"}</div>
-
-          {/* URLs */}
-          {item.payload.source?.url && (
-            <a
-              href={item.payload.source?.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-primary hover:underline"
-            >
-              View source
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
-        </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
