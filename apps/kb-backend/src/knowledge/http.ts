@@ -31,7 +31,7 @@ export const setupKnowledgeRoutes = () =>
       {
         query: t.Object({
           limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
-          offset: t.Optional(t.String()),
+          offset: t.Optional(t.Number({ minimum: 0 })),
           symbols: t.Optional(t.String()),
           subsectors: t.Optional(t.String()),
           types: t.Optional(t.String()),

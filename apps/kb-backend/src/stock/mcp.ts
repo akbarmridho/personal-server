@@ -436,7 +436,10 @@ export const setupStockMcp = async () => {
         .number()
         .describe("The search limit. Default to 10. Min is 1 and max is 100")
         .optional(),
-      offset: z.string().optional(),
+      offset: z
+        .number()
+        .describe("Pagination offset (numeric). Default to 0.")
+        .optional(),
       symbols: z
         .string()
         .array()

@@ -162,7 +162,7 @@ export class KnowledgeService {
   ): Promise<ListDocumentsPreviewResponse> {
     const response = await this.client.get<{
       items: Array<{ id: string; payload: InvestmentDocument }>;
-      next_page_offset?: string;
+      next_page_offset?: number;
     }>("/documents", { params });
 
     return {
@@ -183,7 +183,7 @@ export class KnowledgeService {
   ): Promise<ListDocumentsResponse> {
     const response = await this.client.get<{
       items: Array<{ id: string; payload: InvestmentDocument }>;
-      next_page_offset?: string;
+      next_page_offset?: number;
     }>("/documents", { params });
 
     return {
