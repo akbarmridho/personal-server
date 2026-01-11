@@ -606,6 +606,80 @@ export const setupStockRoutes = () =>
         },
       },
     )
+    .post(
+      "/stock-universe/sync/:symbol",
+      async ({ params, set }) => {
+        try {
+          const STOCK_UNIVERSE_KEY =
+            "data-modules.stockbit-filing.stock-universe";
+
+          // Normalize symbol to uppercase
+          const symbol = params.symbol.trim().toUpperCase();
+
+          if (!symbol) {
+            set.status = 400;
+            return {
+              success: false,
+              error: "Symbol parameter is required",
+            };
+          }
+
+          // Get current stock universe
+          const universe = (await KV.get(STOCK_UNIVERSE_KEY)) as {
+            symbols: string[];
+          } | null;
+
+          if (!universe || universe.symbols.length === 0) {
+            set.status = 404;
+            return {
+              success: false,
+              error:
+                "Stock universe is empty. Add symbols first using /stock-universe/add",
+            };
+          }
+
+          // Check if symbol exists in stock universe
+          if (!universe.symbols.includes(symbol)) {
+            set.status = 404;
+            return {
+              success: false,
+              error: `Symbol "${symbol}" not found in stock universe. Please add it first using /stock-universe/add`,
+              availableSymbols: universe.symbols,
+            };
+          }
+
+          // Emit crawl event for the specific symbol
+          await inngest.send({
+            name: "data/stockbit-filing-crawl",
+            data: { symbol },
+          });
+
+          logger.info(`Triggered sync for symbol: ${symbol}`);
+
+          return {
+            success: true,
+            symbol,
+            message: `Triggered sync for symbol "${symbol}"`,
+          };
+        } catch (err) {
+          logger.error({ err }, "Error syncing symbol");
+          set.status = 500;
+          return {
+            success: false,
+            error: (err as Error).message,
+          };
+        }
+      },
+      {
+        params: t.Object({ symbol: t.String() }),
+        detail: {
+          tags: ["Stock Universe Management"],
+          summary: "Sync specific symbol from stock universe",
+          description:
+            "Triggers filing crawl for a specific symbol that exists in the stock universe. The symbol must already be in the universe (use /stock-universe/add first). This will check for new filings across all three categories (RUPS, Corporate Action, Other) for the specified symbol.",
+        },
+      },
+    )
     .get(
       "/stock-universe/list",
       async ({ set }) => {

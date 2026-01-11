@@ -184,6 +184,12 @@ Dual-interface design: Same functionality exposed as both **HTTP REST endpoints*
    - `POST /stock-market-id/stockbit-auth/set` - Set Stockbit access token
    - `GET /stock-market-id/stockbit-auth/test` - Test authentication
 
+6. **Stock Universe Management**
+   - `POST /stock-market-id/stock-universe/add` - Add symbols to stock universe and trigger initial crawl
+   - `POST /stock-market-id/stock-universe/sync-all` - Sync all symbols in stock universe
+   - `POST /stock-market-id/stock-universe/sync/:symbol` - Sync specific symbol (validates symbol exists in universe first)
+   - `GET /stock-market-id/stock-universe/list` - List all symbols in stock universe
+
 ### MCP-Only Features
 
 Available only through Stock MCP Server:
