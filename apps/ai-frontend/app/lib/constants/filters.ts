@@ -5,9 +5,9 @@ import { daysAgo, today, toISODate } from "../utils/date";
  * Document type options for filter
  */
 export const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
-  { value: "news", label: "News" },
-  { value: "filing", label: "Filing" },
   { value: "analysis", label: "Analysis" },
+  { value: "filing", label: "Filing" },
+  { value: "news", label: "News" },
   { value: "rumour", label: "Rumour" },
 ];
 
@@ -86,4 +86,4 @@ export const DEFAULT_LIMIT = 20;
 /**
  * Search debounce delay (ms)
  */
-export const SEARCH_DEBOUNCE_MS = 300;
+export const SEARCH_DEBOUNCE_MS = 1000;

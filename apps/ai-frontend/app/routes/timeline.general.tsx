@@ -4,7 +4,7 @@ import type { Route } from "./+types/timeline.ticker";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "General Timeline - Investment Timeline" },
+    { title: "General Timeline" },
     {
       name: "description",
       content: "Browse general investment documents",

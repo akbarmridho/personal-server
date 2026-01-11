@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 /**
  * Hook to debounce a value
  * @param value - Value to debounce
- * @param delay - Delay in milliseconds (default: 300ms)
+ * @param delay - Delay in milliseconds (default: 1000ms)
  */
-export function useDebouncedValue<T>(value: T, delay = 300): T {
+export function useDebouncedValue<T>(value: T, delay = 1000): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {

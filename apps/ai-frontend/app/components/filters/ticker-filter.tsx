@@ -239,7 +239,7 @@ export function TickerFilter({
                           onSelect={() => handleToggle(symbol)}
                           className="cursor-pointer"
                         >
-                          <Check className="mr-2 h-4 w-4" />
+                          <Check className="h-4 w-2" />
                           <span className="font-medium">
                             {getDisplayName(company)}
                           </span>
@@ -258,11 +258,11 @@ export function TickerFilter({
                       className="cursor-pointer"
                     >
                       {isStockUniverseActive ? (
-                        <Check className="mr-2 h-4 w-4" />
+                        <Check className="h-4 w-2" />
                       ) : (
-                        <div className="mr-2 h-4 w-4" />
+                        <div className="h-4 w-2" />
                       )}
-                      <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                      <Star className="h-4 w-2 text-yellow-500" />
                       <span className="font-medium">Stock Universe</span>
                     </CommandItem>
                   </CommandGroup>
@@ -280,7 +280,7 @@ export function TickerFilter({
                         onSelect={() => handleToggle(company.symbol)}
                         className="cursor-pointer"
                       >
-                        <div className="mr-2 h-4 w-4" />
+                        <div className="h-4 w-2" />
                         <span>{getDisplayName(company)}</span>
                         {stockUniverseSet.has(company.symbol) && (
                           <Star className="ml-2 h-3 w-3 text-yellow-500/70" />

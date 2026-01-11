@@ -25,12 +25,7 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="offcanvas">
       <SidebarHeader className="p-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-bold tracking-tight">
-            Investment Timeline
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Personal research & analysis
-          </p>
+          <h1 className="text-xl font-bold tracking-tight">Vibe Investing</h1>
         </div>
       </SidebarHeader>
 
@@ -70,7 +65,7 @@ export function AppSidebar() {
         <SidebarSeparator />
 
         <SidebarGroup>
-          <SidebarGroupLabel>Refine Search</SidebarGroupLabel>
+          <SidebarGroupLabel>Search</SidebarGroupLabel>
           <SidebarGroupContent className="px-1">
             <FilterBar
               showTickerFilter={isTickerActive}
@@ -83,9 +78,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4 border-t bg-muted/5">
         <div className="flex items-center justify-between w-full">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
-            v1.2.0
-          </span>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-widest"></span>
           <ThemeToggle />
         </div>
       </SidebarFooter>

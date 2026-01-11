@@ -1,4 +1,3 @@
-import type { UseInfiniteQueryResult } from "@tanstack/react-query";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Alert, AlertDescription } from "~/components/ui/alert";
@@ -8,7 +7,6 @@ import {
   isSearchMode,
   useTimelineQuery,
 } from "~/hooks/use-timeline-query";
-import type { ListDocumentsResponse } from "~/lib/api/types";
 import type { TimelineFilters } from "~/lib/utils/url-params";
 import { EmptyState } from "./empty-state";
 import { TimelineItem } from "./timeline-item";
@@ -38,14 +36,12 @@ export function TimelineContainer({
     if (!loadMoreRef.current) return;
 
     // Type assertion safe here because we checked isSearch above
-    const infiniteQuery =
-      queryResult as UseInfiniteQueryResult<ListDocumentsResponse>;
-    if (!infiniteQuery.hasNextPage || infiniteQuery.isFetchingNextPage) return;
+    if (!queryResult.hasNextPage || queryResult.isFetchingNextPage) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          infiniteQuery.fetchNextPage();
+          queryResult.fetchNextPage();
         }
       },
       { rootMargin: "100px" },
@@ -116,18 +112,15 @@ export function TimelineContainer({
       {/* Infinite scroll trigger (list mode only) */}
       {!isSearch &&
         (() => {
-          // Type assertion safe here because we're in list mode
-          const infiniteQuery =
-            queryResult as UseInfiniteQueryResult<ListDocumentsResponse>;
           return (
             <div ref={loadMoreRef} className="flex justify-center py-4">
-              {infiniteQuery.isFetchingNextPage && (
+              {queryResult.isFetchingNextPage && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Loading more...</span>
                 </div>
               )}
-              {!infiniteQuery.hasNextPage && items.length > 0 && (
+              {!queryResult.hasNextPage && items.length > 0 && (
                 <p className="text-sm text-muted-foreground">
                   No more documents to load
                 </p>

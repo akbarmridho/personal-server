@@ -1,6 +1,5 @@
 import { Outlet } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
-import { ThemeToggle } from "~/components/theme-toggle";
 import {
   SidebarInset,
   SidebarProvider,
@@ -21,12 +20,8 @@ export default function TimelineLayout() {
             <SidebarTrigger className="-ml-1" />
             <div className="h-4 w-px bg-border/60 mx-1 hidden sm:block" />
             <h2 className="text-sm font-semibold truncate max-w-[200px] sm:max-w-none">
-              Investment Timeline
+              Vibe Investing
             </h2>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
           </div>
         </header>
 

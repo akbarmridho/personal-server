@@ -80,49 +80,47 @@ export function SubsectorFilter({
         )}
       </div>
 
-      <PopoverContent className="w-64" align="start">
+      <PopoverContent className="w-64 p-3" align="start">
         <div className="space-y-2">
-          <div className="text-sm font-medium mb-3">Subsectors</div>
+          <div className="text-sm font-medium mb-1.5">Subsectors</div>
           <ScrollArea className="h-[300px]">
-            <div className="space-y-2">
-              {isLoading && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              )}
-              {!isLoading && subsectors.length === 0 && (
-                <div className="text-sm text-center py-8 text-muted-foreground">
-                  No subsectors found
-                </div>
-              )}
-              {subsectors.map((option) => (
-                <div
-                  key={option.value}
-                  className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-2 rounded"
-                  onClick={() => handleToggle(option.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleToggle(option.value);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
+            {isLoading && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!isLoading && subsectors.length === 0 && (
+              <div className="text-sm text-center py-4 text-muted-foreground">
+                No subsectors found
+              </div>
+            )}
+            {subsectors.map((option) => (
+              <div
+                key={option.value}
+                className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-1.5 rounded"
+                onClick={() => handleToggle(option.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleToggle(option.value);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <Checkbox
+                  id={`subsector-${option.value}`}
+                  checked={value.includes(option.value)}
+                  onCheckedChange={() => handleToggle(option.value)}
+                />
+                <label
+                  htmlFor={`subsector-${option.value}`}
+                  className="text-sm cursor-pointer flex-1 capitalize"
                 >
-                  <Checkbox
-                    id={`subsector-${option.value}`}
-                    checked={value.includes(option.value)}
-                    onCheckedChange={() => handleToggle(option.value)}
-                  />
-                  <label
-                    htmlFor={`subsector-${option.value}`}
-                    className="text-sm cursor-pointer flex-1 capitalize"
-                  >
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
+                  {option.label}
+                </label>
+              </div>
+            ))}
           </ScrollArea>
         </div>
       </PopoverContent>
