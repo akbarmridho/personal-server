@@ -108,7 +108,7 @@ export function DateFilter({
       <PopoverContent className="w-auto p-0" align="start">
         <div className="flex">
           {/* Presets */}
-          <div className="border-r p-3 space-y-1">
+          <div className="border-r p-3 space-y-1 max-w-48">
             <div className="text-sm font-medium mb-2">Presets</div>
             {DATE_PRESETS.map((preset) => (
               <Button
