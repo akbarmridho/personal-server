@@ -100,7 +100,7 @@ export function TimelineItem({
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
-              className="mt-1 flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors focus:outline-none"
+              className="mt-1 flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors focus:outline-none cursor-pointer"
             >
               {isExpanded ? (
                 <>
@@ -108,7 +108,7 @@ export function TimelineItem({
                 </>
               ) : (
                 <>
-                  <ChevronDown className="w-3 h-3" /> Read more
+                  <ChevronDown className="w-3 h-3" /> Show more
                 </>
               )}
             </button>
