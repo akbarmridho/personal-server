@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { FilterBar } from "~/components/filters/filter-bar";
 import { TimelineContainer } from "~/components/timeline/timeline-container";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
 import type { Route } from "./+types/timeline.ticker";
@@ -20,26 +18,11 @@ export function meta({}: Route.MetaArgs) {
  */
 export default function TickerTimeline() {
   const { filters } = useTimelineFilters();
-  const [search, setSearch] = useState<string | undefined>();
-
-  // Combine URL filters with local search state
-  const combinedFilters = { ...filters, search };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h2 className="text-2xl font-bold">Ticker Timeline</h2>
-        <p className="text-muted-foreground mt-1">
-          Documents with stock symbols
-        </p>
-      </div>
-
-      {/* Filters */}
-      <FilterBar showTickerFilter onSearchChange={setSearch} />
-
+    <div className="space-y-4">
       {/* Timeline */}
-      <TimelineContainer filters={combinedFilters} pure_sector={false} />
+      <TimelineContainer filters={filters} pure_sector={false} />
     </div>
   );
 }
