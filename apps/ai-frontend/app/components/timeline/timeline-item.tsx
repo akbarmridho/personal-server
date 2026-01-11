@@ -156,15 +156,15 @@ export function TimelineItem({
 
           {/* Right: Source */}
           <div className="flex items-center gap-3 shrink-0 pl-2">
-            {allUrls.length > 0 && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <LinkIcon className="w-3 h-3" />
-                <span className="hidden sm:inline-block">
-                  {item.payload.source?.name
-                    ? formatHyphenatedText(item.payload.source.name)
-                    : "Source"}
-                  :
-                </span>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <LinkIcon className="w-3 h-3" />
+              <span className="hidden sm:inline-block">
+                {item.payload.source?.name
+                  ? formatHyphenatedText(item.payload.source.name)
+                  : "Source"}
+                {allUrls.length > 0 && ":"}
+              </span>
+              {allUrls.length > 0 && (
                 <div className="flex items-center gap-1">
                   {allUrls.map((url, index) => (
                     <span key={url}>
@@ -182,8 +182,8 @@ export function TimelineItem({
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
