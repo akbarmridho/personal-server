@@ -5,7 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "pm2 start ecosystem.config.cjs",
     "typecheck": "react-router typegen && tsc",
     "run": "pm2 start ecosystem.config.cjs",
     "stop": "pm2 stop ecosystem.config.cjs",
@@ -38,6 +38,7 @@
     "react-dom": "^19.2.3",
     "react-markdown": "^10.1.0",
     "react-router": "7.12.0",
+    "serve": "^14.2.4",
     "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.4.0"
   },

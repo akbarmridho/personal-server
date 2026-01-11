@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: "ai-frontend",
-      script: "./build/server/index.js",
+      script: "npx",
+      args: "serve -s build/client -l 8023",
       cwd: "./",
       autorestart: false,
       max_memory_restart: "1024M",
@@ -12,7 +13,6 @@ module.exports = {
       watch: false,
       ignore_watch: ["node_modules", "logs", "build", ".react-router"],
       env: {
-        PORT: 8023,
         NODE_ENV: "production",
       },
     },
