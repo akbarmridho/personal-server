@@ -59,8 +59,17 @@ export function TimelineItem({
   // Title generation
   const title = item.payload.title || generateTitle(item.payload.content);
 
+  // Merge URLs from source.url and urls array
+  const allUrls: string[] = [];
+  if (item.payload.source?.url) {
+    allUrls.push(item.payload.source.url);
+  }
+  if (item.payload.urls) {
+    allUrls.push(...item.payload.urls);
+  }
+
   return (
-    <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg border-border/50 bg-background/60 dark:bg-slate-900/40 backdrop-blur-md">
+    <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-lg border-border/50 bg-background/60 dark:bg-slate-900/40 backdrop-blur-md py-0">
       {/* Visual accent line on left based on type (optional, adding subtle detail) */}
       <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary/20 dark:bg-primary/40 group-hover:bg-primary transition-colors" />
 
@@ -147,20 +156,33 @@ export function TimelineItem({
 
           {/* Right: Source */}
           <div className="flex items-center gap-3 shrink-0 pl-2">
-            {item.payload.source && (
-              <a
-                href={item.payload.source.url || "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group/link"
-              >
-                <LinkIcon className="w-3 h-3 group-hover/link:stroke-primary" />
-                <span className="max-w-[120px] truncate hidden sm:inline-block">
-                  {item.payload.source.name
+            {allUrls.length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <LinkIcon className="w-3 h-3" />
+                <span className="hidden sm:inline-block">
+                  {item.payload.source?.name
                     ? formatHyphenatedText(item.payload.source.name)
                     : "Source"}
+                  :
                 </span>
-              </a>
+                <div className="flex items-center gap-1">
+                  {allUrls.map((url, index) => (
+                    <span key={url}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline transition-colors"
+                      >
+                        {index + 1}
+                      </a>
+                      {index < allUrls.length - 1 && (
+                        <span className="text-muted-foreground">,</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
