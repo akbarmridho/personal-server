@@ -1,6 +1,7 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 import { getSubsectors } from "~/lib/api/knowledge";
 import type { SubsectorOption } from "~/lib/api/types";
+import { formatHyphenatedText } from "~/lib/utils";
 
 /**
  * Hook to fetch available subsectors for filtering
@@ -14,7 +15,7 @@ export function useSubsectors(): UseQueryResult<SubsectorOption[], Error> {
         .flatMap((sector) => sector.subsectors)
         .map((sub) => ({
           value: sub.name,
-          label: sub.name.replaceAll("-", " ").replaceAll(" and ", " & "),
+          label: formatHyphenatedText(sub.name),
         }))
         .sort((a, b) => a.label.localeCompare(b.label));
 

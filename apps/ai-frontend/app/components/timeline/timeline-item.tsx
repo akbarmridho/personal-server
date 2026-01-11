@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Badge } from "~/components/ui/badge";
 import { Card } from "~/components/ui/card";
 import type { SearchResult } from "~/lib/api/types";
+import { formatHyphenatedText } from "~/lib/utils";
 import { formatDate } from "~/lib/utils/date";
 import { MarkdownRenderer } from "../markdown-renderer";
 
@@ -139,9 +140,7 @@ export function TimelineItem({
                   className="h-5 px-2 text-[10px] bg-background/50 text-muted-foreground border-border/50 flex items-center gap-1"
                 >
                   <Building2 className="w-3 h-3 opacity-60" />
-                  <span className="capitalize">
-                    {subsector.replaceAll("-", " ").replaceAll(" and ", " & ")}
-                  </span>
+                  <span>{formatHyphenatedText(subsector)}</span>
                 </Badge>
               ))}
           </div>
@@ -157,7 +156,9 @@ export function TimelineItem({
               >
                 <LinkIcon className="w-3 h-3 group-hover/link:stroke-primary" />
                 <span className="max-w-[120px] truncate hidden sm:inline-block">
-                  {item.payload.source.name || "Source"}
+                  {item.payload.source.name
+                    ? formatHyphenatedText(item.payload.source.name)
+                    : "Source"}
                 </span>
               </a>
             )}
