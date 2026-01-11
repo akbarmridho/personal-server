@@ -47,7 +47,7 @@ export interface FilingEventData {
 export const stockbitAnnouncementIngest = inngest.createFunction(
   {
     id: "stockbit-announcement-ingest",
-    concurrency: 3, // Limit concurrent LLM calls
+    concurrency: 5, // Limit concurrent LLM calls
   },
   { event: "data/stockbit-announcement-ingest" },
   async ({ event, step }) => {
