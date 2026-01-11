@@ -135,63 +135,86 @@ class QdrantService:
     def build_filter(self, filters: Dict[str, Any]) -> models.Filter:
         """
         Build Qdrant filter from dict parameters.
-        
+
         Args:
-            filters: Dict with optional keys: symbols, subsectors, subindustries, types, date_from, date_to, pure_sector
-            
+            filters: Dict with optional keys:
+                - symbols: List of stock symbols to match
+                - subsectors: List of subsectors to match
+                - subindustries: List of subindustries to match
+                - types: List of document types to match
+                - date_from: Start date for range filter (ISO format)
+                - date_to: End date for range filter (ISO format)
+                - pure_sector: Three-state symbol filter
+                    * True: Only documents WITHOUT symbols (pure sector/market news)
+                    * False: Only documents WITH symbols (ticker-specific news)
+                    * None/not provided: No filter on symbols (show all documents)
+
         Returns:
-            Qdrant Filter object
+            Qdrant Filter object with must/must_not clauses, or None if no filters
         """
-        conditions = []
-        
-        # Pure sector filtering (documents without symbols)
+        must_conditions = []
+        must_not_conditions = []
+
+        # Pure sector filtering - three-state behavior
         if filters.get('pure_sector') is True:
-            conditions.append(
+            # Filter for documents WITHOUT symbols (pure sector/market news)
+            must_conditions.append(
                 models.IsEmptyCondition(
                     is_empty=models.PayloadField(
                         key="symbols",
                     ),
                 )
             )
-        
+        elif filters.get('pure_sector') is False:
+            # Filter for documents WITH symbols (ticker-specific news)
+            # To check NOT empty, we use must_not with IsEmptyCondition
+            must_not_conditions.append(
+                models.IsEmptyCondition(
+                    is_empty=models.PayloadField(
+                        key="symbols",
+                    ),
+                )
+            )
+        # else: pure_sector is None/not provided - no filter on symbols
+
         # Symbol filtering
         if filters.get('symbols'):
-            conditions.append(
+            must_conditions.append(
                 models.FieldCondition(
                     key="symbols",
                     match=models.MatchAny(any=filters['symbols'])
                 )
             )
-        
+
         # Subsector filtering
         if filters.get('subsectors'):
-            conditions.append(
+            must_conditions.append(
                 models.FieldCondition(
                     key="subsectors",
                     match=models.MatchAny(any=filters['subsectors'])
                 )
             )
-        
+
         # Subindustry filtering
         if filters.get('subindustries'):
-            conditions.append(
+            must_conditions.append(
                 models.FieldCondition(
                     key="subindustries",
                     match=models.MatchAny(any=filters['subindustries'])
                 )
             )
-        
+
         # Document type filtering
         if filters.get('types'):
             # Convert enum values to strings if needed
             types = [t.value if hasattr(t, 'value') else t for t in filters['types']]
-            conditions.append(
+            must_conditions.append(
                 models.FieldCondition(
                     key="type",
                     match=models.MatchAny(any=types)
                 )
             )
-        
+
         # Date range filtering
         if filters.get('date_from') or filters.get('date_to'):
             date_range = {}
@@ -199,18 +222,26 @@ class QdrantService:
                 date_range['gte'] = filters['date_from']
             if filters.get('date_to'):
                 date_range['lte'] = filters['date_to']
-            
-            conditions.append(
+
+            must_conditions.append(
                 models.FieldCondition(
                     key="document_date",
                     range=models.DatetimeRange(**date_range)
                 )
             )
-        
-        if not conditions:
+
+        # Return None if no filters
+        if not must_conditions and not must_not_conditions:
             return None
-        
-        return models.Filter(must=conditions)
+
+        # Build filter with both must and must_not clauses
+        filter_params = {}
+        if must_conditions:
+            filter_params['must'] = must_conditions
+        if must_not_conditions:
+            filter_params['must_not'] = must_not_conditions
+
+        return models.Filter(**filter_params)
 
     async def search(
         self, 

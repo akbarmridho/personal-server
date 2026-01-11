@@ -39,7 +39,7 @@ export default function TickerTimeline() {
       <FilterBar showTickerFilter onSearchChange={setSearch} />
 
       {/* Timeline */}
-      <TimelineContainer filters={combinedFilters} />
+      <TimelineContainer filters={combinedFilters} pure_sector={false} />
     </div>
   );
 }

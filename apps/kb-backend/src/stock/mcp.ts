@@ -468,7 +468,7 @@ export const setupStockMcp = async () => {
       pure_sector: z
         .boolean()
         .describe(
-          "Filter for documents without symbols (pure sector/market news)",
+          "Filter for documents without symbols (pure sector/market news). If true, will retrun document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
         )
         .optional(),
     }),
