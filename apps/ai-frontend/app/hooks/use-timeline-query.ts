@@ -45,8 +45,11 @@ export function useTimelineQuery(
   };
 
   const searchQuery = useQuery({
-    queryKey: queryKeys.timeline.search(searchParams),
-    queryFn: () => searchDocuments(searchParams),
+    queryKey: queryKeys.timeline.search({
+      ...searchParams,
+      limit: DEFAULT_LIMIT,
+    }),
+    queryFn: () => searchDocuments({ ...searchParams, limit: DEFAULT_LIMIT }),
     staleTime: 5 * 60 * 1000,
     enabled: hasSearchQuery,
   });
