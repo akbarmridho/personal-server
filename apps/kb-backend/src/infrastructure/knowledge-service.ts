@@ -73,6 +73,7 @@ export interface ListDocumentsResponse {
 export interface SearchRequest {
   query: string;
   limit?: number;
+  use_dense?: boolean;
   symbols?: string[] | null;
   subsectors?: string[] | null;
   subindustries?: string[] | null;

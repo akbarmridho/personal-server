@@ -76,7 +76,12 @@ class InvestmentSearchRequest(BaseModel):
     """Enhanced search request with metadata filtering."""
     query: str = Field(..., description="Search query text")
     limit: int = Field(default=10, ge=1, le=100, description="Number of results")
-    
+    use_dense: bool = Field(
+        default=True,
+        description="Use dense vector search (requires OpenRouter API, costs money). "
+                    "When false, uses only sparse + late interaction (ColBERT) reranking."
+    )
+
     # Metadata filters (all optional)
     symbols: Optional[List[str]] = Field(
         default=None,

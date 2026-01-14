@@ -43,6 +43,7 @@ export async function searchDocuments(
     limit: params.limit,
   };
 
+  if (params.use_dense !== undefined) body.use_dense = params.use_dense;
   if (params.symbols?.length) body.symbols = params.symbols;
   if (params.subsectors?.length) body.subsectors = params.subsectors;
   if (params.types?.length) body.types = params.types;

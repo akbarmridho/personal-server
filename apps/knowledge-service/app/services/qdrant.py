@@ -244,39 +244,52 @@ class QdrantService:
         return models.Filter(**filter_params)
 
     async def search(
-        self, 
-        query_vectors: Dict[str, Any], 
+        self,
+        query_vectors: Dict[str, Any],
         limit: int = 10,
-        query_filter: models.Filter = None
+        query_filter: models.Filter = None,
+        use_dense: bool = True
     ) -> List[Dict[str, Any]]:
         """
         Search using hybrid retrieval with optional filtering.
-        
+
         Args:
             query_vectors: Dict with 'dense', 'late', and 'sparse' vectors
             limit: Number of results to return
             query_filter: Optional Qdrant Filter object for metadata filtering
+            use_dense: Whether to use dense vector in search (default: True)
         """
 
         max_limit = min(limit * 3, 100)
 
-        # Prefetch from all sources
-        results = await self.client.query_points(
-            collection_name=self.collection_name,
-            prefetch=[
+        # Build prefetch list conditionally based on use_dense
+        prefetch = []
+
+        if use_dense and query_vectors.get("dense") is not None:
+            # Include dense vector prefetch
+            prefetch.append(
                 models.Prefetch(
                     query=query_vectors["dense"],
                     using="dense",
                     limit=max_limit,
                     filter=query_filter
-                ),
-                models.Prefetch(
-                    query=query_vectors["sparse"],
-                    using="sparse",
-                    limit=max_limit,
-                    filter=query_filter
-                ),
-            ],
+                )
+            )
+
+        # Always include sparse prefetch
+        prefetch.append(
+            models.Prefetch(
+                query=query_vectors["sparse"],
+                using="sparse",
+                limit=max_limit,
+                filter=query_filter
+            )
+        )
+
+        # Search with late interaction reranking
+        results = await self.client.query_points(
+            collection_name=self.collection_name,
+            prefetch=prefetch,
             query=query_vectors["late"],
             using="late",
             limit=limit,
@@ -284,7 +297,7 @@ class QdrantService:
             with_payload=True,
             timeout=60
         )
-        
+
         return [point.model_dump() for point in results.points]
 
     async def retrieve(self, document_id: str) -> Dict[str, Any]:

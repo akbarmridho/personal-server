@@ -89,4 +89,5 @@ export interface FilterParams {
 // Search Parameters
 export interface SearchParams extends Omit<FilterParams, "offset"> {
   query: string;
+  use_dense?: boolean;
 }

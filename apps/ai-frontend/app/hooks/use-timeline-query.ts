@@ -11,6 +11,8 @@ import { DEFAULT_LIMIT } from "~/lib/constants/filters";
 import { queryKeys } from "~/lib/constants/query-keys";
 import type { TimelineFilters } from "~/lib/utils/url-params";
 
+const useDenseVector = false;
+
 /**
  * Hook for fetching timeline data with smart mode switching
  * - List Mode (no search query): Infinite scroll with cursor pagination
@@ -38,6 +40,7 @@ export function useTimelineQuery(
   const searchParams = {
     query: filters.search || "",
     limit: 100,
+    use_dense: useDenseVector,
     ...filterParams,
   };
 

@@ -54,6 +54,7 @@ export const setupKnowledgeRoutes = () =>
           const result = await knowledgeService.searchDocuments({
             query: body.query,
             limit: body.limit,
+            use_dense: body.use_dense ?? true, // Default to true for backward compatibility
             symbols: body.symbols || null,
             subsectors: body.subsectors || null,
             types: (body.types as DocumentType[]) || null,
@@ -72,6 +73,7 @@ export const setupKnowledgeRoutes = () =>
         body: t.Object({
           query: t.String(),
           limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
+          use_dense: t.Optional(t.Boolean()),
           symbols: t.Optional(t.Array(t.String())),
           subsectors: t.Optional(t.Array(t.String())),
           types: t.Optional(t.Array(t.String())),
@@ -83,7 +85,7 @@ export const setupKnowledgeRoutes = () =>
           tags: ["Knowledge Base"],
           summary: "Semantic search in knowledge base",
           description:
-            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Supports filters for symbols, subsectors, document types, and date ranges. Returns documents ranked by relevance with similarity scores.",
+            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Set use_dense=false to disable expensive dense vector search (OpenRouter API) and use only sparse + late interaction reranking. Supports filters for symbols, subsectors, document types, and date ranges. Returns documents ranked by relevance with similarity scores.",
         },
       },
     )

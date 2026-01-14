@@ -125,7 +125,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
 async def search_documents(request: InvestmentSearchRequest):
     """
     Search for documents using hybrid retrieval with metadata filtering.
-    
+
     Supports filtering by:
     - symbols: List of symbols
     - subsectors: List of subsectors
@@ -133,12 +133,24 @@ async def search_documents(request: InvestmentSearchRequest):
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
     - pure_sector: Filter for documents without symbols (pure sector/market news)
+    - use_dense: Enable/disable dense vector search (default: true)
+      When false, uses only sparse + late interaction (free, no API costs)
     """
     emb_svc, qdrant_svc = get_services()
-    
-    # Embed query
-    query_vectors = await emb_svc.embed_query(request.query)
-    
+
+    # Conditionally embed query based on use_dense flag
+    if request.use_dense:
+        # Full hybrid: dense + sparse + late (uses OpenRouter API)
+        query_vectors = await emb_svc.embed_query(request.query)
+    else:
+        # Sparse + late only (no OpenRouter API cost)
+        m3_vectors = await emb_svc._embed_m3([request.query])
+        query_vectors = {
+            "dense": None,  # Skip dense vector
+            "late": m3_vectors[0]["late"],
+            "sparse": m3_vectors[0]["sparse"]
+        }
+
     # Build filter from request parameters
     filters = {}
     if request.symbols:
@@ -155,16 +167,17 @@ async def search_documents(request: InvestmentSearchRequest):
         filters['date_to'] = request.date_to
     if request.pure_sector is not None:
         filters['pure_sector'] = request.pure_sector
-    
+
     query_filter = qdrant_svc.build_filter(filters) if filters else None
-    
+
     # Search with filter
     results = await qdrant_svc.search(
         query_vectors,
         limit=request.limit,
-        query_filter=query_filter
+        query_filter=query_filter,
+        use_dense=request.use_dense
     )
-    
+
     return [
         SearchResult(
             id=str(point["id"]),
