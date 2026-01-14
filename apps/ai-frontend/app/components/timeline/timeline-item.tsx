@@ -6,6 +6,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { Link, useLocation } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Card } from "~/components/ui/card";
 import type { SearchResult } from "~/lib/api/types";
@@ -48,6 +49,7 @@ export function TimelineItem({
   isSearchMode = false,
 }: TimelineItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const location = useLocation();
 
   const content =
     isExpanded || item.payload.content.length < 500
@@ -77,9 +79,12 @@ export function TimelineItem({
         {/* --- Header Row: Title & Meta --- */}
         <div className="flex justify-between items-start gap-3">
           <div className="space-y-1 min-w-0 flex-1">
-            <h3 className="font-semibold text-base leading-snug tracking-tight text-foreground/95 group-hover:text-primary transition-colors">
+            <Link
+              to={`/document/${item.payload.id}${location.search}`}
+              className="font-semibold text-base leading-snug tracking-tight text-foreground/95 hover:text-primary hover:underline transition-colors block"
+            >
               {title}
-            </h3>
+            </Link>
 
             {/* Date - Mobile/Compact friendly */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
@@ -110,6 +115,7 @@ export function TimelineItem({
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
+              type="button"
               className="mt-1 flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors focus:outline-none cursor-pointer"
             >
               {isExpanded ? (

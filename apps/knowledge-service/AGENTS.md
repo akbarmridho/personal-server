@@ -52,15 +52,36 @@ Environment variables:
 
 ## API Endpoints
 
-### `/documents` (POST)
+### Core Endpoints
 
-Ingest documents with automatic deduplication.
+1. **POST `/documents`** - Ingest documents with automatic deduplication
+   - **Request**: `{ documents: InvestmentDocument[] }`
+   - **Response**: `{ status: "success", count: number, skipped_count: number, skipped_documents?: [...] }`
+   - Supports upsert: If document ID exists, updates without dedup check
+   - Deduplication: Only for "news" type, within ±7 days, similarity >0.87
 
-**Response includes**:
+2. **GET `/documents/{document_id}`** - Retrieve single document by ID
+   - **Response**: Document payload with id and full metadata
+   - Returns 404 if not found
 
-- `count` - Successfully ingested documents
-- `skipped_count` - Deduplicated documents
-- `skipped_documents` - Details of skipped items with similarity scores
+3. **GET `/documents`** - List/scroll documents with filtering
+   - **Query params**: `limit`, `offset`, `symbols`, `subsectors`, `subindustries`, `types`, `date_from`, `date_to`, `pure_sector`
+   - **Response**: `{ items: [...], next_page_offset?: number }`
+   - Ordered by document_date DESC
+
+4. **POST `/documents/search`** - Semantic search with metadata filtering
+   - **Request**: `{ query: string, limit?, symbols?, subsectors?, types?, date_from?, date_to?, pure_sector? }`
+   - **Response**: `[{ id, score, payload }]`
+   - Hybrid search (dense + sparse + ColBERT vectors)
+
+5. **DELETE `/documents/{document_id}`** - Delete document by ID
+   - **Response**: `{ status: "success", message: "Document {id} deleted" }`
+   - Returns 404 if document not found
+   - Permanent deletion (cannot be undone)
+
+6. **POST `/admin/enable-indexing`** - Enable HNSW indexing for collection
+   - Used after backfilling to improve query performance
+   - Creates payload indexes for metadata fields
 
 ## Document Schema
 

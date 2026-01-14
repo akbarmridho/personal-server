@@ -86,4 +86,99 @@ export const setupKnowledgeRoutes = () =>
             "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Supports filters for symbols, subsectors, document types, and date ranges. Returns documents ranked by relevance with similarity scores.",
         },
       },
+    )
+    .get(
+      "/documents/:documentId",
+      async ({ params, set }) => {
+        try {
+          const data = await knowledgeService.getDocument(params.documentId);
+          return { success: true, data };
+        } catch (err: any) {
+          logger.error(
+            { err, documentId: params.documentId },
+            "Get document failed",
+          );
+          set.status = err.response?.status === 404 ? 404 : 500;
+          return { success: false, error: err.message };
+        }
+      },
+      {
+        params: t.Object({ documentId: t.String() }),
+        detail: {
+          tags: ["Knowledge Base"],
+          summary: "Get document by ID",
+          description:
+            "Retrieve a single document with full payload including all metadata and content.",
+        },
+      },
+    )
+    .delete(
+      "/documents/:documentId",
+      async ({ params, set }) => {
+        try {
+          await knowledgeService.deleteDocument(params.documentId);
+          return { success: true, message: "Document deleted" };
+        } catch (err: any) {
+          logger.error(
+            { err, documentId: params.documentId },
+            "Delete document failed",
+          );
+          set.status = err.response?.status === 404 ? 404 : 500;
+          return { success: false, error: err.message };
+        }
+      },
+      {
+        params: t.Object({ documentId: t.String() }),
+        detail: {
+          tags: ["Knowledge Base"],
+          summary: "Delete document by ID",
+          description:
+            "Permanently delete a document from the knowledge base. This action cannot be undone.",
+        },
+      },
+    )
+    .put(
+      "/documents/:documentId",
+      async ({ params, body, set }) => {
+        try {
+          const result = await knowledgeService.updateDocument(
+            params.documentId,
+            body,
+          );
+          return { success: true, data: result };
+        } catch (err: any) {
+          logger.error(
+            { err, documentId: params.documentId },
+            "Update document failed",
+          );
+          set.status = 500;
+          return { success: false, error: err.message };
+        }
+      },
+      {
+        params: t.Object({ documentId: t.String() }),
+        body: t.Object({
+          type: t.Union([
+            t.Literal("news"),
+            t.Literal("filing"),
+            t.Literal("analysis"),
+            t.Literal("rumour"),
+          ]),
+          title: t.Optional(t.String()),
+          content: t.String(),
+          document_date: t.String(),
+          source: t.Record(t.String(), t.String()),
+          urls: t.Optional(t.Array(t.String())),
+          symbols: t.Optional(t.Array(t.String())),
+          subsectors: t.Optional(t.Array(t.String())),
+          subindustries: t.Optional(t.Array(t.String())),
+          indices: t.Optional(t.Array(t.String())),
+        }),
+        detail: {
+          tags: ["Knowledge Base"],
+          summary: "Update document by ID",
+          description:
+            "Update a document by re-ingesting with the same ID. Performs full replacement of the document content and metadata.",
+        },
+      },
     );

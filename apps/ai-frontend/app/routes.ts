@@ -15,6 +15,9 @@ export default [
     route("timeline/non-ticker", "routes/timeline.non-ticker.tsx"),
   ]),
 
+  // Document detail page
+  route("document/:id", "routes/document.$id.tsx"),
+
   // Catch-all route for unmatched paths
   route("*", "routes/$.tsx"),
 ] satisfies RouteConfig;

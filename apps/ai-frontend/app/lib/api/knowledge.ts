@@ -1,6 +1,7 @@
-import { apiGet, apiPost } from "./client";
+import { apiDelete, apiGet, apiPost, apiPut } from "./client";
 import type {
   FilterParams,
+  InvestmentDocument,
   ListDocumentsResponse,
   SearchParams,
   SearchResult,
@@ -57,4 +58,35 @@ export async function searchDocuments(
  */
 export async function getSubsectors(): Promise<Sector[]> {
   return apiGet<Sector[]>("/stock-market-id/sectors");
+}
+
+/**
+ * Get a single document by ID
+ */
+export async function getDocument(
+  documentId: string,
+): Promise<{ id: string; payload: InvestmentDocument }> {
+  return apiGet<{ id: string; payload: InvestmentDocument }>(
+    `/knowledge/documents/${documentId}`,
+  );
+}
+
+/**
+ * Delete a document by ID
+ */
+export async function deleteDocument(documentId: string): Promise<void> {
+  await apiDelete<{ message: string }>(`/knowledge/documents/${documentId}`);
+}
+
+/**
+ * Update a document by ID
+ */
+export async function updateDocument(
+  documentId: string,
+  payload: Omit<InvestmentDocument, "id">,
+): Promise<{ count: number; skipped_count: number }> {
+  return apiPut<{ count: number; skipped_count: number }>(
+    `/knowledge/documents/${documentId}`,
+    payload,
+  );
 }

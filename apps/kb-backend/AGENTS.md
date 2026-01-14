@@ -190,6 +190,46 @@ Dual-interface design: Same functionality exposed as both **HTTP REST endpoints*
    - `POST /stock-market-id/stock-universe/sync/:symbol` - Sync specific symbol (validates symbol exists in universe first)
    - `GET /stock-market-id/stock-universe/list` - List all symbols in stock universe
 
+### Knowledge Base HTTP Endpoints
+
+Document management endpoints that proxy to knowledge-service (`src/knowledge/http.ts`):
+
+1. **List Documents**: `GET /knowledge/documents`
+   - Query params: `limit`, `offset`, `symbols`, `subsectors`, `types`, `date_from`, `date_to`, `pure_sector`
+   - Returns paginated document list with 100-token content previews
+   - Used by ai-frontend timeline view
+
+2. **Search Documents**: `POST /knowledge/documents/search`
+   - Body: `{ query, limit?, symbols?, subsectors?, types?, date_from?, date_to?, pure_sector? }`
+   - Semantic search with hybrid retrieval (dense + sparse vectors)
+   - Returns documents with similarity scores
+
+3. **Get Document**: `GET /knowledge/documents/:documentId`
+   - Returns single document with full payload
+   - Used by ai-frontend document detail page
+   - Returns 404 if not found
+
+4. **Update Document**: `PUT /knowledge/documents/:documentId`
+   - Body: Full `InvestmentDocument` payload (type, content, document_date, source, optional metadata)
+   - Updates document by re-ingesting with same ID via `updateDocument()` method
+   - Performs full replacement of document content and metadata
+   - Returns ingest response with count and skipped_count
+
+5. **Delete Document**: `DELETE /knowledge/documents/:documentId`
+   - Permanently removes document from knowledge base
+   - Returns 404 if document not found
+   - Calls `deleteDocument()` method which proxies to knowledge-service
+
+**KnowledgeService Class Methods** (`src/infrastructure/knowledge-service.ts`):
+
+- `ingestDocuments(request)` - Ingest/update documents with deduplication
+- `listDocuments(params)` - List with filters and pagination
+- `listDocumentsPreview(params)` - List with 100-token content previews
+- `searchDocuments(request)` - Semantic search
+- `getDocument(documentId)` - Retrieve single document
+- `deleteDocument(documentId)` - Delete document (calls knowledge-service DELETE endpoint)
+- `updateDocument(documentId, payload)` - Update document (reuses ingest endpoint with same ID)
+
 ### MCP-Only Features
 
 Available only through Stock MCP Server:

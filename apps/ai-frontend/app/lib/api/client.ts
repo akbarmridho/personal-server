@@ -90,3 +90,18 @@ export async function apiPost<T>(endpoint: string, body?: unknown): Promise<T> {
     body: body ? JSON.stringify(body) : undefined,
   });
 }
+
+// PUT request helper
+export async function apiPut<T>(endpoint: string, body?: unknown): Promise<T> {
+  return apiFetch<T>(endpoint, {
+    method: "PUT",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+// DELETE request helper
+export async function apiDelete<T>(endpoint: string): Promise<T> {
+  return apiFetch<T>(endpoint, {
+    method: "DELETE",
+  });
+}

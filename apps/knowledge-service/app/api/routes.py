@@ -180,13 +180,27 @@ async def get_document(document_id: str):
     Retrieve a document by its ID.
     """
     _, qdrant_svc = get_services()
-    
+
     document = await qdrant_svc.retrieve(document_id)
-    
+
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     return document
+
+@router.delete("/documents/{document_id}", response_model=Dict[str, Any])
+async def delete_document(document_id: str):
+    """
+    Delete a document by its ID.
+    """
+    _, qdrant_svc = get_services()
+
+    deleted = await qdrant_svc.delete_document(document_id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return {"status": "success", "message": f"Document {document_id} deleted"}
 
 @router.get("/documents", response_model=Dict[str, Any])
 async def list_documents(

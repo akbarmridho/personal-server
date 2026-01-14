@@ -206,6 +206,21 @@ export class KnowledgeService {
     );
     return response.data;
   }
+
+  async deleteDocument(documentId: string): Promise<void> {
+    await this.client.delete(`/documents/${documentId}`);
+  }
+
+  async updateDocument(
+    documentId: string,
+    payload: Omit<InvestmentDocument, "id">,
+  ): Promise<IngestResponse> {
+    // Reuse ingest endpoint with same ID for update
+    const request: InvestmentIngestRequest = {
+      documents: [{ id: documentId, ...payload }],
+    };
+    return this.ingestDocuments(request);
+  }
 }
 
 export const knowledgeService = new KnowledgeService(env.KNOWLEDGE_SERVICE_URL);

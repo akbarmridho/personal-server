@@ -25,6 +25,7 @@ Frontend application for displaying investment documents from knowledge-service 
 
 - `card`, `badge`, `calendar`, `popover`, `checkbox`, `separator`
 - `skeleton`, `scroll-area`, `sheet`, `command`, `input`
+- `alert-dialog`, `textarea` (for document deletion and editing)
 
 **State Management:**
 
@@ -41,11 +42,12 @@ apps/ai-frontend/
 │   │   ├── home.tsx                     # Index route
 │   │   ├── timeline.ticker.tsx          # Ticker timeline page
 │   │   ├── timeline.general.tsx         # Non-symbol timeline page
-│   │   └── _layout.timeline.tsx         # Shared timeline layout
+│   │   ├── _layout.timeline.tsx         # Shared timeline layout
+│   │   └── document.$id.tsx             # Document detail/edit/delete page
 │   │
 │   ├── lib/
 │   │   ├── api/
-│   │   │   ├── client.ts                # Base fetch wrapper
+│   │   │   ├── client.ts                # Base fetch wrapper (GET, POST, PUT, DELETE)
 │   │   │   ├── knowledge.ts             # Knowledge service API
 │   │   │   ├── stock-universe.ts        # Stock universe API
 │   │   │   └── types.ts                 # Shared API types
@@ -78,6 +80,7 @@ apps/ai-frontend/
 │   ├── hooks/
 │   │   ├── use-timeline-filters.ts      # Filter state from URL
 │   │   ├── use-timeline-query.ts        # Infinite/search query
+│   │   ├── use-document-query.ts        # Document fetch/update/delete mutations
 │   │   ├── use-stock-universe.ts        # Stock universe query
 │   │   ├── use-theme.ts                 # Dark mode theme hook
 │   │   └── use-debounced-value.ts       # Debounce hook for search
@@ -139,8 +142,50 @@ Two specialized timeline pages for browsing investment documents:
 
 - Metadata badges (symbols, source, document date)
 - Markdown rendering with syntax highlighting
+- Clickable document titles (navigate to detail page)
 - Clickable URLs (open in new tab)
 - Source attribution
+
+### Document Detail View
+
+Individual document page (`/document/:id`) for viewing, editing, and deleting documents:
+
+**View Mode:**
+
+- Full document JSON display with syntax highlighting
+- Metadata badges (type, symbols, subsectors, subindustries)
+- Related URLs section
+- Source information display
+- Document date (Asia/Jakarta timezone)
+- Edit and Delete action buttons
+- Back button with filter preservation
+
+**Edit Mode:**
+
+- JSON editor with textarea (monospace font)
+- Wrap/No Wrap toggle for line wrapping
+- Real-time JSON validation
+- Required field validation (type, content, document_date, source)
+- Error messages for invalid JSON
+- Save and Cancel buttons
+- Updates document via PUT endpoint (calls ingest with same ID)
+- Cache invalidation after successful save (stays on page)
+
+**Delete Flow:**
+
+- Alert dialog confirmation modal
+- Shows document title in confirmation
+- Destructive button styling
+- Redirects to timeline after deletion with preserved filters
+- Invalidates timeline cache
+
+**Key Features:**
+
+- Filter preservation: URL search params maintained throughout navigation
+- Cache management: React Query invalidation prevents stale data
+- Error handling: 404 detection, network error messages
+- Loading states: Skeleton UI while fetching
+- Responsive design: Mobile-friendly layout
 
 ### Smart Mode Switching
 
@@ -237,10 +282,19 @@ The application connects to kb-backend which proxies knowledge-service endpoints
    - Used in Search Mode (when search query provided)
 
 3. **Get Document**: `GET /knowledge/documents/:id`
-   - Response: `{ success: true, data: InvestmentDocument }`
-   - Used to fetch full document details
+   - Response: `{ success: true, data: { id: string, payload: InvestmentDocument } }`
+   - Used to fetch full document details (document detail page)
 
-4. **Stock Universe**: `GET /stock-market-id/stock-universe/list`
+4. **Update Document**: `PUT /knowledge/documents/:id`
+   - Body: `{ type, content, document_date, source, title?, urls?, symbols?, subsectors?, subindustries?, indices? }`
+   - Response: `{ success: true, data: { count: number, skipped_count: number } }`
+   - Updates document by re-ingesting with same ID (full replacement)
+
+5. **Delete Document**: `DELETE /knowledge/documents/:id`
+   - Response: `{ success: true, message: "Document deleted" }`
+   - Permanently deletes document from knowledge base
+
+6. **Stock Universe**: `GET /stock-market-id/stock-universe/list`
    - Response: `{ success: true, symbols: string[], count: number }`
    - Used for ticker filter presets
 

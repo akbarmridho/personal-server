@@ -290,10 +290,10 @@ class QdrantService:
     async def retrieve(self, document_id: str) -> Dict[str, Any]:
         """
         Retrieve a document by its ID.
-        
+
         Args:
             document_id: The document ID
-            
+
         Returns:
             Document dict with id, payload, and vectors
         """
@@ -303,11 +303,36 @@ class QdrantService:
             with_payload=True,
             with_vectors=False
         )
-        
+
         if not point:
             return None
-        
+
         return point[0].model_dump()
+
+    async def delete_document(self, document_id: str) -> bool:
+        """
+        Delete a document by its ID.
+
+        Args:
+            document_id: The ID of the document to delete
+
+        Returns:
+            True if document was deleted, False if not found
+        """
+        # First check if document exists
+        existing = await self.retrieve(document_id)
+        if not existing:
+            return False
+
+        # Delete the document
+        await self.client.delete(
+            collection_name=self.collection_name,
+            points_selector=models.PointIdsList(
+                points=[document_id]
+            )
+        )
+
+        return True
 
     async def scroll(
         self,
