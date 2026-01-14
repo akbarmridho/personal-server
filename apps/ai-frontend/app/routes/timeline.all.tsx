@@ -1,28 +1,28 @@
 import { TimelineContainer } from "~/components/timeline/timeline-container";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
-import type { Route } from "./+types/timeline.ticker";
+import type { Route } from "./+types/timeline.all";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "General Timeline" },
+    { title: "All Timeline" },
     {
       name: "description",
-      content: "Browse general investment documents",
+      content: "Browse all investment documents",
     },
   ];
 }
 
 /**
- * General Timeline Page
- * Shows documents WITHOUT specific stock symbols
+ * All Timeline Page
+ * Shows ALL documents (both with and without stock symbols)
  */
-export default function GeneralTimeline() {
+export default function AllTimeline() {
   const { filters } = useTimelineFilters();
 
   return (
     <div className="space-y-4">
       {/* Timeline */}
-      <TimelineContainer filters={filters} pure_sector={true} />
+      <TimelineContainer filters={filters} />
     </div>
   );
 }

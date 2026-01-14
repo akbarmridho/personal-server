@@ -1,4 +1,4 @@
-import { LayoutDashboard, Radio } from "lucide-react";
+import { Layers, LayoutDashboard, Radio } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { FilterBar } from "~/components/filters/filter-bar";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -18,8 +18,9 @@ import {
 
 export function AppSidebar() {
   const location = useLocation();
+  const isAllActive = location.pathname.includes("/timeline/all");
   const isTickerActive = location.pathname.includes("/timeline/ticker");
-  const isGeneralActive = location.pathname.includes("/timeline/general");
+  const isGeneralActive = location.pathname.includes("/timeline/non-ticker");
 
   return (
     <Sidebar variant="sidebar" collapsible="offcanvas">
@@ -37,6 +38,18 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
+                  isActive={isAllActive}
+                  tooltip="All Timeline"
+                >
+                  <Link to="/timeline/all">
+                    <Layers className="h-4 w-4" />
+                    <span>All Timeline</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
                   isActive={isTickerActive}
                   tooltip="Ticker Timeline"
                 >
@@ -50,11 +63,11 @@ export function AppSidebar() {
                 <SidebarMenuButton
                   asChild
                   isActive={isGeneralActive}
-                  tooltip="General Timeline"
+                  tooltip="Non-Ticker Timeline"
                 >
-                  <Link to="/timeline/general">
+                  <Link to="/timeline/non-ticker">
                     <LayoutDashboard className="h-4 w-4" />
-                    <span>General Timeline</span>
+                    <span>Non-Ticker Timeline</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -68,8 +81,8 @@ export function AppSidebar() {
           <SidebarGroupLabel>Search</SidebarGroupLabel>
           <SidebarGroupContent className="px-1">
             <FilterBar
-              showTickerFilter={isTickerActive}
-              showSubsectorFilter={isGeneralActive}
+              showTickerFilter={isAllActive || isTickerActive}
+              showSubsectorFilter={isAllActive || isGeneralActive}
               compact={true}
             />
           </SidebarGroupContent>

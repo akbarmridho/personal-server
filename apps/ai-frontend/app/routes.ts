@@ -10,8 +10,9 @@ export default [
 
   // Timeline routes with shared layout
   layout("routes/_layout.timeline.tsx", [
+    route("timeline/all", "routes/timeline.all.tsx"),
     route("timeline/ticker", "routes/timeline.ticker.tsx"),
-    route("timeline/general", "routes/timeline.general.tsx"),
+    route("timeline/non-ticker", "routes/timeline.non-ticker.tsx"),
   ]),
 
   // Catch-all route for unmatched paths
