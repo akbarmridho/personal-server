@@ -17,6 +17,7 @@ import { MarkdownRenderer } from "../markdown-renderer";
 interface TimelineItemProps {
   item: Omit<SearchResult, "score">;
   isSearchMode?: boolean;
+  defaultExpanded?: boolean;
 }
 
 /**
@@ -47,14 +48,15 @@ function generateTitle(content: string): string {
 export function TimelineItem({
   item,
   isSearchMode = false,
+  defaultExpanded = false,
 }: TimelineItemProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const location = useLocation();
 
   const content =
     isExpanded || item.payload.content.length < 500
       ? item.payload.content
-      : item.payload.content.slice(0, 500) + "...";
+      : `${item.payload.content.slice(0, 500)}...`;
 
   const hasMore = item.payload.content.length >= 500;
 

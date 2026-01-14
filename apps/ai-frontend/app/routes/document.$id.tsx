@@ -257,7 +257,7 @@ export default function DocumentDetail() {
       {/* Content/Editor */}
       {!isEditing ? (
         // View mode: Use TimelineItem component
-        <TimelineItem item={{ id: documentData.id, payload: doc }} />
+        <TimelineItem item={{ id: documentData.id, payload: doc }} defaultExpanded={true} />
       ) : (
         // Edit mode: JSON editor
         <Card className="p-6">
