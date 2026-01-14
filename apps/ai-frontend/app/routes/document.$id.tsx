@@ -1,6 +1,7 @@
 import { ArrowLeft, Edit, Save, Trash2, WrapText, X } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useParams } from "react-router";
+import { TimelineItem } from "~/components/timeline/timeline-item";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
@@ -21,11 +21,9 @@ import {
   useUpdateDocument,
 } from "~/hooks/use-document-query";
 import type { InvestmentDocument } from "~/lib/api/types";
-import { formatDate } from "~/lib/utils/date";
 
 export default function DocumentDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
@@ -40,7 +38,19 @@ export default function DocumentDetail() {
   // Handle entering edit mode
   const handleEdit = () => {
     if (document) {
-      setEditedContent(JSON.stringify(document.payload, null, 2));
+      // Remove id field and sort properties alphabetically
+      const { id: _id, ...payload } = document.payload;
+      const sortedPayload = Object.keys(payload)
+        .sort()
+        .reduce(
+          (acc, key) => {
+            acc[key] = payload[key as keyof typeof payload];
+            return acc;
+          },
+          {} as Record<string, unknown>,
+        );
+
+      setEditedContent(JSON.stringify(sortedPayload, null, 2));
       setJsonError("");
       setIsEditing(true);
     }
@@ -140,28 +150,15 @@ export default function DocumentDetail() {
   const doc = document.payload;
 
   return (
-    <div className="container max-w-5xl py-8 space-y-6">
+    <div className="space-y-6">
       {/* Header with actions */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm">
-              <Link to={`/timeline/all${window.location.search}`}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Link>
-            </Button>
-            <Badge variant="outline" className="uppercase">
-              {doc.type}
-            </Badge>
-            <span className="text-sm text-muted-foreground">
-              {formatDate(doc.document_date)}
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold leading-tight">
-            {doc.title || "Document Details"}
-          </h1>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <Button asChild variant="ghost" size="sm">
+          <Link to={`/timeline/all${window.location.search}`}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Timeline
+          </Link>
+        </Button>
 
         {/* Action buttons */}
         {!isEditing && (
@@ -172,7 +169,7 @@ export default function DocumentDetail() {
             </Button>
             <Button
               onClick={() => setShowDeleteDialog(true)}
-              variant="destructive"
+              variant="outline"
               size="sm"
             >
               <Trash2 className="w-4 h-4 mr-2" />
@@ -195,6 +192,7 @@ export default function DocumentDetail() {
             <Button
               onClick={handleSave}
               size="sm"
+              variant={"outline"}
               disabled={updateMutation.isPending}
             >
               <Save className="w-4 h-4 mr-2" />
@@ -204,46 +202,13 @@ export default function DocumentDetail() {
         )}
       </div>
 
-      {/* Metadata badges */}
-      {(doc.symbols?.length ||
-        doc.subsectors?.length ||
-        doc.subindustries?.length) && (
-        <div className="flex flex-wrap gap-2">
-          {doc.symbols?.map((symbol) => (
-            <Badge key={symbol} variant="secondary">
-              {symbol}
-            </Badge>
-          ))}
-          {doc.subsectors?.map((subsector) => (
-            <Badge key={subsector} variant="outline">
-              {subsector}
-            </Badge>
-          ))}
-          {doc.subindustries?.map((subindustry) => (
-            <Badge key={subindustry} variant="outline">
-              {subindustry}
-            </Badge>
-          ))}
-        </div>
-      )}
-
       {/* Content/Editor */}
-      <Card className="p-6">
-        {!isEditing ? (
-          // View mode: Display JSON with syntax highlighting
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Document Data</h2>
-              <span className="text-sm text-muted-foreground">
-                ID: {document.id}
-              </span>
-            </div>
-            <pre className="p-4 rounded-md bg-muted overflow-x-auto text-sm font-mono">
-              {JSON.stringify(doc, null, 2)}
-            </pre>
-          </div>
-        ) : (
-          // Edit mode: JSON editor
+      {!isEditing ? (
+        // View mode: Use TimelineItem component
+        <TimelineItem item={{ id: document.id, payload: doc }} />
+      ) : (
+        // Edit mode: JSON editor
+        <Card className="p-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold">Edit Document JSON</h2>
@@ -273,44 +238,6 @@ export default function DocumentDetail() {
               </div>
             )}
           </div>
-        )}
-      </Card>
-
-      {/* URLs section */}
-      {doc.urls && doc.urls.length > 0 && !isEditing && (
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-3">Related URLs</h2>
-          <ul className="space-y-2">
-            {doc.urls.map((url, idx) => (
-              <li key={url}>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline text-sm break-all"
-                >
-                  {url}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
-      {/* Source section */}
-      {!isEditing && (
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-3">Source Information</h2>
-          <dl className="grid grid-cols-2 gap-3 text-sm">
-            {Object.entries(doc.source).map(([key, value]) => (
-              <div key={key}>
-                <dt className="font-medium text-muted-foreground capitalize">
-                  {key}
-                </dt>
-                <dd className="text-foreground">{value}</dd>
-              </div>
-            ))}
-          </dl>
         </Card>
       )}
 

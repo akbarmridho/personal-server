@@ -13,10 +13,9 @@ export default [
     route("timeline/all", "routes/timeline.all.tsx"),
     route("timeline/ticker", "routes/timeline.ticker.tsx"),
     route("timeline/non-ticker", "routes/timeline.non-ticker.tsx"),
+    // Document detail page (shares same sidebar/header)
+    route("document/:id", "routes/document.$id.tsx"),
   ]),
-
-  // Document detail page
-  route("document/:id", "routes/document.$id.tsx"),
 
   // Catch-all route for unmatched paths
   route("*", "routes/$.tsx"),

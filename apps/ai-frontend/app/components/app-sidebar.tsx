@@ -21,6 +21,7 @@ export function AppSidebar() {
   const isAllActive = location.pathname.includes("/timeline/all");
   const isTickerActive = location.pathname.includes("/timeline/ticker");
   const isGeneralActive = location.pathname.includes("/timeline/non-ticker");
+  const isTimelinePage = location.pathname.includes("/timeline/");
 
   return (
     <Sidebar variant="sidebar" collapsible="offcanvas">
@@ -75,18 +76,23 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator />
+        {/* Only show filters on timeline pages, not on document view */}
+        {isTimelinePage && (
+          <>
+            <SidebarSeparator />
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Search</SidebarGroupLabel>
-          <SidebarGroupContent className="px-1">
-            <FilterBar
-              showTickerFilter={isAllActive || isTickerActive}
-              showSubsectorFilter={isAllActive || isGeneralActive}
-              compact={true}
-            />
-          </SidebarGroupContent>
-        </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel>Search</SidebarGroupLabel>
+              <SidebarGroupContent className="px-1">
+                <FilterBar
+                  showTickerFilter={isAllActive || isTickerActive}
+                  showSubsectorFilter={isAllActive || isGeneralActive}
+                  compact={true}
+                />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t bg-muted/5">
