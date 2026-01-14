@@ -4,13 +4,17 @@ import type { Route } from "./+types/timeline.ticker";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Ticker Timeline" },
+    { title: "Ticker Timeline - Vibe Investing" },
     {
       name: "description",
       content: "Browse ticker-specific investment documents",
     },
   ];
 }
+
+export const handle = {
+  headerTitle: "Ticker Timeline",
+};
 
 /**
  * Ticker Timeline Page

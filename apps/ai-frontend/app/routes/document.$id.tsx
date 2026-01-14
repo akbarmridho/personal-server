@@ -1,5 +1,5 @@
 import { ArrowLeft, Edit, Save, Trash2, WrapText, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { TimelineItem } from "~/components/timeline/timeline-item";
 import {
@@ -22,6 +22,48 @@ import {
 } from "~/hooks/use-document-query";
 import type { InvestmentDocument } from "~/lib/api/types";
 
+/**
+ * Generate a title from content when title is missing
+ */
+function generateTitle(content: string): string {
+  const firstSentence = content
+    .match(/^.+?[.!?](?:\s|$)/)?.[0]
+    ?.trim()
+    .replace(/[.!?]$/, "");
+
+  const first8Words = content.split(/\s+/).slice(0, 8).join(" ");
+
+  // Use first 8 words if first sentence is too short (<= 3 words) or too long (> 15 words)
+  if (firstSentence) {
+    const wordCount = firstSentence.split(/\s+/).length;
+    if (wordCount > 3 && wordCount <= 12) {
+      return firstSentence;
+    }
+  }
+
+  return first8Words || content.slice(0, 100);
+}
+
+/**
+ * Static meta for initial page load (client-side will update with actual title)
+ */
+export function meta() {
+  return [
+    { title: "Document - Vibe Investing" },
+    {
+      name: "description",
+      content: "View and edit investment document details",
+    },
+  ];
+}
+
+/**
+ * Handle export for layout header title
+ */
+export const handle = {
+  headerTitle: "Document",
+};
+
 export default function DocumentDetail() {
   const { id } = useParams<{ id: string }>();
 
@@ -31,15 +73,25 @@ export default function DocumentDetail() {
   const [wrap, setWrap] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const { data: document, isLoading, error } = useDocumentQuery(id!);
+  const { data: documentData, isLoading, error } = useDocumentQuery(id!);
   const deleteMutation = useDeleteDocument();
   const updateMutation = useUpdateDocument();
 
+  // Update document title when data loads
+  useEffect(() => {
+    if (documentData) {
+      const docTitle =
+        documentData.payload.title ||
+        generateTitle(documentData.payload.content);
+      document.title = `${docTitle} - Vibe Investing`;
+    }
+  }, [documentData]);
+
   // Handle entering edit mode
   const handleEdit = () => {
-    if (document) {
+    if (documentData) {
       // Remove id field and sort properties alphabetically
-      const { id: _id, ...payload } = document.payload;
+      const { id: _id, ...payload } = documentData.payload;
       const sortedPayload = Object.keys(payload)
         .sort()
         .reduce(
@@ -121,7 +173,7 @@ export default function DocumentDetail() {
   }
 
   // Error state
-  if (error || !document) {
+  if (error || !documentData) {
     return (
       <div className="container max-w-5xl py-8">
         <Card className="p-6">
@@ -147,7 +199,7 @@ export default function DocumentDetail() {
     );
   }
 
-  const doc = document.payload;
+  const doc = documentData.payload;
 
   return (
     <div className="space-y-6">
@@ -205,7 +257,7 @@ export default function DocumentDetail() {
       {/* Content/Editor */}
       {!isEditing ? (
         // View mode: Use TimelineItem component
-        <TimelineItem item={{ id: document.id, payload: doc }} />
+        <TimelineItem item={{ id: documentData.id, payload: doc }} />
       ) : (
         // Edit mode: JSON editor
         <Card className="p-6">

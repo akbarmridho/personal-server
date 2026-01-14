@@ -4,13 +4,17 @@ import type { Route } from "./+types/timeline.all";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "All Timeline" },
+    { title: "All Timeline - Vibe Investing" },
     {
       name: "description",
       content: "Browse all investment documents",
     },
   ];
 }
+
+export const handle = {
+  headerTitle: "All Timeline",
+};
 
 /**
  * All Timeline Page

@@ -4,13 +4,17 @@ import type { Route } from "./+types/timeline.non-ticker";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Non-Ticker Timeline" },
+    { title: "Non-Ticker Timeline - Vibe Investing" },
     {
       name: "description",
       content: "Browse non-ticker investment documents",
     },
   ];
 }
+
+export const handle = {
+  headerTitle: "Non-Ticker Timeline",
+};
 
 /**
  * Non-Ticker Timeline Page

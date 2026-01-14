@@ -1,4 +1,4 @@
-import { Outlet } from "react-router";
+import { Outlet, useMatches } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
 import {
   SidebarInset,
@@ -10,6 +10,13 @@ import {
  * Shared layout for timeline pages - Shadcn Sidebar Design
  */
 export default function TimelineLayout() {
+  // Get the current route's handle for dynamic title
+  const matches = useMatches();
+  const currentRoute = matches[matches.length - 1];
+  const headerTitle =
+    (currentRoute?.handle as { headerTitle?: string })?.headerTitle ||
+    "Vibe Investing";
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -20,7 +27,7 @@ export default function TimelineLayout() {
             <SidebarTrigger className="-ml-1" />
             <div className="h-4 w-px bg-border/60 mx-1 hidden sm:block" />
             <h2 className="text-sm font-semibold truncate max-w-[200px] sm:max-w-none">
-              Vibe Investing
+              {headerTitle}
             </h2>
           </div>
         </header>
