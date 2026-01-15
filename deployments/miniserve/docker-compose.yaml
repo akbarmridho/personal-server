@@ -1,0 +1,15 @@
+services:
+  miniserve:
+    image: docker.io/svenstaro/miniserve:0.32.0-alpine
+    container_name: miniserve
+    volumes:
+      - ./miniserve-data:/data
+    ports:
+      - "8024:8080"
+    command: /data
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true

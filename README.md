@@ -96,7 +96,7 @@ docker network create personal_network
 - `8019` Trilium.
 - `8020` Trilium MCP.
 
-## Filesystem MCP
+### Filesystem MCP
 
 - `8021` MCP.
 - `8022` Notesdiscovery.
@@ -104,3 +104,7 @@ docker network create personal_network
 ### AI Frontend
 
 - `8023` AI Frontend.
+
+### Miniserve
+
+- `8024` Miniserve
