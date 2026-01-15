@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { useSources } from "~/hooks/use-sources";
-import { cn } from "~/lib/utils";
+import { cn, formatHyphenatedText } from "~/lib/utils";
 
 interface SourceFilterProps {
   value?: string[];
@@ -44,7 +44,7 @@ export function SourceFilter({
       return "Source";
     }
     if (value.length === 1) {
-      return value[0];
+      return formatHyphenatedText(value[0]);
     }
     return `${value.length} sources`;
   };
@@ -85,7 +85,7 @@ export function SourceFilter({
           </div>
         ) : (
           <div className="max-h-64 overflow-y-auto">
-            {sources.map((source) => (
+            {[...sources].sort().map((source) => (
               <div
                 key={source}
                 className="flex items-center space-x-2 cursor-pointer hover:bg-accent p-1.5 rounded"
@@ -108,7 +108,7 @@ export function SourceFilter({
                   htmlFor={`source-${source}`}
                   className="text-sm cursor-pointer flex-1"
                 >
-                  {source}
+                  {formatHyphenatedText(source)}
                 </label>
               </div>
             ))}
