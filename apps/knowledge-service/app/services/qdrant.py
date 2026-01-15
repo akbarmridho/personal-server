@@ -86,17 +86,20 @@ class QdrantService:
         indexes = {
             # Document classification
             "type": models.PayloadSchemaType.KEYWORD,
-            
+
             # Symbol filtering
             "symbols": models.PayloadSchemaType.KEYWORD,
-            
+
             # Subsector/subindustry filtering
             "subsectors": models.PayloadSchemaType.KEYWORD,
             "subindustries": models.PayloadSchemaType.KEYWORD,
             "indices": models.PayloadSchemaType.KEYWORD,
-            
+
             # Time-based queries
             "document_date": models.PayloadSchemaType.DATETIME,
+
+            # Source filtering (nested field)
+            "source.name": models.PayloadSchemaType.KEYWORD,
         }
         
         for field_name, field_type in indexes.items():
@@ -148,6 +151,7 @@ class QdrantService:
                     * True: Only documents WITHOUT symbols (pure sector/market news)
                     * False: Only documents WITH symbols (ticker-specific news)
                     * None/not provided: No filter on symbols (show all documents)
+                - source_names: List of source.name values to match
 
         Returns:
             Qdrant Filter object with must/must_not clauses, or None if no filters
@@ -227,6 +231,15 @@ class QdrantService:
                 models.FieldCondition(
                     key="document_date",
                     range=models.DatetimeRange(**date_range)
+                )
+            )
+
+        # Source name filtering (nested field)
+        if filters.get('source_names'):
+            must_conditions.append(
+                models.FieldCondition(
+                    key="source.name",
+                    match=models.MatchAny(any=filters['source_names'])
                 )
             )
 

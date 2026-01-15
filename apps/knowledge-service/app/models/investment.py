@@ -111,6 +111,10 @@ class InvestmentSearchRequest(BaseModel):
         default=None,
         description="Filter for documents without symbols (pure sector/market news)"
     )
+    source_names: Optional[List[str]] = Field(
+        default=None,
+        description="Filter by source.name values"
+    )
 
 
 class SearchResult(BaseModel):

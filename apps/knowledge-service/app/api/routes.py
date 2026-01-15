@@ -133,6 +133,7 @@ async def search_documents(request: InvestmentSearchRequest):
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
     - pure_sector: Filter for documents without symbols (pure sector/market news)
+    - source_names: List of source.name values
     - use_dense: Enable/disable dense vector search (default: true)
       When false, uses only sparse + late interaction (free, no API costs)
     """
@@ -167,6 +168,8 @@ async def search_documents(request: InvestmentSearchRequest):
         filters['date_to'] = request.date_to
     if request.pure_sector is not None:
         filters['pure_sector'] = request.pure_sector
+    if request.source_names:
+        filters['source_names'] = request.source_names
 
     query_filter = qdrant_svc.build_filter(filters) if filters else None
 
@@ -225,7 +228,8 @@ async def list_documents(
     types: Optional[List[DocumentType]] = Query(default=None),
     date_from: Optional[str] = Query(default=None),
     date_to: Optional[str] = Query(default=None),
-    pure_sector: Optional[bool] = Query(default=None)
+    pure_sector: Optional[bool] = Query(default=None),
+    source_names: Optional[List[str]] = Query(default=None)
 ):
     """
     List/scroll through documents with optional metadata filtering.
@@ -237,6 +241,7 @@ async def list_documents(
     - types: List of document types
     - date_from/date_to: Date range filtering (ISO format)
     - pure_sector: Filter for documents without symbols (pure sector/market news)
+    - source_names: List of source.name values
 
     Pagination:
     - limit: Number of results per page (1-100)
@@ -260,6 +265,8 @@ async def list_documents(
         filters['date_to'] = date_to
     if pure_sector is not None:
         filters['pure_sector'] = pure_sector
+    if source_names:
+        filters['source_names'] = source_names
     
     scroll_filter = qdrant_svc.build_filter(filters) if filters else None
     
