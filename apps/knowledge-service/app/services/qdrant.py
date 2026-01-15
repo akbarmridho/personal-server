@@ -522,3 +522,29 @@ class QdrantService:
                 })
         
         return similar_docs
+
+    async def get_unique_source_names(self) -> List[str]:
+        """
+        Get unique source.name values using Qdrant's facet API.
+
+        Uses the facet aggregation feature which is much faster than scrolling
+        through all documents. Requires the keyword index on source.name field.
+
+        Returns:
+            List of unique source.name values, sorted alphabetically
+        """
+        # Use Qdrant's facet API for efficient aggregation
+        # This is similar to SQL's GROUP BY and is extremely fast
+        result = await self.client.facet(
+            collection_name=self.collection_name,
+            key="source.name",  # Nested field using dot notation
+            limit=1000,  # Max unique sources to return (increase if needed)
+            exact=False,  # Use approximate counting for speed
+        )
+
+        # Extract unique values from facet hits
+        # Result format: FacetResponse with hits=[{"value": "source_name", "count": N}, ...]
+        source_names = [hit.value for hit in result.hits]
+
+        # Sort alphabetically for consistent ordering
+        return sorted(source_names)

@@ -279,6 +279,22 @@ async def list_documents(
     
     return result
 
+@router.get("/sources", response_model=List[str])
+async def list_source_names():
+    """
+    List unique source.name values from all documents.
+
+    Returns:
+        List of unique source names, sorted alphabetically
+    """
+    _, qdrant_svc = get_services()
+
+    try:
+        source_names = await qdrant_svc.get_unique_source_names()
+        return source_names
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/admin/enable-indexing")
 async def enable_indexing():
     """
@@ -286,7 +302,7 @@ async def enable_indexing():
     This will create payload indexes and update HNSW configuration.
     """
     _, qdrant_svc = get_services()
-    
+
     try:
         await qdrant_svc.enable_indexing()
         return {

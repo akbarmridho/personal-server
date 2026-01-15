@@ -33,4 +33,7 @@ export const queryKeys = {
     all: ["all-companies"] as const,
     list: () => [...queryKeys.allCompanies.all, "list"] as const,
   },
+
+  // Source names
+  sources: () => ["sources"] as const,
 } as const;

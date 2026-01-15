@@ -34,6 +34,7 @@ export function useTimelineQuery(
     date_from: filters.date_from,
     date_to: filters.date_to,
     pure_sector,
+    source_names: filters.source_names,
   };
 
   // 1. SEARCH QUERY (Single query, no pagination)

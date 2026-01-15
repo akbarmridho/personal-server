@@ -27,6 +27,8 @@ export async function listDocuments(
   if (params.date_to) queryParams.date_to = params.date_to;
   if (params.pure_sector !== undefined)
     queryParams.pure_sector = String(params.pure_sector);
+  if (params.source_names?.length)
+    queryParams.source_names = params.source_names.join(",");
 
   return apiGet<ListDocumentsResponse>("/knowledge/documents", queryParams);
 }
@@ -50,6 +52,7 @@ export async function searchDocuments(
   if (params.date_from) body.date_from = params.date_from;
   if (params.date_to) body.date_to = params.date_to;
   if (params.pure_sector !== undefined) body.pure_sector = params.pure_sector;
+  if (params.source_names?.length) body.source_names = params.source_names;
 
   return apiPost<SearchResult[]>("/knowledge/documents/search", body);
 }
@@ -59,6 +62,13 @@ export async function searchDocuments(
  */
 export async function getSubsectors(): Promise<Sector[]> {
   return apiGet<Sector[]>("/stock-market-id/sectors");
+}
+
+/**
+ * Get unique source names from all documents
+ */
+export async function getSourceNames(): Promise<string[]> {
+  return apiGet<string[]>("/knowledge/sources");
 }
 
 /**

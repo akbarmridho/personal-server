@@ -49,6 +49,7 @@ export interface ListDocumentsParams {
   date_from?: string | null;
   date_to?: string | null;
   pure_sector?: boolean | null;
+  source_names?: string[] | null;
 }
 
 export interface DocumentSnapshot {
@@ -81,6 +82,7 @@ export interface SearchRequest {
   date_from?: string | null;
   date_to?: string | null;
   pure_sector?: boolean | null;
+  source_names?: string[] | null;
 }
 
 export interface SearchResult {
@@ -221,6 +223,11 @@ export class KnowledgeService {
       documents: [{ id: documentId, ...payload }],
     };
     return this.ingestDocuments(request);
+  }
+
+  async listSourceNames(): Promise<string[]> {
+    const response = await this.client.get<string[]>("/sources");
+    return response.data;
   }
 }
 

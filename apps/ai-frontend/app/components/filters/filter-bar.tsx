@@ -9,6 +9,7 @@ import { hasActiveFilters } from "~/lib/utils/url-params";
 import { DateFilter } from "./date-filter";
 import { FilterBadge } from "./filter-badge";
 import { SearchFilter, type SearchFilterRef } from "./search-filter";
+import { SourceFilter } from "./source-filter";
 import { SubsectorFilter } from "./subsector-filter";
 import { TickerFilter } from "./ticker-filter";
 import { TypeFilter } from "./type-filter";
@@ -66,6 +67,11 @@ export function FilterBar({
 
   const handleSubsectorsChange = useCallback(
     (subsectors: string[] | undefined) => updateFilters({ subsectors }),
+    [updateFilters],
+  );
+
+  const handleSourceNamesChange = useCallback(
+    (source_names: string[] | undefined) => updateFilters({ source_names }),
     [updateFilters],
   );
 
@@ -130,6 +136,15 @@ export function FilterBar({
               />
             </div>
           )}
+
+          {/* Source Filter */}
+          <div className={compact ? "w-full" : ""}>
+            <SourceFilter
+              value={filters.source_names}
+              onChange={handleSourceNamesChange}
+              fullWidth={compact}
+            />
+          </div>
 
           {/* Clear All Button */}
           {hasActiveFilters(filters) && (
@@ -215,6 +230,22 @@ export function FilterBar({
                   updateFilters({
                     subsectors: filters.subsectors?.filter(
                       (s) => s !== subsector,
+                    ),
+                  })
+                }
+              />
+            ))}
+
+            {/* Source Badges */}
+            {filters.source_names?.map((source) => (
+              <FilterBadge
+                key={source}
+                label="Source"
+                value={source}
+                onRemove={() =>
+                  updateFilters({
+                    source_names: filters.source_names?.filter(
+                      (s) => s !== source,
                     ),
                   })
                 }

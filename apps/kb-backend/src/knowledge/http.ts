@@ -5,6 +5,17 @@ import {
 } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";
 
+// Simple in-memory cache for source names
+let sourceNamesCache: {
+  data: string[] | null;
+  timestamp: number | null;
+} = {
+  data: null,
+  timestamp: null,
+};
+
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 export const setupKnowledgeRoutes = () =>
   new Elysia({ prefix: "/knowledge" })
     .get(
@@ -20,6 +31,7 @@ export const setupKnowledgeRoutes = () =>
             date_from: query.date_from || null,
             date_to: query.date_to || null,
             pure_sector: query.pure_sector,
+            source_names: query.source_names?.split(",") || null,
           });
           return { success: true, data: result };
         } catch (err) {
@@ -38,12 +50,13 @@ export const setupKnowledgeRoutes = () =>
           date_from: t.Optional(t.String()),
           date_to: t.Optional(t.String()),
           pure_sector: t.Optional(t.Boolean()),
+          source_names: t.Optional(t.String()),
         }),
         detail: {
           tags: ["Knowledge Base"],
           summary: "List documents from knowledge base",
           description:
-            "Returns a paginated list of documents with optional filters for symbols, subsectors, document types, and date ranges. Returns 100-token previews of document content.",
+            "Returns a paginated list of documents with optional filters for symbols, subsectors, document types, source names, and date ranges. Returns 100-token previews of document content.",
         },
       },
     )
@@ -61,6 +74,7 @@ export const setupKnowledgeRoutes = () =>
             date_from: body.date_from || null,
             date_to: body.date_to || null,
             pure_sector: body.pure_sector || null,
+            source_names: body.source_names || null,
           });
           return { success: true, data: result };
         } catch (err) {
@@ -80,12 +94,55 @@ export const setupKnowledgeRoutes = () =>
           date_from: t.Optional(t.String()),
           date_to: t.Optional(t.String()),
           pure_sector: t.Optional(t.Boolean()),
+          source_names: t.Optional(t.Array(t.String())),
         }),
         detail: {
           tags: ["Knowledge Base"],
           summary: "Semantic search in knowledge base",
           description:
-            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Set use_dense=false to disable expensive dense vector search (OpenRouter API) and use only sparse + late interaction reranking. Supports filters for symbols, subsectors, document types, and date ranges. Returns documents ranked by relevance with similarity scores.",
+            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Set use_dense=false to disable expensive dense vector search (OpenRouter API) and use only sparse + late interaction reranking. Supports filters for symbols, subsectors, document types, source names, and date ranges. Returns documents ranked by relevance with similarity scores.",
+        },
+      },
+    )
+    .get(
+      "/sources",
+      async ({ set }) => {
+        try {
+          const now = Date.now();
+
+          // Check if cache is valid
+          if (
+            sourceNamesCache.data &&
+            sourceNamesCache.timestamp &&
+            now - sourceNamesCache.timestamp < CACHE_TTL_MS
+          ) {
+            logger.info("Returning cached source names");
+            return { success: true, data: sourceNamesCache.data };
+          }
+
+          // Fetch fresh data
+          logger.info("Fetching fresh source names from knowledge service");
+          const sourceNames = await knowledgeService.listSourceNames();
+
+          // Update cache
+          sourceNamesCache = {
+            data: sourceNames,
+            timestamp: now,
+          };
+
+          return { success: true, data: sourceNames };
+        } catch (err) {
+          logger.error({ err }, "List source names failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        detail: {
+          tags: ["Knowledge Base"],
+          summary: "List unique source names",
+          description:
+            "Returns a list of unique source.name values from all documents in the knowledge base. Results are cached for 1 hour for performance.",
         },
       },
     )

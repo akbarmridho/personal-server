@@ -10,6 +10,7 @@ export interface TimelineFilters {
   types?: DocumentType[];
   symbols?: string[];
   subsectors?: string[];
+  source_names?: string[];
 }
 
 /**
@@ -42,6 +43,10 @@ export function serializeFilters(
 
   if (filters.subsectors?.length) {
     params.subsectors = filters.subsectors.join(",");
+  }
+
+  if (filters.source_names?.length) {
+    params.source_names = filters.source_names.join(",");
   }
 
   return params;
@@ -85,6 +90,11 @@ export function deserializeFilters(
     filters.subsectors = subsectors.split(",");
   }
 
+  const sourceNames = searchParams.get("source_names");
+  if (sourceNames) {
+    filters.source_names = sourceNames.split(",");
+  }
+
   return filters;
 }
 
@@ -105,6 +115,7 @@ export function hasActiveFilters(filters: TimelineFilters): boolean {
     filters.date_to ||
     filters.types?.length ||
     filters.symbols?.length ||
-    filters.subsectors?.length
+    filters.subsectors?.length ||
+    filters.source_names?.length
   );
 }

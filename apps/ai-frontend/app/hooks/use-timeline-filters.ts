@@ -40,6 +40,8 @@ export function useTimelineFilters() {
             cleanedFilters.symbols = newFilters.symbols;
           if (newFilters.subsectors?.length)
             cleanedFilters.subsectors = newFilters.subsectors;
+          if (newFilters.source_names?.length)
+            cleanedFilters.source_names = newFilters.source_names;
 
           return serializeFilters(cleanedFilters);
         },
