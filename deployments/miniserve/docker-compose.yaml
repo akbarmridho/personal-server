@@ -6,7 +6,7 @@ services:
       - ./miniserve-data:/data
     ports:
       - "8024:8080"
-    command: /data
+    command: -u -U -- /data
     networks:
       - personal_network
 
