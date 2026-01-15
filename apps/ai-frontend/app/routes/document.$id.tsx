@@ -90,17 +90,32 @@ export default function DocumentDetail() {
   // Handle entering edit mode
   const handleEdit = () => {
     if (documentData) {
-      // Remove id field and sort properties alphabetically
+      // Remove id field and sort properties with custom order
       const { id: _id, ...payload } = documentData.payload;
-      const sortedPayload = Object.keys(payload)
-        .sort()
-        .reduce(
-          (acc, key) => {
+
+      // Define logical field ordering
+      const fieldOrder = [
+        "title",
+        "type",
+        "content",
+        "document_date",
+        "source",
+        "urls",
+        "symbols",
+        "subsectors",
+        "subindustries",
+        "indices",
+      ];
+
+      const sortedPayload = fieldOrder.reduce(
+        (acc, key) => {
+          if (key in payload) {
             acc[key] = payload[key as keyof typeof payload];
-            return acc;
-          },
-          {} as Record<string, unknown>,
-        );
+          }
+          return acc;
+        },
+        {} as Record<string, unknown>,
+      );
 
       setEditedContent(JSON.stringify(sortedPayload, null, 2));
       setJsonError("");
@@ -257,7 +272,10 @@ export default function DocumentDetail() {
       {/* Content/Editor */}
       {!isEditing ? (
         // View mode: Use TimelineItem component
-        <TimelineItem item={{ id: documentData.id, payload: doc }} defaultExpanded={true} />
+        <TimelineItem
+          item={{ id: documentData.id, payload: doc }}
+          defaultExpanded={true}
+        />
       ) : (
         // Edit mode: JSON editor
         <Card className="p-6">
