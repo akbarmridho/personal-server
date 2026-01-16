@@ -36,6 +36,7 @@ export const env = createEnv({
 
     // knowledge service
     KNOWLEDGE_SERVICE_URL: z.string(),
+    MINISERVE_SERVICE_URL: z.string().default("https://fs.akbarmr.dev"),
 
     // discord
     DISCORD_TOKEN: z.string(),

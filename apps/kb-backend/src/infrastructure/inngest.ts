@@ -3,6 +3,7 @@ import type {
   ArticleContent,
   ArticleInfo,
 } from "../data-modules/algoresearch/types.js";
+import type { GoldenArticleEvent } from "../data-modules/golden-article/ingest.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
 import type { FilingEventData } from "../data-modules/stockbit-filing/ingest.js";
 import type { YoutubeVideoEntry } from "../data-modules/youtube/crawl.js";
@@ -128,6 +129,9 @@ type Events = {
   };
   "data/stockbit-announcement-ingest": {
     data: FilingEventData;
+  };
+  "data/golden-article": {
+    data: GoldenArticleEvent;
   };
   "notify/discord-kb-ingestion": {
     data: {

@@ -3,6 +3,7 @@ import type { InngestFunction } from "inngest";
 import { algoResearchCrawl } from "../data-modules/algoresearch/crawl.js";
 import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
 import { algoresearchScrape } from "../data-modules/algoresearch/scrape.js";
+import { goldenArticleIngest } from "../data-modules/golden-article/ingest.js";
 import {
   hpMarketUpdateCrawl,
   hpStockUpdateCrawl,
@@ -131,4 +132,5 @@ export const inngestFunctions: InngestFunction.Like[] = [
   kisiMonthlyResearchIngest,
   stockbitFilingCrawl,
   stockbitAnnouncementIngest,
+  goldenArticleIngest,
 ];
