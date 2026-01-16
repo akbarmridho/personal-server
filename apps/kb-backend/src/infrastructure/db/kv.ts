@@ -87,7 +87,7 @@ export class KV {
       .insertInto("kv_store")
       .values({
         key,
-        value: sql`jsonb_build_object(${arrayPath}, '[]'::jsonb)`,
+        value: sql`jsonb_build_object(${sql.lit(arrayPath)}, '[]'::jsonb)`,
         expires_at: null,
       })
       .onConflict((oc) => oc.column("key").doNothing())
@@ -101,11 +101,11 @@ export class KV {
       .set({
         value: sql`
           CASE
-            WHEN value->>${arrayPath} ? ${value} THEN value
+            WHEN value->>${sql.lit(arrayPath)} ? ${value} THEN value
             ELSE jsonb_set(
               value,
               ${sql.lit(`{${arrayPath}}`)},
-              (COALESCE(value->${arrayPath}, '[]'::jsonb) || ${sql`to_jsonb(${value}::text)`}),
+              (COALESCE(value->${sql.lit(arrayPath)}, '[]'::jsonb) || ${sql`to_jsonb(${value}::text)`}),
               true
             )
           END
@@ -113,7 +113,7 @@ export class KV {
         updated_at: new Date(),
       })
       .where("key", "=", key)
-      .returning(sql`value->>${arrayPath}`.as("array"))
+      .returning(sql`value->>${sql.lit(arrayPath)}`.as("array"))
       .executeTakeFirstOrThrow();
 
     return JSON.parse(result.array as string);
@@ -136,7 +136,7 @@ export class KV {
             ${sql.lit(`{${arrayPath}}`)},
             (
               SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)
-              FROM jsonb_array_elements_text(COALESCE(value->${arrayPath}, '[]'::jsonb)) elem
+              FROM jsonb_array_elements_text(COALESCE(value->${sql.lit(arrayPath)}, '[]'::jsonb)) elem
               WHERE elem != ${value}
             ),
             true
@@ -145,7 +145,7 @@ export class KV {
         updated_at: new Date(),
       })
       .where("key", "=", key)
-      .returning(sql`value->>${arrayPath}`.as("array"))
+      .returning(sql`value->>${sql.lit(arrayPath)}`.as("array"))
       .executeTakeFirst();
 
     if (!result) {

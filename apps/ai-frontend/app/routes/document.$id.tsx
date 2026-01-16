@@ -23,11 +23,17 @@ import {
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Textarea } from "~/components/ui/textarea";
+import { useProfile } from "~/contexts/profile-context";
 import {
   useDeleteDocument,
   useDocumentQuery,
   useUpdateDocument,
 } from "~/hooks/use-document-query";
+import {
+  useMarkAsRead,
+  useMarkAsUnread,
+  useReadArticles,
+} from "~/hooks/use-read-articles";
 import type { InvestmentDocument } from "~/lib/api/types";
 
 /**
@@ -85,6 +91,21 @@ export default function DocumentDetail() {
   const { data: documentData, isLoading, error } = useDocumentQuery(id!);
   const deleteMutation = useDeleteDocument();
   const updateMutation = useUpdateDocument();
+
+  // Golden article read tracking
+  const { profile } = useProfile();
+  const { data: readIds = [] } = useReadArticles(profile);
+  const markAsRead = useMarkAsRead();
+  const markAsUnread = useMarkAsUnread();
+
+  // Determine if this is a golden article and its read status
+  const isGoldenArticle =
+    documentData?.payload.source?.platform === "golden-article" ||
+    (typeof documentData?.payload.source === "object" &&
+      Object.values(documentData.payload.source).some(
+        (val) => typeof val === "string" && val.includes("golden-article"),
+      ));
+  const isRead = isGoldenArticle && id ? readIds.includes(id) : false;
 
   // Function to copy iframe code to clipboard
   const handleCopyIframe = async () => {
@@ -303,6 +324,20 @@ export default function DocumentDetail() {
         <TimelineItem
           item={{ id: documentData.id, payload: doc }}
           defaultExpanded={true}
+          isRead={isRead}
+          onMarkRead={
+            isGoldenArticle && profile
+              ? (documentId) =>
+                  markAsRead.mutate({ profileId: profile, documentId })
+              : undefined
+          }
+          onMarkUnread={
+            isGoldenArticle && profile
+              ? (documentId) =>
+                  markAsUnread.mutate({ profileId: profile, documentId })
+              : undefined
+          }
+          isGoldenArticle={isGoldenArticle}
         />
       ) : (
         // Edit mode: JSON editor

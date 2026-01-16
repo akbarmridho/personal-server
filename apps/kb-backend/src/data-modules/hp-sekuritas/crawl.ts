@@ -2,6 +2,7 @@ import axios from "axios";
 import normalizeUrl from "normalize-url";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { logger } from "../../utils/logger.js";
 
 const stockLastCrawlID = "data-modules.hp.stock-last-crawl-id";
 const marketLastCrawlID = "data-modules.hp.market-last-crawl-id";
@@ -95,11 +96,11 @@ export const fetchInsights = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Axios error message:", error.message);
+      logger.error({ error }, "Axios error message:");
       // You might want to throw error or return null depending on your architecture
       throw error;
     } else {
-      console.error("Unexpected error:", error);
+      logger.error({ error }, "Unexpected error:");
       throw new Error("An unexpected error occurred");
     }
   }

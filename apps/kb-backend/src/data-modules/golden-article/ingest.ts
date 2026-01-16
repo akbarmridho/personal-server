@@ -10,6 +10,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
+import { logger } from "../../utils/logger.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
@@ -181,10 +182,7 @@ export const goldenArticleIngest = inngest.createFunction(
               $(img).attr("alt", "");
             }
           } catch (error) {
-            console.error(
-              `Failed to process image ${originalSrc}:`,
-              error instanceof Error ? error.message : error,
-            );
+            logger.error({ error }, `Failed to process image ${originalSrc}:`);
             // Continue with original URL if processing fails
           }
         }

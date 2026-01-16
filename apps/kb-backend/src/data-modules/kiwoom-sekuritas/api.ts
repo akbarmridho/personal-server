@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
+import { logger } from "../../utils/logger.js";
 
 // ==========================================
 // 1. Common Interfaces (Request & Response)
@@ -94,7 +95,7 @@ async function fetchKiwoomList<T>(
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error(`[Axios Error] ${endpoint}: ${error.message}`);
+      logger.error(`[Axios Error] ${endpoint}: ${error.message}`);
     }
     throw error;
   }

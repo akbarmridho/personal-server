@@ -3,6 +3,7 @@ import { convertHtmlToMarkdown } from "dom-to-semantic-markdown";
 import he from "he";
 import { JSDOM } from "jsdom";
 import * as prettier from "prettier";
+import { logger } from "./logger.js";
 
 export async function formatMarkdown(
   unformattedMarkdown: string,
@@ -17,7 +18,7 @@ export async function formatMarkdown(
 
     return formattedMarkdown;
   } catch (error) {
-    console.error("Error formatting Markdown:", error);
+    logger.error({ error }, "Error formatting Markdown:");
     throw error;
   }
 }
@@ -32,7 +33,7 @@ export async function formatHtml(unformatted: string): Promise<string> {
 
     return formatted;
   } catch (error) {
-    console.error("Error formatting Markdown:", error);
+    logger.error({ error }, "Error formatting Markdown:");
     throw error;
   }
 }

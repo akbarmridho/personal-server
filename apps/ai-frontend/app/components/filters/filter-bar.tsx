@@ -85,7 +85,9 @@ export function FilterBar({
 
   const handleReadStatusChange = useCallback(
     (read_status: ReadStatusFilterType | undefined) =>
-      updateFilters({ read_status }),
+      updateFilters({
+        read_status: read_status === "all" ? undefined : read_status,
+      }),
     [updateFilters],
   );
 
