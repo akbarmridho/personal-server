@@ -101,7 +101,7 @@ export class KV {
       .set({
         value: sql`
           CASE
-            WHEN value->>${sql.lit(arrayPath)} ? ${value} THEN value
+            WHEN value->${sql.lit(arrayPath)} ? ${value} THEN value
             ELSE jsonb_set(
               value,
               ${sql.lit(`{${arrayPath}}`)},
