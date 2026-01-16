@@ -115,6 +115,14 @@ class InvestmentSearchRequest(BaseModel):
         default=None,
         description="Filter by source.name values"
     )
+    include_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Only include documents with these IDs (whitelist)"
+    )
+    exclude_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Exclude documents with these IDs (blacklist)"
+    )
 
 
 class SearchResult(BaseModel):

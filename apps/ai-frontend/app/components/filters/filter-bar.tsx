@@ -5,9 +5,13 @@ import { useSubsectors } from "~/hooks/use-subsectors";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
 import type { DocumentType } from "~/lib/api/types";
 import { DOCUMENT_TYPE_OPTIONS } from "~/lib/constants/filters";
-import { hasActiveFilters } from "~/lib/utils/url-params";
+import {
+  hasActiveFilters,
+  type ReadStatusFilter as ReadStatusFilterType,
+} from "~/lib/utils/url-params";
 import { DateFilter } from "./date-filter";
 import { FilterBadge } from "./filter-badge";
+import { ReadStatusFilter } from "./read-status-filter";
 import { SearchFilter, type SearchFilterRef } from "./search-filter";
 import { SourceFilter } from "./source-filter";
 import { SubsectorFilter } from "./subsector-filter";
@@ -17,6 +21,7 @@ import { TypeFilter } from "./type-filter";
 interface FilterBarProps {
   showTickerFilter?: boolean;
   showSubsectorFilter?: boolean;
+  showReadStatusFilter?: boolean;
   compact?: boolean;
 }
 
@@ -26,6 +31,7 @@ interface FilterBarProps {
 export function FilterBar({
   showTickerFilter = false,
   showSubsectorFilter = false,
+  showReadStatusFilter = false,
   compact = false,
 }: FilterBarProps) {
   const { filters, updateFilters, clearFilters } = useTimelineFilters();
@@ -72,6 +78,12 @@ export function FilterBar({
 
   const handleSourceNamesChange = useCallback(
     (source_names: string[] | undefined) => updateFilters({ source_names }),
+    [updateFilters],
+  );
+
+  const handleReadStatusChange = useCallback(
+    (read_status: ReadStatusFilterType | undefined) =>
+      updateFilters({ read_status }),
     [updateFilters],
   );
 
@@ -145,6 +157,16 @@ export function FilterBar({
               fullWidth={compact}
             />
           </div>
+
+          {/* Read Status Filter (Golden Article Timeline Only) */}
+          {showReadStatusFilter && (
+            <div className={compact ? "w-full" : ""}>
+              <ReadStatusFilter
+                value={filters.read_status || "all"}
+                onChange={handleReadStatusChange}
+              />
+            </div>
+          )}
 
           {/* Clear All Button */}
           {hasActiveFilters(filters) && (
@@ -251,6 +273,19 @@ export function FilterBar({
                 }
               />
             ))}
+
+            {/* Read Status Badge */}
+            {filters.read_status && filters.read_status !== "all" && (
+              <FilterBadge
+                label="Read Status"
+                value={
+                  filters.read_status === "read" ? "Read Only" : "Unread Only"
+                }
+                onRemove={() => {
+                  updateFilters({ read_status: undefined });
+                }}
+              />
+            )}
           </div>
         )}
       </div>

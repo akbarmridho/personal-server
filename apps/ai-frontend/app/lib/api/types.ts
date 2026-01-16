@@ -85,6 +85,8 @@ export interface FilterParams {
   date_to?: string;
   pure_sector?: boolean;
   source_names?: string[];
+  include_ids?: string[];
+  exclude_ids?: string[];
 }
 
 // Search Parameters

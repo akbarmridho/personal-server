@@ -152,6 +152,8 @@ class QdrantService:
                     * False: Only documents WITH symbols (ticker-specific news)
                     * None/not provided: No filter on symbols (show all documents)
                 - source_names: List of source.name values to match
+                - include_ids: List of document IDs to include (whitelist)
+                - exclude_ids: List of document IDs to exclude (blacklist)
 
         Returns:
             Qdrant Filter object with must/must_not clauses, or None if no filters
@@ -240,6 +242,24 @@ class QdrantService:
                 models.FieldCondition(
                     key="source.name",
                     match=models.MatchAny(any=filters['source_names'])
+                )
+            )
+
+        # Include IDs filter (whitelist)
+        if filters.get('include_ids'):
+            must_conditions.append(
+                models.FieldCondition(
+                    key="id",
+                    match=models.MatchAny(any=filters['include_ids'])
+                )
+            )
+
+        # Exclude IDs filter (blacklist)
+        if filters.get('exclude_ids'):
+            must_not_conditions.append(
+                models.FieldCondition(
+                    key="id",
+                    match=models.MatchAny(any=filters['exclude_ids'])
                 )
             )
 

@@ -50,6 +50,8 @@ export interface ListDocumentsParams {
   date_to?: string | null;
   pure_sector?: boolean | null;
   source_names?: string[] | null;
+  include_ids?: string[] | null;
+  exclude_ids?: string[] | null;
 }
 
 export interface DocumentSnapshot {
@@ -83,6 +85,8 @@ export interface SearchRequest {
   date_to?: string | null;
   pure_sector?: boolean | null;
   source_names?: string[] | null;
+  include_ids?: string[] | null;
+  exclude_ids?: string[] | null;
 }
 
 export interface SearchResult {

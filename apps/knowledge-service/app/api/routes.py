@@ -134,6 +134,8 @@ async def search_documents(request: InvestmentSearchRequest):
     - date_from/date_to: Date range filtering (ISO format)
     - pure_sector: Filter for documents without symbols (pure sector/market news)
     - source_names: List of source.name values
+    - include_ids: Only include documents with these IDs (whitelist)
+    - exclude_ids: Exclude documents with these IDs (blacklist)
     - use_dense: Enable/disable dense vector search (default: true)
       When false, uses only sparse + late interaction (free, no API costs)
     """
@@ -170,6 +172,10 @@ async def search_documents(request: InvestmentSearchRequest):
         filters['pure_sector'] = request.pure_sector
     if request.source_names:
         filters['source_names'] = request.source_names
+    if request.include_ids:
+        filters['include_ids'] = request.include_ids
+    if request.exclude_ids:
+        filters['exclude_ids'] = request.exclude_ids
 
     query_filter = qdrant_svc.build_filter(filters) if filters else None
 
@@ -229,7 +235,15 @@ async def list_documents(
     date_from: Optional[str] = Query(default=None),
     date_to: Optional[str] = Query(default=None),
     pure_sector: Optional[bool] = Query(default=None),
-    source_names: Optional[List[str]] = Query(default=None)
+    source_names: Optional[List[str]] = Query(default=None),
+    include_ids: Optional[List[str]] = Query(
+        default=None,
+        description="Only include documents with these IDs"
+    ),
+    exclude_ids: Optional[List[str]] = Query(
+        default=None,
+        description="Exclude documents with these IDs"
+    )
 ):
     """
     List/scroll through documents with optional metadata filtering.
@@ -242,6 +256,8 @@ async def list_documents(
     - date_from/date_to: Date range filtering (ISO format)
     - pure_sector: Filter for documents without symbols (pure sector/market news)
     - source_names: List of source.name values
+    - include_ids: Only include documents with these IDs (whitelist)
+    - exclude_ids: Exclude documents with these IDs (blacklist)
 
     Pagination:
     - limit: Number of results per page (1-100)
@@ -267,7 +283,11 @@ async def list_documents(
         filters['pure_sector'] = pure_sector
     if source_names:
         filters['source_names'] = source_names
-    
+    if include_ids:
+        filters['include_ids'] = include_ids
+    if exclude_ids:
+        filters['exclude_ids'] = exclude_ids
+
     scroll_filter = qdrant_svc.build_filter(filters) if filters else None
     
     # Scroll with filter

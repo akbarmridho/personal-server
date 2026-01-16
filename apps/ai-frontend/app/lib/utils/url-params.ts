@@ -1,6 +1,11 @@
 import type { DocumentType } from "../api/types";
 
 /**
+ * Read status filter options for golden article timeline
+ */
+export type ReadStatusFilter = "all" | "read" | "unread";
+
+/**
  * Timeline filter state that can be encoded in URL
  */
 export interface TimelineFilters {
@@ -11,6 +16,7 @@ export interface TimelineFilters {
   symbols?: string[];
   subsectors?: string[];
   source_names?: string[];
+  read_status?: ReadStatusFilter;
 }
 
 /**
@@ -47,6 +53,10 @@ export function serializeFilters(
 
   if (filters.source_names?.length) {
     params.source_names = filters.source_names.join(",");
+  }
+
+  if (filters.read_status) {
+    params.read_status = filters.read_status;
   }
 
   return params;
@@ -95,6 +105,11 @@ export function deserializeFilters(
     filters.source_names = sourceNames.split(",");
   }
 
+  const readStatus = searchParams.get("read_status");
+  if (readStatus && readStatus !== "all") {
+    filters.read_status = readStatus as ReadStatusFilter;
+  }
+
   return filters;
 }
 
@@ -116,6 +131,7 @@ export function hasActiveFilters(filters: TimelineFilters): boolean {
     filters.types?.length ||
     filters.symbols?.length ||
     filters.subsectors?.length ||
-    filters.source_names?.length
+    filters.source_names?.length ||
+    filters.read_status
   );
 }

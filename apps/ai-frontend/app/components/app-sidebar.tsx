@@ -1,4 +1,10 @@
-import { Layers, LayoutDashboard, Radio, Sparkles } from "lucide-react";
+import {
+  Layers,
+  LayoutDashboard,
+  Radio,
+  Sparkles,
+  UserCircle,
+} from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { FilterBar } from "~/components/filters/filter-bar";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -15,9 +21,11 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "~/components/ui/sidebar";
+import { useGoldenArticleProfile } from "~/hooks/use-golden-article-profile";
 
 export function AppSidebar() {
   const location = useLocation();
+  const { profile } = useGoldenArticleProfile();
   const isAllActive = location.pathname.includes("/timeline/all");
   const isTickerActive = location.pathname.includes("/timeline/ticker");
   const isGeneralActive = location.pathname.includes("/timeline/non-ticker");
@@ -106,6 +114,7 @@ export function AppSidebar() {
                   showSubsectorFilter={
                     isAllActive || isGeneralActive || isGoldenArticleActive
                   }
+                  showReadStatusFilter={isGoldenArticleActive}
                   compact={true}
                 />
               </SidebarGroupContent>
@@ -116,7 +125,16 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4 border-t bg-muted/5">
         <div className="flex items-center justify-between w-full">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-widest"></span>
+          {/* Profile indicator (only on golden article timeline) */}
+          {isGoldenArticleActive && profile && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <UserCircle className="h-4 w-4" />
+              <span className="font-medium">{profile}</span>
+            </div>
+          )}
+          {!isGoldenArticleActive && (
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest"></span>
+          )}
           <ThemeToggle />
         </div>
       </SidebarFooter>

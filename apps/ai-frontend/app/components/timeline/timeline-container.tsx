@@ -2,6 +2,12 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
+import { useGoldenArticleProfile } from "~/hooks/use-golden-article-profile";
+import {
+  useMarkAsRead,
+  useMarkAsUnread,
+  useReadArticles,
+} from "~/hooks/use-read-articles";
 import {
   getTimelineItems,
   isSearchMode,
@@ -15,17 +21,38 @@ import { TimelineSkeleton } from "./timeline-skeleton";
 interface TimelineContainerProps {
   filters: TimelineFilters;
   pure_sector?: boolean;
+  // Golden article read tracking props
+  enableReadTracking?: boolean;
 }
 
 /**
  * Main timeline container with infinite scroll support
+ * Includes golden article read tracking when enabled
  */
 export function TimelineContainer({
   filters,
   pure_sector,
+  enableReadTracking = false,
 }: TimelineContainerProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const queryResult = useTimelineQuery(filters, pure_sector);
+
+  // Read tracking hooks (only for golden article timeline)
+  const { profile } = useGoldenArticleProfile();
+  const { data: readIds = [] } = useReadArticles(
+    enableReadTracking ? profile : null,
+  );
+  const markAsRead = useMarkAsRead();
+  const markAsUnread = useMarkAsUnread();
+
+  // Determine if this is a golden article timeline
+  const isGoldenArticleTimeline =
+    enableReadTracking && filters.source_names?.includes("golden-article");
+
+  const queryResult = useTimelineQuery(
+    filters,
+    pure_sector,
+    isGoldenArticleTimeline ? readIds : undefined,
+  );
 
   const isSearch = isSearchMode(queryResult);
   const items = getTimelineItems(queryResult);
@@ -104,8 +131,29 @@ export function TimelineContainer({
     <div className="space-y-4">
       {/* Timeline items */}
       {items.map((item) => {
+        const isRead = isGoldenArticleTimeline && readIds.includes(item.id);
         return (
-          <TimelineItem key={item.id} item={item} isSearchMode={isSearch} />
+          <TimelineItem
+            key={item.id}
+            item={item}
+            isSearchMode={isSearch}
+            isRead={isRead}
+            onMarkRead={
+              isGoldenArticleTimeline && profile
+                ? (documentId) => {
+                    markAsRead.mutate({ profileId: profile, documentId });
+                  }
+                : undefined
+            }
+            onMarkUnread={
+              isGoldenArticleTimeline && profile
+                ? (documentId) => {
+                    markAsUnread.mutate({ profileId: profile, documentId });
+                  }
+                : undefined
+            }
+            isGoldenArticle={isGoldenArticleTimeline}
+          />
         );
       })}
 

@@ -1,10 +1,13 @@
 import {
   Building2,
   Calendar,
+  Check,
   ChevronDown,
   ChevronUp,
+  Circle,
   Link as LinkIcon,
   Share2,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
@@ -21,6 +24,11 @@ interface TimelineItemProps {
   isSearchMode?: boolean;
   defaultExpanded?: boolean;
   hideShareButton?: boolean;
+  // Golden article read tracking props
+  isRead?: boolean;
+  onMarkRead?: (documentId: string) => void;
+  onMarkUnread?: (documentId: string) => void;
+  isGoldenArticle?: boolean;
 }
 
 /**
@@ -53,6 +61,10 @@ export function TimelineItem({
   isSearchMode = false,
   defaultExpanded = false,
   hideShareButton = false,
+  isRead = false,
+  onMarkRead,
+  onMarkUnread,
+  isGoldenArticle = false,
 }: TimelineItemProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
@@ -115,14 +127,64 @@ export function TimelineItem({
             </div>
           </div>
 
-          {/* Doc Type Badge & Share Button */}
+          {/* Doc Type Badge, Read Status, & Share Button */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Read Status Badge (Golden Article only) */}
+            {isGoldenArticle && (
+              <Badge
+                variant={isRead ? "default" : "outline"}
+                className={
+                  isRead
+                    ? "text-[10px] h-5 px-2 uppercase tracking-wider font-medium bg-green-600 text-white border-green-600"
+                    : "text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
+                }
+              >
+                {isRead ? (
+                  <>
+                    <Check className="w-3 h-3 mr-1" />
+                    Read
+                  </>
+                ) : (
+                  <>
+                    <Circle className="w-3 h-3 mr-1" />
+                    Unread
+                  </>
+                )}
+              </Badge>
+            )}
+
+            {/* Document Type Badge */}
             <Badge
               variant="outline"
               className="text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
             >
               {item.payload.type}
             </Badge>
+
+            {/* Mark as Read/Unread Button (Golden Article only) */}
+            {isGoldenArticle && onMarkRead && onMarkUnread && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isRead) {
+                    onMarkUnread(item.payload.id);
+                  } else {
+                    onMarkRead(item.payload.id);
+                  }
+                }}
+                className="h-6 px-2 text-xs"
+                title={isRead ? "Mark as unread" : "Mark as read"}
+              >
+                {isRead ? (
+                  <X className="w-3 h-3" />
+                ) : (
+                  <Check className="w-3 h-3" />
+                )}
+              </Button>
+            )}
+
             {!hideShareButton && (
               <Button
                 variant="ghost"

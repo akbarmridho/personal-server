@@ -3,6 +3,7 @@ import {
   type DocumentType,
   knowledgeService,
 } from "../infrastructure/knowledge-service.js";
+import { KV } from "../infrastructure/db/kv.js";
 import { logger } from "../utils/logger.js";
 
 // Simple in-memory cache for source names
@@ -32,6 +33,8 @@ export const setupKnowledgeRoutes = () =>
             date_to: query.date_to || null,
             pure_sector: query.pure_sector,
             source_names: query.source_names?.split(",") || null,
+            include_ids: query.include_ids?.split(",") || null,
+            exclude_ids: query.exclude_ids?.split(",") || null,
           });
           return { success: true, data: result };
         } catch (err) {
@@ -51,6 +54,8 @@ export const setupKnowledgeRoutes = () =>
           date_to: t.Optional(t.String()),
           pure_sector: t.Optional(t.Boolean()),
           source_names: t.Optional(t.String()),
+          include_ids: t.Optional(t.String()),
+          exclude_ids: t.Optional(t.String()),
         }),
         detail: {
           tags: ["Knowledge Base"],
@@ -75,6 +80,8 @@ export const setupKnowledgeRoutes = () =>
             date_to: body.date_to || null,
             pure_sector: body.pure_sector || null,
             source_names: body.source_names || null,
+            include_ids: body.include_ids || null,
+            exclude_ids: body.exclude_ids || null,
           });
           return { success: true, data: result };
         } catch (err) {
@@ -95,6 +102,8 @@ export const setupKnowledgeRoutes = () =>
           date_to: t.Optional(t.String()),
           pure_sector: t.Optional(t.Boolean()),
           source_names: t.Optional(t.Array(t.String())),
+          include_ids: t.Optional(t.Array(t.String())),
+          exclude_ids: t.Optional(t.Array(t.String())),
         }),
         detail: {
           tags: ["Knowledge Base"],
@@ -238,6 +247,137 @@ export const setupKnowledgeRoutes = () =>
           summary: "Update document by ID",
           description:
             "Update a document by re-ingesting with the same ID. Performs full replacement of the document content and metadata.",
+        },
+      },
+    )
+    // Golden Article Read Status Endpoints
+    .get(
+      "/golden-article/reads/:profileId",
+      async ({ params, set }) => {
+        const { profileId } = params;
+        const key = `golden-article-reads:${profileId}`;
+
+        try {
+          const data = (await KV.get(key)) as { articleIds: string[] } | null;
+          const articleIds = data?.articleIds || [];
+
+          return {
+            success: true,
+            data: {
+              profileId,
+              articleIds,
+            },
+          };
+        } catch (error) {
+          set.status = 500;
+          return {
+            success: false,
+            error:
+              error instanceof Error ? error.message : "Failed to get read articles",
+          };
+        }
+      },
+      {
+        params: t.Object({
+          profileId: t.String({ minLength: 1, maxLength: 50 }),
+        }),
+        detail: {
+          tags: ["Golden Article"],
+          summary: "Get read articles for a profile",
+          description: "Fetch all article IDs that have been marked as read for a specific profile",
+        },
+      },
+    )
+    .post(
+      "/golden-article/reads/:profileId/read",
+      async ({ params, body, set }) => {
+        const { profileId } = params;
+        const { documentId } = body;
+        const key = `golden-article-reads:${profileId}`;
+
+        try {
+          // Read current array
+          const data = (await KV.get(key)) as { articleIds: string[] } | null;
+          const currentIds = data?.articleIds || [];
+
+          // Check if already exists (deduplicate)
+          if (!currentIds.includes(documentId)) {
+            currentIds.push(documentId);
+          }
+
+          // Write back
+          await KV.set(key, { articleIds: currentIds });
+
+          return {
+            success: true,
+            data: {
+              articleIds: currentIds,
+            },
+          };
+        } catch (error) {
+          set.status = 500;
+          return {
+            success: false,
+            error:
+              error instanceof Error ? error.message : "Failed to mark article as read",
+          };
+        }
+      },
+      {
+        params: t.Object({
+          profileId: t.String({ minLength: 1, maxLength: 50 }),
+        }),
+        body: t.Object({
+          documentId: t.String(),
+        }),
+        detail: {
+          tags: ["Golden Article"],
+          summary: "Mark article as read",
+          description: "Add an article ID to the read list for a specific profile",
+        },
+      },
+    )
+    .delete(
+      "/golden-article/reads/:profileId/read/:documentId",
+      async ({ params, set }) => {
+        const { profileId, documentId } = params;
+        const key = `golden-article-reads:${profileId}`;
+
+        try {
+          // Read current array
+          const data = (await KV.get(key)) as { articleIds: string[] } | null;
+          const currentIds = data?.articleIds || [];
+
+          // Filter out the documentId
+          const updatedIds = currentIds.filter((id) => id !== documentId);
+
+          // Write back
+          await KV.set(key, { articleIds: updatedIds });
+
+          return {
+            success: true,
+            data: {
+              articleIds: updatedIds,
+            },
+          };
+        } catch (error) {
+          set.status = 500;
+          return {
+            success: false,
+            error:
+              error instanceof Error ? error.message : "Failed to mark article as unread",
+          };
+        }
+      },
+      {
+        params: t.Object({
+          profileId: t.String({ minLength: 1, maxLength: 50 }),
+          documentId: t.String(),
+        }),
+        detail: {
+          tags: ["Golden Article"],
+          summary: "Mark article as unread",
+          description: "Remove an article ID from the read list for a specific profile",
         },
       },
     );

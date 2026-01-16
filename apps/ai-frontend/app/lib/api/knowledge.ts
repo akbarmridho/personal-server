@@ -29,6 +29,10 @@ export async function listDocuments(
     queryParams.pure_sector = String(params.pure_sector);
   if (params.source_names?.length)
     queryParams.source_names = params.source_names.join(",");
+  if (params.include_ids?.length)
+    queryParams.include_ids = params.include_ids.join(",");
+  if (params.exclude_ids?.length)
+    queryParams.exclude_ids = params.exclude_ids.join(",");
 
   return apiGet<ListDocumentsResponse>("/knowledge/documents", queryParams);
 }
@@ -53,6 +57,8 @@ export async function searchDocuments(
   if (params.date_to) body.date_to = params.date_to;
   if (params.pure_sector !== undefined) body.pure_sector = params.pure_sector;
   if (params.source_names?.length) body.source_names = params.source_names;
+  if (params.include_ids?.length) body.include_ids = params.include_ids;
+  if (params.exclude_ids?.length) body.exclude_ids = params.exclude_ids;
 
   return apiPost<SearchResult[]>("/knowledge/documents/search", body);
 }

@@ -42,6 +42,8 @@ export function useTimelineFilters() {
             cleanedFilters.subsectors = newFilters.subsectors;
           if (newFilters.source_names?.length)
             cleanedFilters.source_names = newFilters.source_names;
+          if (newFilters.read_status)
+            cleanedFilters.read_status = newFilters.read_status;
 
           return serializeFilters(cleanedFilters);
         },

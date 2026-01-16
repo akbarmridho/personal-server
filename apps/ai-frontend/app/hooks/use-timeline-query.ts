@@ -17,10 +17,14 @@ const useDenseVector = false;
  * Hook for fetching timeline data with smart mode switching
  * - List Mode (no search query): Infinite scroll with cursor pagination
  * - Search Mode (search query present): Single query with all results
+ * @param filters - Timeline filters from URL
+ * @param pure_sector - Whether to filter for non-ticker documents
+ * @param readIds - Optional list of read article IDs for backend filtering (Golden Article feature)
  */
 export function useTimelineQuery(
   filters: TimelineFilters,
   pure_sector?: boolean,
+  readIds?: string[],
 ):
   | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
   | UseQueryResult<SearchResult[]> {
@@ -35,6 +39,11 @@ export function useTimelineQuery(
     date_to: filters.date_to,
     pure_sector,
     source_names: filters.source_names,
+    // Backend filtering for read status (Golden Article feature)
+    include_ids:
+      filters.read_status === "read" && readIds?.length ? readIds : undefined,
+    exclude_ids:
+      filters.read_status === "unread" && readIds?.length ? readIds : undefined,
   };
 
   // 1. SEARCH QUERY (Single query, no pagination)
