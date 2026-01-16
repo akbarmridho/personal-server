@@ -28,14 +28,14 @@ const READ_STATUS_OPTIONS: ReadStatusFilterOption[] = [
     icon: <LayoutGrid className="h-4 w-4" />,
   },
   {
-    value: "unread",
-    label: "Unread Only",
-    icon: <EyeOff className="h-4 w-4" />,
-  },
-  {
     value: "read",
     label: "Read Only",
     icon: <CheckCircle2 className="h-4 w-4" />,
+  },
+  {
+    value: "unread",
+    label: "Unread Only",
+    icon: <EyeOff className="h-4 w-4" />,
   },
 ];
 

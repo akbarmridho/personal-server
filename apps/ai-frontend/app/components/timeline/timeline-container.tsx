@@ -271,7 +271,7 @@ export function TimelineContainer({
       {!isSearch &&
         paginationMetadata &&
         paginationMetadata.total_pages > 1 && (
-          <div className="flex justify-center pb-8">
+          <div className="flex justify-center">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
