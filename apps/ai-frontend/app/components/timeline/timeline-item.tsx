@@ -74,7 +74,7 @@ export function TimelineItem({
   const handleCopyIframe = async () => {
     const baseUrl = window.location.origin;
     const embedUrl = `${baseUrl}/embed/document/${item.payload.id}`;
-    const iframeCode = `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0" style="border: 1px solid #e5e7eb; border-radius: 8px;"></iframe>`;
+    const iframeCode = `<iframe src="${embedUrl}" width="100%" height="400" frameborder="0" style="border: 1px solid #e5e7eb; border-radius: 8px;"></iframe>`;
 
     try {
       await navigator.clipboard.writeText(iframeCode);

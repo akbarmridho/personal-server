@@ -22,6 +22,7 @@ interface FilterBarProps {
   showTickerFilter?: boolean;
   showSubsectorFilter?: boolean;
   showReadStatusFilter?: boolean;
+  showSourceFilter?: boolean;
   compact?: boolean;
 }
 
@@ -32,6 +33,7 @@ export function FilterBar({
   showTickerFilter = false,
   showSubsectorFilter = false,
   showReadStatusFilter = false,
+  showSourceFilter = true,
   compact = false,
 }: FilterBarProps) {
   const { filters, updateFilters, clearFilters } = useTimelineFilters();
@@ -150,13 +152,15 @@ export function FilterBar({
           )}
 
           {/* Source Filter */}
-          <div className={compact ? "w-full" : ""}>
-            <SourceFilter
-              value={filters.source_names}
-              onChange={handleSourceNamesChange}
-              fullWidth={compact}
-            />
-          </div>
+          {showSourceFilter && (
+            <div className={compact ? "w-full" : ""}>
+              <SourceFilter
+                value={filters.source_names}
+                onChange={handleSourceNamesChange}
+                fullWidth={compact}
+              />
+            </div>
+          )}
 
           {/* Read Status Filter (Golden Article Timeline Only) */}
           {showReadStatusFilter && (

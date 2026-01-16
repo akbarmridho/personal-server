@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { FilterBar } from "~/components/filters/filter-bar";
 import { ProfileSelectorModal } from "~/components/golden-article/profile-selector-modal";
 import { TimelineContainer } from "~/components/timeline/timeline-container";
 import { useGoldenArticleProfile } from "~/hooks/use-golden-article-profile";
@@ -49,9 +48,6 @@ export default function GoldenArticleTimeline() {
 
   return (
     <div className="space-y-4">
-      {/* Filter Bar with Read Status Filter */}
-      <FilterBar showReadStatusFilter={true} showTickerFilter={true} />
-
       {/* Profile Selector Modal (first load if no profile) */}
       <ProfileSelectorModal
         open={showProfileModal}
