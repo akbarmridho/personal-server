@@ -134,13 +134,12 @@ export function TimelineContainer({
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
-    // Save current scroll position
+    // Scroll to top when changing pages
     if (typeof window !== "undefined") {
-      try {
-        sessionStorage.setItem(SCROLL_STATE_KEY, String(window.scrollY));
-      } catch {
-        // Ignore errors
-      }
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     }
 
     setSearchParams((prev) => {
@@ -248,11 +247,31 @@ export function TimelineContainer({
         );
       })}
 
+      {/* Search mode result count */}
+      {isSearch && items.length > 0 && (
+        <p className="text-center text-sm text-muted-foreground py-4">
+          Found {items.length} matching documents
+        </p>
+      )}
+
+      {/* List mode result count */}
+      {!isSearch && paginationMetadata && (
+        <p className="text-center text-sm text-muted-foreground pt-4 pb-2">
+          Showing{" "}
+          {(paginationMetadata.page - 1) * paginationMetadata.page_size + 1} -{" "}
+          {Math.min(
+            paginationMetadata.page * paginationMetadata.page_size,
+            paginationMetadata.total_count,
+          )}{" "}
+          of {paginationMetadata.total_count} documents
+        </p>
+      )}
+
       {/* Pagination (list mode only) */}
       {!isSearch &&
         paginationMetadata &&
         paginationMetadata.total_pages > 1 && (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center pb-8">
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
@@ -310,26 +329,6 @@ export function TimelineContainer({
             </Pagination>
           </div>
         )}
-
-      {/* Search mode result count */}
-      {isSearch && items.length > 0 && (
-        <p className="text-center text-sm text-muted-foreground py-4">
-          Found {items.length} matching documents
-        </p>
-      )}
-
-      {/* List mode result count */}
-      {!isSearch && paginationMetadata && (
-        <p className="text-center text-sm text-muted-foreground py-4">
-          Showing{" "}
-          {(paginationMetadata.page - 1) * paginationMetadata.page_size + 1} -{" "}
-          {Math.min(
-            paginationMetadata.page * paginationMetadata.page_size,
-            paginationMetadata.total_count,
-          )}{" "}
-          of {paginationMetadata.total_count} documents
-        </p>
-      )}
 
       {/* Scroll to top button */}
       <ScrollToTopButton />
