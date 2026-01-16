@@ -1,21 +1,41 @@
+import { useState } from "react";
 import { Outlet, useMatches } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
+import { ProfileSelectorModal } from "~/components/profile-selector-modal";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "~/components/ui/sidebar";
+import { useProfile } from "~/contexts/profile-context";
 
 /**
  * Shared layout for timeline pages - Shadcn Sidebar Design
+ * Shows profile selector modal on first visit if no profile exists
  */
 export default function TimelineLayout() {
+  const { shouldShowModal, dismissModal } = useProfile();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   // Get the current route's handle for dynamic title
   const matches = useMatches();
   const currentRoute = matches[matches.length - 1];
   const headerTitle =
     (currentRoute?.handle as { headerTitle?: string })?.headerTitle ||
     "Vibe Investing";
+
+  // Show profile modal on mount if needed (first-time visitors)
+  // Using setTimeout to avoid hydration mismatch
+  if (shouldShowModal && !showProfileModal && typeof window !== "undefined") {
+    setTimeout(() => setShowProfileModal(true), 100);
+  }
+
+  const handleModalChange = (open: boolean) => {
+    setShowProfileModal(open);
+    if (!open) {
+      dismissModal(); // Mark as shown even if user closes without selecting
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -39,6 +59,12 @@ export default function TimelineLayout() {
           </div>
         </div>
       </SidebarInset>
+
+      {/* Profile Selector Modal (first-time visit) */}
+      <ProfileSelectorModal
+        open={showProfileModal}
+        onOpenChange={handleModalChange}
+      />
     </SidebarProvider>
   );
 }

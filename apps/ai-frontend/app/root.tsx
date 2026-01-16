@@ -8,7 +8,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-
+import { ProfileProvider } from "~/contexts/profile-context";
 import type { Route } from "./+types/root";
 import "./app.css";
 
@@ -77,7 +77,9 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <ProfileProvider>
+        <Outlet />
+      </ProfileProvider>
     </QueryClientProvider>
   );
 }

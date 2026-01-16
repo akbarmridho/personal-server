@@ -8,7 +8,7 @@ import {
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { FilterBar } from "~/components/filters/filter-bar";
-import { ProfileSelectorModal } from "~/components/golden-article/profile-selector-modal";
+import { ProfileSelectorModal } from "~/components/profile-selector-modal";
 import { ThemeToggle } from "~/components/theme-toggle";
 import {
   Sidebar,
@@ -23,11 +23,11 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "~/components/ui/sidebar";
-import { useGoldenArticleProfile } from "~/hooks/use-golden-article-profile";
+import { useProfile } from "~/contexts/profile-context";
 
 export function AppSidebar() {
   const location = useLocation();
-  const { profile } = useGoldenArticleProfile();
+  const { profile } = useProfile();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const isAllActive = location.pathname.includes("/timeline/all");
   const isTickerActive = location.pathname.includes("/timeline/ticker");
@@ -129,8 +129,8 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4 border-t bg-muted/5">
         <div className="flex items-center justify-between w-full">
-          {/* Profile selector button (only on golden article timeline) */}
-          {isGoldenArticleActive && profile && (
+          {/* Profile selector button (shown on all timeline pages when profile exists) */}
+          {isTimelinePage && profile && (
             <button
               type="button"
               onClick={() => setShowProfileModal(true)}
@@ -140,7 +140,7 @@ export function AppSidebar() {
               <span className="font-medium">{profile}</span>
             </button>
           )}
-          {!isGoldenArticleActive && (
+          {(!isTimelinePage || !profile) && (
             <span className="text-[10px] text-muted-foreground uppercase tracking-widest"></span>
           )}
           <ThemeToggle />

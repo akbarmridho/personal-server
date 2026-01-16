@@ -2,7 +2,7 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
-import { useGoldenArticleProfile } from "~/hooks/use-golden-article-profile";
+import { useProfile } from "~/contexts/profile-context";
 import {
   useMarkAsRead,
   useMarkAsUnread,
@@ -21,13 +21,13 @@ import { TimelineSkeleton } from "./timeline-skeleton";
 interface TimelineContainerProps {
   filters: TimelineFilters;
   pure_sector?: boolean;
-  // Golden article read tracking props
+  // Read tracking props (uses app-wide profile)
   enableReadTracking?: boolean;
 }
 
 /**
  * Main timeline container with infinite scroll support
- * Includes golden article read tracking when enabled
+ * Includes read tracking when enabled (uses app-wide profile)
  */
 export function TimelineContainer({
   filters,
@@ -36,8 +36,8 @@ export function TimelineContainer({
 }: TimelineContainerProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Read tracking hooks (only for golden article timeline)
-  const { profile } = useGoldenArticleProfile();
+  // Read tracking hooks (uses app-wide profile)
+  const { profile } = useProfile();
   const { data: readIds = [] } = useReadArticles(
     enableReadTracking ? profile : null,
   );

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { useGoldenArticleProfile } from "~/hooks/use-golden-article-profile";
+import { useProfile } from "~/contexts/profile-context";
 
 // Predefined profiles to suggest
 const PREDEFINED_PROFILES = ["Akbar", "Razzan", "Awe", "Guest"] as const;
@@ -21,14 +21,14 @@ interface ProfileSelectorModalProps {
 }
 
 /**
- * Modal for selecting or creating a golden article reading profile
- * Shows predefined profiles and allows creating custom ones
+ * Modal for selecting or creating a reading profile
+ * Shows predefined profiles with app-wide read tracking support
  */
 export function ProfileSelectorModal({
   open,
   onOpenChange,
 }: ProfileSelectorModalProps) {
-  const { profile, setProfile } = useGoldenArticleProfile();
+  const { profile, setProfile } = useProfile();
 
   const handleSelectProfile = (profileName: string) => {
     setProfile(profileName);
@@ -44,8 +44,8 @@ export function ProfileSelectorModal({
             <DialogTitle>Select Reading Profile</DialogTitle>
           </div>
           <DialogDescription>
-            Choose a profile to track which articles you've read. Each profile
-            has its own reading history.
+            Choose a profile to track your reading progress across the app. Each
+            profile maintains its own reading history.
           </DialogDescription>
         </DialogHeader>
 
