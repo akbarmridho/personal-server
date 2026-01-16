@@ -72,4 +72,86 @@ export class KV {
       throw error;
     }
   }
+
+  /**
+   * Atomically add a value to a JSONB array field if it doesn't already exist.
+   * Creates the key and array if they don't exist.
+   */
+  static async arrayAdd(
+    key: string,
+    arrayPath: string,
+    value: string,
+  ): Promise<string[]> {
+    // First ensure the key exists with an empty array
+    await db
+      .insertInto("kv_store")
+      .values({
+        key,
+        value: sql`jsonb_build_object(${arrayPath}, '[]'::jsonb)`,
+        expires_at: null,
+      })
+      .onConflict((oc) => oc.column("key").doNothing())
+      .execute();
+
+    // Atomically append to array if value doesn't exist
+    // Using PostgreSQL's || operator for array concatenation
+    // and ? operator to check existence
+    const result = await db
+      .updateTable("kv_store")
+      .set({
+        value: sql`
+          CASE
+            WHEN value->>${arrayPath} ? ${value} THEN value
+            ELSE jsonb_set(
+              value,
+              ${sql.lit(`{${arrayPath}}`)},
+              (COALESCE(value->${arrayPath}, '[]'::jsonb) || ${sql`to_jsonb(${value}::text)`}),
+              true
+            )
+          END
+        `,
+        updated_at: new Date(),
+      })
+      .where("key", "=", key)
+      .returning(sql`value->>${arrayPath}`.as("array"))
+      .executeTakeFirstOrThrow();
+
+    return JSON.parse(result.array as string);
+  }
+
+  /**
+   * Atomically remove a value from a JSONB array field.
+   */
+  static async arrayRemove(
+    key: string,
+    arrayPath: string,
+    value: string,
+  ): Promise<string[]> {
+    const result = await db
+      .updateTable("kv_store")
+      .set({
+        value: sql`
+          jsonb_set(
+            value,
+            ${sql.lit(`{${arrayPath}}`)},
+            (
+              SELECT COALESCE(jsonb_agg(elem), '[]'::jsonb)
+              FROM jsonb_array_elements_text(COALESCE(value->${arrayPath}, '[]'::jsonb)) elem
+              WHERE elem != ${value}
+            ),
+            true
+          )
+        `,
+        updated_at: new Date(),
+      })
+      .where("key", "=", key)
+      .returning(sql`value->>${arrayPath}`.as("array"))
+      .executeTakeFirst();
+
+    if (!result) {
+      return [];
+    }
+
+    return JSON.parse(result.array as string);
+  }
 }

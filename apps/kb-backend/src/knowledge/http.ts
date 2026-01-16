@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
+import { KV } from "../infrastructure/db/kv.js";
 import {
   type DocumentType,
   knowledgeService,
 } from "../infrastructure/knowledge-service.js";
-import { KV } from "../infrastructure/db/kv.js";
 import { logger } from "../utils/logger.js";
 
 // Simple in-memory cache for source names
@@ -273,7 +273,9 @@ export const setupKnowledgeRoutes = () =>
           return {
             success: false,
             error:
-              error instanceof Error ? error.message : "Failed to get read articles",
+              error instanceof Error
+                ? error.message
+                : "Failed to get read articles",
           };
         }
       },
@@ -284,7 +286,8 @@ export const setupKnowledgeRoutes = () =>
         detail: {
           tags: ["Golden Article"],
           summary: "Get read articles for a profile",
-          description: "Fetch all article IDs that have been marked as read for a specific profile",
+          description:
+            "Fetch all article IDs that have been marked as read for a specific profile",
         },
       },
     )
@@ -296,22 +299,13 @@ export const setupKnowledgeRoutes = () =>
         const key = `golden-article-reads:${profileId}`;
 
         try {
-          // Read current array
-          const data = (await KV.get(key)) as { articleIds: string[] } | null;
-          const currentIds = data?.articleIds || [];
-
-          // Check if already exists (deduplicate)
-          if (!currentIds.includes(documentId)) {
-            currentIds.push(documentId);
-          }
-
-          // Write back
-          await KV.set(key, { articleIds: currentIds });
+          // Atomically add document ID to array (no race condition)
+          const articleIds = await KV.arrayAdd(key, "articleIds", documentId);
 
           return {
             success: true,
             data: {
-              articleIds: currentIds,
+              articleIds,
             },
           };
         } catch (error) {
@@ -319,7 +313,9 @@ export const setupKnowledgeRoutes = () =>
           return {
             success: false,
             error:
-              error instanceof Error ? error.message : "Failed to mark article as read",
+              error instanceof Error
+                ? error.message
+                : "Failed to mark article as read",
           };
         }
       },
@@ -333,7 +329,8 @@ export const setupKnowledgeRoutes = () =>
         detail: {
           tags: ["Golden Article"],
           summary: "Mark article as read",
-          description: "Add an article ID to the read list for a specific profile",
+          description:
+            "Add an article ID to the read list for a specific profile",
         },
       },
     )
@@ -344,20 +341,17 @@ export const setupKnowledgeRoutes = () =>
         const key = `golden-article-reads:${profileId}`;
 
         try {
-          // Read current array
-          const data = (await KV.get(key)) as { articleIds: string[] } | null;
-          const currentIds = data?.articleIds || [];
-
-          // Filter out the documentId
-          const updatedIds = currentIds.filter((id) => id !== documentId);
-
-          // Write back
-          await KV.set(key, { articleIds: updatedIds });
+          // Atomically remove document ID from array (no race condition)
+          const articleIds = await KV.arrayRemove(
+            key,
+            "articleIds",
+            documentId,
+          );
 
           return {
             success: true,
             data: {
-              articleIds: updatedIds,
+              articleIds,
             },
           };
         } catch (error) {
@@ -365,7 +359,9 @@ export const setupKnowledgeRoutes = () =>
           return {
             success: false,
             error:
-              error instanceof Error ? error.message : "Failed to mark article as unread",
+              error instanceof Error
+                ? error.message
+                : "Failed to mark article as unread",
           };
         }
       },
@@ -377,7 +373,8 @@ export const setupKnowledgeRoutes = () =>
         detail: {
           tags: ["Golden Article"],
           summary: "Mark article as unread",
-          description: "Remove an article ID from the read list for a specific profile",
+          description:
+            "Remove an article ID from the read list for a specific profile",
         },
       },
     );
