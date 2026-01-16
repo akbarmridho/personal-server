@@ -26,7 +26,11 @@ export default function GeneralTimeline() {
   return (
     <div className="space-y-4">
       {/* Timeline */}
-      <TimelineContainer filters={filters} pure_sector={true} />
+      <TimelineContainer
+        filters={filters}
+        pure_sector={true}
+        timelineMode="non-ticker"
+      />
     </div>
   );
 }

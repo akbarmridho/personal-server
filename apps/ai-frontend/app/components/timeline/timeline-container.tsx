@@ -23,6 +23,8 @@ interface TimelineContainerProps {
   pure_sector?: boolean;
   // Read tracking props (uses app-wide profile)
   enableReadTracking?: boolean;
+  // Timeline mode for badge display
+  timelineMode?: "ticker" | "non-ticker" | "all";
 }
 
 /**
@@ -33,6 +35,7 @@ export function TimelineContainer({
   filters,
   pure_sector,
   enableReadTracking = false,
+  timelineMode = "all",
 }: TimelineContainerProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -153,6 +156,7 @@ export function TimelineContainer({
                 : undefined
             }
             isGoldenArticle={isGoldenArticleTimeline}
+            timelineMode={timelineMode}
           />
         );
       })}

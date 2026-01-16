@@ -39,7 +39,11 @@ export default function GoldenArticleTimeline() {
   return (
     <div className="space-y-4">
       {/* Timeline with Read Tracking */}
-      <TimelineContainer filters={mergedFilters} enableReadTracking={true} />
+      <TimelineContainer
+        filters={mergedFilters}
+        enableReadTracking={true}
+        timelineMode="all"
+      />
     </div>
   );
 }

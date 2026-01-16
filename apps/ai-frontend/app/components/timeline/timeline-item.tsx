@@ -28,6 +28,8 @@ interface TimelineItemProps {
   onMarkRead?: (documentId: string) => void;
   onMarkUnread?: (documentId: string) => void;
   isGoldenArticle?: boolean;
+  // Timeline mode for badge display
+  timelineMode?: "ticker" | "non-ticker" | "all";
 }
 
 /**
@@ -64,6 +66,7 @@ export function TimelineItem({
   onMarkRead,
   onMarkUnread,
   isGoldenArticle = false,
+  timelineMode = "all",
 }: TimelineItemProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
@@ -218,27 +221,32 @@ export function TimelineItem({
         {/* --- Footer Row: Metadata --- */}
         <div className="flex items-center justify-between pt-3 border-t border-border/40 mt-1">
           {/* Left: Tags */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Symbols */}
-            {item.payload.symbols?.map((symbol) => (
-              <Badge
-                key={symbol}
-                variant="secondary"
-                className="h-5 px-2 text-[10px] font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground transition-colors cursor-default"
-              >
-                {symbol}
-              </Badge>
-            ))}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Symbols - Show on ticker timeline or all/golden-article timelines */}
+            {(timelineMode === "ticker" ||
+              timelineMode === "all" ||
+              isGoldenArticle) &&
+              item.payload.symbols?.map((symbol) => (
+                <Badge
+                  key={symbol}
+                  variant="secondary"
+                  className="h-4 px-1.5 text-[9px] font-medium bg-secondary/50 hover:bg-secondary/80 text-secondary-foreground transition-colors cursor-default"
+                >
+                  {symbol}
+                </Badge>
+              ))}
 
-            {/* Subsectors (if no symbols) */}
-            {!item.payload.symbols?.length &&
+            {/* Subsectors - Show on non-ticker timeline or all/golden-article timelines */}
+            {(timelineMode === "non-ticker" ||
+              timelineMode === "all" ||
+              isGoldenArticle) &&
               item.payload.subsectors?.map((subsector) => (
                 <Badge
                   key={subsector}
                   variant="outline"
-                  className="h-5 px-2 text-[10px] bg-background/50 text-muted-foreground border-border/50 flex items-center gap-1"
+                  className="h-4 px-1.5 text-[9px] bg-background/50 text-muted-foreground border-border/50 flex items-center gap-1"
                 >
-                  <Building2 className="w-3 h-3 opacity-60" />
+                  <Building2 className="w-2.5 h-2.5 opacity-60" />
                   <span>{formatHyphenatedText(subsector)}</span>
                 </Badge>
               ))}

@@ -26,7 +26,11 @@ export default function TickerTimeline() {
   return (
     <div className="space-y-4">
       {/* Timeline */}
-      <TimelineContainer filters={filters} pure_sector={false} />
+      <TimelineContainer
+        filters={filters}
+        pure_sector={false}
+        timelineMode="ticker"
+      />
     </div>
   );
 }

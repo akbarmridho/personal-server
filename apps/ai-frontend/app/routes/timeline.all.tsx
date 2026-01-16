@@ -26,7 +26,7 @@ export default function AllTimeline() {
   return (
     <div className="space-y-4">
       {/* Timeline */}
-      <TimelineContainer filters={filters} />
+      <TimelineContainer filters={filters} timelineMode="all" />
     </div>
   );
 }
