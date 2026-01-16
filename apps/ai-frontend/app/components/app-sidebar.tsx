@@ -1,4 +1,4 @@
-import { Layers, LayoutDashboard, Radio } from "lucide-react";
+import { Layers, LayoutDashboard, Radio, Sparkles } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { FilterBar } from "~/components/filters/filter-bar";
 import { ThemeToggle } from "~/components/theme-toggle";
@@ -21,6 +21,9 @@ export function AppSidebar() {
   const isAllActive = location.pathname.includes("/timeline/all");
   const isTickerActive = location.pathname.includes("/timeline/ticker");
   const isGeneralActive = location.pathname.includes("/timeline/non-ticker");
+  const isGoldenArticleActive = location.pathname.includes(
+    "/timeline/golden-article",
+  );
   const isTimelinePage = location.pathname.includes("/timeline/");
 
   return (
@@ -72,6 +75,18 @@ export function AppSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isGoldenArticleActive}
+                  tooltip="Golden Article"
+                >
+                  <Link to="/timeline/golden-article">
+                    <Sparkles className="h-4 w-4" />
+                    <span>Golden Article</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -85,8 +100,12 @@ export function AppSidebar() {
               <SidebarGroupLabel>Search</SidebarGroupLabel>
               <SidebarGroupContent className="px-1">
                 <FilterBar
-                  showTickerFilter={isAllActive || isTickerActive}
-                  showSubsectorFilter={isAllActive || isGeneralActive}
+                  showTickerFilter={
+                    isAllActive || isTickerActive || isGoldenArticleActive
+                  }
+                  showSubsectorFilter={
+                    isAllActive || isGeneralActive || isGoldenArticleActive
+                  }
                   compact={true}
                 />
               </SidebarGroupContent>

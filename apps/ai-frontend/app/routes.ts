@@ -13,6 +13,7 @@ export default [
     route("timeline/all", "routes/timeline.all.tsx"),
     route("timeline/ticker", "routes/timeline.ticker.tsx"),
     route("timeline/non-ticker", "routes/timeline.non-ticker.tsx"),
+    route("timeline/golden-article", "routes/timeline.golden-article.tsx"),
     // Document detail page (shares same sidebar/header)
     route("document/:id", "routes/document.$id.tsx"),
   ]),
