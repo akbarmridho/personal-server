@@ -22,12 +22,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  useSidebar,
 } from "~/components/ui/sidebar";
 import { useProfile } from "~/contexts/profile-context";
 
 export function AppSidebar() {
   const location = useLocation();
   const { profile } = useProfile();
+  const { isMobile, setOpenMobile } = useSidebar();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const isAllActive = location.pathname.includes("/timeline/all");
   const isTickerActive = location.pathname.includes("/timeline/ticker");
@@ -36,6 +38,13 @@ export function AppSidebar() {
     "/timeline/golden-article",
   );
   const isTimelinePage = location.pathname.includes("/timeline/");
+
+  // Close sidebar on mobile when switching timelines
+  const handleTimelineClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar variant="sidebar" collapsible="offcanvas">
@@ -56,7 +65,7 @@ export function AppSidebar() {
                   isActive={isAllActive}
                   tooltip="All Timeline"
                 >
-                  <Link to="/timeline/all">
+                  <Link to="/timeline/all" onClick={handleTimelineClick}>
                     <Layers className="h-4 w-4" />
                     <span>All Timeline</span>
                   </Link>
@@ -68,7 +77,7 @@ export function AppSidebar() {
                   isActive={isTickerActive}
                   tooltip="Ticker Timeline"
                 >
-                  <Link to="/timeline/ticker">
+                  <Link to="/timeline/ticker" onClick={handleTimelineClick}>
                     <Radio className="h-4 w-4" />
                     <span>Ticker Timeline</span>
                   </Link>
@@ -80,7 +89,7 @@ export function AppSidebar() {
                   isActive={isGeneralActive}
                   tooltip="Non-Ticker Timeline"
                 >
-                  <Link to="/timeline/non-ticker">
+                  <Link to="/timeline/non-ticker" onClick={handleTimelineClick}>
                     <LayoutDashboard className="h-4 w-4" />
                     <span>Non-Ticker Timeline</span>
                   </Link>
@@ -92,7 +101,10 @@ export function AppSidebar() {
                   isActive={isGoldenArticleActive}
                   tooltip="Golden Article"
                 >
-                  <Link to="/timeline/golden-article">
+                  <Link
+                    to="/timeline/golden-article"
+                    onClick={handleTimelineClick}
+                  >
                     <Sparkles className="h-4 w-4" />
                     <span>Golden Article</span>
                   </Link>

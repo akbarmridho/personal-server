@@ -1,6 +1,7 @@
 import { ArrowLeft, Edit, Save, Trash2, WrapText, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { ScrollToTopButton } from "~/components/scroll-to-top-button";
 import { TimelineItem } from "~/components/timeline/timeline-item";
 import {
   AlertDialog,
@@ -379,6 +380,9 @@ export default function DocumentDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Scroll to top button */}
+      <ScrollToTopButton />
     </div>
   );
 }
