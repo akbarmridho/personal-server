@@ -1,4 +1,12 @@
-import { ArrowLeft, Edit, Save, Trash2, WrapText, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Save,
+  Share2,
+  Trash2,
+  WrapText,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { TimelineItem } from "~/components/timeline/timeline-item";
@@ -72,10 +80,26 @@ export default function DocumentDetail() {
   const [jsonError, setJsonError] = useState("");
   const [wrap, setWrap] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
 
   const { data: documentData, isLoading, error } = useDocumentQuery(id!);
   const deleteMutation = useDeleteDocument();
   const updateMutation = useUpdateDocument();
+
+  // Function to copy iframe code to clipboard
+  const handleCopyIframe = async () => {
+    const baseUrl = window.location.origin;
+    const embedUrl = `${baseUrl}/embed/document/${id}`;
+    const iframeCode = `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0" style="border: 1px solid #e5e7eb; border-radius: 8px;"></iframe>`;
+
+    try {
+      await navigator.clipboard.writeText(iframeCode);
+      setCopiedEmbed(true);
+      setTimeout(() => setCopiedEmbed(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy iframe code:", err);
+    }
+  };
 
   // Update document title when data loads
   useEffect(() => {
@@ -230,6 +254,10 @@ export default function DocumentDetail() {
         {/* Action buttons */}
         {!isEditing && (
           <div className="flex gap-2">
+            <Button onClick={handleCopyIframe} variant="outline" size="sm">
+              <Share2 className="w-4 h-4 mr-2" />
+              {copiedEmbed ? "Copied!" : "Embed"}
+            </Button>
             <Button onClick={handleEdit} variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-2" />
               Edit

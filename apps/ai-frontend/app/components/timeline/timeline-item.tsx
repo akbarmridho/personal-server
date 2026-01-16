@@ -4,10 +4,12 @@ import {
   ChevronDown,
   ChevronUp,
   Link as LinkIcon,
+  Share2,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import type { SearchResult } from "~/lib/api/types";
 import { formatHyphenatedText } from "~/lib/utils";
@@ -18,6 +20,7 @@ interface TimelineItemProps {
   item: Omit<SearchResult, "score">;
   isSearchMode?: boolean;
   defaultExpanded?: boolean;
+  hideShareButton?: boolean;
 }
 
 /**
@@ -49,9 +52,26 @@ export function TimelineItem({
   item,
   isSearchMode = false,
   defaultExpanded = false,
+  hideShareButton = false,
 }: TimelineItemProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [copied, setCopied] = useState(false);
   const location = useLocation();
+
+  // Function to copy iframe code to clipboard
+  const handleCopyIframe = async () => {
+    const baseUrl = window.location.origin;
+    const embedUrl = `${baseUrl}/embed/document/${item.payload.id}`;
+    const iframeCode = `<iframe src="${embedUrl}" width="100%" height="600" frameborder="0" style="border: 1px solid #e5e7eb; border-radius: 8px;"></iframe>`;
+
+    try {
+      await navigator.clipboard.writeText(iframeCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy iframe code:", err);
+    }
+  };
 
   const content =
     isExpanded || item.payload.content.length < 500
@@ -95,13 +115,27 @@ export function TimelineItem({
             </div>
           </div>
 
-          {/* Doc Type Badge */}
-          <Badge
-            variant="outline"
-            className="shrink-0 text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
-          >
-            {item.payload.type}
-          </Badge>
+          {/* Doc Type Badge & Share Button */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge
+              variant="outline"
+              className="text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
+            >
+              {item.payload.type}
+            </Badge>
+            {!hideShareButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopyIframe}
+                className="h-6 px-2 text-xs"
+                title="Copy iframe embed code"
+              >
+                <Share2 className="w-3 h-3 mr-1" />
+                {copied ? "Copied!" : "Embed"}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* --- Content Body --- */}

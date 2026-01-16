@@ -1,6 +1,7 @@
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { MarkdownImage } from "./markdown-image";
 
 interface MarkdownRendererProps {
   content: string;
@@ -189,6 +190,9 @@ export function MarkdownRenderer({
         {children}
       </em>
     ),
+
+    // Images
+    img: ({ src, alt }) => <MarkdownImage src={src} alt={alt} />,
   };
 
   return (

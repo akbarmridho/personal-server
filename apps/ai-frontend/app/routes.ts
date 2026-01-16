@@ -17,6 +17,9 @@ export default [
     route("document/:id", "routes/document.$id.tsx"),
   ]),
 
+  // Embed route (no layout, optimized for iframe)
+  route("embed/document/:id", "routes/embed.document.$id.tsx"),
+
   // Catch-all route for unmatched paths
   route("*", "routes/$.tsx"),
 ] satisfies RouteConfig;
