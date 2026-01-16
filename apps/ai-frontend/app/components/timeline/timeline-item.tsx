@@ -112,8 +112,8 @@ export function TimelineItem({
 
       <div className="p-4 pl-5 flex flex-col gap-3">
         {/* --- Header Row: Title & Meta --- */}
-        <div className="flex justify-between items-start gap-3">
-          <div className="space-y-1 min-w-0 flex-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+          <div className="space-y-1.5 min-w-0 flex-1 w-full">
             <Link
               to={`/document/${item.payload.id}${location.search}`}
               className="font-semibold text-base leading-snug tracking-tight text-foreground/95 hover:text-primary hover:underline transition-colors block"
@@ -123,13 +123,15 @@ export function TimelineItem({
 
             {/* Date - Mobile/Compact friendly */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-              <Calendar className="w-3 h-3" />
-              <span>{formatDate(item.payload.document_date)}</span>
+              <Calendar className="w-3 h-3 shrink-0" />
+              <span className="whitespace-nowrap">
+                {formatDate(item.payload.document_date)}
+              </span>
             </div>
           </div>
 
           {/* Doc Type Badge, Read Status, & Share Button */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 sm:shrink-0 flex-wrap mt-1 sm:mt-0">
             {/* Read Status (Interactive for Golden Articles) */}
             {isGoldenArticle && onMarkRead && onMarkUnread && (
               <Button
@@ -218,7 +220,7 @@ export function TimelineItem({
         </div>
 
         {/* --- Footer Row: Metadata --- */}
-        <div className="flex items-center justify-between pt-3 border-t border-border/40 mt-1">
+        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-2 pt-3 border-t border-border/40 mt-1">
           {/* Left: Tags */}
           <div className="flex flex-wrap items-center gap-1.5">
             {/* Symbols - Show on ticker timeline or all/golden-article timelines */}
@@ -252,7 +254,7 @@ export function TimelineItem({
           </div>
 
           {/* Right: Source */}
-          <div className="flex items-center gap-3 shrink-0 pl-2">
+          <div className="flex items-center gap-3 shrink-0 ml-auto sm:ml-0">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <LinkIcon className="w-3 h-3" />
               <span className="hidden sm:inline-block">
