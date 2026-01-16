@@ -174,6 +174,12 @@ export const goldenArticleIngest = inngest.createFunction(
             // Replace image URL with miniserve URL
             const newUrl = `${env.MINISERVE_SERVICE_URL}/ga/${filename}`;
             $(img).attr("src", newUrl);
+
+            // Fix undefined alt text
+            const altText = $(img).attr("alt");
+            if (!altText || altText === "undefined") {
+              $(img).attr("alt", "");
+            }
           } catch (error) {
             console.error(
               `Failed to process image ${originalSrc}:`,
@@ -191,7 +197,12 @@ export const goldenArticleIngest = inngest.createFunction(
         let md = turndown.turndown($.html());
 
         // Clean up excessive newlines
-        md = md.replace(/\n{3,}/g, "\n\n").trim();
+        // 1. Normalize whitespace-only lines to empty lines
+        md = md.replace(/\n[ \t]+\n/g, "\n\n");
+        // 2. Collapse multiple consecutive newlines (3 or more) to 2
+        md = md.replace(/\n{3,}/g, "\n\n");
+        // 3. Trim final result
+        md = md.trim();
 
         return md;
       },

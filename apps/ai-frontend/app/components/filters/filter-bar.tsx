@@ -168,6 +168,7 @@ export function FilterBar({
               <ReadStatusFilter
                 value={filters.read_status || "all"}
                 onChange={handleReadStatusChange}
+                fullWidth={compact}
               />
             </div>
           )}
