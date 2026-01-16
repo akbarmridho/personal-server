@@ -7,7 +7,6 @@ import {
   Circle,
   Link as LinkIcon,
   Share2,
-  X,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
@@ -15,7 +14,7 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import type { SearchResult } from "~/lib/api/types";
-import { formatHyphenatedText } from "~/lib/utils";
+import { cn, formatHyphenatedText } from "~/lib/utils";
 import { formatDate } from "~/lib/utils/date";
 import { MarkdownRenderer } from "../markdown-renderer";
 
@@ -129,39 +128,7 @@ export function TimelineItem({
 
           {/* Doc Type Badge, Read Status, & Share Button */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Read Status Badge (Golden Article only) */}
-            {isGoldenArticle && (
-              <Badge
-                variant={isRead ? "default" : "outline"}
-                className={
-                  isRead
-                    ? "text-[10px] h-5 px-2 uppercase tracking-wider font-medium bg-green-600 text-white border-green-600"
-                    : "text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
-                }
-              >
-                {isRead ? (
-                  <>
-                    <Check className="w-3 h-3 mr-1" />
-                    Read
-                  </>
-                ) : (
-                  <>
-                    <Circle className="w-3 h-3 mr-1" />
-                    Unread
-                  </>
-                )}
-              </Badge>
-            )}
-
-            {/* Document Type Badge */}
-            <Badge
-              variant="outline"
-              className="text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
-            >
-              {item.payload.type}
-            </Badge>
-
-            {/* Mark as Read/Unread Button (Golden Article only) */}
+            {/* Read Status (Interactive for Golden Articles) */}
             {isGoldenArticle && onMarkRead && onMarkUnread && (
               <Button
                 variant="ghost"
@@ -174,16 +141,35 @@ export function TimelineItem({
                     onMarkRead(item.payload.id);
                   }
                 }}
-                className="h-6 px-2 text-xs"
+                className={cn(
+                  "h-5 px-2 text-[10px] uppercase tracking-wider font-semibold gap-1.5 transition-all duration-200",
+                  isRead
+                    ? "bg-green-100 text-green-700 border-green-400 hover:bg-green-400 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 dark:hover:bg-green-900/50"
+                    : "text-muted-foreground bg-background/50 border-border/60 hover:border-primary/40 hover:text-primary hover:bg-primary/5",
+                )}
                 title={isRead ? "Mark as unread" : "Mark as read"}
               >
                 {isRead ? (
-                  <X className="w-3 h-3" />
+                  <>
+                    <Check className="w-3 h-3" />
+                    Read
+                  </>
                 ) : (
-                  <Check className="w-3 h-3" />
+                  <>
+                    <Circle className="w-3 h-3" />
+                    Unread
+                  </>
                 )}
               </Button>
             )}
+
+            {/* Document Type Badge (Always Static) */}
+            <Badge
+              variant="outline"
+              className="text-[10px] h-5 px-2 uppercase tracking-wider font-medium text-muted-foreground bg-transparent border-border/60"
+            >
+              {item.payload.type}
+            </Badge>
 
             {!hideShareButton && (
               <Button
