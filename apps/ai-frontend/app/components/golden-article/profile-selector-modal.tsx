@@ -62,7 +62,7 @@ export function ProfileSelectorModal({
                     key={name}
                     onClick={() => handleSelectProfile(name)}
                     type="button"
-                    className="w-full flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-accent/50 hover:border-accent transition-all group"
+                    className="w-full flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-accent/50 hover:border-accent transition-all group hover:cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
