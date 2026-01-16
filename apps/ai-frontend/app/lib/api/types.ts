@@ -26,7 +26,10 @@ export interface SearchResult {
 // List Documents Response
 export interface ListDocumentsResponse {
   items: Omit<SearchResult, "score">[];
-  next_page_offset?: number;
+  total_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 // Sector and Subsector Types
@@ -74,10 +77,15 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Read Status Type
+export type ReadStatus = "all" | "read" | "unread";
+
 // Filter Parameters (for API requests)
 export interface FilterParams {
   limit?: number;
-  offset?: number;
+  page?: number;
+  profile_name?: string;
+  read_status?: ReadStatus;
   symbols?: string[];
   subsectors?: string[];
   types?: DocumentType[];
@@ -90,7 +98,8 @@ export interface FilterParams {
 }
 
 // Search Parameters
-export interface SearchParams extends Omit<FilterParams, "offset"> {
+export interface SearchParams
+  extends Omit<FilterParams, "include_ids" | "exclude_ids"> {
   query: string;
   use_dense?: boolean;
 }

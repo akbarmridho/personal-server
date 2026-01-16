@@ -23,9 +23,27 @@ export const setupKnowledgeRoutes = () =>
       "/documents",
       async ({ query, set }) => {
         try {
+          let include_ids = query.include_ids?.split(",") || null;
+          let exclude_ids = query.exclude_ids?.split(",") || null;
+
+          // Handle profile-based read status filtering
+          if (query.profile_name && query.read_status !== "all") {
+            const key = `golden-article-reads:${query.profile_name}`;
+            const data = (await KV.get(key)) as { articleIds: string[] } | null;
+            const readArticleIds = data?.articleIds || [];
+
+            if (query.read_status === "read") {
+              // Only show read articles
+              include_ids = readArticleIds.length > 0 ? readArticleIds : null;
+            } else if (query.read_status === "unread") {
+              // Exclude read articles
+              exclude_ids = readArticleIds.length > 0 ? readArticleIds : null;
+            }
+          }
+
           const result = await knowledgeService.listDocuments({
             limit: query.limit,
-            offset: query.offset || null,
+            page: query.page,
             symbols: query.symbols?.split(",") || null,
             subsectors: query.subsectors?.split(",") || null,
             types: (query.types?.split(",") as DocumentType[]) || null,
@@ -33,8 +51,8 @@ export const setupKnowledgeRoutes = () =>
             date_to: query.date_to || null,
             pure_sector: query.pure_sector,
             source_names: query.source_names?.split(",") || null,
-            include_ids: query.include_ids?.split(",") || null,
-            exclude_ids: query.exclude_ids?.split(",") || null,
+            include_ids,
+            exclude_ids,
           });
           return { success: true, data: result };
         } catch (err) {
@@ -46,7 +64,11 @@ export const setupKnowledgeRoutes = () =>
       {
         query: t.Object({
           limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
-          offset: t.Optional(t.Number({ minimum: 0 })),
+          page: t.Optional(t.Number({ minimum: 1 })),
+          profile_name: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
+          read_status: t.Optional(
+            t.Union([t.Literal("all"), t.Literal("read"), t.Literal("unread")]),
+          ),
           symbols: t.Optional(t.String()),
           subsectors: t.Optional(t.String()),
           types: t.Optional(t.String()),
@@ -61,7 +83,7 @@ export const setupKnowledgeRoutes = () =>
           tags: ["Knowledge Base"],
           summary: "List documents from knowledge base",
           description:
-            "Returns a paginated list of documents with optional filters for symbols, subsectors, document types, source names, and date ranges. Returns 100-token previews of document content.",
+            "Returns a paginated list of documents with optional filters for symbols, subsectors, document types, source names, and date ranges. Supports profile-based read status filtering (requires profile_name and read_status params). Returns 100-token previews of document content.",
         },
       },
     )
@@ -69,6 +91,24 @@ export const setupKnowledgeRoutes = () =>
       "/documents/search",
       async ({ body, set }) => {
         try {
+          let include_ids = body.include_ids || null;
+          let exclude_ids = body.exclude_ids || null;
+
+          // Handle profile-based read status filtering
+          if (body.profile_name && body.read_status !== "all") {
+            const key = `golden-article-reads:${body.profile_name}`;
+            const data = (await KV.get(key)) as { articleIds: string[] } | null;
+            const readArticleIds = data?.articleIds || [];
+
+            if (body.read_status === "read") {
+              // Only show read articles
+              include_ids = readArticleIds.length > 0 ? readArticleIds : null;
+            } else if (body.read_status === "unread") {
+              // Exclude read articles
+              exclude_ids = readArticleIds.length > 0 ? readArticleIds : null;
+            }
+          }
+
           const result = await knowledgeService.searchDocuments({
             query: body.query,
             limit: body.limit,
@@ -80,8 +120,8 @@ export const setupKnowledgeRoutes = () =>
             date_to: body.date_to || null,
             pure_sector: body.pure_sector || null,
             source_names: body.source_names || null,
-            include_ids: body.include_ids || null,
-            exclude_ids: body.exclude_ids || null,
+            include_ids,
+            exclude_ids,
           });
           return { success: true, data: result };
         } catch (err) {
@@ -94,6 +134,10 @@ export const setupKnowledgeRoutes = () =>
         body: t.Object({
           query: t.String(),
           limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
+          profile_name: t.Optional(t.String({ minLength: 1, maxLength: 50 })),
+          read_status: t.Optional(
+            t.Union([t.Literal("all"), t.Literal("read"), t.Literal("unread")]),
+          ),
           use_dense: t.Optional(t.Boolean()),
           symbols: t.Optional(t.Array(t.String())),
           subsectors: t.Optional(t.Array(t.String())),
@@ -109,7 +153,7 @@ export const setupKnowledgeRoutes = () =>
           tags: ["Knowledge Base"],
           summary: "Semantic search in knowledge base",
           description:
-            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Set use_dense=false to disable expensive dense vector search (OpenRouter API) and use only sparse + late interaction reranking. Supports filters for symbols, subsectors, document types, source names, and date ranges. Returns documents ranked by relevance with similarity scores.",
+            "Performs hybrid search (dense + sparse vectors) across documents using semantic similarity. Set use_dense=false to disable expensive dense vector search (OpenRouter API) and use only sparse + late interaction reranking. Supports profile-based read status filtering (requires profile_name and read_status params). Supports filters for symbols, subsectors, document types, source names, and date ranges. Returns documents ranked by relevance with similarity scores.",
         },
       },
     )

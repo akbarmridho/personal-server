@@ -30,6 +30,9 @@ interface TimelineItemProps {
   isGoldenArticle?: boolean;
   // Timeline mode for badge display
   timelineMode?: "ticker" | "non-ticker" | "all";
+  // Controlled expand/collapse state
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 /**
@@ -66,10 +69,23 @@ export function TimelineItem({
   onMarkUnread,
   isGoldenArticle = false,
   timelineMode = "all",
+  isExpanded: isExpandedProp,
+  onToggleExpand,
 }: TimelineItemProps) {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [isExpandedState, setIsExpandedState] = useState(defaultExpanded);
   const [copied, setCopied] = useState(false);
   const location = useLocation();
+
+  // Use controlled state if provided, otherwise use internal state
+  const isExpanded =
+    isExpandedProp !== undefined ? isExpandedProp : isExpandedState;
+  const handleToggle = () => {
+    if (onToggleExpand) {
+      onToggleExpand();
+    } else {
+      setIsExpandedState(!isExpandedState);
+    }
+  };
 
   // Function to copy iframe code to clipboard
   const handleCopyIframe = async () => {
@@ -201,7 +217,7 @@ export function TimelineItem({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setIsExpanded(!isExpanded);
+                handleToggle();
               }}
               type="button"
               className="mt-1 flex items-center gap-1.5 text-xs font-medium text-primary/80 hover:text-primary transition-colors focus:outline-none cursor-pointer"

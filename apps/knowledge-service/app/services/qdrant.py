@@ -380,6 +380,26 @@ class QdrantService:
 
         return True
 
+    async def count_documents(
+        self,
+        count_filter: models.Filter = None
+    ) -> int:
+        """
+        Count total documents matching the filter.
+
+        Args:
+            count_filter: Optional Qdrant Filter object for metadata filtering
+
+        Returns:
+            Total count of documents matching the filter
+        """
+        count_result = await self.client.count(
+            collection_name=self.collection_name,
+            count_filter=count_filter,
+            exact=True
+        )
+        return count_result.count
+
     async def scroll(
         self,
         limit: int = 10,
@@ -399,6 +419,9 @@ class QdrantService:
         if offset is None:
             offset = 0
 
+        # Get total count for pagination metadata
+        total_count = await self.count_documents(scroll_filter)
+
         # Use query_points with ordering support
         # Use OrderByQuery to order documents without vector search
         results = await self.client.query_points(
@@ -417,13 +440,9 @@ class QdrantService:
             timeout=60
         )
 
-        # Calculate if there are more pages
-        has_more = len(results.points) == limit
-        next_offset = offset + limit if has_more else None
-
         return {
             "items": [point.model_dump() for point in results.points],
-            "next_page_offset": next_offset
+            "total_count": total_count
         }
     
     async def find_similar_documents(

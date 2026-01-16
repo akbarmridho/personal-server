@@ -10,6 +10,7 @@ export type ReadStatusFilter = "all" | "read" | "unread";
  */
 export interface TimelineFilters {
   search?: string;
+  page?: number;
   date_from?: string;
   date_to?: string;
   types?: DocumentType[];
@@ -29,6 +30,10 @@ export function serializeFilters(
 
   if (filters.search) {
     params.search = filters.search;
+  }
+
+  if (filters.page && filters.page > 1) {
+    params.page = String(filters.page);
   }
 
   if (filters.date_from) {
@@ -73,6 +78,14 @@ export function deserializeFilters(
   const search = searchParams.get("search");
   if (search) {
     filters.search = search;
+  }
+
+  const page = searchParams.get("page");
+  if (page) {
+    const pageNum = Number.parseInt(page, 10);
+    if (pageNum > 0) {
+      filters.page = pageNum;
+    }
   }
 
   const dateFrom = searchParams.get("date_from");

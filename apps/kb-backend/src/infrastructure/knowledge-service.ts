@@ -41,7 +41,7 @@ export interface IngestResponse {
 
 export interface ListDocumentsParams {
   limit?: number;
-  offset?: number | null;
+  page?: number;
   symbols?: string[] | null;
   subsectors?: string[] | null;
   subindustries?: string[] | null;
@@ -65,12 +65,18 @@ export interface DocumentSnapshot {
 
 export interface ListDocumentsPreviewResponse {
   items: DocumentSnapshot[];
-  next_page_offset?: number;
+  total_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 export interface ListDocumentsResponse {
   items: Omit<SearchResult, "score">[];
-  next_page_offset?: number;
+  total_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 export interface SearchRequest {
@@ -167,10 +173,24 @@ export class KnowledgeService {
   async listDocumentsPreview(
     params: ListDocumentsParams,
   ): Promise<ListDocumentsPreviewResponse> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+    const offset = (page - 1) * limit;
+
+    const { page: _, ...restParams } = params;
     const response = await this.client.get<{
       items: Array<{ id: string; payload: InvestmentDocument }>;
-      next_page_offset?: number;
-    }>("/documents", { params });
+      total_count: number;
+    }>("/documents", {
+      params: {
+        ...restParams,
+        offset,
+        limit,
+      },
+    });
+
+    const total_count = response.data.total_count;
+    const total_pages = Math.ceil(total_count / limit);
 
     return {
       items: response.data.items.map((item) => ({
@@ -181,21 +201,41 @@ export class KnowledgeService {
         document_date: item.payload.document_date,
         symbols: item.payload.symbols,
       })),
-      next_page_offset: response.data.next_page_offset,
+      total_count,
+      page,
+      page_size: limit,
+      total_pages,
     };
   }
 
   async listDocuments(
     params: ListDocumentsParams,
   ): Promise<ListDocumentsResponse> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+    const offset = (page - 1) * limit;
+
+    const { page: _, ...restParams } = params;
     const response = await this.client.get<{
       items: Array<{ id: string; payload: InvestmentDocument }>;
-      next_page_offset?: number;
-    }>("/documents", { params });
+      total_count: number;
+    }>("/documents", {
+      params: {
+        ...restParams,
+        offset,
+        limit,
+      },
+    });
+
+    const total_count = response.data.total_count;
+    const total_pages = Math.ceil(total_count / limit);
 
     return {
       items: response.data.items,
-      next_page_offset: response.data.next_page_offset,
+      total_count,
+      page,
+      page_size: limit,
+      total_pages,
     };
   }
 

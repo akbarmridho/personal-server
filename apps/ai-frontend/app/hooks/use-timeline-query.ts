@@ -1,10 +1,5 @@
-import {
-  type InfiniteData,
-  type UseInfiniteQueryResult,
-  type UseQueryResult,
-  useInfiniteQuery,
-  useQuery,
-} from "@tanstack/react-query";
+import { type UseQueryResult, useQuery } from "@tanstack/react-query";
+import { useProfile } from "~/contexts/profile-context";
 import { listDocuments, searchDocuments } from "~/lib/api/knowledge";
 import type { ListDocumentsResponse, SearchResult } from "~/lib/api/types";
 import { DEFAULT_LIMIT } from "~/lib/constants/filters";
@@ -15,19 +10,16 @@ const useDenseVector = false;
 
 /**
  * Hook for fetching timeline data with smart mode switching
- * - List Mode (no search query): Infinite scroll with cursor pagination
+ * - List Mode (no search query): Paginated list with page numbers
  * - Search Mode (search query present): Single query with all results
  * @param filters - Timeline filters from URL
  * @param pure_sector - Whether to filter for non-ticker documents
- * @param readIds - Optional list of read article IDs for backend filtering (Golden Article feature)
  */
 export function useTimelineQuery(
   filters: TimelineFilters,
   pure_sector?: boolean,
-  readIds?: string[],
-):
-  | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
-  | UseQueryResult<SearchResult[]> {
+): UseQueryResult<ListDocumentsResponse> | UseQueryResult<SearchResult[]> {
+  const { profile } = useProfile();
   const hasSearchQuery = !!(filters.search && filters.search.trim().length > 0);
 
   // Prepare filter parameters
@@ -39,11 +31,9 @@ export function useTimelineQuery(
     date_to: filters.date_to,
     pure_sector,
     source_names: filters.source_names,
-    // Backend filtering for read status (Golden Article feature)
-    include_ids:
-      filters.read_status === "read" && readIds?.length ? readIds : undefined,
-    exclude_ids:
-      filters.read_status === "unread" && readIds?.length ? readIds : undefined,
+    // Backend handling of read status via profile
+    profile_name: profile || undefined,
+    read_status: filters.read_status || "all",
   };
 
   // 1. SEARCH QUERY (Single query, no pagination)
@@ -64,20 +54,19 @@ export function useTimelineQuery(
     enabled: hasSearchQuery,
   });
 
-  // 2. LIST QUERY (Infinite scroll)
-  const listQuery = useInfiniteQuery({
+  // 2. LIST QUERY (Paginated)
+  const listQuery = useQuery({
     queryKey: queryKeys.timeline.list({
       ...filterParams,
+      page: filters.page || 1,
       limit: DEFAULT_LIMIT,
     }),
-    queryFn: ({ pageParam }) =>
+    queryFn: () =>
       listDocuments({
         ...filterParams,
         limit: DEFAULT_LIMIT,
-        offset: pageParam,
+        page: filters.page || 1,
       }),
-    getNextPageParam: (lastPage) => lastPage.next_page_offset ?? undefined,
-    initialPageParam: undefined as number | undefined,
     staleTime: 5 * 60 * 1000,
     enabled: !hasSearchQuery,
   });
@@ -90,10 +79,10 @@ export function useTimelineQuery(
  */
 export function isSearchMode(
   result:
-    | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
+    | UseQueryResult<ListDocumentsResponse>
     | UseQueryResult<SearchResult[]>,
 ): result is UseQueryResult<SearchResult[]> {
-  return !("hasNextPage" in result);
+  return !("total_count" in (result.data || {}));
 }
 
 /**
@@ -101,7 +90,7 @@ export function isSearchMode(
  */
 export function getTimelineItems(
   result:
-    | UseInfiniteQueryResult<InfiniteData<ListDocumentsResponse>>
+    | UseQueryResult<ListDocumentsResponse>
     | UseQueryResult<SearchResult[]>,
 ): Omit<SearchResult, "score">[] {
   if (isSearchMode(result)) {
@@ -109,9 +98,28 @@ export function getTimelineItems(
     return result.data || [];
   }
 
-  // List mode: flatten all pages
-  const pages = (result.data as InfiniteData<ListDocumentsResponse> | undefined)
-    ?.pages;
-  if (!pages) return [];
-  return pages.flatMap((page: ListDocumentsResponse) => page.items);
+  // List mode: return items from current page
+  return (result.data as ListDocumentsResponse | undefined)?.items || [];
+}
+
+/**
+ * Get pagination metadata from list query result
+ */
+export function getPaginationMetadata(
+  result: UseQueryResult<ListDocumentsResponse>,
+): {
+  total_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+} | null {
+  const data = result.data as ListDocumentsResponse | undefined;
+  if (!data) return null;
+
+  return {
+    total_count: data.total_count,
+    page: data.page,
+    page_size: data.page_size,
+    total_pages: data.total_pages,
+  };
 }

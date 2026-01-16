@@ -18,7 +18,9 @@ export async function listDocuments(
   const queryParams: Record<string, string> = {};
 
   if (params.limit) queryParams.limit = String(params.limit);
-  if (params.offset) queryParams.offset = String(params.offset);
+  if (params.page) queryParams.page = String(params.page);
+  if (params.profile_name) queryParams.profile_name = params.profile_name;
+  if (params.read_status) queryParams.read_status = params.read_status;
   if (params.symbols?.length) queryParams.symbols = params.symbols.join(",");
   if (params.subsectors?.length)
     queryParams.subsectors = params.subsectors.join(",");
@@ -49,6 +51,8 @@ export async function searchDocuments(
     limit: params.limit,
   };
 
+  if (params.profile_name) body.profile_name = params.profile_name;
+  if (params.read_status) body.read_status = params.read_status;
   if (params.use_dense !== undefined) body.use_dense = params.use_dense;
   if (params.symbols?.length) body.symbols = params.symbols;
   if (params.subsectors?.length) body.subsectors = params.subsectors;
@@ -57,8 +61,6 @@ export async function searchDocuments(
   if (params.date_to) body.date_to = params.date_to;
   if (params.pure_sector !== undefined) body.pure_sector = params.pure_sector;
   if (params.source_names?.length) body.source_names = params.source_names;
-  if (params.include_ids?.length) body.include_ids = params.include_ids;
-  if (params.exclude_ids?.length) body.exclude_ids = params.exclude_ids;
 
   return apiPost<SearchResult[]>("/knowledge/documents/search", body);
 }

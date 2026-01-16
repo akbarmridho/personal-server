@@ -1,7 +1,18 @@
-import { AlertCircle, Loader2 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
+import { ScrollToTopButton } from "~/components/scroll-to-top-button";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "~/components/ui/pagination";
 import { useProfile } from "~/contexts/profile-context";
 import {
   useMarkAsRead,
@@ -9,6 +20,7 @@ import {
   useReadArticles,
 } from "~/hooks/use-read-articles";
 import {
+  getPaginationMetadata,
   getTimelineItems,
   isSearchMode,
   useTimelineQuery,
@@ -27,9 +39,13 @@ interface TimelineContainerProps {
   timelineMode?: "ticker" | "non-ticker" | "all";
 }
 
+const SCROLL_STATE_KEY = "timeline-scroll-state";
+const EXPANDED_STATE_KEY = "timeline-expanded-state";
+
 /**
- * Main timeline container with infinite scroll support
+ * Main timeline container with pagination support
  * Includes read tracking when enabled (uses app-wide profile)
+ * Preserves scroll position and expanded state on navigation
  */
 export function TimelineContainer({
   filters,
@@ -37,7 +53,17 @@ export function TimelineContainer({
   enableReadTracking = false,
   timelineMode = "all",
 }: TimelineContainerProps) {
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [, setSearchParams] = useSearchParams();
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
+    // Restore expanded state from sessionStorage
+    if (typeof window === "undefined") return new Set();
+    try {
+      const saved = sessionStorage.getItem(EXPANDED_STATE_KEY);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
   // Read tracking hooks (uses app-wide profile)
   const { profile } = useProfile();
@@ -51,36 +77,95 @@ export function TimelineContainer({
   const isGoldenArticleTimeline =
     enableReadTracking && filters.source_names?.includes("golden-article");
 
-  const queryResult = useTimelineQuery(
-    filters,
-    pure_sector,
-    isGoldenArticleTimeline ? readIds : undefined,
-  );
+  const queryResult = useTimelineQuery(filters, pure_sector);
 
   const isSearch = isSearchMode(queryResult);
   const items = getTimelineItems(queryResult);
+  const paginationMetadata = !isSearch
+    ? getPaginationMetadata(queryResult)
+    : null;
 
-  // Infinite scroll observer (only for list mode)
+  // Save expanded state to sessionStorage
   useEffect(() => {
-    if (isSearch) return; // Skip for search mode
-    if (!loadMoreRef.current) return;
+    if (typeof window === "undefined") return;
+    try {
+      sessionStorage.setItem(
+        EXPANDED_STATE_KEY,
+        JSON.stringify(Array.from(expandedItems)),
+      );
+    } catch {
+      // Ignore errors
+    }
+  }, [expandedItems]);
 
-    // Type assertion safe here because we checked isSearch above
-    if (!queryResult.hasNextPage || queryResult.isFetchingNextPage) return;
+  // Restore scroll position after data loads
+  useEffect(() => {
+    if (queryResult.isLoading) return;
+    if (typeof window === "undefined") return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          queryResult.fetchNextPage();
-        }
-      },
-      { rootMargin: "100px" },
-    );
+    try {
+      const saved = sessionStorage.getItem(SCROLL_STATE_KEY);
+      if (saved) {
+        const scrollY = Number.parseInt(saved, 10);
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY);
+        });
+      }
+    } catch {
+      // Ignore errors
+    }
+  }, [queryResult.isLoading]);
 
-    observer.observe(loadMoreRef.current);
+  // Save scroll position before navigating away
+  useEffect(() => {
+    const saveScrollPosition = () => {
+      if (typeof window === "undefined") return;
+      try {
+        sessionStorage.setItem(SCROLL_STATE_KEY, String(window.scrollY));
+      } catch {
+        // Ignore errors
+      }
+    };
 
-    return () => observer.disconnect();
-  }, [isSearch, queryResult]);
+    window.addEventListener("beforeunload", saveScrollPosition);
+    return () => window.removeEventListener("beforeunload", saveScrollPosition);
+  }, []);
+
+  // Handle pagination
+  const handlePageChange = (newPage: number) => {
+    // Save current scroll position
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(SCROLL_STATE_KEY, String(window.scrollY));
+      } catch {
+        // Ignore errors
+      }
+    }
+
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      if (newPage === 1) {
+        newParams.delete("page");
+      } else {
+        newParams.set("page", String(newPage));
+      }
+      return newParams;
+    });
+  };
+
+  // Handle expand/collapse
+  const handleToggleExpand = (itemId: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
 
   // Loading state (initial load)
   if (queryResult.isLoading) {
@@ -141,6 +226,8 @@ export function TimelineContainer({
             item={item}
             isSearchMode={isSearch}
             isRead={isRead}
+            isExpanded={expandedItems.has(item.id)}
+            onToggleExpand={() => handleToggleExpand(item.id)}
             onMarkRead={
               isGoldenArticleTimeline && profile
                 ? (documentId) => {
@@ -161,25 +248,68 @@ export function TimelineContainer({
         );
       })}
 
-      {/* Infinite scroll trigger (list mode only) */}
+      {/* Pagination (list mode only) */}
       {!isSearch &&
-        (() => {
-          return (
-            <div ref={loadMoreRef} className="flex justify-center py-4">
-              {queryResult.isFetchingNextPage && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading more...</span>
-                </div>
-              )}
-              {!queryResult.hasNextPage && items.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No more documents to load
-                </p>
-              )}
-            </div>
-          );
-        })()}
+        paginationMetadata &&
+        paginationMetadata.total_pages > 1 && (
+          <div className="flex justify-center py-8">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      handlePageChange(paginationMetadata.page - 1)
+                    }
+                    disabled={paginationMetadata.page === 1}
+                    size="default"
+                  />
+                </PaginationItem>
+
+                {/* Page numbers */}
+                {generatePageNumbers(
+                  paginationMetadata.page,
+                  paginationMetadata.total_pages,
+                ).map((pageNum, index) => {
+                  if (pageNum === -1) {
+                    return (
+                      <PaginationItem
+                        key={`ellipsis-${
+                          // biome-ignore lint/suspicious/noArrayIndexKey: safe because ellipsis are deterministic
+                          index
+                        }`}
+                      >
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    );
+                  }
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(pageNum)}
+                        isActive={pageNum === paginationMetadata.page}
+                        size="icon"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      handlePageChange(paginationMetadata.page + 1)
+                    }
+                    disabled={
+                      paginationMetadata.page === paginationMetadata.total_pages
+                    }
+                    size="default"
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
 
       {/* Search mode result count */}
       {isSearch && items.length > 0 && (
@@ -187,6 +317,65 @@ export function TimelineContainer({
           Found {items.length} matching documents
         </p>
       )}
+
+      {/* List mode result count */}
+      {!isSearch && paginationMetadata && (
+        <p className="text-center text-sm text-muted-foreground py-4">
+          Showing{" "}
+          {(paginationMetadata.page - 1) * paginationMetadata.page_size + 1} -{" "}
+          {Math.min(
+            paginationMetadata.page * paginationMetadata.page_size,
+            paginationMetadata.total_count,
+          )}{" "}
+          of {paginationMetadata.total_count} documents
+        </p>
+      )}
+
+      {/* Scroll to top button */}
+      <ScrollToTopButton />
     </div>
   );
+}
+
+/**
+ * Generate page numbers for pagination with ellipsis
+ * Returns array where -1 represents ellipsis
+ */
+function generatePageNumbers(
+  currentPage: number,
+  totalPages: number,
+): number[] {
+  const pages: number[] = [];
+  const showMax = 7; // Maximum pages to show
+
+  if (totalPages <= showMax) {
+    // Show all pages
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Always show first page
+    pages.push(1);
+
+    if (currentPage > 3) {
+      pages.push(-1); // Ellipsis
+    }
+
+    // Show pages around current page
+    const start = Math.max(2, currentPage - 1);
+    const end = Math.min(totalPages - 1, currentPage + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (currentPage < totalPages - 2) {
+      pages.push(-1); // Ellipsis
+    }
+
+    // Always show last page
+    pages.push(totalPages);
+  }
+
+  return pages;
 }
