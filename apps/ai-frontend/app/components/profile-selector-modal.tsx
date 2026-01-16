@@ -13,7 +13,13 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { useProfile } from "~/contexts/profile-context";
 
 // Predefined profiles to suggest
-const PREDEFINED_PROFILES = ["Akbar", "Razzan", "Awe", "Guest"] as const;
+const PREDEFINED_PROFILES = [
+  "Akbar",
+  "Razzan",
+  "Awe",
+  "Inas",
+  "Guest",
+] as const;
 
 interface ProfileSelectorModalProps {
   open: boolean;
