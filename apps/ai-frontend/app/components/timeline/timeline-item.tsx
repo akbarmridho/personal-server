@@ -59,7 +59,6 @@ function generateTitle(content: string): string {
  */
 export function TimelineItem({
   item,
-  isSearchMode = false,
   defaultExpanded = false,
   hideShareButton = false,
   isRead = false,

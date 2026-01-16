@@ -1,14 +1,6 @@
-import {
-  ArrowLeft,
-  Edit,
-  Save,
-  Share2,
-  Trash2,
-  WrapText,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Edit, Save, Trash2, WrapText, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { TimelineItem } from "~/components/timeline/timeline-item";
 import {
   AlertDialog,
@@ -80,6 +72,17 @@ export const handle = {
 
 export default function DocumentDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    // If we have history, go back (cleaner, preserves filters and scroll)
+    // Otherwise fallback to main timeline
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/timeline/all");
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
@@ -231,11 +234,9 @@ export default function DocumentDetail() {
               {error?.message ||
                 "Unable to load the document. It may have been deleted."}
             </p>
-            <Button asChild variant="outline">
-              <Link to="/timeline/all">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Timeline
-              </Link>
+            <Button onClick={handleBack} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Timeline
             </Button>
           </div>
         </Card>
@@ -249,11 +250,9 @@ export default function DocumentDetail() {
     <div className="space-y-6">
       {/* Header with actions */}
       <div className="flex items-center justify-between gap-4">
-        <Button asChild variant="ghost" size="sm">
-          <Link to={`/timeline/all${window.location.search}`}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Timeline
-          </Link>
+        <Button onClick={handleBack} variant="ghost" size="sm">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Timeline
         </Button>
 
         {/* Action buttons */}
