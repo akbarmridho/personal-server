@@ -61,7 +61,6 @@ export const SearchFilter = forwardRef<SearchFilterRef, SearchFilterProps>(
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           className="pl-9"
-          autoFocus={false}
         />
       </div>
     );
