@@ -84,7 +84,7 @@ export function ReadStatusFilter({
                 setOpen(false);
               }}
               className={cn(
-                "w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors",
+                "w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:cursor-pointer transition-colors",
                 value === option.value
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-accent hover:text-accent-foreground text-foreground",
