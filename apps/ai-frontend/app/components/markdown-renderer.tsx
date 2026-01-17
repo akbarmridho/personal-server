@@ -70,7 +70,7 @@ export function MarkdownRenderer({
     // Paragraphs
     p: ({ children, ...props }) => (
       <p
-        className="mb-6 leading-[1.7] text-foreground text-pretty font-normal"
+        className="mb-3 leading-[1.7] text-foreground text-pretty font-normal"
         {...props}
       >
         {children}
