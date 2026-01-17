@@ -133,12 +133,12 @@ export const goldenArticleIngest = inngest.createFunction(
         // Decode unicode escapes in HTML content
         let decodedHtml = decodeUnicodeEscapes(event.data.htmlContent);
 
-        // Append images from event.data.images array to HTML
+        // Prepend images from event.data.images array to HTML
         if (event.data.images && event.data.images.length > 0) {
           const imageElements = event.data.images
             .map((url) => `<img src="${url}" />`)
             .join("\n");
-          decodedHtml += `\n${imageElements}`;
+          decodedHtml = `${imageElements}\n${decodedHtml}`;
         }
 
         const $ = cheerio.load(decodedHtml);
