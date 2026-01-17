@@ -13,6 +13,7 @@ export const goldenHandles = [
   "ApestorNyangkut",
   // "JudiSaham",
   "rakyatkapitalis",
+  "Fountaine30",
   "stockmapping",
   "umarfikrii",
   "tuanpasar69",
