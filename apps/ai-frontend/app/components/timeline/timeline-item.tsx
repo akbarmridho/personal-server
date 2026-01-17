@@ -126,13 +126,13 @@ export function TimelineItem({
       {/* Visual accent line on left based on type (optional, adding subtle detail) */}
       <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary/20 dark:bg-primary/40 group-hover:bg-primary transition-colors" />
 
-      <div className="p-3 md:p-4 pl-4 md:pl-5 flex flex-col gap-3">
+      <div className="p-3 md:p-4 pl-4 md:pl-6 flex flex-col gap-2">
         {/* --- Header Row: Title & Meta --- */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-          <div className="space-y-1.5 min-w-0 flex-1 w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="space-y-2.5 min-w-0 flex-1 w-full">
             <Link
               to={`/document/${item.payload.id}${location.search}`}
-              className="font-semibold text-lg leading-snug tracking-tight text-foreground/95 hover:text-primary hover:underline transition-colors block"
+              className="font-bold text-lg leading-tight tracking-tight text-foreground/95 hover:text-primary transition-colors block"
             >
               {title}
             </Link>
@@ -207,10 +207,10 @@ export function TimelineItem({
         </div>
 
         {/* --- Content Body --- */}
-        <div className="text-base text-muted-foreground/90 leading-relaxed font-light">
+        <div className="text-base text-foreground/90 leading-[1.7] font-normal">
           <MarkdownRenderer
             content={content}
-            className={`prose-base dark:prose-invert ${!isExpanded && hasMore ? "line-clamp-3" : ""}`}
+            className={`prose-base dark:prose-invert ${!isExpanded && hasMore ? "line-clamp-4" : ""}`}
           />
 
           {hasMore && (

@@ -1,6 +1,7 @@
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { cn } from "~/lib/utils";
 import { MarkdownImage } from "./markdown-image";
 
 interface MarkdownRendererProps {
@@ -19,7 +20,7 @@ export function MarkdownRenderer({
     // Headings (H1 renders as H2 to not exceed timeline title size)
     h1: ({ children, ...props }) => (
       <h1
-        className="text-lg font-bold mt-6 mb-3 text-foreground border-b border-border pb-2"
+        className="text-lg font-bold mt-6 mb-3 text-foreground border-b border-border pb-2 text-balance leading-tight"
         {...props}
       >
         {children}
@@ -27,7 +28,7 @@ export function MarkdownRenderer({
     ),
     h2: ({ children, ...props }) => (
       <h2
-        className="text-lg font-bold mt-6 mb-3 text-foreground border-b border-border pb-2"
+        className="text-lg font-bold mt-6 mb-3 text-foreground border-b border-border pb-2 text-balance leading-tight"
         {...props}
       >
         {children}
@@ -35,7 +36,7 @@ export function MarkdownRenderer({
     ),
     h3: ({ children, ...props }) => (
       <h3
-        className="text-base font-semibold mt-5 mb-2 text-foreground"
+        className="text-base font-semibold mt-5 mb-2 text-foreground text-balance leading-snug"
         {...props}
       >
         {children}
@@ -43,7 +44,7 @@ export function MarkdownRenderer({
     ),
     h4: ({ children, ...props }) => (
       <h4
-        className="text-base font-semibold mt-4 mb-2 text-foreground"
+        className="text-base font-semibold mt-4 mb-2 text-foreground text-balance"
         {...props}
       >
         {children}
@@ -51,7 +52,7 @@ export function MarkdownRenderer({
     ),
     h5: ({ children, ...props }) => (
       <h5
-        className="text-sm font-semibold mt-4 mb-2 text-foreground"
+        className="text-sm font-semibold mt-4 mb-2 text-foreground text-balance"
         {...props}
       >
         {children}
@@ -59,7 +60,7 @@ export function MarkdownRenderer({
     ),
     h6: ({ children, ...props }) => (
       <h6
-        className="text-sm font-semibold mt-3 mb-2 text-muted-foreground"
+        className="text-sm font-semibold mt-3 mb-2 text-muted-foreground text-balance"
         {...props}
       >
         {children}
@@ -68,7 +69,10 @@ export function MarkdownRenderer({
 
     // Paragraphs
     p: ({ children, ...props }) => (
-      <p className="mb-4 leading-7 text-foreground" {...props}>
+      <p
+        className="mb-6 leading-[1.7] text-foreground text-pretty font-normal"
+        {...props}
+      >
         {children}
       </p>
     ),
@@ -85,7 +89,7 @@ export function MarkdownRenderer({
       </ol>
     ),
     li: ({ children, ...props }) => (
-      <li className="leading-7 text-foreground" {...props}>
+      <li className="leading-[1.6] text-foreground mb-1" {...props}>
         {children}
       </li>
     ),
@@ -162,17 +166,29 @@ export function MarkdownRenderer({
     ),
     th: ({ children, ...props }) => (
       <th
-        className="px-4 py-3 text-left font-semibold text-foreground border border-border"
+        className="px-4 py-4 text-left font-semibold text-foreground border border-border bg-muted/30"
         {...props}
       >
         {children}
       </th>
     ),
-    td: ({ children, ...props }) => (
-      <td className="px-4 py-3 text-foreground border border-border" {...props}>
-        {children}
-      </td>
-    ),
+    td: ({ children, ...props }) => {
+      const isNumeric =
+        typeof children === "string" &&
+        /^[0-9$%+\-.,%]+$/.test(children.trim());
+
+      return (
+        <td
+          className={cn(
+            "px-4 py-4 text-foreground border border-border",
+            isNumeric ? "text-right font-mono text-sm" : "text-left",
+          )}
+          {...props}
+        >
+          {children}
+        </td>
+      );
+    },
 
     // Horizontal rule
     hr: ({ ...props }) => (
@@ -180,13 +196,26 @@ export function MarkdownRenderer({
     ),
 
     // Emphasis
-    strong: ({ children, ...props }) => (
-      <strong className="font-bold text-foreground" {...props}>
-        {children}
-      </strong>
-    ),
+    strong: ({ children, ...props }) => {
+      // Check if children is "Why Now?" to apply extra emphasis
+      const isWhyNow =
+        typeof children === "string" &&
+        (children.includes("Why Now?") || children.includes("Why now?"));
+
+      return (
+        <strong
+          className={cn(
+            "font-bold text-foreground",
+            isWhyNow && "text-primary brightness-90",
+          )}
+          {...props}
+        >
+          {children}
+        </strong>
+      );
+    },
     em: ({ children, ...props }) => (
-      <em className="italic" {...props}>
+      <em className="italic text-foreground/90 font-medium" {...props}>
         {children}
       </em>
     ),

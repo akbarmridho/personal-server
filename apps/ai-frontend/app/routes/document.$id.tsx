@@ -248,7 +248,7 @@ export default function DocumentDetail() {
   const doc = documentData.payload;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-5">
       {/* Header with actions */}
       <div className="flex items-center justify-between gap-4">
         <Button onClick={handleBack} variant="ghost" size="sm">
