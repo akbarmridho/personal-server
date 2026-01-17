@@ -53,7 +53,7 @@ export default function TimelineLayout() {
         </header>
 
         {/* Main Content Area */}
-        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 md:p-8 overflow-y-auto">
+        <div className="flex flex-1 flex-col gap-4 p-2 sm:p-4 md:p-6 overflow-y-auto">
           <div className="mx-auto w-full max-w-[1000px]">
             <Outlet />
           </div>
