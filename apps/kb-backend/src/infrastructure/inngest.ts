@@ -139,6 +139,13 @@ type Events = {
   "data/golden-article": {
     data: GoldenArticleEvent;
   };
+  "data/phintraco-company-update-ingest": {
+    data: {
+      title: string;
+      pdfUrl: string;
+      date: string;
+    };
+  };
   "notify/discord-kb-ingestion": {
     data: {
       payload: InvestmentDocument[];

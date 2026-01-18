@@ -11,7 +11,7 @@ import {
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
-const summarizePdf = async (url: string) => {
+export const summarizeCompanyReportPdf = async (url: string) => {
   const response = await generateText({
     model: openrouter("google/gemini-3-flash-preview", {
       models: ["openai/gpt-5-mini"],
@@ -82,7 +82,7 @@ export const hpStockUpdateIngest = inngest.createFunction(
   { event: "data/hp-stock-update-ingest" },
   async ({ event, step }) => {
     const summary = await step.run("extract", async () => {
-      return await summarizePdf(event.data.url);
+      return await summarizeCompanyReportPdf(event.data.url);
     });
 
     const payload: InvestmentDocument = await step.run(

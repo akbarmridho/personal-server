@@ -25,6 +25,8 @@ import {
 import { kiwoomEquityReportIngest } from "../data-modules/kiwoom-sekuritas/ingest-report.js";
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { pdfManualIngest } from "../data-modules/manual/pdf-ingest.js";
+import { phintracoCompanyUpdateCrawl } from "../data-modules/phintraco/crawl-company.js";
+import { phintracoCompanyUpdateIngest } from "../data-modules/phintraco/ingest-company.js";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
 import { samuelMorningBriefCrawl } from "../data-modules/samuel-sekuritas/crawl-brief.js";
 import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl-company.js";
@@ -135,4 +137,6 @@ export const inngestFunctions: InngestFunction.Like[] = [
   stockbitAnnouncementIngest,
   goldenArticleCrawl,
   goldenArticleIngest,
+  phintracoCompanyUpdateCrawl,
+  phintracoCompanyUpdateIngest,
 ];
