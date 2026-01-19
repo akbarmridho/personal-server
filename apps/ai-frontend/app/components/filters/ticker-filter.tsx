@@ -177,7 +177,7 @@ export function TickerFilter({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <div className={cn("flex gap-1", fullWidth && "w-full")}>
         <PopoverTrigger asChild>
           <Button

@@ -20,7 +20,7 @@ function Command({
     <CommandPrimitive
       data-slot="command"
       className={cn(
-        "bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md touch-auto",
+        "bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md",
         className,
       )}
       {...props}
@@ -89,7 +89,7 @@ function CommandList({
     <CommandPrimitive.List
       data-slot="command-list"
       className={cn(
-        "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto [touch-action:pan-y] [-webkit-overflow-scrolling:touch] overscroll-contain",
+        "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
         className,
       )}
       {...props}

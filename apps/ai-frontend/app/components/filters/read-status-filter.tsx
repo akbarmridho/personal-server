@@ -55,7 +55,7 @@ export function ReadStatusFilter({
     READ_STATUS_OPTIONS[0];
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <div className={cn("flex flex-col gap-1.5", fullWidth && "w-full")}>
         <PopoverTrigger asChild>
           <Button
