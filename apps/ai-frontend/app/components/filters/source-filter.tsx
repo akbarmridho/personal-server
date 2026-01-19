@@ -84,7 +84,7 @@ export function SourceFilter({
             No sources available
           </div>
         ) : (
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto [touch-action:pan-y] [-webkit-overflow-scrolling:touch] overscroll-contain">
             {[...sources].sort().map((source) => (
               <div
                 key={source}

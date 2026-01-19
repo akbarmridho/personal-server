@@ -4,13 +4,11 @@ import { Button } from "~/components/ui/button";
 import { useSubsectors } from "~/hooks/use-subsectors";
 import { useTimelineFilters } from "~/hooks/use-timeline-filters";
 import type { DocumentType } from "~/lib/api/types";
-import { DOCUMENT_TYPE_OPTIONS } from "~/lib/constants/filters";
 import {
   hasActiveFilters,
   type ReadStatusFilter as ReadStatusFilterType,
 } from "~/lib/utils/url-params";
 import { DateFilter } from "./date-filter";
-import { FilterBadge } from "./filter-badge";
 import { ReadStatusFilter } from "./read-status-filter";
 import { SearchFilter, type SearchFilterRef } from "./search-filter";
 import { SourceFilter } from "./source-filter";
@@ -191,110 +189,6 @@ export function FilterBar({
             </Button>
           )}
         </div>
-
-        {/* Active Filter Badges */}
-        {hasActiveFilters(filters) && (
-          <div className="flex flex-wrap gap-2 pt-1 max-w-full overflow-hidden">
-            {/* Search Badge */}
-            {filters.search && (
-              <FilterBadge
-                label="Search"
-                value={filters.search}
-                onRemove={clearSearch}
-              />
-            )}
-
-            {/* Date Badge */}
-            {(filters.date_from || filters.date_to) && (
-              <FilterBadge
-                label="Date"
-                value={`${filters.date_from || "?"} to ${filters.date_to || "?"}`}
-                onRemove={() => {
-                  updateFilters({ date_from: undefined, date_to: undefined });
-                }}
-              />
-            )}
-
-            {/* Type Badges */}
-            {filters.types?.map((type) => (
-              <FilterBadge
-                key={type}
-                label="Type"
-                value={
-                  DOCUMENT_TYPE_OPTIONS.find((opt) => opt.value === type)
-                    ?.label || type
-                }
-                onRemove={() =>
-                  updateFilters({
-                    types: filters.types?.filter((t) => t !== type),
-                  })
-                }
-              />
-            ))}
-
-            {/* Symbol Badges */}
-            {filters.symbols?.map((symbol) => (
-              <FilterBadge
-                key={symbol}
-                label="Ticker"
-                value={symbol}
-                onRemove={() =>
-                  updateFilters({
-                    symbols: filters.symbols?.filter((s) => s !== symbol),
-                  })
-                }
-              />
-            ))}
-
-            {/* Subsector Badges */}
-            {filters.subsectors?.map((subsector) => (
-              <FilterBadge
-                key={subsector}
-                label="Subsector"
-                value={
-                  subsectors.find((opt) => opt.value === subsector)?.label ||
-                  subsector
-                }
-                onRemove={() =>
-                  updateFilters({
-                    subsectors: filters.subsectors?.filter(
-                      (s) => s !== subsector,
-                    ),
-                  })
-                }
-              />
-            ))}
-
-            {/* Source Badges */}
-            {filters.source_names?.map((source) => (
-              <FilterBadge
-                key={source}
-                label="Source"
-                value={source}
-                onRemove={() =>
-                  updateFilters({
-                    source_names: filters.source_names?.filter(
-                      (s) => s !== source,
-                    ),
-                  })
-                }
-              />
-            ))}
-
-            {/* Read Status Badge */}
-            {filters.read_status && filters.read_status !== "all" && (
-              <FilterBadge
-                label="Read Status"
-                value={
-                  filters.read_status === "read" ? "Read Only" : "Unread Only"
-                }
-                onRemove={() => {
-                  updateFilters({ read_status: undefined });
-                }}
-              />
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
