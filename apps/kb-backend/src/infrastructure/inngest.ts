@@ -3,6 +3,7 @@ import type {
   ArticleContent,
   ArticleInfo,
 } from "../data-modules/algoresearch/types.js";
+import type { GeneralNewsEvent } from "../data-modules/general-news/ingest.js";
 import type { RawGoldenArticlePayload } from "../data-modules/golden-article/crawl.js";
 import type { GoldenArticleEvent } from "../data-modules/golden-article/ingest.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
@@ -144,6 +145,11 @@ type Events = {
       title: string;
       pdfUrl: string;
       date: string;
+    };
+  };
+  "data/general-news": {
+    data: {
+      payload: GeneralNewsEvent;
     };
   };
   "notify/discord-kb-ingestion": {
