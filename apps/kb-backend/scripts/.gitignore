@@ -1,8 +1,0 @@
-# Ignore node_modules created by the dynamic installer
-node_modules/
-
-# Ignore all files in the input directory...
-input/*
-
-# ...EXCEPT the template file
-!input/TEMPLATE.md
