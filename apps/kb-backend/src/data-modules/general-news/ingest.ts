@@ -30,7 +30,7 @@ export const generalNewsIngest = inngest.createFunction(
   },
   { event: "data/general-news" },
   async ({ event, step }) => {
-    const { url, referenceDate } = event.data.payload;
+    const { url, referenceDate } = event.data;
 
     // Validate URL is supported
     if (!isSupportedUrl(url)) {

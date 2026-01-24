@@ -148,9 +148,7 @@ type Events = {
     };
   };
   "data/general-news": {
-    data: {
-      payload: GeneralNewsEvent;
-    };
+    data: GeneralNewsEvent;
   };
   "notify/discord-kb-ingestion": {
     data: {

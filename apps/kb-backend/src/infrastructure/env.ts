@@ -44,6 +44,10 @@ export const env = createEnv({
     DISCORD_CHANNEL_INNGEST_ERROR: z.string(),
     DISCORD_CHANNEL_ANALYSIS_RUMOUR: z.string(),
     DISCORD_CHANNEL_YOUTUBE_SUMMARY_TIPS: z.string(),
+
+    TELEGRAM_API_ID: z.coerce.number(),
+    TELEGRAM_API_HASH: z.string(),
+    TELEGRAM_KG_CONFIG: z.string(),
   },
   /*
    * Specify what values should be validated by your schemas above.
