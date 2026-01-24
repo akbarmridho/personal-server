@@ -1,16 +1,66 @@
 import "@dotenvx/dotenvx/config";
-import { MastraServer } from "@mastra/express";
+
+import { logger as elysiaLogger } from "@bogeychan/elysia-logger";
+import { cors } from "@elysiajs/cors";
+import { node } from "@elysiajs/node";
+import { swagger } from "@elysiajs/swagger";
+import { Elysia } from "elysia";
 import express from "express";
+import { pluginGracefulServer } from "graceful-server-elysia";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { serve } from "inngest/express";
 import { env } from "./infrastructure/env.js";
 import { inngest } from "./infrastructure/inngest.js";
 // import { inngestConnect } from "./infrastructure/inngest-connect.js";
 import { inngestFunctions } from "./infrastructure/inngest-functions.js";
+import { setupKnowledgeRoutes } from "./knowledge/http.js";
 import { mastra } from "./mastra/index.js";
-import { setupHTTPServer } from "./server.js";
+import { setupStockRoutes } from "./stock/http.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
+
+export const setupHTTPServer = () => {
+  const app = new Elysia({ adapter: node() })
+    .use(pluginGracefulServer({}))
+    .use(
+      elysiaLogger({
+        autoLogging: true,
+      }),
+    )
+    .use(
+      cors({
+        origin: true,
+      }),
+    )
+    .onError(({ code, error, set }) => {
+      logger.error(
+        { error, stack: error.stack, code },
+        `Error: ${error.message}`,
+      );
+      set.status = 500;
+      return { error: error.message, code };
+    })
+    .use(
+      swagger({
+        exclude: ["/live", "/ready"],
+        path: "/docs",
+        provider: "scalar",
+      }),
+    )
+    .get("/", () => "Hello World!")
+
+    // attach stock routes under /stock prefix
+    .use(setupStockRoutes())
+
+    // attach knowledge routes under /knowledge prefix
+    .use(setupKnowledgeRoutes())
+
+    .listen(env.API_SERVER_PORT, ({ hostname, port }) => {
+      logger.info(`🦊 Elysia is running at ${hostname}:${port}`);
+    });
+
+  return app;
+};
 
 async function main() {
   // const connect = await inngestConnect();
@@ -59,21 +109,6 @@ async function main() {
       streaming: "force",
     }),
   );
-
-  proxyApp.use(
-    "/api/mastra",
-    express.json({
-      limit: "32mb",
-    }),
-  );
-
-  const mastraServer = new MastraServer({
-    app: proxyApp,
-    mastra,
-    prefix: "/api/mastra",
-  });
-
-  await mastraServer.init();
 
   // proxy the rest to elysia
   proxyApp.use(

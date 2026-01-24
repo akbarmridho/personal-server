@@ -12,5 +12,17 @@ module.exports = {
       watch: false,
       ignore_watch: ["node_modules", "logs", ".mastra"],
     },
+    {
+      name: "mastra",
+      script: "./dist/mastra.js",
+      cwd: "./",
+      autorestart: false,
+      max_memory_restart: "1024M",
+      min_uptime: 5000,
+      max_restarts: 5,
+      restart_delay: 2000,
+      watch: false,
+      ignore_watch: ["node_modules", "logs", ".mastra"],
+    },
   ],
 };
