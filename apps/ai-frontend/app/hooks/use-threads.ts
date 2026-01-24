@@ -1,42 +1,28 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createThread, deleteThread, getThreads } from "~/lib/api/mastra";
+import { useMastraClient } from "@mastra/react";
+import { useQuery } from "@tanstack/react-query";
 
-/**
- * Hook to fetch all threads for an agent
- */
-export function useThreads(agentId: string) {
+export const useThreads = ({
+  resourceId,
+  agentId,
+  isMemoryEnabled,
+}: {
+  resourceId: string;
+  agentId: string;
+  isMemoryEnabled: boolean;
+}): any => {
+  const client = useMastraClient();
+
   return useQuery({
-    queryKey: ["threads", agentId],
-    queryFn: () => getThreads(agentId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,
-  });
-}
-
-/**
- * Hook to create a new thread
- */
-export function useCreateThread(agentId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => createThread(agentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["threads", agentId] });
+    queryKey: ["memory", "threads", resourceId, agentId],
+    queryFn: async () => {
+      if (!isMemoryEnabled) return null;
+      const result = await client.listMemoryThreads({ resourceId, agentId });
+      return result.threads;
     },
+    enabled: Boolean(isMemoryEnabled),
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
-}
-
-/**
- * Hook to delete a thread
- */
-export function useDeleteThread(agentId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (threadId: string) => deleteThread(agentId, threadId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["threads", agentId] });
-    },
-  });
-}
+};

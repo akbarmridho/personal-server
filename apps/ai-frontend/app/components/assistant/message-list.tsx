@@ -50,25 +50,12 @@ const EditComposer: FC = () => {
  */
 export function MessageList() {
   return (
-    <>
-      <ThreadPrimitive.Empty>
-        <div className="flex h-full items-center justify-center text-center">
-          <div className="max-w-md space-y-2">
-            <p className="text-lg font-semibold">Start a conversation</p>
-            <p className="text-sm text-muted-foreground">
-              Ask questions about stocks, sectors, documents, and market trends
-            </p>
-          </div>
-        </div>
-      </ThreadPrimitive.Empty>
-
-      <ThreadPrimitive.Messages
-        components={{
-          UserMessage,
-          EditComposer,
-          AssistantMessage,
-        }}
-      />
-    </>
+    <ThreadPrimitive.Messages
+      components={{
+        UserMessage,
+        EditComposer,
+        AssistantMessage,
+      }}
+    />
   );
 }

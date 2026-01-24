@@ -1,3 +1,4 @@
+import { MastraReactProvider } from "@mastra/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -75,11 +76,15 @@ export default function App() {
       }),
   );
 
+  const mastraBaseUrl = import.meta.env.VITE_MASTRA_BASE_URL;
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ProfileProvider>
-        <Outlet />
-      </ProfileProvider>
+      <MastraReactProvider baseUrl={mastraBaseUrl}>
+        <ProfileProvider>
+          <Outlet />
+        </ProfileProvider>
+      </MastraReactProvider>
     </QueryClientProvider>
   );
 }
