@@ -1,5 +1,5 @@
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { ThreadListSkeleton } from "~/components/assistant/thread-list-skeleton";
 import {
   SidebarGroup,
@@ -10,15 +10,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { useChatState } from "~/contexts/chat-context";
 import { useDeleteThread } from "~/hooks/use-delete-thread";
 import { useMemory } from "~/hooks/use-memory";
 import { useThreads } from "~/hooks/use-threads";
 
 export function ChatSidebarContent() {
   const agentId = import.meta.env.VITE_DEFAULT_AGENT_ID;
-  const { selectedThreadId, setSelectedThreadId, setIsNewThread } =
-    useChatState();
+  const navigate = useNavigate();
+  const { threadId: currentThreadId } = useParams<{ threadId?: string }>();
   const { data: memory } = useMemory(agentId);
   const {
     data: threads,
@@ -32,22 +31,19 @@ export function ChatSidebarContent() {
   const { mutateAsync: deleteThread } = useDeleteThread();
 
   const handleNewThread = () => {
-    setIsNewThread(true);
+    // Generate a new thread ID and navigate with isNewThread flag
     const newThreadId = crypto.randomUUID();
-    setSelectedThreadId(newThreadId);
-  };
-
-  const handleSelectThread = (threadId: string) => {
-    setIsNewThread(false);
-    setSelectedThreadId(threadId);
+    navigate(`/chat/${newThreadId}`, {
+      state: { isNewThread: true },
+    });
   };
 
   const handleDeleteThread = async (e: React.MouseEvent, threadId: string) => {
     e.preventDefault();
     e.stopPropagation();
     await deleteThread({ threadId, agentId });
-    if (threadId === selectedThreadId) {
-      handleNewThread();
+    if (threadId === currentThreadId) {
+      navigate("/chat");
     }
     refreshThreads();
   };
@@ -90,13 +86,15 @@ export function ChatSidebarContent() {
               threads?.map((thread) => (
                 <SidebarMenuItem key={thread.id}>
                   <SidebarMenuButton
-                    isActive={selectedThreadId === thread.id}
-                    onClick={() => handleSelectThread(thread.id)}
+                    asChild
+                    isActive={currentThreadId === thread.id}
                     tooltip={thread.title || "New Chat"}
                   >
-                    <span className="truncate">
-                      {thread.title || "New Chat"}
-                    </span>
+                    <Link to={`/chat/${thread.id}`}>
+                      <span className="truncate">
+                        {thread.title || "New Chat"}
+                      </span>
+                    </Link>
                   </SidebarMenuButton>
                   <SidebarMenuAction
                     onClick={(e) => handleDeleteThread(e, thread.id)}

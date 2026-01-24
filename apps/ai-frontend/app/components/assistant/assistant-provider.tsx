@@ -114,7 +114,7 @@ export function AssistantProvider({
   const runtime = useExternalStoreRuntime({
     isRunning: isRunningStream,
     messages: messagesForRuntime,
-    convertMessage: (x) => x,
+    convertMessage: (x: any) => x,
     onNew,
     onCancel,
   });

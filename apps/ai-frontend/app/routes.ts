@@ -21,6 +21,7 @@ export default [
   // Chat routes with shared layout
   layout("routes/_layout.chat.tsx", [
     route("chat", "routes/_layout.chat.index.tsx"),
+    route("chat/:threadId", "routes/_layout.chat.$threadId.tsx"),
   ]),
 
   // Embed route (no layout, optimized for iframe)

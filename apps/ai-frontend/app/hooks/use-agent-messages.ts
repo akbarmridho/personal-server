@@ -21,5 +21,7 @@ export const useAgentMessages = ({
     gcTime: 0,
     retry: false,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 };

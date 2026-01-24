@@ -42,7 +42,9 @@ export const vibeInvestorAgent = new Agent({
   memory: new Memory({
     options: {
       lastMessages: 100,
-      generateTitle: false,
+      generateTitle: {
+        model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025"),
+      },
     },
   }),
   inputProcessors: [new LimitTokenStep()],
