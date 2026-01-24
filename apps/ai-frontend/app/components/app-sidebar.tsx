@@ -1,16 +1,14 @@
-import {
-  Layers,
-  LayoutDashboard,
-  MessageSquare,
-  Radio,
-  Sparkles,
-  UserCircle,
-} from "lucide-react";
+import { ChevronRight, Layers, MessageSquare, UserCircle } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router";
 import { FilterBar } from "~/components/filters/filter-bar";
 import { ProfileSelectorModal } from "~/components/profile-selector-modal";
 import { ThemeToggle } from "~/components/theme-toggle";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "~/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +20,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarSeparator,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "~/components/ui/sidebar";
 import { useProfile } from "~/contexts/profile-context";
@@ -56,100 +56,101 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="gap-0">
         <SidebarGroup>
-          <SidebarGroupLabel>Views</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
+          <SidebarMenu>
+            <Collapsible asChild defaultOpen className="group/collapsible">
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isAllActive}
-                  tooltip="All Timeline"
-                >
-                  <Link to="/timeline/all" onClick={handleTimelineClick}>
-                    <Layers className="h-4 w-4" />
-                    <span>All Timeline</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isTickerActive}
-                  tooltip="Ticker Timeline"
-                >
-                  <Link to="/timeline/ticker" onClick={handleTimelineClick}>
-                    <Radio className="h-4 w-4" />
-                    <span>Ticker Timeline</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isGeneralActive}
-                  tooltip="Non-Ticker Timeline"
-                >
-                  <Link to="/timeline/non-ticker" onClick={handleTimelineClick}>
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>Non-Ticker Timeline</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isGoldenArticleActive}
-                  tooltip="Golden Article"
-                >
-                  <Link
-                    to="/timeline/golden-article"
-                    onClick={handleTimelineClick}
+                <CollapsibleTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip="Timeline"
+                    className="hover:cursor-pointer"
                   >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Golden Article</span>
-                  </Link>
-                </SidebarMenuButton>
+                    <Layers className="h-4 w-4" />
+                    <span>Timeline</span>
+                    <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isAllActive}>
+                        <Link to="/timeline/all" onClick={handleTimelineClick}>
+                          <span>All Timeline</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isTickerActive}>
+                        <Link
+                          to="/timeline/ticker"
+                          onClick={handleTimelineClick}
+                        >
+                          <span>Ticker Timeline</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton asChild isActive={isGeneralActive}>
+                        <Link
+                          to="/timeline/non-ticker"
+                          onClick={handleTimelineClick}
+                        >
+                          <span>Non-Ticker Timeline</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={isGoldenArticleActive}
+                      >
+                        <Link
+                          to="/timeline/golden-article"
+                          onClick={handleTimelineClick}
+                        >
+                          <span>Golden Article</span>
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isChatActive}
-                  tooltip="AI Chat"
-                >
-                  <Link to="/chat" onClick={handleTimelineClick}>
-                    <MessageSquare className="h-4 w-4" />
-                    <span>AI Chat</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
+            </Collapsible>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={isChatActive}
+                tooltip="AI Chat"
+              >
+                <Link to="/chat" onClick={handleTimelineClick}>
+                  <MessageSquare className="h-4 w-4" />
+                  <span>AI Chat</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarGroup>
 
         {/* Only show filters on timeline pages, not on document view */}
         {isTimelinePage && (
-          <>
-            <SidebarSeparator />
-
-            <SidebarGroup>
-              <SidebarGroupLabel>Search</SidebarGroupLabel>
-              <SidebarGroupContent className="px-1">
-                <FilterBar
-                  showTickerFilter={
-                    isAllActive || isTickerActive || isGoldenArticleActive
-                  }
-                  showSubsectorFilter={
-                    isAllActive || isGeneralActive || isGoldenArticleActive
-                  }
-                  showReadStatusFilter={isGoldenArticleActive}
-                  showSourceFilter={!isGoldenArticleActive}
-                  compact={true}
-                />
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </>
+          <SidebarGroup className="pt-0">
+            <SidebarGroupLabel>Search</SidebarGroupLabel>
+            <SidebarGroupContent className="px-1">
+              <FilterBar
+                showTickerFilter={
+                  isAllActive || isTickerActive || isGoldenArticleActive
+                }
+                showSubsectorFilter={
+                  isAllActive || isGeneralActive || isGoldenArticleActive
+                }
+                showReadStatusFilter={isGoldenArticleActive}
+                showSourceFilter={!isGoldenArticleActive}
+                compact={true}
+              />
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
       </SidebarContent>
 
