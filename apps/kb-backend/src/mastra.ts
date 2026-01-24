@@ -2,12 +2,11 @@ import "@dotenvx/dotenvx/config";
 
 import type { ChatStreamHandlerParams } from "@mastra/ai-sdk";
 import { handleChatStream } from "@mastra/ai-sdk";
-import { stepCountIs } from "@mastra/core/_types/@internal_ai-sdk-v5/dist";
 import type { Mastra } from "@mastra/core/mastra";
 import type { RequestContext } from "@mastra/core/request-context";
 import { MastraServer } from "@mastra/express";
 import type { UIMessage } from "ai";
-import { pipeUIMessageStreamToResponse } from "ai";
+import { pipeUIMessageStreamToResponse, stepCountIs } from "ai";
 import type { Request, Response } from "express";
 import express from "express";
 import { z } from "zod";
