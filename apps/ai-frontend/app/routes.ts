@@ -18,6 +18,11 @@ export default [
     route("document/:id", "routes/document.$id.tsx"),
   ]),
 
+  // Chat routes with shared layout
+  layout("routes/_layout.chat.tsx", [
+    route("chat", "routes/_layout.chat.index.tsx"),
+  ]),
+
   // Embed route (no layout, optimized for iframe)
   route("embed/document/:id", "routes/embed.document.$id.tsx"),
 

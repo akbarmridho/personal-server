@@ -1,6 +1,7 @@
 import {
   Layers,
   LayoutDashboard,
+  MessageSquare,
   Radio,
   Sparkles,
   UserCircle,
@@ -37,6 +38,7 @@ export function AppSidebar() {
   const isGoldenArticleActive = location.pathname.includes(
     "/timeline/golden-article",
   );
+  const isChatActive = location.pathname.includes("/chat");
   const isTimelinePage = location.pathname.includes("/timeline/");
 
   // Close sidebar on mobile when switching timelines
@@ -107,6 +109,18 @@ export function AppSidebar() {
                   >
                     <Sparkles className="h-4 w-4" />
                     <span>Golden Article</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isChatActive}
+                  tooltip="AI Chat"
+                >
+                  <Link to="/chat" onClick={handleTimelineClick}>
+                    <MessageSquare className="h-4 w-4" />
+                    <span>AI Chat</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

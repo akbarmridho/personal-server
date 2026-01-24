@@ -17,9 +17,13 @@ Frontend application for displaying investment documents from knowledge-service 
 **Core Libraries:**
 
 - `@tanstack/react-query` v5 - Data fetching, caching, infinite queries
+- `@assistant-ui/react` - AI chat UI components
+- `@assistant-ui/react-ai-sdk` - AI SDK integration for Mastra
+- `@assistant-ui/react-markdown` - Markdown rendering for chat
 - `dayjs` - Date manipulation with timezone support (Asia/Jakarta)
-- `react-markdown` - Markdown rendering
+- `react-markdown` - Markdown rendering (timeline)
 - `remark-gfm` - GitHub Flavored Markdown support
+- `ai` - Vercel AI SDK types
 
 **UI Components:**
 
@@ -43,6 +47,8 @@ apps/ai-frontend/
 │   │   ├── timeline.ticker.tsx          # Ticker timeline page
 │   │   ├── timeline.general.tsx         # Non-symbol timeline page
 │   │   ├── _layout.timeline.tsx         # Shared timeline layout
+│   │   ├── _layout.chat.tsx             # Chat layout
+│   │   ├── _layout.chat.index.tsx       # Chat page with thread management
 │   │   └── document.$id.tsx             # Document detail/edit/delete page
 │   │
 │   ├── lib/
@@ -50,7 +56,9 @@ apps/ai-frontend/
 │   │   │   ├── client.ts                # Base fetch wrapper (GET, POST, PUT, DELETE)
 │   │   │   ├── knowledge.ts             # Knowledge service API
 │   │   │   ├── stock-universe.ts        # Stock universe API
+│   │   │   ├── mastra.ts                # Mastra thread management API
 │   │   │   └── types.ts                 # Shared API types
+│   │   ├── assistant-transport.ts       # Mastra chat transport adapter
 │   │   ├── utils/
 │   │   │   ├── cn.ts                    # className utility
 │   │   │   ├── date.ts                  # Dayjs timezone utilities
@@ -73,6 +81,13 @@ apps/ai-frontend/
 │   │   │   ├── ticker-filter.tsx        # Ticker multi-select
 │   │   │   ├── subsector-filter.tsx     # Subsector multi-select
 │   │   │   └── filter-badge.tsx         # Active filter chip
+│   │   ├── assistant/                   # AI chat components
+│   │   │   ├── assistant-provider.tsx   # Runtime provider
+│   │   │   ├── thread.tsx               # Main thread component
+│   │   │   ├── thread-list.tsx          # Thread management sidebar
+│   │   │   ├── message-list.tsx         # Message display
+│   │   │   ├── composer.tsx             # Input component
+│   │   │   └── markdown-content.tsx     # Markdown renderer
 │   │   ├── ui/                          # shadcn/ui components
 │   │   ├── theme-toggle.tsx             # Dark mode toggle button
 │   │   └── markdown-renderer.tsx        # Markdown content renderer
@@ -82,6 +97,8 @@ apps/ai-frontend/
 │   │   ├── use-timeline-query.ts        # Infinite/search query
 │   │   ├── use-document-query.ts        # Document fetch/update/delete mutations
 │   │   ├── use-stock-universe.ts        # Stock universe query
+│   │   ├── use-threads.ts               # Thread management hooks
+│   │   ├── use-thread-messages.ts       # Thread messages hook
 │   │   ├── use-theme.ts                 # Dark mode theme hook
 │   │   └── use-debounced-value.ts       # Debounce hook for search
 │   │
@@ -206,6 +223,40 @@ The timeline intelligently switches between two query modes:
 - No pagination (all results up to limit)
 - Filters still apply (date, type, symbols, subsectors)
 - Search is debounced (300ms)
+
+### AI Chat (`/chat`)
+
+Full-page chat interface powered by Mastra AI agents:
+
+**Features:**
+
+- Thread management (create, switch, delete conversations)
+- Streaming responses with markdown support
+- Integration with ProfileProvider
+- Thread persistence via Mastra Memory (PostgreSQL)
+
+**Architecture:**
+
+- Uses `@assistant-ui/react` and `@assistant-ui/react-ai-sdk`
+- Connects to **separate Mastra server** (not proxied through kb-backend)
+- Two independent backend servers via PM2:
+  - KB Backend: `VITE_API_BASE_URL` (port 3010)
+  - Mastra Server: `VITE_MASTRA_BASE_URL` (port 3011)
+
+**Environment Variables:**
+
+```bash
+VITE_MASTRA_BASE_URL=http://localhost:3011  # Dev: direct port
+# Production: https://mastra.akbarmr.dev (nginx subdomain)
+VITE_DEFAULT_AGENT_ID=vibe-investor-agent
+```
+
+**Deployment:**
+
+- Development: Point to `http://localhost:3011`
+- Production: Set up nginx subdomain (e.g., `mastra.akbarmr.dev`) or path-based routing
+- CORS: Configure in `apps/kb-backend/src/mastra.ts` if using different domains
+- See `apps/kb-backend/AGENTS.md` for Mastra server configuration
 
 ## Scripts
 
