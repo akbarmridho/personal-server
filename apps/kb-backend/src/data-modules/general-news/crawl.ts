@@ -19,6 +19,7 @@ const HOSTNAME_BLACKLIST = [
   "www.youtube.com",
   "youtu.be",
   "m.youtube.com",
+  "bit.ly",
   "bloomberg.com", // a hassle to scrape so skip
   "bloombergtechnoz.com", // a hassle to scrape
 ];
