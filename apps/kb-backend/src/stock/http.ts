@@ -19,8 +19,6 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { getCommoditySummary } from "./other-prices/commodity.js";
-import { getForexSummary } from "./other-prices/forex.js";
 import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { stockbitAuth } from "./stockbit/auth.js";
@@ -294,69 +292,6 @@ export const setupStockRoutes = () =>
           summary: "Get IHSG (Indonesian Composite Index) technical overview",
           description:
             "Returns technical analysis of the IHSG index including trend indicators and market sentiment",
-        },
-      },
-    )
-    .get(
-      "/forex",
-      async ({ query, set }) => {
-        try {
-          const data = await getForexSummary(query.currency);
-          return { success: true, data };
-        } catch (err) {
-          logger.error({ err }, "Get forex failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        query: t.Object({
-          currency: t.Union([
-            t.Literal("USD"),
-            t.Literal("CNY"),
-            t.Literal("EUR"),
-            t.Literal("JPY"),
-            t.Literal("SGD"),
-          ]),
-        }),
-        detail: {
-          tags: ["Market Data"],
-          summary: "Get forex rates",
-          description:
-            "Returns exchange rates and technical indicators for major currencies against Indonesian Rupiah (IDR)",
-        },
-      },
-    )
-    .get(
-      "/commodity",
-      async ({ query, set }) => {
-        try {
-          const data = await getCommoditySummary(query.commodity);
-          return { success: true, data };
-        } catch (err) {
-          logger.error({ err }, "Get commodity failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        query: t.Object({
-          commodity: t.Union([
-            t.Literal("GOLD"),
-            t.Literal("SILVER"),
-            t.Literal("OIL_WTI"),
-            t.Literal("OIL_BRENT"),
-            t.Literal("COPPER"),
-            t.Literal("COAL"),
-            t.Literal("NICKEL"),
-            t.Literal("CPO"),
-          ]),
-        }),
-        detail: {
-          tags: ["Market Data"],
-          summary: "Get commodity prices",
-          description:
-            "Returns current prices and technical indicators for major commodities including precious metals, energy, and agricultural products",
         },
       },
     )

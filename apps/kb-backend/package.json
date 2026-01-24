@@ -90,8 +90,6 @@
     "unist-util-visit": "^5.0.0",
     "uuid": "^13.0.0",
     "vfile": "^6.0.3",
-    "voyageai": "^0.0.8",
-    "yahoo-finance2": "^3.10.0",
     "zod": "^4.1.1"
   },
   "devDependencies": {

@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import { checkSymbol } from "../../aggregator/companies.js";
 import { getChartbitData } from "../../stockbit/chartbit.js";
-import { getStockSeasonality } from "../../stockbit/seasonality.js";
 import {
   calculateADX,
   calculateATR,
