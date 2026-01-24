@@ -1,6 +1,7 @@
 import { Agent } from "@mastra/core/agent";
 import { createTool } from "@mastra/core/tools";
 import { Memory } from "@mastra/memory";
+import { openrouter } from "@openrouter/ai-sdk-provider";
 import { stepCountIs } from "ai";
 import { z } from "zod";
 import { LimitTokenStep } from "../processor/limit-token-step.js";
@@ -36,7 +37,7 @@ export const vibeInvestorAgent = new Agent({
 
       Use the weatherTool to fetch current weather data.
 `,
-  model: "google/gemini-2.5-pro",
+  model: openrouter("xiaomi/mimo-v2-flash"),
   tools: { weatherTool },
   memory: new Memory({
     options: {
