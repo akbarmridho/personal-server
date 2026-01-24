@@ -209,7 +209,7 @@ export const generalNewsKGCrawl = inngest.createFunction(
               name: "data/general-news",
               data: {
                 url: message.url,
-                referenceDate: dayjs(message.message.date)
+                referenceDate: dayjs(message.message.date * 1000) // telegram original time is in seconds meanwhile dayjs expect in miliseconds
                   .tz("Asia/Jakarta")
                   .format("YYYY-MM-DD"),
               },

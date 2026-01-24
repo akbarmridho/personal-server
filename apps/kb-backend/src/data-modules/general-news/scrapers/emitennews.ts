@@ -1,6 +1,14 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import type { Scraper, ScraperResult } from "./types.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customParseFormat);
 
 /**
  * Scraper for emitennews.com
@@ -32,24 +40,32 @@ export const emitennewsScraper: Scraper = {
     // Try .time-posted first (emitennews specific)
     const timePosted = $(".time-posted").text().trim();
     if (timePosted) {
-      publishedDate = timePosted;
-    } else {
-      const timeElement = $('time[datetime]');
-      if (timeElement.length) {
-        publishedDate = timeElement.attr("datetime") || timeElement.text().trim();
+      // Parse date format: "13/01/2026, 15:48 WIB"
+      // WIB = Western Indonesian Time (GMT+7 = Asia/Jakarta)
+      const parsedDate = dayjs.tz(
+        timePosted,
+        "DD/MM/YYYY, HH:mm",
+        "Asia/Jakarta",
+      );
+      if (parsedDate.isValid()) {
+        publishedDate = parsedDate.toISOString();
       } else {
-        publishedDate =
-          $('meta[property="article:published_time"]').attr("content") ||
-          $('[class*="date"], [class*="published"]').first().text().trim() ||
-          "";
+        // Fallback to original text if parsing fails
+        publishedDate = timePosted;
       }
     }
 
     // Extract content
-    const contentArea = $(".article-body, [class*='article-content'], article").first();
+    const contentArea = $(
+      ".article-body, [class*='article-content'], article",
+    ).first();
 
     // Remove unwanted elements
-    contentArea.find('script, style, .advertisement, [class*="ad"], [class*="related"], .share, iframe, .tags, figure').remove();
+    contentArea
+      .find(
+        'script, style, .advertisement, [class*="ad"], [class*="related"], .share, iframe, .tags, figure',
+      )
+      .remove();
 
     // Get paragraphs and convert to markdown
     const paragraphs: string[] = [];

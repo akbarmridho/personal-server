@@ -66,7 +66,17 @@ export const generalNewsIngest = inngest.createFunction(
         let date: string;
         if (publishedDate) {
           try {
-            date = dayjs(publishedDate).tz("Asia/Jakarta").format("YYYY-MM-DD");
+            const parsedDate = dayjs(publishedDate)
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD");
+
+            if (!parsedDate.toLowerCase().includes("invalid")) {
+              date = parsedDate;
+            } else {
+              date =
+                referenceDate ||
+                dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
+            }
           } catch {
             logger.warn(
               { publishedDate },
