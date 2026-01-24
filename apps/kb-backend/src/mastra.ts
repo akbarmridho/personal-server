@@ -7,6 +7,7 @@ import type { RequestContext } from "@mastra/core/request-context";
 import { MastraServer } from "@mastra/express";
 import type { UIMessage } from "ai";
 import { pipeUIMessageStreamToResponse, stepCountIs } from "ai";
+import cors from "cors";
 import type { Request, Response } from "express";
 import express from "express";
 import { z } from "zod";
@@ -18,6 +19,7 @@ import { logger } from "./utils/logger.js";
 async function main() {
   const app = express();
 
+  app.use(cors());
   app.use(express.json({}));
 
   const mastraServer = new MastraServer({
