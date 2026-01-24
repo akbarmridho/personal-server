@@ -1,3 +1,4 @@
+import { NonRetriableError } from "inngest";
 import { bisnisScraper } from "./bisnis.js";
 import { emitennewsScraper } from "./emitennews.js";
 import { idxchannelScraper } from "./idxchannel.js";
@@ -32,7 +33,7 @@ export async function scrapeArticle(url: string): Promise<ScraperResult> {
   const scraper = scrapers.find((s) => s.supportsUrl(url));
 
   if (!scraper) {
-    throw new Error(
+    throw new NonRetriableError(
       `No scraper found for URL: ${url}. Supported domains: bisnis.com, katadata.co.id, idxchannel.com, kontan.co.id, emitennews.com`,
     );
   }
