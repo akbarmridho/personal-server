@@ -1,4 +1,5 @@
 import "@dotenvx/dotenvx/config";
+import { MastraServer } from "@mastra/express";
 import express from "express";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import { serve } from "inngest/express";
@@ -6,6 +7,7 @@ import { env } from "./infrastructure/env.js";
 import { inngest } from "./infrastructure/inngest.js";
 // import { inngestConnect } from "./infrastructure/inngest-connect.js";
 import { inngestFunctions } from "./infrastructure/inngest-functions.js";
+import { mastra } from "./mastra/index.js";
 import { setupHTTPServer } from "./server.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
@@ -58,6 +60,21 @@ async function main() {
     }),
   );
 
+  proxyApp.use(
+    "/api/mastra",
+    express.json({
+      limit: "32mb",
+    }),
+  );
+
+  const mastraServer = new MastraServer({
+    app: proxyApp,
+    mastra,
+    prefix: "/api/mastra",
+  });
+
+  await mastraServer.init();
+
   // proxy the rest to elysia
   proxyApp.use(
     "/",
@@ -84,7 +101,7 @@ async function main() {
     });
     apiHttpServer.stop();
 
-    await Promise.all([stockMcpServer.stop()]);
+    await Promise.all([stockMcpServer.stop(), mastra.shutdown()]);
     process.exit(0);
   };
 
