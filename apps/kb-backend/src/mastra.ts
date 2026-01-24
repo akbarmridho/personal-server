@@ -23,11 +23,15 @@ async function main() {
   const mastraServer = new MastraServer({
     app: app,
     mastra: mastra,
-    prefix: "/api",
     openapiPath: "/openapi.json",
   });
 
   await mastraServer.init();
+
+  // Redirect root path to studio
+  app.get("/", (_req: Request, res: Response) => {
+    res.redirect(301, "/studio");
+  });
 
   // Zod schema for request validation (matching original chatRoute schema)
   const chatRequestSchema = z.object({
