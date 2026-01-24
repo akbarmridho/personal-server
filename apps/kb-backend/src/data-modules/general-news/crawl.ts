@@ -19,6 +19,8 @@ const HOSTNAME_BLACKLIST = [
   "www.youtube.com",
   "youtu.be",
   "m.youtube.com",
+  "bloomberg.com", // a hassle to scrape so skip
+  "bloombergtechnoz.com", // a hassle to scrape
 ];
 
 const getURLsFromText = (text: string): string[] => {
