@@ -1,7 +1,7 @@
 import { toAISdkV5Messages } from "@mastra/ai-sdk/ui";
 import type { MastraUIMessage } from "@mastra/react";
 import { MessageSquare, PlusIcon } from "lucide-react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { AssistantProvider } from "~/components/assistant/assistant-provider";
 import { Thread } from "~/components/assistant/thread";
 import { Button } from "~/components/ui/button";
@@ -67,26 +67,40 @@ export default function ChatPage() {
     refreshThreads();
   };
 
-  const initialMessages = messagesData?.messages
-    ? (toAISdkV5Messages(messagesData.messages) as MastraUIMessage[])
-    : [];
+  const initialMessages = useMemo(
+    () =>
+      messagesData?.messages
+        ? (toAISdkV5Messages(messagesData.messages) as MastraUIMessage[])
+        : [],
+    [messagesData?.messages],
+  );
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] flex-col bg-background">
       {/* Chat Interface */}
       <div className="flex-1 overflow-hidden">
-        {selectedThreadId && !isMessagesLoading ? (
+        {selectedThreadId ? (
           <AssistantProvider
-            key={selectedThreadId}
             agentId={agentId}
             threadId={selectedThreadId}
             initialMessages={initialMessages}
             refreshThreadList={handleRefreshThreadList}
           >
-            <Thread
-              suggestions={suggestions}
-              welcome="Ask about stocks, sectors, documents, and market trends"
-            />
+            {isMessagesLoading ? (
+              <div className="flex h-full flex-col items-center justify-center text-center p-8 space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 animate-pulse">
+                  <MessageSquare className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-muted-foreground animate-pulse">
+                  Resuming your conversation...
+                </p>
+              </div>
+            ) : (
+              <Thread
+                suggestions={suggestions}
+                welcome="Ask about stocks, sectors, documents, and market trends"
+              />
+            )}
           </AssistantProvider>
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-center p-8 space-y-4">
@@ -97,15 +111,12 @@ export default function ChatPage() {
               Vibe Chat Assistant
             </h2>
             <p className="text-muted-foreground max-w-sm">
-              {isMessagesLoading
-                ? "Resuming your conversation..."
-                : "Ask me anything about stocks, technical indicators, or market sentiment. Select an existing thread or start a new one to begin."}
+              Ask me anything about stocks, technical indicators, or market
+              sentiment. Select an existing thread or start a new one to begin.
             </p>
-            {!selectedThreadId && !isMessagesLoading && (
-              <Button onClick={handleNewThread} className="mt-4">
-                <PlusIcon className="mr-2 h-4 w-4" /> Start New Conversation
-              </Button>
-            )}
+            <Button onClick={handleNewThread} className="mt-4">
+              <PlusIcon className="mr-2 h-4 w-4" /> Start New Conversation
+            </Button>
           </div>
         )}
       </div>
