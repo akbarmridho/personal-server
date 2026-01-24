@@ -1,18 +1,24 @@
 import { Outlet } from "react-router";
 import { AppSidebar } from "~/components/app-sidebar";
-import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "~/components/ui/sidebar";
+import { ChatProvider } from "~/contexts/chat-context";
 
-/**
- * Layout for chat routes with sidebar navigation
- * Wraps chat pages with the app sidebar
- */
 export default function ChatLayout() {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <Outlet />
-      </SidebarInset>
-    </SidebarProvider>
+    <ChatProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+          </header>
+          <Outlet />
+        </SidebarInset>
+      </SidebarProvider>
+    </ChatProvider>
   );
 }
