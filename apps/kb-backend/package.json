@@ -54,6 +54,7 @@
     "http-proxy": "^1.18.1",
     "http-proxy-agent": "^7.0.2",
     "http-proxy-middleware": "^3.0.5",
+    "https-proxy-agent": "^7.0.6",
     "impit": "^0.8.1",
     "inngest": "3.46.0",
     "js-tiktoken": "^1.0.21",

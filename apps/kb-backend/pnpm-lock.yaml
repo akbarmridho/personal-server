@@ -107,6 +107,9 @@ importers:
       http-proxy-middleware:
         specifier: ^3.0.5
         version: 3.0.5
+      https-proxy-agent:
+        specifier: ^7.0.6
+        version: 7.0.6
       impit:
         specifier: ^0.8.1
         version: 0.8.1
