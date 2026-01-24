@@ -24,6 +24,7 @@ async function main() {
     app: app,
     mastra: mastra,
     prefix: "/api",
+    openapiPath: "/openapi.json",
   });
 
   await mastraServer.init();
@@ -128,6 +129,7 @@ async function main() {
     mastraServerPort: "443",
     mastraServerProtocol: "https",
     hideCloudCta: true,
+    basePath: "/studio",
   });
 
   const server = app.listen(env.MASTRA_SERVER_PORT, () => {
