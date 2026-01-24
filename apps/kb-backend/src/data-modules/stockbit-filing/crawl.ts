@@ -2,9 +2,9 @@ import { AxiosError } from "axios";
 import { NonRetriableError } from "inngest";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
-import { proxiedAxios } from "../../stock/proxy.js";
 import { stockbitAuth } from "../../stock/stockbit/auth.js";
 import { logger } from "../../utils/logger.js";
+import { proxiedAxios } from "../../utils/proxy.js";
 
 type ReportType = "RUPS" | "CORPORATE_ACTION" | "OTHER";
 

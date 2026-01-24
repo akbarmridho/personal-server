@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonObject, JsonValue } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../proxy.js";
+import { proxiedAxios } from "../../utils/proxy.js";
 import { removeKeysRecursive } from "../utils.js";
 import { StockbitAuthError, stockbitAuth } from "./auth.js";
 

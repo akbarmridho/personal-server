@@ -1,5 +1,5 @@
-import axios from "axios";
 import * as cheerio from "cheerio";
+import { generalProxiedAxios } from "../../../utils/proxy.js";
 import type { Scraper, ScraperResult } from "./types.js";
 
 /**
@@ -8,16 +8,13 @@ import type { Scraper, ScraperResult } from "./types.js";
  */
 export const kontanScraper: Scraper = {
   supportsUrl: (url: string) => {
-    return /https?:\/\/(investasi|keuangan|industri)\.kontan\.co\.id\/news\//.test(url);
+    return /https?:\/\/(investasi|keuangan|industri)\.kontan\.co\.id\/news\//.test(
+      url,
+    );
   },
 
   scrapeArticle: async (url: string): Promise<ScraperResult> => {
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      },
-    });
+    const response = await generalProxiedAxios.get(url);
 
     const $ = cheerio.load(response.data);
 
@@ -29,7 +26,7 @@ export const kontanScraper: Scraper = {
 
     // Extract date
     let publishedDate = "";
-    const timeElement = $('time[datetime]');
+    const timeElement = $("time[datetime]");
     if (timeElement.length) {
       publishedDate = timeElement.attr("datetime") || timeElement.text().trim();
     } else {
@@ -40,10 +37,16 @@ export const kontanScraper: Scraper = {
     }
 
     // Extract content
-    const contentArea = $("[itemprop='articleBody'], .detail-konten, [class*='article-content'], article").first();
+    const contentArea = $(
+      "[itemprop='articleBody'], .detail-konten, [class*='article-content'], article",
+    ).first();
 
     // Remove unwanted elements
-    contentArea.find('script, style, .advertisement, [class*="iklan"], [class*="ad-"], [class*="related"], [class*="baca"], .share, iframe, figure').remove();
+    contentArea
+      .find(
+        'script, style, .advertisement, [class*="iklan"], [class*="ad-"], [class*="related"], [class*="baca"], .share, iframe, figure',
+      )
+      .remove();
 
     // Get paragraphs and convert to markdown
     const paragraphs: string[] = [];

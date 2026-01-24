@@ -8,9 +8,9 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { proxiedAxios } from "../../stock/proxy.js";
 import { stockbitAuth } from "../../stock/stockbit/auth.js";
 import { logger } from "../../utils/logger.js";
+import { proxiedAxios } from "../../utils/proxy.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 

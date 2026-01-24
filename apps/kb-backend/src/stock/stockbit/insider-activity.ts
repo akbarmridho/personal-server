@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
-import { proxiedAxios } from "../proxy.js";
+import { proxiedAxios } from "../../utils/proxy.js";
 import {
   type BaseStockbitResponse,
   StockbitAuthError,

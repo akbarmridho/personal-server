@@ -1,7 +1,7 @@
 import { AxiosError } from "axios";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonObject } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../proxy.js";
+import { proxiedAxios } from "../../utils/proxy.js";
 
 export interface AuthData {
   // refreshToken: string;

@@ -1,10 +1,10 @@
-import axios from "axios";
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { generalProxiedAxios } from "../../utils/proxy.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -58,7 +58,7 @@ export const phintracoCompanyUpdateCrawl = inngest.createFunction(
 
       const scrapedUrls = new Set<string>(keystoneData?.urls || []);
 
-      const { data: html } = await axios.get(targetUrl);
+      const { data: html } = await generalProxiedAxios.get(targetUrl);
 
       const data: Array<{ url: string; title: string }> = [];
 

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonValue } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../proxy.js";
+import { proxiedAxios } from "../../utils/proxy.js";
 import { dateToFormatted } from "../utils.js";
 import {
   type BaseStockbitResponse,
