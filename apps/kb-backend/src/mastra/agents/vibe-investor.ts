@@ -1,44 +1,47 @@
+import { readFile } from "node:fs/promises";
 import { Agent } from "@mastra/core/agent";
-import { createTool } from "@mastra/core/tools";
+import { MCPClient } from "@mastra/mcp";
 import { Memory } from "@mastra/memory";
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { stepCountIs } from "ai";
-import { z } from "zod";
+import dayjs from "dayjs";
+import { env } from "../../infrastructure/env.js";
 import { LimitTokenStep } from "../processor/limit-token-step.js";
 
-export const weatherTool = createTool({
-  id: "get-weather",
-  description: "Get current weather for a location",
-  inputSchema: z.object({
-    location: z.string().describe("City name"),
-  }),
-  outputSchema: z.object({
-    output: z.string(),
-  }),
-  execute: async () => {
-    return {
-      output: "The weather is sunny",
-    };
+export const vibeInvestorTools = new MCPClient({
+  id: "vibe-investor-tools",
+  servers: {
+    search: {
+      url: new URL(
+        `https://mcp.exa.ai/mcp?tools=web_search_exa,crawling_exa&exaApiKey=${env.EXA_API_KEY}`,
+      ),
+    },
+    notes: {
+      url: new URL(`http://localhost:8021/mcp`),
+    },
+    stockMarket: {
+      url: new URL(`http://localhost:3010/mcps/stock/mcp`),
+    },
   },
 });
 
 export const vibeInvestorAgent = new Agent({
   id: "vibe-investor-agent",
   name: "Vibe Investor Agent",
-  instructions: `
-      You are a helpful weather assistant that provides accurate weather information.
+  instructions: async () => {
+    const prompt = await readFile("prompts/vibe-investor.md", {
+      encoding: "utf-8",
+    });
 
-      Your primary function is to help users get weather details for specific locations. When responding:
-      - Always ask for a location if none is provided
-      - If the location name isn't in English, please translate it
-      - If giving a location with multiple parts (e.g. "New York, NY"), use the most relevant part (e.g. "New York")
-      - Include relevant details like humidity, wind conditions, and precipitation
-      - Keep responses concise but informative
-
-      Use the weatherTool to fetch current weather data.
-`,
-  model: openrouter("xiaomi/mimo-v2-flash"),
-  tools: { weatherTool },
+    return prompt.replaceAll(
+      "{{datetime}}",
+      `${dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD HH:mm")} WIB`,
+    );
+  },
+  model: openrouter("google/gemini-3-flash-preview"),
+  tools: async () => {
+    return await vibeInvestorTools.listTools();
+  },
   memory: new Memory({
     options: {
       lastMessages: 100,

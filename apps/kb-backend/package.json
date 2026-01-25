@@ -37,6 +37,7 @@
     "@mastra/express": "^1.0.1",
     "@mastra/libsql": "^1.0.0",
     "@mastra/loggers": "^1.0.0",
+    "@mastra/mcp": "^1.0.0",
     "@mastra/memory": "^1.0.0",
     "@mastra/observability": "^1.0.0",
     "@mastra/pg": "^1.0.0",
