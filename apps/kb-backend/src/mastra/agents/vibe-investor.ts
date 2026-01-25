@@ -5,8 +5,31 @@ import { Memory } from "@mastra/memory";
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { stepCountIs } from "ai";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import { env } from "../../infrastructure/env.js";
 import { LimitTokenStep } from "../processor/limit-token-step.js";
+
+// Extend dayjs with plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Jakarta timezone constant
+export const JAKARTA_TZ = "Asia/Jakarta";
+
+/**
+ * Format date to display format (e.g., "Jan 15, 2025")
+ */
+export function formatDate(date: string | Date): string {
+  return dayjs(date).tz(JAKARTA_TZ).format("dddd, D MMMM YYYY");
+}
+
+/**
+ * Format datetime to display format (e.g., "Jan 15, 2025 14:30")
+ */
+export function formatDateTime(date: string | Date): string {
+  return dayjs(date).tz(JAKARTA_TZ).format("dddd, D MMMM YYYY HH:mm");
+}
 
 export const vibeInvestorTools = new MCPClient({
   id: "vibe-investor-tools",
