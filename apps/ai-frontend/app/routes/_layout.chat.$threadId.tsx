@@ -75,10 +75,7 @@ export default function ChatThreadPage() {
             initialMessages={initialMessages}
             refreshThreadList={handleRefreshThreadList}
           >
-            <Thread
-              suggestions={suggestions}
-              welcome="Ask about stocks, sectors, documents, and market trends"
-            />
+            <Thread />
           </AssistantProvider>
         </div>
       </div>
