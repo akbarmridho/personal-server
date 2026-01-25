@@ -43,7 +43,13 @@ export const vibeInvestorAgent = new Agent({
     options: {
       lastMessages: 100,
       generateTitle: {
-        model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025"),
+        model: openrouter("openai/gpt-oss-20b", {
+          models: [
+            "openai/gpt-oss-120b",
+            "xiaomi/mimo-v2-flash",
+            "google/gemini-2.5-flash-lite-preview-09-2025",
+          ],
+        }),
       },
     },
   }),
