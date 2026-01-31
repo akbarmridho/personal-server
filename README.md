@@ -98,8 +98,9 @@ docker network create personal_network
 
 ### Filesystem MCP
 
-- `8021` MCP.
+- `8021` Filesystem MCP (rust-mcp-filesystem via proxy).
 - `8022` Notesdiscovery.
+- `8023` Bash MCP (FastMCP direct HTTP).
 
 ### AI Frontend
 
