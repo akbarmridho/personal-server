@@ -1,5 +1,5 @@
-import { writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { tool } from "@opencode-ai/plugin";
 
 export default tool({
@@ -47,6 +47,10 @@ export default tool({
       if (!data.success) {
         throw new Error(`API returned error: ${data.error || "Unknown error"}`);
       }
+
+      // Ensure directory exists
+      const directory = dirname(absolutePath);
+      await mkdir(directory, { recursive: true });
 
       // Save to file
       await writeFile(
