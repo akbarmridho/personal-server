@@ -1,0 +1,11 @@
+# Technical Analyst Agent - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Data Analysis & Math
+pandas>=2.0.0
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Charting Libraries
+mplfinance>=0.12.0          # Static charting for internal analysis
+lightweight-charts>=2.0.0   # Interactive TradingView-style charts

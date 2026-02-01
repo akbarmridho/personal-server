@@ -22,6 +22,7 @@ import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { stockbitAuth } from "./stockbit/auth.js";
+import { getChartbitData } from "./stockbit/chartbit.js";
 import { removeKeysRecursive } from "./utils.js";
 
 export const setupStockRoutes = () =>
@@ -271,6 +272,53 @@ export const setupStockRoutes = () =>
           summary: "Get stock technical indicators",
           description:
             "Returns technical analysis indicators including moving averages, RSI, MACD, Bollinger Bands, and price action patterns",
+        },
+      },
+    )
+    .get(
+      "/stock/:symbol/chartbit/raw",
+      async ({ params, query, set }) => {
+        try {
+          // Default to past 3 years if not specified
+          const to = query.to
+            ? dayjs.tz(query.to, "Asia/Jakarta").toDate()
+            : dayjs().tz("Asia/Jakarta").toDate();
+          const from = query.from
+            ? dayjs.tz(query.from, "Asia/Jakarta").toDate()
+            : dayjs(to).subtract(3, "year").toDate();
+
+          const data = await getChartbitData({
+            symbol: params.symbol,
+            from,
+            to,
+          });
+
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get raw chartbit data failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ symbol: t.String() }),
+        query: t.Object({
+          from: t.Optional(
+            t.String({
+              description: "Start date (YYYY-MM-DD). Defaults to 3 years ago.",
+            }),
+          ),
+          to: t.Optional(
+            t.String({
+              description: "End date (YYYY-MM-DD). Defaults to today.",
+            }),
+          ),
+        }),
+        detail: {
+          tags: ["Stock Technical Analysis"],
+          summary: "Get raw OHLCV chartbit data",
+          description:
+            "Returns raw OHLCV (Open, High, Low, Close, Volume) data from Stockbit. Default range is past 3 years. Includes foreign flow, frequency, and other trading metrics.",
         },
       },
     )
