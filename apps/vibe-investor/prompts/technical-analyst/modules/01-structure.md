@@ -15,8 +15,6 @@ Markets move through predictable phases of accumulation, markup, distribution, a
 | **Distribution** | Smart money quietly selling. Sideways range after uptrend. | Institutions SELL, Retail BUYS (FOMO). |
 | **Markdown** | Price falls. Supply exceeds demand. | Retail left holding. Panic selling. |
 
-> **Source:** `price-volume-wyckoff.md` (Wyckoff principles)
-
 ## 1.2 Trend Definition
 
 ### Uptrend
@@ -36,8 +34,6 @@ Markets move through predictable phases of accumulation, markup, distribution, a
 - Price oscillates between horizontal support and resistance
 - No clear HH/HL or LH/LL pattern
 - Moving Averages flatten and intertwine
-
-> **Source:** General TA principles, synthesized from `dynamic-ma-trendline.md`
 
 ## 1.3 Swing Point Identification (HH, HL, LH, LL)
 
@@ -85,8 +81,6 @@ The "105" is a **Swing High** because:
 
 **Important:** A wick/shadow below the swing low is NOT a confirmed break. The candle body must close below/above for confirmation.
 
-> **Source:** [LuxAlgo - Swing Highs and Lows](https://www.luxalgo.com/blog/swing-highs-and-lows-basics-for-traders/), [StoneX Futures - Swing Highs and Lows](https://futures.stonex.com/blog/how-to-identify-and-trade-swing-highs-and-swing-lows)
-
 ## 1.4 Moving Averages as Trend Filter
 
 A Moving Average (MA) represents the average price over a specific period. The "Dynamic MA" concept involves finding the specific MA line that a particular stock respects during its trend.
@@ -107,8 +101,6 @@ A Moving Average (MA) represents the average price over a specific period. The "
 ### The Rule
 
 As long as the stock price stays **above** its Dynamic MA, the trend is considered intact and the stock should be held.
-
-> **Source:** `dynamic-ma-trendline.md` (Chart Investor Academy - IFEF 2021)
 
 ## 1.5 Trendlines
 
@@ -163,8 +155,6 @@ A trendline break is confirmed when:
 ### Convergence Signal (Strong)
 
 When price breaks below **BOTH** the Dynamic MA **AND** the Trendline = strong sell signal. This double confirmation reduces false signals.
-
-> **Source:** `dynamic-ma-trendline.md` (Chart Investor Academy - IFEF 2021)
 
 ## Summary
 

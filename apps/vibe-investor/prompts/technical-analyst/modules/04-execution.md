@@ -15,7 +15,6 @@ Entry is not about predicting the absolute bottom, but confirming the start of a
 * **Philosophy:** Buy strength. Wait for the market to prove the trend.
 * **Trigger:** Price breaks **above** key resistance or Moving Averages (MA5, MA10, MA20) and establishes a position above them.
 * **Volume Requirement:** Must be accompanied by a **significant volume spike** (often >70% of daily avg in first hour). This indicates "smart money" participation.
-* **Source:** `dynamic-ma-trendline.md`
 
 ### B. Pullback to Value
 
@@ -27,7 +26,6 @@ Entry is not about predicting the absolute bottom, but confirming the start of a
   * **Fibonacci Levels:** 38.2%, 50%, or 61.8% retracement levels.
   * **Dynamic MA:** Price tests the specific MA respecting the trend (e.g., MA20).
 * **Confirmation:** Price stabilizes at the level. Bounces should see volume picked up.
-* **Source:** `analisis-teknikal.json`, `fibonacci-retracement.md`
 
 ### C. The Wyckoff Spring (Reversal)
 
@@ -39,9 +37,6 @@ Entry is not about predicting the absolute bottom, but confirming the start of a
     2. **Volume is LOW** on the break (no real supply).
     3. Price quickly recovers back above support.
 * **Trigger:** Entry on the recovery back inside the range.
-* **Source:** `price-volume-wyckoff.md`
-
----
 
 ## 4.2 Volume Confirmation Rules Matrix
 
@@ -56,10 +51,6 @@ Volume is the "fuel" of any move. Use this matrix to validate price action:
 
 **The Anomaly Rule:**
 If a stock trades **70% of its average daily volume** within the first hour, a major move (breakout or dump) is imminent. Transition to active monitoring.
-
-*Source:* `price-volume-wyckoff.md`
-
----
 
 ## 4.3 Position Sizing & Scaling
 
@@ -85,10 +76,6 @@ Do not go "All-In" immediately unless the setup is pristine.
 2. **Average Up:** Add to the position (Pyramiding) only when the thesis is confirmed (e.g., breakout holds, trend continues).
     * *Note:* Avoid averaging down on losers. Average up on winners.
 
-*Source:* `dynamic-ma-trendline.md`, `analisis-teknikal.json`
-
----
-
 ## 4.4 Exit Strategies
 
 The goal is to capture the "body" of the trend. We accept giving back the top 5-10% to ensure we don't sell too early.
@@ -99,7 +86,6 @@ The goal is to capture the "body" of the trend. We accept giving back the top 5-
 
 * **Trigger:** Price closes **below** the Dynamic MA (support) **AND** breaks the uptrend line.
 * **Discipline:** Do not sell just because the price "feels high" or RSI is overbought. As long as price > Dynamic MA, the trend is intact.
-* **Source:** `dynamic-ma-trendline.md`
 
 ### B. Resistance & Extension Targets
 
@@ -107,7 +93,6 @@ The goal is to capture the "body" of the trend. We accept giving back the top 5-
 
 * **Targets:** Major resistance zones (Supply Areas) or Fibonacci Extensions (161.8%).
 * **Action:** Sell partials (e.g., 50%) at resistance to lock in gains, let the rest run with a trailing stop.
-* **Source:** `analisis-teknikal.json`
 
 ### C. Volume-Based Escape (Emergency)
 
@@ -115,9 +100,6 @@ The goal is to capture the "body" of the trend. We accept giving back the top 5-
 
 * **Breakdown:** Support breaks with **HIGH Volume**. (Real supply entering).
 * **Climax:** Massive volume spike without price progress (Churning/Distribution) after a long rally.
-* **Source:** `price-volume-wyckoff.md`
-
----
 
 ## 4.5 The "No Resistance" Phase
 
@@ -126,10 +108,6 @@ When a stock breaks All-Time Highs (ATH) or clears all major resistance:
 1. **Do NOT guess a target.** There is no overhead supply.
 2. **Hold** until the trend structure breaks (Dynamic MA violation).
 3. Ignore "Overvalued" commentary; price discovery is in effect.
-
-*Source:* `dynamic-ma-trendline.md`
-
----
 
 ## Summary Checklist
 

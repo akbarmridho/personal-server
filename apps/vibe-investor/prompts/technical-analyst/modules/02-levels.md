@@ -13,8 +13,6 @@
 
 These levels represent areas of memory where significant trading occurred. Traders remember these prices and act on them again.
 
-> **Source:** `analisis-teknikal.json` (Mentor Baik article)
-
 ## 2.2 How to Identify Support & Resistance Levels
 
 There are several methods to identify S/R levels. Use multiple methods for stronger confluence.
@@ -49,8 +47,6 @@ Major highs and lows from the past that caused significant price reactions.
 - The price reaction at that level was significant (high volume, strong reversal)
 - The level hasn't been tested and broken since then
 
-> **Source:** General TA principles
-
 ## 2.3 VPVR (Volume Profile Visible Range)
 
 VPVR displays trading volume at different price levels, showing where most trading activity occurred. This helps identify S/R based on actual market participation.
@@ -76,8 +72,6 @@ VPVR displays trading volume at different price levels, showing where most tradi
 - If price approaches HVN from above → expect support
 - Breakout through LVN often continues to next HVN
 
-> **Source:** [Volume Profile Guide](https://goodcrypto.app/ultimate-guide-to-volume-profile-vpvr-vpsv-vpfr-explained/), [VPVR for S/R](https://medium.com/@CryptoCallsEnpire/utilizing-volume-profile-vpvr-to-identify-support-and-resistance-levels-fd6b8ceda401)
-
 ## 2.4 Untested Level Strength
 
 A support or resistance level that has **never been tested** is the strongest.
@@ -94,8 +88,6 @@ A support or resistance level that has **never been tested** is the strongest.
 ### The Law of Repeated Hits
 
 The more times a price touches a support level, the more likely it is to break. If a stock hits support **4-5 times** without a significant bounce, the buying pressure is exhausted and breakdown is imminent.
-
-> **Source:** `price-volume-wyckoff.md` (Hengky Trading Course Day 3)
 
 ## 2.5 Support & Resistance as Zones (Not Lines)
 
@@ -115,8 +107,6 @@ Professional traders treat S/R as **zones** rather than exact lines. A zone typi
 | ATR-based | ±0.5 ATR from level |
 | Wick-based | From candle body to wick extreme |
 
-> **Source:** `analisis-teknikal.json`, General TA principles
-
 ## 2.6 Volume Confirmation on S/R
 
 ### At Support
@@ -130,8 +120,6 @@ Professional traders treat S/R as **zones** rather than exact lines. A zone typi
 |------------|--------|----------------|
 | Breaks with **HIGH volume** | Valid breakout/breakdown |
 | Breaks with **LOW volume** | Likely fake break, wait for confirmation |
-
-> **Source:** `price-volume-wyckoff.md`
 
 ## 2.7 Bandar/Market Maker Manipulation at S/R
 
@@ -151,8 +139,6 @@ Professional traders view S/R not as barriers, but as **liquidity pools** where 
 
 - Trigger stop losses to buy cheap (at support)
 - Trigger FOMO entries to sell high (at resistance)
-
-> **Source:** `price-volume-wyckoff.md` (Hengky Trading Course)
 
 ## 2.8 Detecting and Handling False Breaks
 
@@ -175,8 +161,6 @@ Distinguish real breaks from fake breaks using volume:
 - Wait for daily close confirmation
 - Check volume before reacting
 
-> **Source:** `price-volume-wyckoff.md` (Hengky Trading Course Day 2-3)
-
 ## 2.9 Role Reversal
 
 When a support level is broken, it often becomes resistance (and vice versa).
@@ -188,8 +172,6 @@ When a support level is broken, it often becomes resistance (and vice versa).
 - Traders who bought at 1000 are now underwater
 - They want to sell at breakeven when price returns to 1000
 - This creates selling pressure = resistance
-
-> **Source:** General TA principles, `analisis-teknikal.json`
 
 ## 2.10 Fibonacci Retracement
 
@@ -212,8 +194,6 @@ Fibonacci is **NOT used to calculate S/R** directly. Instead, it identifies pote
 3. In a downtrend: measure from high to low
 4. Retracement levels show where pullback may find support
 
-> **Source:** `fibonacci-retracement.md` (Investopedia), `analisis-teknikal.json`
-
 ## 2.11 Fibonacci as Confluence
 
 Fibonacci is most powerful when it **aligns with other S/R levels** (confluence).
@@ -233,8 +213,6 @@ Fibonacci is most powerful when it **aligns with other S/R levels** (confluence)
 | 127.2% | First extension target |
 | 161.8% | Second extension target |
 | 261.8% | Extended target |
-
-> **Source:** `fibonacci-retracement.md`, `analisis-teknikal.json`
 
 ## Summary
 

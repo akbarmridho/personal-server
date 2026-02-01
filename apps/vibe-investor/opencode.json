@@ -3,7 +3,9 @@
   "theme": "tokyonight",
   "model": "openrouter/my-gpt-5.2",
   "small_model": "openrouter/my-gemini-3-flash",
-  "enabled_providers": ["openrouter"],
+  "enabled_providers": ["openrouter", "opencode"],
+  "formatter": false,
+  "lsp": false,
   "provider": {
     "openrouter": {
       "options": {

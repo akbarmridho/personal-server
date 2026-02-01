@@ -21,8 +21,6 @@ In a healthy bullish environment, the interaction follows two primary rules:
 
 A price drop on **low volume** suggests a "healthy correction." It indicates that while some profit-taking is occurring, the major holders are not exiting their positions.
 
-> **Source:** `price-volume-wyckoff.md`
-
 ## 3.2 Volume Anomaly Detection
 
 ### The 70% Volume Rule
@@ -34,8 +32,6 @@ For active traders, if a stock reaches **70% of its average daily volume within 
 When volume suddenly spikes in a stock that was previously dormant—reaching perhaps 70% of its average daily turnover within the first hour—it signals an anomaly that cannot be ignored.
 
 **Action:** When a usually quiet stock suddenly trades with high aggression, transition from observation to active monitoring.
-
-> **Source:** `price-volume-wyckoff.md`
 
 ## 3.3 Detecting Accumulation (Frequency Analyzer)
 
@@ -53,8 +49,6 @@ When a stock is **sideways for extended period** and shows unusual activity (fre
 - Volume spikes during sideways price action
 - Increasing number of transactions without price movement
 - This often precedes markup phase
-
-> **Source:** `analisis-teknikal.json` (Mentor Baik article)
 
 ## 3.4 Wyckoff Accumulation Schematic
 
@@ -93,8 +87,6 @@ Spring is valid when:
 - Price quickly recovers above support
 - Followed by markup on **increasing volume**
 
-> **Source:** `price-volume-wyckoff.md` (Hengky Course Day 3)
-
 ## 3.5 Identifying the Selling Climax
 
 A Selling Climax marks potential trend reversal from down to up.
@@ -116,8 +108,6 @@ When stock is hit with negative news but:
 
 → Supply has been absorbed. Bad news is "priced in." Stock is primed for reversal.
 
-> **Source:** `price-volume-wyckoff.md`
-
 ## 3.6 Breakout Patterns
 
 ### Valid Breakout Characteristics
@@ -133,8 +123,6 @@ When stock is hit with negative news but:
 |--------|-------------|------|
 | Aggressive | Enter on breakout candle close | Higher (fake break risk) |
 | Conservative | Wait for retest of broken level | Lower (may miss move) |
-
-> **Source:** `dynamic-ma-trendline.md`, `analisis-teknikal.json`
 
 ## 3.7 Fake Breakout (Fakeout) Detection
 
@@ -166,8 +154,6 @@ Market makers use fake breakouts to trap retail traders.
 | Support breaks | HIGH volume + heavy offer | Valid breakdown | Exit mandatory |
 | Resistance breaks | LOW volume | Likely fake | Don't chase |
 | Resistance breaks | HIGH volume | Valid breakout | Enter or hold |
-
-> **Source:** `price-volume-wyckoff.md` (Hengky Course Day 2-3)
 
 ## Summary
 
