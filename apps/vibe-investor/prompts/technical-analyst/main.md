@@ -57,18 +57,68 @@ Use the `fetch-ohlcv` tool to download 3 years of OHLCV data:
 - **ticker**: Stock symbol (e.g., "BBCA", "TLKM") - must be 4 uppercase letters
 - **output_path**: Where to save the JSON file (e.g., "data/BBCA_ohlcv.json")
 
-**What you get:**
+**CRITICAL ERROR HANDLING:**
 
-- 3 years of daily trading data (default range)
-- Fields: date, open, high, low, close, volume
-- Additional: foreignbuy, foreignsell, foreignflow, frequency, value, dividend
-- Company data: shareoutstanding, soxclose
+If the `fetch-ohlcv` tool returns an error, **STOP IMMEDIATELY**. Do not attempt to retry, fetch from alternative sources, or proceed with analysis. Report the error to the user and end the analysis.
+
+**Data Structure (JSON Array):**
+
+The tool returns an array of daily records with the following fields:
+
+**Core OHLCV Fields:**
+
+- `date` (string) - Date in "YYYY-MM-DD" format (e.g., "2026-01-30")
+- `unixdate` (integer) - Unix timestamp
+- `open` (integer) - Opening price in IDR
+- `high` (integer) - Highest price in IDR
+- `low` (integer) - Lowest price in IDR
+- `close` (integer) - Closing price in IDR
+- `volume` (integer) - Trading volume in shares
+
+**Foreign Flow & Trading Activity:**
+
+- `foreignbuy` (integer) - Foreign buy value in IDR
+- `foreignsell` (integer) - Foreign sell value in IDR
+- `foreignflow` (integer) - Cumulative foreign flow in IDR
+- `frequency` (integer) - Number of transactions
+- `freq_analyzer` (float) - Frequency analysis metric
+
+**Company & Market Data:**
+
+- `value` (integer) - Total trading value in IDR
+- `dividend` (integer) - Dividend amount (0 if none)
+- `shareoutstanding` (integer) - Outstanding shares
+- `soxclose` (integer) - Market capitalization at close
+
+**Example Record:**
+
+```json
+{
+  "date": "2026-01-30",
+  "unixdate": 1769706000,
+  "open": 2100,
+  "high": 2150,
+  "low": 1975,
+  "close": 1985,
+  "volume": 95310700,
+  "foreignbuy": 18104901500,
+  "foreignsell": 89335693500,
+  "frequency": 19165,
+  "foreignflow": 2292607089300,
+  "soxclose": 81151428027500,
+  "dividend": 0,
+  "value": 193439226500,
+  "shareoutstanding": 40882331500,
+  "freq_analyzer": 13.539891631391162
+}
+```
 
 **Workflow:**
 
 1. Call `fetch-ohlcv` tool with ticker and output path
-2. Load the JSON file using pandas: `pd.read_json('data/BBCA_ohlcv.json')`
-3. Proceed with technical analysis using the loaded data
+2. **If error occurs, STOP and report to user**
+3. Load the JSON file using pandas: `pd.read_json('data/BBCA_ohlcv.json')`
+4. Proceed with technical analysis using the loaded data
 
 **Note:** The tool saves data to a file instead of returning it directly to avoid exploding the context window with large datasets.
 
