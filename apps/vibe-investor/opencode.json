@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "theme": "tokyonight",
+  "theme": "cursor",
   "model": "openrouter/my-gpt-5.2",
   "small_model": "openrouter/my-gemini-3-flash",
   "enabled_providers": ["openrouter", "opencode"],
