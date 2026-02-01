@@ -94,6 +94,7 @@ Technical analysis requires examining data from multiple perspectives. Don't set
 For EACH chart you generate and view, systematically verify concepts from the knowledge modules:
 
 **From Module 01 (Structure):**
+
 - [ ] **Wyckoff Phase**: Are we in Accumulation, Markup, Distribution, or Markdown?
 - [ ] **Trend Structure**: HH/HL pattern (uptrend)? LH/LL pattern (downtrend)? Mixed (sideways)?
 - [ ] **Swing Points**: Last 5 swing highs/lows - rising or falling?
@@ -102,6 +103,7 @@ For EACH chart you generate and view, systematically verify concepts from the kn
 - [ ] **Trendline**: Can you draw valid trendline connecting 2+ swing points?
 
 **From Module 02 (Levels):**
+
 - [ ] **Historical S/R**: Major historical highs/lows acting as S/R
 - [ ] **Recent S/R**: Cluster swing points from last 90 days
 - [ ] **VPVR**: Point of Control (most traded price)? High Volume Nodes?
@@ -112,6 +114,7 @@ For EACH chart you generate and view, systematically verify concepts from the kn
 - [ ] **Fibonacci**: Retracement levels from last major swing - any confluence?
 
 **From Module 03 (Price Action):**
+
 - [ ] **Price-Volume Matrix** (last 20 days):
   - Price ↑ + Volume ↑ = Strong trend
   - Price ↓ + Volume ↓ = Healthy correction  
@@ -154,19 +157,135 @@ For EACH chart you generate and view, systematically verify concepts from the kn
 
 **Decision Rule:** Only proceed to synthesis after running ALL applicable checklist items across all charts.
 
-### Phase 4: Synthesis & Report
+### Phase 4: Red Flags Analysis
 
-After completing ALL checklist items across ALL chart views, synthesize findings:
+**Purpose:** Systematically identify warning signs that increase risk.
+
+**Red Flag Categories:**
+
+**Category 1: Moving Average Breakdown**
+
+- Price below MA5 (short-term momentum lost)
+- Price below MA10 (short-term trend broken)
+- Price below MA20 (medium-term dynamic support broken)
+- Price near/below MA50 (long-term trend at risk)
+- MAs aligned bearishly (MA5 < MA10 < MA20 declining)
+
+**Category 2: Trend Structure Failure**
+
+- Lower highs pattern (LH instead of HH)
+- Lower lows pattern (LL instead of HL)
+- Price closed below recent swing low (uptrend break)
+- Failed to make new highs after peak
+- Trend changed from uptrend to sideways/transitional
+
+**Category 3: Volume & Distribution**
+
+- Distribution day (price down + volume up >1.2x)
+- Weak recovery after distribution (low volume bounce)
+- Volume declining on rally attempts (no buying interest)
+- High volume at peaks without price progress (churning)
+- Volume spike with little price movement (absorption)
+
+**Category 4: Support & Resistance Issues**
+
+- Support tested multiple times (3+ = weakening)
+- Broken support now acting as resistance
+- Far from resistance, close to support (asymmetric risk)
+- Entry price now becomes resistance (underwater sellers)
+- No clear support levels nearby (free-fall risk)
+
+**Category 5: Position Risk**
+
+- Distance to stop loss < 5% (coin-flip territory)
+- Position underwater with deteriorating structure
+- Stop loss below major support cluster
+
+**Output:** List all detected red flags with severity (LOW/MEDIUM/HIGH/CRITICAL) and specific evidence.
+
+### Phase 5: Informed Money Analysis
+
+**Purpose:** Assess whether price action suggests informed traders are active.
+
+**Concept:** When you see distribution patterns near peaks without obvious news, it may indicate:
+
+- Smart money exiting before public announcement
+- Institutional selling to retail buyers
+- Front-running of upcoming fundamental events
+
+**Patterns to Watch:**
+
+- Distribution days near recent highs (high volume, price down)
+- Churning (high volume with little price progress)
+- Weak bounces after distribution attempts
+- Frequency/volume spikes at resistance levels
+
+**Context-Dependent Interpretation:**
+
+- In speculative plays (MSCI inclusion, merger rumors): Distribution at peak is highly suspicious
+- In established trends: May be normal profit-taking
+- After parabolic rallies: Often marks smart money exit
+
+**Agent Discretion:** Use judgment based on context. Not every distribution is front-running. Look for confluence of signals and market context.
+
+### Phase 6: Risk Assessment & Synthesis
+
+**Purpose:** Assess overall risk level using both quantitative signals and qualitative judgment.
+
+**Risk Assessment Framework:**
+
+Consider multiple factors with context-appropriate weighting:
+
+**Technical Factors:**
+
+- MA position (below MA20, MA50)
+- Trend structure (intact, breaking, or broken)
+- Swing point progression (HH/HL vs LH/LL)
+- Chart patterns (spring, climax, distribution)
+
+**Volume Factors:**
+
+- Distribution signals (price down + volume up)
+- Accumulation signals (sideways + volume up)
+- Volume anomalies (>1.5x or <0.5x average)
+- Volume confirmation on breaks
+
+**Structural Factors:**
+
+- Support/Resistance strength and proximity
+- Zone width and test counts
+- Fibonacci confluence
+- Role reversal situations
+
+**Contextual Factors:**
+
+- Informed money signals (if speculative thesis)
+- Parabolic rally exhaustion
+- Sector/market conditions
+- Position status (underwater, distance to stop)
+
+**Synthesize with Judgment:**
+
+Use your discretion to weigh factors. Some situations may have:
+
+- High technical risk but strong fundamentals
+- Multiple red flags but short time horizon
+- Informed money signals but you're early in position
+
+Provide reasoned assessment rather than rigid score.
 
 **Synthesis Questions:**
-1. **Market Structure**: What Wyckoff phase? Is trend intact or broken? Evidence?
-2. **Levels Analysis**: Which S/R levels are strongest? Any confluence (Fib + S/R + volume)?
-3. **Price Action**: What patterns detected? (spring, climax, distribution, breakout, fakeout)
-4. **Volume Profile**: Where is POC? Any HVN acting as S/R? Volume confirming price?
-5. **Risk Assessment**: What are the red flags? Risk score 0-10 with justification
-6. **Conflict Resolution**: If computed data differs from visual analysis, explain why chart is correct
 
-**MANDATORY**: Report must reference specific checklist findings with evidence from charts.
+1. **Market Structure**: What phase? Trend intact or broken? Key evidence?
+2. **Levels**: Which S/R levels matter most? Any confluence?
+3. **Price Action**: Detected patterns? (spring, climax, distribution, breakout)
+4. **Volume**: Confirming or contradicting price? Anomalies?
+5. **Context**: Any signs informed traders are active? (context-dependent)
+6. **Red Flags**: Key warning signs detected?
+7. **Overall Risk**: Qualitative assessment (LOW/MEDIUM/HIGH/CRITICAL) with reasoning
+8. **Conflicts**: If data contradicts visual analysis, which do you trust and why?
+
+**MANDATORY**: Report must reference specific findings with evidence from charts.
 
 ## Output Report Structure
 
@@ -195,11 +314,13 @@ The analysis report should follow this standard structure:
 
 **D. Risk Assessment (DEDICATED SECTION)**
 
-- Red flags detected (signal, severity, evidence)
-- Risk score (0-10 scale with level)
-- What could go wrong (scenario → consequence)
-- Risk mitigation strategies
-- Critical warnings (if applicable)
+- **Red Flags Detected:** Key warning signs organized by category (Structure, Volume, Levels, Position) with severity and evidence
+- **Informed Money Signals:** If applicable, note any signs of institutional distribution (context-dependent, not mandatory)
+- **Overall Risk Level:** Qualitative assessment (LOW/MEDIUM/HIGH/CRITICAL) with reasoning that weighs multiple factors
+- **Key Risk Factors:** What are the primary concerns driving the risk assessment?
+- **Scenario Analysis:** What could go wrong (best case, likely case, worst case)
+- **Risk Mitigation:** Specific actions to manage risk
+- **Critical Warnings:** Any urgent alerts requiring immediate attention
 
 **E. Action Recommendation**
 
