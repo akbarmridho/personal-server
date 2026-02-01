@@ -3,6 +3,25 @@
 This file contains the core Python algorithms for the Technical Analyst Agent.
 **Usage:** When generating analysis scripts, copy/adapt these functions rather than writing them from scratch to ensure standard methodology.
 
+## Required Libraries
+
+All code examples use the following Python libraries:
+
+```python
+import pandas as pd
+import numpy as np
+from scipy import stats, signal
+import mplfinance as mpf
+from lightweight_charts import Chart
+```
+
+**Available Tools:**
+- `pandas` - Data manipulation, time series, DataFrames
+- `numpy` - Numerical operations, array math
+- `scipy` - Statistical analysis, signal processing
+- `mplfinance` - Static charting for internal analysis
+- `lightweight-charts` - Interactive TradingView-style charts for user presentation
+
 ---
 
 ## 1. Market Structure (Trends)
@@ -178,28 +197,64 @@ def calculate_position_size(capital, entry, stop, risk_pct=0.01):
 
 ---
 
-## 5. Visualization (mplfinance)
+## 5. Visualization
 
-### Standard Chart Setup
+### Static Charts (mplfinance)
+
+For internal analysis and validation:
 
 ```python
-def generate_chart(df, analysis):
+def generate_static_chart(df, analysis):
     """
-    Standard mplfinance setup for consistency.
+    Standard mplfinance setup for internal analysis.
     """
     import mplfinance as mpf
-    
+
     # Custom Style
     style = mpf.make_mpf_style(marketcolors=mpf.make_marketcolors(up='g', down='r'), gridstyle=':')
-    
+
     # plots
     apds = [
         mpf.make_addplot(df['MA20'], color='orange'),
         mpf.make_addplot(df['MA50'], color='red')
     ]
-    
+
     # Add Swing Points
     # Add S/R Lines (hlines)
-    
+
     mpf.plot(df, type='candle', style=style, addplot=apds, volume=True, hlines=...)
+```
+
+### Interactive Charts (lightweight-charts)
+
+For user presentation with TradingView-style interface:
+
+```python
+def generate_interactive_chart(df, ticker):
+    """
+    Create interactive chart using lightweight-charts.
+    """
+    from lightweight_charts import Chart
+
+    # Create chart
+    chart = Chart()
+
+    # Add candlestick series
+    chart.set(df)
+
+    # Add volume
+    chart.volume(df)
+
+    # Add indicators
+    chart.lines([
+        {'data': df['MA20'], 'color': 'orange', 'name': 'MA20'},
+        {'data': df['MA50'], 'color': 'red', 'name': 'MA50'}
+    ])
+
+    # Add horizontal lines for S/R levels
+    # chart.horizontal_line(price=support_level, color='green')
+    # chart.horizontal_line(price=resistance_level, color='red')
+
+    # Save as HTML
+    chart.save(f'artifacts/{ticker}_interactive.html')
 ```
