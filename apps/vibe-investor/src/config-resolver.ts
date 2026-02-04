@@ -14,25 +14,28 @@ export function resolveConfig(
   const configContent = readFileSync(configPath, "utf-8");
   const config = JSON.parse(configContent);
 
-  return resolveObject(config, rootDir);
+  // Prompts directory for shared includes
+  const promptsDir = resolve(rootDir, "prompts");
+
+  return resolveObject(config, rootDir, promptsDir);
 }
 
 /**
  * Recursively resolve placeholders in config object
  */
-function resolveObject(obj: any, rootDir: string): any {
+function resolveObject(obj: any, rootDir: string, promptsDir: string): any {
   if (typeof obj === "string") {
-    return resolveString(obj, rootDir);
+    return resolveString(obj, rootDir, promptsDir);
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item) => resolveObject(item, rootDir));
+    return obj.map((item) => resolveObject(item, rootDir, promptsDir));
   }
 
   if (obj !== null && typeof obj === "object") {
     const resolved: Record<string, any> = {};
     for (const [key, value] of Object.entries(obj)) {
-      resolved[key] = resolveObject(value, rootDir);
+      resolved[key] = resolveObject(value, rootDir, promptsDir);
     }
     return resolved;
   }
@@ -45,7 +48,7 @@ function resolveObject(obj: any, rootDir: string): any {
  * - {env:VAR_NAME} -> process.env.VAR_NAME
  * - {file:path/to/file} -> file content (with EJS processing)
  */
-function resolveString(str: string, rootDir: string): string {
+function resolveString(str: string, rootDir: string, promptsDir: string): string {
   // Resolve {env:VAR_NAME}
   str = str.replace(/\{env:([^}]+)\}/g, (_, varName) => {
     const value = process.env[varName];
@@ -61,13 +64,13 @@ function resolveString(str: string, rootDir: string): string {
     const fileContent = readFileSync(absolutePath, "utf-8");
 
     // Process file with EJS to handle includes
-    // Pass the file's directory as the root for relative includes
+    // Support both relative includes (from file's dir) and shared includes (from prompts/)
     const fileDir = dirname(absolutePath);
     const processed = ejs.render(
       fileContent,
       {},
       {
-        root: fileDir,
+        views: [fileDir, promptsDir], // Search in file's dir first, then prompts/
         filename: absolutePath,
       },
     );
