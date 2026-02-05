@@ -115,6 +115,21 @@
         "list": true,
         "lsp": false
       }
+    },
+    "fundamental-analyst": {
+      "description": "Expert fundamental analyst specializing in Indonesia Stock Market",
+      "mode": "primary",
+      "prompt": "{file:./prompts/fundamental-analyst/main.md}",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "list": true,
+        "lsp": false
+      }
     }
   }
 }

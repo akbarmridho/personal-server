@@ -108,3 +108,7 @@ docker network create personal_network
 ### Miniserve
 
 - `8024` Miniserve
+
+### Openclaw
+
+- `8025` Openclaw
