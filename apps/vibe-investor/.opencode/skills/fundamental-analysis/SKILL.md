@@ -14,7 +14,7 @@ description: Expert fundamental analysis for IDX stocks — financial statement 
 
 **Knowledge Base:** `search-documents`, `list-documents`, `get-document` for filings, analyst research, news.
 
-**Knowledge Catalog:** `list-skills`, `get-skill` for sector-specific deep knowledge (banking metrics, coal analysis, property NAV, etc.). Always check catalog for sector-specific frameworks before relying on general rules.
+**Knowledge Catalog:** `list-knowledge`, `get-knowledge` for sector-specific deep knowledge (banking metrics, coal analysis, property NAV, etc.). Always check catalog for sector-specific frameworks before relying on general rules.
 
 ---
 
@@ -30,7 +30,7 @@ Call in parallel: `get-stock-fundamental` + `get-stock-financials` + `get-stock-
 2. **Valuation** (Module 2) — 2-3 methods minimum, calculate MoS, cross-validate
 3. **Company Quality** (Module 3) — Moat, ownership, management, growth story
 4. **Risk Assessment** (Module 4) — Value trap check, manipulation flags, IDX 2.0 risk score
-5. **Sector Context** — Use `get-skill` from knowledge catalog for sector-specific metrics and peer comparison
+5. **Sector Context** — Use `get-knowledge` from knowledge catalog for sector-specific metrics and peer comparison
 
 ### Phase 3: Synthesis
 
@@ -404,8 +404,8 @@ Most reliable for manufacturing. Use modified versions for financial/service.
 
 For sector-specific metrics, benchmarks, and frameworks, use the **knowledge catalog**:
 
-1. `list-skills` to discover available sector skills
-2. `get-skill` to load the relevant framework (banking, coal, property, consumer, telco, etc.)
+1. `list-knowledge` to discover available entries (filter by category if needed)
+2. `get-knowledge` to load the relevant framework (banking, coal, property, consumer, telco, etc.)
 
 The knowledge catalog contains deep sector knowledge including key metrics, valuation methods, regulatory context, and peer comparison frameworks that are maintained separately and updated independently.
 

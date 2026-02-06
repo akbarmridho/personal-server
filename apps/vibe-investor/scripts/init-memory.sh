@@ -13,7 +13,7 @@ if [ -f "$VIBE_INVESTOR_DIR/.env" ]; then
 fi
 
 if [ -z "$OPENCODE_CWD" ]; then
-  echo "❌ OPENCODE_CWD not set in .env"
+  echo "OPENCODE_CWD not set in .env"
   echo ""
   echo "Add to $VIBE_INVESTOR_DIR/.env:"
   echo "  OPENCODE_CWD=/path/to/your/workspace"
@@ -21,57 +21,58 @@ if [ -z "$OPENCODE_CWD" ]; then
   exit 1
 fi
 
-echo "🎯 Initializing memory system in: $OPENCODE_CWD"
+echo "Initializing memory system in: $OPENCODE_CWD"
 echo ""
 
 # Create directory structure
-echo "📁 Creating directory structure..."
+echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
 mkdir -p "$OPENCODE_CWD/memory/tickers"
-mkdir -p "$OPENCODE_CWD/memory/agents/technical-analyst/analysis"
-mkdir -p "$OPENCODE_CWD/memory/agents/technical-analyst/sessions"
+mkdir -p "$OPENCODE_CWD/memory/analysis"
+mkdir -p "$OPENCODE_CWD/memory/sessions"
+mkdir -p "$OPENCODE_CWD/work"
 
-# Copy templates
-echo "📋 Copying memory templates..."
-cp "$VIBE_INVESTOR_DIR/memory-templates/MEMORY.md" \
-   "$OPENCODE_CWD/memory/MEMORY.md"
-
-cp "$VIBE_INVESTOR_DIR/memory-templates/notes/portfolio.md" \
-   "$OPENCODE_CWD/memory/notes/portfolio.md"
-
-cp "$VIBE_INVESTOR_DIR/memory-templates/notes/watchlist.md" \
-   "$OPENCODE_CWD/memory/notes/watchlist.md"
-
-cp "$VIBE_INVESTOR_DIR/memory-templates/agents/technical-analyst/MEMORY.md" \
-   "$OPENCODE_CWD/memory/agents/technical-analyst/MEMORY.md"
+# Copy templates (only if target doesn't already exist)
+echo "Copying memory templates..."
+for f in MEMORY.md notes/portfolio.md notes/watchlist.md tickers/EXAMPLE.md; do
+  src="$VIBE_INVESTOR_DIR/memory-templates/$f"
+  dst="$OPENCODE_CWD/memory/$f"
+  if [ ! -f "$dst" ]; then
+    cp "$src" "$dst"
+  else
+    echo "  Skipping $f (already exists)"
+  fi
+done
 
 # Create .gitignore
-echo "🔒 Creating .gitignore..."
+echo "Creating .gitignore..."
 cat > "$OPENCODE_CWD/memory/.gitignore" << 'EOF'
-# Ignore append-only logs (too much churn)
-agents/*/sessions/
-agents/*/analysis/
+# Ignore append-only / high-churn directories
+sessions/
+analysis/
 
 # Keep curated memory (version control these)
 !MEMORY.md
 !notes/
 !tickers/
-!agents/*/MEMORY.md
 EOF
 
 echo ""
-echo "✅ Memory system initialized!"
+echo "Memory system initialized!"
 echo ""
-echo "📝 Structure created:"
-echo "   $OPENCODE_CWD/memory/"
-echo "   ├── MEMORY.md"
-echo "   ├── notes/"
-echo "   │   ├── portfolio.md"
-echo "   │   └── watchlist.md"
-echo "   ├── tickers/"
-echo "   └── agents/technical-analyst/"
+echo "Structure:"
+echo "  $OPENCODE_CWD/"
+echo "  ├── memory/"
+echo "  │   ├── MEMORY.md"
+echo "  │   ├── notes/"
+echo "  │   │   ├── portfolio.md"
+echo "  │   │   └── watchlist.md"
+echo "  │   ├── tickers/"
+echo "  │   ├── analysis/"
+echo "  │   └── sessions/"
+echo "  └── work/"
 echo ""
-echo "🚀 Start using:"
-echo "   cd $VIBE_INVESTOR_DIR"
-echo "   pnpm cli"
+echo "Start using:"
+echo "  cd $VIBE_INVESTOR_DIR"
+echo "  pnpm cli"
 echo ""

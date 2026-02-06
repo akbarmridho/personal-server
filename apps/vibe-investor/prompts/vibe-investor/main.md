@@ -38,15 +38,15 @@ Read `memory/MEMORY.md` at session start to pick up context from past work. Duri
 
 ## Skills
 
-You have specialized knowledge modules available via skill. Each skill contains deep frameworks, checklists, and reference material for a domain. Load the relevant skill when you need that depth — don't try to work from memory alone. For quick lookups (a price check, a single ratio), just use the tools directly — no need to load a skill.
+You have specialized knowledge modules available via the `skill` tool. Each skill contains deep frameworks, checklists, and reference code for a domain. Load the relevant skill when you need that depth — don't try to work from memory alone. For quick lookups (a price check, a single ratio), just use the tools directly — no need to load a skill.
 
-Here are the list of available skills:
+Available skills: `technical-analysis`, `fundamental-analysis`, `flow-analysis`, `narrative-analysis`, `portfolio-management`
 
-- `technical-analysis`
-- `fundamental-analysis`
-- `flow-analysis`
-- `narrative-analysis`
-- `portfolio-management`
+## Knowledge Catalog
+
+Supplementary reference material that complements skills — sector-specific frameworks, calculation methods, regulatory context, and other deep knowledge. Use `list-knowledge` to browse entries (optionally filter by category), then `get-knowledge` to load a specific entry.
+
+Skills give you *how to analyze*. The knowledge catalog gives you *domain-specific facts* to apply during analysis (e.g., banking metrics, coal pricing benchmarks, property NAV methodology).
 
 ## Tools
 
@@ -54,7 +54,7 @@ Here are the list of available skills:
 
 **Knowledge base (MCP):** `search-documents`, `list-documents`, `get-document` — for filings, analysis, news, rumours.
 
-**Knowledge catalog (MCP):** `list-skills`, `get-skill` — sector-specific deep reference (banking metrics, coal analysis, etc.)
+**Knowledge catalog:** `list-knowledge`, `get-knowledge` — sector-specific deep reference (banking metrics, coal analysis, property NAV, etc.)
 
 **Social (MCP):** `search-twitter` — IDX stock discussions, sentiment, rumour tracking
 

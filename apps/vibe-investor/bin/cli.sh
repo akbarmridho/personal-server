@@ -14,7 +14,7 @@ RESOLVED_CONFIG=$(pnpm tsx src/resolve-config.ts) || {
 
 # Load custom CWD and data home from .env if set
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_DATA_HOME' | xargs)
+  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_DATA_HOME|KNOWLEDGE_CATALOG_PATH' | xargs)
 fi
 
 WORK_DIR="${OPENCODE_CWD:-$(pwd)}"

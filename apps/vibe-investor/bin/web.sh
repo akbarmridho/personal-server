@@ -14,7 +14,7 @@ RESOLVED_CONFIG=$(pnpm tsx src/resolve-config.ts) || {
 
 # Load environment variables from .env if it exists
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_PORT|OPENCODE_HOSTNAME|OPENCODE_DATA_HOME' | xargs)
+  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_PORT|OPENCODE_HOSTNAME|OPENCODE_DATA_HOME|KNOWLEDGE_CATALOG_PATH' | xargs)
 fi
 
 WORK_DIR="${OPENCODE_CWD:-$(pwd)}"
