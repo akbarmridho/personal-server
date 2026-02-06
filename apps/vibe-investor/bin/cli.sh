@@ -12,9 +12,9 @@ RESOLVED_CONFIG=$(pnpm tsx src/resolve-config.ts) || {
   exit 1
 }
 
-# Load custom CWD from .env if set
+# Load custom CWD and data home from .env if set
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | grep OPENCODE_CWD | xargs)
+  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_DATA_HOME' | xargs)
 fi
 
 WORK_DIR="${OPENCODE_CWD:-$(pwd)}"
@@ -24,6 +24,10 @@ export OPENCODE_CONFIG_CONTENT="$RESOLVED_CONFIG"
 
 # Point to vibe-investor's .opencode directory for custom tools/agents
 export OPENCODE_CONFIG_DIR="$ROOT_DIR/.opencode"
+
+# Isolate session/state storage from the main coding opencode instance.
+# Since `exec` replaces this process, XDG vars only affect opencode.
+export XDG_DATA_HOME="${OPENCODE_DATA_HOME:-$HOME/.local/share/vibe-investor}"
 
 # Launch opencode CLI (replace current process)
 cd "$WORK_DIR"

@@ -59,7 +59,7 @@
       }
     }
   },
-  "default_agent": "technical-analyst",
+  "default_agent": "vibe-investor",
   "share": "disabled",
   "autoupdate": false,
   "server": {
@@ -79,10 +79,10 @@
     "grep": "allow",
     "glob": "allow",
     "list": "allow",
+    "skill": "allow",
     "webfetch": "deny",
     "doom_loop": "allow",
     "external_directory": "deny",
-    "skill": "deny",
     "todoread": "deny",
     "todowrite": "deny",
     "question": "deny",
@@ -101,10 +101,10 @@
     "explore": {
       "disable": true
     },
-    "technical-analyst": {
-      "description": "Expert technical analyst specializing in Indonesia Stock Market",
+    "vibe-investor": {
+      "description": "IDX investment analyst, portfolio manager, and trading desk powered by the Stock Market 2.0 framework",
       "mode": "primary",
-      "prompt": "{file:./prompts/technical-analyst/main.md}",
+      "prompt": "{file:./prompts/vibe-investor/main.md}",
       "tools": {
         "write": true,
         "edit": true,
@@ -113,21 +113,7 @@
         "grep": true,
         "glob": true,
         "list": true,
-        "lsp": false
-      }
-    },
-    "fundamental-analyst": {
-      "description": "Expert fundamental analyst specializing in Indonesia Stock Market",
-      "mode": "primary",
-      "prompt": "{file:./prompts/fundamental-analyst/main.md}",
-      "tools": {
-        "write": true,
-        "edit": true,
-        "bash": true,
-        "read": true,
-        "grep": true,
-        "glob": true,
-        "list": true,
+        "skill": true,
         "lsp": false
       }
     }
