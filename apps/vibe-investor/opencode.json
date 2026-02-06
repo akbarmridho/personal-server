@@ -117,5 +117,17 @@
         "lsp": false
       }
     }
+  },
+  "mcp": {
+    "stock-mcp": {
+      "type": "remote",
+      "url": "https://kb.akbarmr.dev/mcps/stock/mcp",
+      "enabled": true
+    },
+    "exa": {
+      "type": "remote",
+      "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,crawling_exa?exaApiKey={env:EXA_API_KEY}",
+      "enabled": true
+    }
   }
 }

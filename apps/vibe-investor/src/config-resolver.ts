@@ -48,7 +48,11 @@ function resolveObject(obj: any, rootDir: string, promptsDir: string): any {
  * - {env:VAR_NAME} -> process.env.VAR_NAME
  * - {file:path/to/file} -> file content (with EJS processing)
  */
-function resolveString(str: string, rootDir: string, promptsDir: string): string {
+function resolveString(
+  str: string,
+  rootDir: string,
+  promptsDir: string,
+): string {
   // Resolve {env:VAR_NAME}
   str = str.replace(/\{env:([^}]+)\}/g, (_, varName) => {
     const value = process.env[varName];

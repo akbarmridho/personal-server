@@ -1,51 +1,60 @@
 # Vibe Investor
 
-OpenCode AI agent setup for Indonesian stock market technical analysis.
+OpenCode-based AI investment analyst and portfolio manager for the Indonesian Stock Market (IDX/BEI).
+
+Single agent with on-demand skills and a knowledge catalog, built on the Stock Market 2.0 framework — four lenses: flow, narrative, technical, fundamental.
 
 ## Structure
 
 ```
 apps/vibe-investor/
-├── .env                      # OPENROUTER_API_KEY, OPENCODE_CWD
-├── opencode.json             # Agent config
+├── .env                          # Keys, paths (see .env.example)
+├── opencode.json                 # Agent config (single vibe-investor agent)
 ├── bin/
-│   ├── cli.sh                # CLI entrypoint
-│   └── web.sh                # Web entrypoint
+│   ├── cli.sh                    # CLI entrypoint
+│   └── web.sh                    # Web entrypoint
 ├── src/
-│   ├── config-resolver.ts    # {env:...} and {file:...} resolution
-│   └── resolve-config.ts     # CLI tool
+│   ├── config-resolver.ts        # {env:...} and {file:...} resolution
+│   └── resolve-config.ts         # Resolver entrypoint
 ├── .opencode/
-│   └── tools/
-│       └── fetch-ohlcv.ts    # Fetch Indonesian stock OHLCV data
+│   ├── tools/
+│   │   ├── fetch-ohlcv.ts        # Fetch 3yr OHLCV data for IDX stocks
+│   │   ├── list-knowledge.ts     # Browse knowledge catalog entries
+│   │   └── get-knowledge.ts      # Retrieve a knowledge entry by name
+│   └── skills/                   # On-demand knowledge modules
+│       ├── technical-analysis/
+│       ├── fundamental-analysis/
+│       ├── flow-analysis/
+│       ├── narrative-analysis/
+│       └── portfolio-management/
 ├── prompts/
-│   ├── shared/               # Shared prompts (available to all agents)
-│   │   └── memory-guide.md
-│   └── technical-analyst/
-│       ├── main.md           # Main prompt (EJS includes)
-│       ├── requirements.txt  # Python deps
-│       └── modules/          # Agent-specific modules
-└── memory-templates/         # Memory system templates
+│   └── vibe-investor/
+│       └── main.md               # Base agent prompt
+├── knowledge-catalog/            # Supplementary reference material
+│   ├── banking-sector.md
+│   ├── coal-sector.md
+│   └── property-sector.md
+├── memory-templates/             # Templates for init-memory.sh
+└── scripts/
+    └── init-memory.sh            # Initialize workspace memory
+```
 
-$OPENCODE_CWD/                # Workspace (where work happens)
-├── memory/                   # Persistent memory
-│   ├── MEMORY.md
-│   ├── notes/                # Flexible notes (starting points)
-│   │   ├── portfolio.md
-│   │   └── watchlist.md
-│   ├── tickers/              # Per-ticker notes and plans
-│   │   ├── BBCA.md
-│   │   └── GOTO.md
-│   └── agents/technical-analyst/
-│       ├── MEMORY.md
-│       ├── analysis/         # Analysis with artifacts
-│       │   └── BBCA/
-│       │       └── 2026-02-04/
-│       │           ├── analysis.md
-│       │           └── ...   # Charts, data, scripts
-│       └── sessions/{DATE}.md
-│
-└── work/                     # Temporary scratch (delete anytime)
-    └── ...                   # Work files
+### Workspace ($OPENCODE_CWD)
+
+```
+$OPENCODE_CWD/
+├── memory/                       # Persistent memory
+│   ├── MEMORY.md                 # Global curated memory
+│   ├── notes/
+│   │   ├── portfolio.md          # Open/closed positions, P&L
+│   │   └── watchlist.md          # Stocks under observation
+│   ├── tickers/
+│   │   └── {TICKER}.md           # Trading plan, thesis, key levels
+│   ├── analysis/
+│   │   └── {TICKER}/{DATE}/      # Analysis outputs + charts
+│   └── sessions/
+│       └── {DATE}.md             # Session logs
+└── work/                         # Temporary scratch (delete anytime)
 ```
 
 ## Quick Setup
@@ -53,94 +62,67 @@ $OPENCODE_CWD/                # Workspace (where work happens)
 ```bash
 # 1. Install
 pnpm install
-pip install -r prompts/technical-analyst/requirements.txt
 
-# 2. Configure .env
+# 2. Configure
 cp .env.example .env
-# Add:
+# Edit .env:
 #   OPENROUTER_API_KEY=your_key
 #   OPENCODE_CWD=/path/to/workspace
+#   KNOWLEDGE_CATALOG_PATH=/path/to/knowledge-catalog
 
-# 3. Initialize memory
+# 3. Initialize workspace memory
 ./scripts/init-memory.sh
 
 # 4. Run
-pnpm cli
-# or
-pnpm web
+pnpm cli          # CLI mode
+pnpm web          # Web UI mode
 ```
 
-## Memory System
+## Architecture
 
-Simple filesystem-based memory using Markdown files + bash commands.
+### Single Agent + On-Demand Skills
 
-### Structure
+One `vibe-investor` agent with a lightweight base prompt. Deep domain knowledge is loaded on demand via OpenCode's skill system:
 
-```
-$OPENCODE_CWD/
-├── memory/                      # Persistent memory
-│   ├── MEMORY.md                # Global curated
-│   ├── notes/                   # Flexible notes
-│   │   ├── portfolio.md
-│   │   └── watchlist.md
-│   ├── tickers/                 # Per-ticker notes
-│   │   └── BBCA.md              # Trading plan, thesis, levels
-│   └── agents/technical-analyst/
-│       ├── MEMORY.md            # Agent curated
-│       ├── analysis/            # Analysis with artifacts
-│       │   └── BBCA/
-│       │       └── 2026-02-04/  # Folder per analysis
-│       │           ├── analysis.md
-│       │           └── ...      # Charts, data, scripts
-│       └── sessions/{DATE}.md   # Session logs
-│
-└── work/                        # Temporary scratch
-    └── ...                      # Work files (delete anytime)
-```
+| Skill | Domain |
+|-------|--------|
+| `technical-analysis` | Wyckoff, S/R, price-volume, charting, execution |
+| `fundamental-analysis` | Financial health, valuation methods, moat, risk |
+| `flow-analysis` | Bandarmology, foreign flow, smart money |
+| `narrative-analysis` | Catalysts, story, re-rating potential |
+| `portfolio-management` | Position sizing, risk rules, reviews |
 
-### How It Works
+Skills are loaded as tool results and are protected from session compaction — they stay in context even as conversations grow long.
 
-**AI auto-loads at session start:**
+### Knowledge Catalog
 
-```bash
-cat memory/MEMORY.md
-cat memory/notes/portfolio.md
-cat memory/notes/watchlist.md
-cat memory/agents/technical-analyst/MEMORY.md
-```
+Supplementary reference material that complements skills. Skills teach *how to analyze*; the knowledge catalog provides *domain-specific facts* (sector metrics, regulatory context, benchmarks).
 
-**AI writes after analyzing:**
+- `list-knowledge(category?)` — Browse entries, optionally filter by category
+- `get-knowledge(name)` — Load a specific entry
 
-```bash
-cat >> "memory/agents/technical-analyst/analysis/BBCA/$(date +%Y-%m-%d).md" << 'EOF'
-[Analysis here]
-EOF
-```
+Knowledge entries are markdown files with frontmatter (`name`, `description`, `category`) stored at `KNOWLEDGE_CATALOG_PATH`.
 
-**AI searches past analysis:**
+### Memory System
 
-```bash
-grep -r "BBCA" memory/agents/technical-analyst/analysis/
-```
+Filesystem-based memory using markdown files.
 
-No custom tools needed - just bash and markdown.
-
-See `prompts/technical-analyst/modules/memory-guide.md` for details.
+- **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
+- **`memory/notes/`** — Portfolio positions, watchlist
+- **`memory/tickers/`** — Per-ticker trading plans, theses, key levels
+- **`memory/analysis/`** — Dated analysis outputs organized by ticker
+- **`memory/sessions/`** — Daily session logs
+- **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 
 ## Custom Tools
 
 ### fetch-ohlcv
 
-Fetch 3 years of OHLCV data for Indonesian stocks from kb.akbarmr.dev.
+Fetches 3 years of daily OHLCV data for Indonesian stocks from kb.akbarmr.dev. Saves to file to avoid context window bloat.
 
-```typescript
-fetch_ohlcv({
-  ticker: "BBCA",
-  output_path: "data/BBCA_ohlcv.json"
-})
-```
+### list-knowledge / get-knowledge
 
-Returns: Daily OHLCV, foreign flow, trading frequency, company metrics.
+Reads from the knowledge catalog directory (`KNOWLEDGE_CATALOG_PATH`). Each `.md` file has YAML frontmatter with `name`, `description`, and `category`. Categories: `technical-analysis`, `fundamental-analysis`, `flow-analysis`, `narrative-analysis`, `portfolio-management`.
 
 ## Configuration
 
@@ -148,65 +130,31 @@ Returns: Daily OHLCV, foreign flow, trading frequency, company metrics.
 
 `opencode.json` supports:
 
-- `{env:VAR_NAME}` - Environment variable
-- `{file:path/to/file}` - File content with EJS processing
-
-### EJS Includes in Prompts
-
-EJS supports both relative and shared includes:
-
-```markdown
-# Main Prompt
-
-# Relative includes (from current file's directory)
-<%- include('modules/01-structure.md') %>
-<%- include('modules/02-levels.md') %>
-
-# Shared includes (from prompts/ directory)
-<%- include('shared/memory-guide.md') %>
-```
-
-Shared prompts in `prompts/shared/` can be included from any agent.
+- `{env:VAR_NAME}` — Environment variable substitution
+- `{file:path/to/file}` — File content with EJS template processing
 
 ### Environment Variables
 
-**Required:**
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENROUTER_API_KEY` | Yes | OpenRouter API key |
+| `OPENCODE_CWD` | Yes | Workspace directory (memory, work files) |
+| `KNOWLEDGE_CATALOG_PATH` | Yes | Path to knowledge catalog directory |
+| `OPENCODE_DATA_HOME` | No | Session storage (default: `~/.local/share/vibe-investor`) |
+| `OPENCODE_PORT` | No | Web UI port (default: 4096) |
+| `OPENCODE_HOSTNAME` | No | Web UI hostname (default: 0.0.0.0) |
 
-- `OPENROUTER_API_KEY`
+### Session Isolation
 
-**Optional:**
-
-- `OPENCODE_CWD` - Workspace directory (where memory lives)
-- `OPENCODE_PORT` - Web server port (default: 4096)
-
-## Adding Agents
-
-1. Create `prompts/your-agent/main.md`
-2. Add to `opencode.json`:
-
-   ```json
-   {
-     "agent": {
-       "your-agent": {
-         "description": "...",
-         "prompt": "{file:./prompts/your-agent/main.md}"
-       }
-     }
-   }
-   ```
-
-3. Use: `/agent your-agent`
+Vibe-investor uses a separate `XDG_DATA_HOME` so its sessions don't mix with your main coding OpenCode instance. Set via `OPENCODE_DATA_HOME` or defaults to `~/.local/share/vibe-investor`.
 
 ## How It Works
 
-1. Bash script calls TypeScript resolver to process `opencode.json`
-2. Resolver expands `{env:...}` and `{file:...}` placeholders
-3. EJS processes includes in prompt files
-4. Bash exports resolved config and execs opencode
-5. OpenCode loads custom tools from `.opencode/` directory
-6. AI loads memory from `$OPENCODE_CWD/memory/`
-
-TypeScript only resolves config - no wrapper, no intermediate process.
+1. Bash script loads `.env` and calls TypeScript resolver to process `opencode.json`
+2. Resolver expands `{env:...}` and `{file:...}` placeholders with EJS
+3. Bash exports resolved config, sets `XDG_DATA_HOME`, and `exec`s opencode
+4. OpenCode loads custom tools from `.opencode/tools/` and skills from `.opencode/skills/`
+5. Agent loads `memory/MEMORY.md` at session start for context continuity
 
 ## References
 

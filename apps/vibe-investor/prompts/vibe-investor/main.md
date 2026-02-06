@@ -50,13 +50,15 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 
 ## Tools
 
-**Stock data (MCP):** `get-stock-fundamental`, `get-stock-financials`, `get-stock-governance`, `get-stock-bandarmology`, `get-stock-technical`, `get-sectors`, `get-companies`, `get-gc-stoch-psar-signal`, `get-bottom-fishing-signal`
+**Stock data (MCP):** `get-stock-fundamental`, `get-stock-financials`, `get-stock-governance`, `get-stock-bandarmology`, `get-sectors`, `get-companies`.
 
-**Knowledge base (MCP):** `search-documents`, `list-documents`, `get-document` — for filings, analysis, news, rumours.
+**Knowledge base (MCP):** `search-documents`, `list-documents`, `get-document` — for curated filings, analysis, news, rumours.
 
 **Knowledge catalog:** `list-knowledge`, `get-knowledge` — sector-specific deep reference (banking metrics, coal analysis, property NAV, etc.)
 
 **Social (MCP):** `search-twitter` — IDX stock discussions, sentiment, rumour tracking
+
+**Internet (MCP):** `web_search_exa` and `crawling_exa`.
 
 **Filesystem:** read, write, edit, glob, grep for managing files and memory.
 

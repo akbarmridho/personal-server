@@ -14,10 +14,10 @@ import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
-import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
-import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
-import { getSkill, listSkills } from "./skills/index.js";
+// import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+// import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
+// import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
+// import { getSkill, listSkills } from "./skills/index.js";
 import { searchTwitter } from "./twitter-search.js";
 import { removeKeysRecursive } from "./utils.js";
 
@@ -245,31 +245,31 @@ export const setupStockMcp = async () => {
     },
   });
 
-  server.addTool({
-    name: "get-stock-technical",
-    description:
-      "Returns technical analysis data for a specific stock symbol including indicators, patterns, and seasonality.",
-    parameters: z.object({ symbol: z.string() }),
-    execute: async (args) => {
-      logger.info({ symbol: args.symbol }, "Executing get-stock-technical");
-      try {
-        const data = await getStockTechnicals(args.symbol);
-        logger.info({ symbol: args.symbol }, "Get technicals completed");
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error({ error, symbol: args.symbol }, "Get technicals failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-stock-technical",
+  //   description:
+  //     "Returns technical analysis data for a specific stock symbol including indicators, patterns, and seasonality.",
+  //   parameters: z.object({ symbol: z.string() }),
+  //   execute: async (args) => {
+  //     logger.info({ symbol: args.symbol }, "Executing get-stock-technical");
+  //     try {
+  //       const data = await getStockTechnicals(args.symbol);
+  //       logger.info({ symbol: args.symbol }, "Get technicals completed");
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error({ error, symbol: args.symbol }, "Get technicals failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
   // server.addTool({
   //   name: "get-ihsg-overview",
@@ -553,144 +553,144 @@ export const setupStockMcp = async () => {
     },
   });
 
-  server.addTool({
-    name: "list-skills",
-    description:
-      "List all available stock market skills. Returns skill names and descriptions. Use get-skill to retrieve full content.",
-    parameters: z.object({}),
-    execute: async () => {
-      logger.info("Executing list-skills");
-      try {
-        const data = listSkills();
-        logger.info("List skills completed");
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error({ error }, "List skills failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "list-skills",
+  //   description:
+  //     "List all available stock market skills. Returns skill names and descriptions. Use get-skill to retrieve full content.",
+  //   parameters: z.object({}),
+  //   execute: async () => {
+  //     logger.info("Executing list-skills");
+  //     try {
+  //       const data = listSkills();
+  //       logger.info("List skills completed");
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error({ error }, "List skills failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
-  server.addTool({
-    name: "get-skill",
-    description:
-      "Retrieve a specific stock market skill by name. Returns modular knowledge like broker information, fundamental calculation methods, etc.",
-    parameters: z.object({
-      name: z.string().describe("The skill name to retrieve"),
-    }),
-    execute: async (args) => {
-      logger.info({ name: args.name }, "Executing get-skill");
-      try {
-        const data = getSkill(args.name);
-        if (!data) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: `Skill '${args.name}' not found`,
-              },
-            ],
-            isError: true,
-          };
-        }
-        logger.info({ name: args.name }, "Get skill completed");
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error({ error, name: args.name }, "Get skill failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-skill",
+  //   description:
+  //     "Retrieve a specific stock market skill by name. Returns modular knowledge like broker information, fundamental calculation methods, etc.",
+  //   parameters: z.object({
+  //     name: z.string().describe("The skill name to retrieve"),
+  //   }),
+  //   execute: async (args) => {
+  //     logger.info({ name: args.name }, "Executing get-skill");
+  //     try {
+  //       const data = getSkill(args.name);
+  //       if (!data) {
+  //         return {
+  //           content: [
+  //             {
+  //               type: "text",
+  //               text: `Skill '${args.name}' not found`,
+  //             },
+  //           ],
+  //           isError: true,
+  //         };
+  //       }
+  //       logger.info({ name: args.name }, "Get skill completed");
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error({ error, name: args.name }, "Get skill failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
-  server.addTool({
-    name: "get-gc-stoch-psar-signal",
-    description:
-      "Analyzes a stock symbol for the 'Golden Cross + Stochastic Oversold + PSAR' swing trading setup. Returns predictive phases (FORMING, READY, TRIGGERED, ACTIVE), current technical levels, signal confidence, and actionable insights. Use this to validate entry/exit signals or monitor watchlists.",
-    parameters: z.object({
-      symbol: z.string().describe("The stock ticker symbol (e.g., BBCA, ASII)"),
-    }),
-    execute: async (args) => {
-      logger.info(
-        { symbol: args.symbol },
-        "Executing get-gc-stoch-psar-signal",
-      );
-      try {
-        const data = await getGCStochPSARSignal(args.symbol);
-        logger.info(
-          { symbol: args.symbol },
-          "Get GC Stoch PSAR signal completed",
-        );
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error(
-          { error, symbol: args.symbol },
-          "Get GC Stoch PSAR signal failed",
-        );
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-gc-stoch-psar-signal",
+  //   description:
+  //     "Analyzes a stock symbol for the 'Golden Cross + Stochastic Oversold + PSAR' swing trading setup. Returns predictive phases (FORMING, READY, TRIGGERED, ACTIVE), current technical levels, signal confidence, and actionable insights. Use this to validate entry/exit signals or monitor watchlists.",
+  //   parameters: z.object({
+  //     symbol: z.string().describe("The stock ticker symbol (e.g., BBCA, ASII)"),
+  //   }),
+  //   execute: async (args) => {
+  //     logger.info(
+  //       { symbol: args.symbol },
+  //       "Executing get-gc-stoch-psar-signal",
+  //     );
+  //     try {
+  //       const data = await getGCStochPSARSignal(args.symbol);
+  //       logger.info(
+  //         { symbol: args.symbol },
+  //         "Get GC Stoch PSAR signal completed",
+  //       );
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error(
+  //         { error, symbol: args.symbol },
+  //         "Get GC Stoch PSAR signal failed",
+  //       );
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
-  server.addTool({
-    name: "get-bottom-fishing-signal",
-    description:
-      "Analyzes a stock symbol for bottom fishing opportunities during market crashes. Uses Weekly RSI, Volume Spikes, and Heikin Ashi patterns to identify safe entry points. Returns predictive phases (WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED), current indicator states, signal confidence, and actionable insights.",
-    parameters: z.object({
-      symbol: z.string().describe("The stock ticker symbol (e.g., BBCA, ASII)"),
-    }),
-    execute: async (args) => {
-      logger.info(
-        { symbol: args.symbol },
-        "Executing get-bottom-fishing-signal",
-      );
-      try {
-        const data = await getBottomFishingSignal(args.symbol);
-        logger.info(
-          { symbol: args.symbol },
-          "Get bottom fishing signal completed",
-        );
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error(
-          { error, symbol: args.symbol },
-          "Get bottom fishing signal failed",
-        );
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-bottom-fishing-signal",
+  //   description:
+  //     "Analyzes a stock symbol for bottom fishing opportunities during market crashes. Uses Weekly RSI, Volume Spikes, and Heikin Ashi patterns to identify safe entry points. Returns predictive phases (WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED), current indicator states, signal confidence, and actionable insights.",
+  //   parameters: z.object({
+  //     symbol: z.string().describe("The stock ticker symbol (e.g., BBCA, ASII)"),
+  //   }),
+  //   execute: async (args) => {
+  //     logger.info(
+  //       { symbol: args.symbol },
+  //       "Executing get-bottom-fishing-signal",
+  //     );
+  //     try {
+  //       const data = await getBottomFishingSignal(args.symbol);
+  //       logger.info(
+  //         { symbol: args.symbol },
+  //         "Get bottom fishing signal completed",
+  //       );
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error(
+  //         { error, symbol: args.symbol },
+  //         "Get bottom fishing signal failed",
+  //       );
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
   server.addTool({
     name: "search-twitter",

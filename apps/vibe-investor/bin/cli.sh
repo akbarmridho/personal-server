@@ -7,17 +7,28 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$ROOT_DIR"
 
 # Resolve config using TypeScript (outputs JSON to stdout)
+# This also validates OPENROUTER_API_KEY via dotenv
 RESOLVED_CONFIG=$(pnpm tsx src/resolve-config.ts) || {
-  echo "❌ Failed to resolve config"
+  echo "Failed to resolve config"
   exit 1
 }
 
-# Load custom CWD and data home from .env if set
+# Load environment variables from .env
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_DATA_HOME|KNOWLEDGE_CATALOG_PATH' | xargs)
+  export $(grep -v '^#' .env | grep -E 'OPENCODE_CWD|OPENCODE_DATA_HOME|KNOWLEDGE_CATALOG_PATH|EXA_API_KEY' | xargs)
 fi
 
-WORK_DIR="${OPENCODE_CWD:-$(pwd)}"
+# Validate required variables
+missing=()
+[ -z "$OPENCODE_CWD" ] && missing+=("OPENCODE_CWD")
+[ -z "$KNOWLEDGE_CATALOG_PATH" ] && missing+=("KNOWLEDGE_CATALOG_PATH")
+if [ ${#missing[@]} -gt 0 ]; then
+  echo "Missing required environment variables: ${missing[*]}"
+  echo "Add them to $ROOT_DIR/.env (see .env.example)"
+  exit 1
+fi
+
+WORK_DIR="$OPENCODE_CWD"
 
 # Export resolved config for opencode
 export OPENCODE_CONFIG_CONTENT="$RESOLVED_CONFIG"
