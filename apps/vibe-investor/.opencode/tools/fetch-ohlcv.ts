@@ -27,6 +27,11 @@ export default tool({
         `Invalid ticker format: "${ticker}". Must be 4 uppercase letters (e.g., BBCA, TLKM).`,
       );
     }
+    if (!output_path.trim().toLowerCase().endsWith(".json")) {
+      throw new Error(
+        `Invalid output_path: "${output_path}". fetch-ohlcv writes JSON only, so use a .json file path (e.g., work/${normalizedTicker}_ohlcv.json).`,
+      );
+    }
 
     // Resolve output path relative to working directory
     const absolutePath = resolve(context.directory, output_path);
@@ -70,6 +75,7 @@ export default tool({
 File: ${absolutePath}
 Data points: ${dataPoints} days
 Date range: ${dateRange}
+Format: JSON array of objects (NOT CSV)
 
 The JSON file contains daily trading data with the following fields:
 - OHLCV: open, high, low, close, volume
@@ -77,7 +83,7 @@ The JSON file contains daily trading data with the following fields:
 - Trading metrics: frequency, value, soxclose
 - Company data: shareoutstanding, dividend
 
-You can now load this file for technical analysis using pandas or other tools.`;
+Load this file with JSON parsers (e.g., pd.read_json / json.load), not CSV parsers.`;
     } catch (error) {
       throw new Error(
         `Failed to fetch OHLCV data for ${normalizedTicker}: ${(error as Error).message}`,

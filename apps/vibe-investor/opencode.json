@@ -49,6 +49,7 @@
     }
   },
   "default_agent": "vibe-investor",
+  "instructions": ["{env:OPENCODE_CWD}/memory/MEMORY.md"],
   "share": "disabled",
   "autoupdate": false,
   "server": {

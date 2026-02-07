@@ -9,6 +9,7 @@ description: Expert technical analysis for IDX stocks — Wyckoff methodology, s
 
 - **ticker**: 4 uppercase letters (e.g., "BBCA")
 - **output_path**: e.g., `work/BBCA_ohlcv.json`
+- **format**: JSON array of objects (`.json`) — **NOT CSV**
 - If `fetch-ohlcv` returns an error, **STOP**. Do not retry or use alternative sources.
 
 **Python libraries:** `pandas`, `numpy`, `mplfinance` for calculations and chart generation.
@@ -17,11 +18,12 @@ After generating a chart, **use Read tool to view the image**. Visual reasoning 
 
 ### OHLCV Data Schema
 
-JSON array of daily records:
+JSON array of daily records (parse as JSON, never CSV):
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `date` | string | "YYYY-MM-DD" |
+| `unixdate` | int | Unix timestamp |
 | `open`, `high`, `low`, `close` | int | Prices in IDR |
 | `volume` | int | Shares traded |
 | `foreignbuy`, `foreignsell` | int | Foreign flow values in IDR |
@@ -34,6 +36,8 @@ JSON array of daily records:
 | `soxclose` | int | Market cap at close |
 
 Load with: `pd.read_json('work/BBCA_ohlcv.json')`
+
+Never use `pd.read_csv` for `fetch-ohlcv` output.
 
 ---
 
