@@ -14,6 +14,7 @@ import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
+import { getStockProfileReport } from "./endpoints/stock/profile.js";
 // import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 // import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 // import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
@@ -145,6 +146,32 @@ export const setupStockMcp = async () => {
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, symbol: args.symbol }, "Get fundamental failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-stock-profile",
+    description:
+      "Returns an enriched company profile for a stock symbol. Uses Stockbit profile as baseline and grounded web research for updates. If not cached, execution may take a while while research completes.",
+    parameters: z.object({ symbol: z.string() }),
+    execute: async (args) => {
+      logger.info({ symbol: args.symbol }, "Executing get-stock-profile");
+      try {
+        const data = await getStockProfileReport(args.symbol);
+        logger.info({ symbol: args.symbol }, "Get stock profile completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, symbol: args.symbol }, "Get stock profile failed");
         return {
           content: [
             {

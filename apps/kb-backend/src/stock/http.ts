@@ -18,6 +18,7 @@ import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
+import { getStockProfileReport } from "./endpoints/stock/profile.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
@@ -128,6 +129,28 @@ export const setupStockRoutes = () =>
           summary: "Get stock fundamental data",
           description:
             "Returns fundamental analysis data for a stock including valuation metrics, growth rates, and financial ratios",
+        },
+      },
+    )
+    .get(
+      "/stock/:symbol/profile",
+      async ({ params, set }) => {
+        try {
+          const data = await getStockProfileReport(params.symbol);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get stock profile failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ symbol: t.String() }),
+        detail: {
+          tags: ["Stock Fundamentals"],
+          summary: "Get enriched stock company profile",
+          description:
+            "Returns an enriched markdown company profile from Stockbit baseline data + grounded web research. Uses KV cache when available; cache miss may take longer while research completes.",
         },
       },
     )

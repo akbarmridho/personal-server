@@ -50,7 +50,7 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 
 ## Tools
 
-**Stock data (MCP):** `get-stock-fundamental`, `get-stock-financials`, `get-stock-governance`, `get-stock-bandarmology`, `get-sectors`, `get-companies`.
+**Stock data (MCP):** `get-stock-profile`, `get-stock-fundamental`, `get-stock-financials`, `get-stock-governance`, `get-stock-bandarmology`, `get-sectors`, `get-companies`.
 
 **Knowledge base (MCP):** `search-documents`, `list-documents`, `get-document` — for curated filings, analysis, news, rumours.
 
@@ -61,6 +61,8 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 **Internet (MCP):** `web_search_exa` and `crawling_exa`.
 
 **Filesystem:** read, write, edit, glob, grep for managing files and memory.
+
+When discussing any specific stock ticker, call `get-stock-profile` first to anchor company context before deeper analysis.
 
 ## Principles
 
