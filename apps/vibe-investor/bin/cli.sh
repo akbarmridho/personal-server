@@ -36,9 +36,13 @@ export OPENCODE_CONFIG_CONTENT="$RESOLVED_CONFIG"
 # Point to vibe-investor's .opencode directory for custom tools/agents
 export OPENCODE_CONFIG_DIR="$ROOT_DIR/.opencode"
 
-# Isolate session/state storage from the main coding opencode instance.
+# Isolate all OpenCode global state from the main coding opencode instance.
 # Since `exec` replaces this process, XDG vars only affect opencode.
-export XDG_DATA_HOME="${OPENCODE_DATA_HOME:-$HOME/.local/share/vibe-investor}"
+OPENCODE_HOME_BASE="${OPENCODE_DATA_HOME:-$HOME/.local/share/vibe-investor}"
+export XDG_DATA_HOME="$OPENCODE_HOME_BASE/data"
+export XDG_CONFIG_HOME="$OPENCODE_HOME_BASE/config"
+export XDG_CACHE_HOME="$OPENCODE_HOME_BASE/cache"
+export XDG_STATE_HOME="$OPENCODE_HOME_BASE/state"
 
 # Launch opencode CLI (replace current process)
 cd "$WORK_DIR"

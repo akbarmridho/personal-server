@@ -31,6 +31,19 @@ export const youtubeChannels: YoutubeChannel[] = [
     channelRSS:
       "https://www.youtube.com/feeds/videos.xml?channel_id=UCVoORmxqprlnxbHnd52gopw",
   },
+  {
+    channelName: "Malvin Hariyanto",
+    channelUrl: "https://www.youtube.com/@malvin.hariyanto/",
+    channelRSS:
+      "https://www.youtube.com/feeds/videos.xml?channel_id=UC3MK0KROsnwRQbCBMaPpsag",
+  },
+  {
+    channelName: "Creative Trader",
+    channelUrl: "https://www.youtube.com/@creative.trader",
+    // only the Udah Boleh Buka Mata (UBBM) playlist. rest is only noise
+    channelRSS:
+      "https://www.youtube.com/feeds/videos.xml?playlist_id=PLROBAxCpvpr_ZHA4vYA1_tkXXWLxWDeC9",
+  },
 ];
 
 export const youtubeChannelCrawlInit = inngest.createFunction(
