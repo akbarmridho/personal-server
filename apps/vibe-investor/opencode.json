@@ -103,7 +103,7 @@
     },
     "vibe-investor": {
       "description": "IDX investment analyst, portfolio manager, and trading desk powered by the Stock Market 2.0 framework",
-      "mode": "primary",
+      "mode": "all",
       "prompt": "{file:./prompts/vibe-investor/main.md}",
       "tools": {
         "write": true,
@@ -113,8 +113,15 @@
         "grep": true,
         "glob": true,
         "list": true,
+        "task": true,
         "skill": true,
         "lsp": false
+      },
+      "permission": {
+        "task": {
+          "*": "deny",
+          "vibe-investor": "allow"
+        }
       }
     }
   },
