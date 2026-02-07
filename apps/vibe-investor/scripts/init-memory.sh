@@ -44,19 +44,6 @@ for f in MEMORY.md notes/portfolio.md notes/watchlist.md tickers/EXAMPLE.md; do
   fi
 done
 
-# Create .gitignore
-echo "Creating .gitignore..."
-cat > "$OPENCODE_CWD/memory/.gitignore" << 'EOF'
-# Ignore append-only / high-churn directories
-sessions/
-analysis/
-
-# Keep curated memory (version control these)
-!MEMORY.md
-!notes/
-!tickers/
-EOF
-
 echo ""
 echo "Memory system initialized!"
 echo ""

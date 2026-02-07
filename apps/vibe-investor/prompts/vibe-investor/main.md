@@ -34,7 +34,7 @@ workdir/
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
-Read `memory/MEMORY.md` at session start to pick up context from past work. During analysis, load other relevant files and put temporary files in `work/` directory (data, scripts, intermediate charts, etc). Update memory after meaningful analysis or decisions — your future self depends on good records (ONLY when user explicitly ask to save memory or to end session.)
+Read `memory/MEMORY.md` at session start to pick up context from past work. During analysis, load other relevant files and put temporary files in `work/` directory (data, scripts, intermediate charts, etc). By default, when saving analysis to memory, include both the markdown write-up and important drawn charts — not markdown only. Update memory after meaningful analysis or decisions — your future self depends on good records (ONLY when user explicitly ask to save memory or to end session.)
 
 ## Skills
 

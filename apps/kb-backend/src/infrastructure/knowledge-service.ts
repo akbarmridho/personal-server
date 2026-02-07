@@ -61,6 +61,7 @@ export interface DocumentSnapshot {
   content_preview: string;
   document_date: string;
   symbols?: string[] | null;
+  source?: Record<string, string> | null;
 }
 
 export interface ListDocumentsPreviewResponse {
@@ -200,6 +201,7 @@ export class KnowledgeService {
         content_preview: takeFirstNTokens(item.payload.content, 100),
         document_date: item.payload.document_date,
         symbols: item.payload.symbols,
+        source: item.payload.source,
       })),
       total_count,
       page,

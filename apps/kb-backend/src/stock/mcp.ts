@@ -24,6 +24,16 @@ import { removeKeysRecursive } from "./utils.js";
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
 
+let sourceNamesCache: {
+  data: string[] | null;
+  timestamp: number | null;
+} = {
+  data: null,
+  timestamp: null,
+};
+
+const SOURCE_NAMES_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
 export const setupStockMcp = async () => {
   const server = new FastMCP({
     name: "Stock Tools Server",
@@ -428,9 +438,54 @@ export const setupStockMcp = async () => {
   });
 
   server.addTool({
+    name: "get-document-sources",
+    description:
+      "Returns unique source names from document metadata.source.name. Use these values for source_names filters in list-documents and search-documents.",
+    parameters: z.object({}),
+    execute: async () => {
+      logger.info("Executing get-document-sources");
+      try {
+        const now = Date.now();
+
+        if (
+          sourceNamesCache.data &&
+          sourceNamesCache.timestamp &&
+          now - sourceNamesCache.timestamp < SOURCE_NAMES_CACHE_TTL_MS
+        ) {
+          logger.info("Returning cached document source names");
+          return { type: "text", text: yaml.dump(sourceNamesCache.data) };
+        }
+
+        const sourceNames = await knowledgeService.listSourceNames();
+        sourceNamesCache = {
+          data: sourceNames,
+          timestamp: now,
+        };
+
+        logger.info(
+          { sourceCount: sourceNames.length },
+          "Get document sources completed",
+        );
+        return { type: "text", text: yaml.dump(sourceNames) };
+      } catch (error) {
+        logger.error({ error }, "Get document sources failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
     name: "list-documents",
     description:
-      "List investment documents with optional filters. Returns document snapshots (table of contents) with id, type, title, first 100 tokens of content preview, date, and symbols. Use get-document tool to retrieve full content.",
+      "List investment documents with optional filters. Returns document snapshots (table of contents) with id, type, title, first 100 tokens of content preview, date, symbols, and source metadata (including source.name). Use get-document tool to retrieve full content.",
     parameters: z.object({
       limit: z
         .number()
@@ -468,10 +523,17 @@ export const setupStockMcp = async () => {
         .string()
         .describe("Start date limit in YYYY-MM-DD format")
         .optional(),
+      source_names: z
+        .string()
+        .array()
+        .describe(
+          "Array of source names from metadata.source.name. Use get-document-sources to discover valid values.",
+        )
+        .optional(),
       pure_sector: z
         .boolean()
         .describe(
-          "Filter for documents without symbols (pure sector/market news). If true, will retrun document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
+          "Filter for documents without symbols (pure sector/market news). If true, will return document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
         )
         .optional(),
     }),
@@ -524,6 +586,13 @@ export const setupStockMcp = async () => {
       date_to: z
         .string()
         .describe("End date limit in YYYY-MM-DD format")
+        .optional(),
+      source_names: z
+        .string()
+        .array()
+        .describe(
+          "Array of source names from metadata.source.name. Use get-document-sources to discover valid values.",
+        )
         .optional(),
       pure_sector: z
         .boolean()
