@@ -19,7 +19,21 @@ description: Narrative and catalyst analysis for IDX stocks — story identifica
 - **`get-stock-governance`** — Ownership structure, management quality, insider activity for owner narrative.
 - **`get-sectors`** / **`get-companies`** — Sector/thematic peer identification.
 
-**Knowledge Catalog:** `list-knowledge`, `get-knowledge` for conglomerate mappings, sector context, and other narrative-relevant reference data.
+**Knowledge Catalog:** `list-knowledge`, `get-knowledge` for conglomerate mappings, sector context, and narrative-cycle references.
+
+Key entries commonly used:
+- `get-knowledge msci-ftse-agenda-playbook` (index agenda lifecycle framing)
+- `get-knowledge msci-free-float-market-cap-and-adjustment-factor` (FFMC/FIF/NOS mechanics, rounding, freeze risk)
+- `get-knowledge peak-news-distribution-pattern` (peak-news = exit-liquidity overlay)
+- `get-knowledge hype-lifecycle-pompom-to-cuci-piring` (pompom → distribution cycle map)
+- `get-knowledge indonesian-conglomerates` (group context, typical moves)
+- `get-knowledge rights-issue-purpose-and-signal-map` (rights issue agendas + red flags)
+- `get-knowledge mandatory-tender-offer-and-dissent-process` (M&A tender-offer eligibility + blocking mechanics)
+- `get-knowledge backdoor-listing-screening` (backdoor narrative: shell criteria + failure modes)
+- `get-knowledge wtff-backdoor-cycle` (TFF→WTFF→peaked framing for backdoor mania)
+- `get-knowledge narrative-valuation-framework` (base value vs narrative premium; priced-in tests)
+- `get-knowledge haluasi-and-rerating-premium` (imagination premium bands + failure modes)
+- `get-knowledge oil-gas-narrative-proxies` (O&G proxy selection by narrative type)
 
 **NOT in scope for this skill:** `get-stock-bandarmology` (flow analysis), `fetch-ohlcv` (technical analysis). Narrative analysis focuses on *what story exists* and *how strong it is*, not on price action or flow data.
 
@@ -129,6 +143,15 @@ Map all known and potential catalysts with expected dates:
 - **1-3 months**: Sweet spot for entry if narrative is strong
 - **>6 months**: Too far — narrative can stale, other events may override
 
+### Corporate Action Mechanics (IDX-specific)
+
+When a catalyst is a corporate action, ground it in mechanics (not vibes):
+
+- **Indexing/MSCI stories**: use `get-knowledge msci-free-float-market-cap-and-adjustment-factor` to interpret whether the thesis depends on free-float math, rounding, or policy/freeze risk.
+- **Rights issue**: use `get-knowledge rights-issue-purpose-and-signal-map` to classify the agenda (growth funding vs strategic entry vs asset injection) and identify dilution traps.
+- **M&A tender offer / dissent route**: use `get-knowledge mandatory-tender-offer-and-dissent-process` to avoid missing DPS/T+2 and documentation windows.
+- **Backdoor listing**: use `get-knowledge backdoor-listing-screening` to judge whether the “shell” setup is structurally plausible and what can go wrong post-injection.
+
 ---
 
 ## Module 3: Narrative Strength Assessment
@@ -162,6 +185,14 @@ A narrative is priced in when:
 - The stock trades at or above fair value *including* the catalyst benefit
 
 **Test**: If the catalyst happens exactly as expected, would the stock still go up? If not, it's priced in.
+
+### Peak-News / Exit-Liquidity Overlay (Weekly–Monthly)
+
+For weekly–monthly positioning, treat “most official / most viral” news as a **late-stage risk overlay**, not an automatic buy signal.
+
+**Knowledge (reference):**
+- `get-knowledge peak-news-distribution-pattern`
+- `get-knowledge hype-lifecycle-pompom-to-cuci-piring`
 
 ---
 

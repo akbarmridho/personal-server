@@ -16,6 +16,12 @@ description: Expert fundamental analysis for IDX stocks — financial statement 
 
 **Knowledge Catalog:** `list-knowledge`, `get-knowledge` for sector-specific deep knowledge (banking metrics, coal analysis, property NAV, etc.). Always check catalog for sector-specific frameworks before relying on general rules.
 
+**Ownership interpretation (knowledge):**
+- `get-knowledge ownership-entities-custody-vs-active` — avoid misreading custodian/BUT names as “active trading drivers”.
+
+**Banking asset-quality (knowledge):**
+- `get-knowledge bank-ckpn-writeoff-overdue-diagnostics` — CKPN/provisi/hapusbuku vs real improvement (overdue + repayment vs accounting “cleaning”).
+
 ---
 
 ## Analysis Workflow
@@ -282,6 +288,8 @@ Before analysis: What does the company do? How does it make money? Revenue segme
 - [ ] Free float percentage?
 - [ ] Institutional/foreign holders? (flow implications)
 - [ ] Recent changes in major shareholders?
+
+**Common pitfall:** large “big bank” names in ownership lists often represent **custody/nominee** holdings, not active trading desks. Use `get-knowledge ownership-entities-custody-vs-active` before concluding “foreign whale is actively driving price”.
 
 **Owner Character:**
 

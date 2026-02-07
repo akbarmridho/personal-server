@@ -38,9 +38,10 @@ Call in parallel: `get-stock-bandarmology` + `fetch-ohlcv` + `get-stock-fundamen
 
 1. **Market Structure** (Module 1) — Who drives this stock? Foreign-driven or bandar-driven?
 2. **Bandarmology** (Module 2) — Broker summary interpretation, accumulation/distribution phase
-3. **Foreign Flow** (Module 3) — Cumulative trend, participation rate, divergence signals
-4. **Frequency Analysis** (Module 4) — Retail vs institutional activity, lot size patterns
-5. **Flow-Price Divergence** (Module 5) — Synthesis scoring, conviction level
+3. **Ownership & Microstructure Forensics** (Module 3) — SID/ownership trend, negotiated market distortions, REPO/crossing risk overlays (weekly–monthly)
+4. **Foreign Flow** (Module 4) — Cumulative trend, participation rate, divergence signals
+5. **Frequency Analysis** (Module 5) — Retail vs institutional activity, lot size patterns
+6. **Flow-Price Divergence** (Module 6) — Synthesis scoring, conviction level
 
 ### Phase 3: Verdict
 
@@ -83,6 +84,10 @@ Post-2020 the dominance of foreign flow has weakened due to massive local conglo
 - **Conglomerate/High-Growth Stocks**: Local bandar flow often overrides foreign flow
 - **Trap Alert**: Locals sometimes use foreign broker codes (ZP, AK) to simulate "Foreign Interest" and lure retail followers
 
+**Knowledge (reference):**
+- Use `get-knowledge broker-archetypes` for broker heuristics and “retail imposter” camouflage patterns.
+- Use `get-knowledge conglomerate-house-styles` if the ticker is known to trade like an operator agenda (house-style affects waiting time and risk).
+
 ---
 
 ## Module 2: Bandarmology
@@ -100,6 +105,9 @@ The `get-stock-bandarmology` tool returns top brokers by net buy/sell. Cross-ref
 | Retail brokers (YP, XL, XC) as top buyer | Distribution phase | Bandar selling to retail FOMO |
 | Mixed institutional buying + retail selling | Early accumulation | Smart money absorbing retail panic |
 | Institutional selling + retail buying | Late distribution | Smart money exiting, retail catching falling knife |
+
+**Knowledge (reference):**
+- `get-knowledge broker-archetypes` for concentrated vs fragmented transfer heuristics.
 
 ### Accumulation/Distribution Phases
 
@@ -125,7 +133,41 @@ Bandars actively disguise their activity:
 
 ---
 
-## Module 3: Foreign Flow Analysis
+## Module 3: Ownership & Microstructure Forensics (Weekly–Monthly)
+
+This module is designed for weekly–monthly positioning (not intraday bid-offer tactics).
+
+### A) SID (Single Investor Identification) Signals
+
+Use SID trend as a proxy for **crowding** vs **concentration**:
+
+- **SID contraction** during sideways/down price → weak hands leaving, supply consolidating (often constructive)
+- **SID expansion** during strong up moves → crowd forming (distribution risk rises)
+
+**Knowledge (reference):** `get-knowledge sid-and-ksei-ownership-signals`
+
+### B) Ownership Disclosures (KSEI / IDX)
+
+Use the knowledge base tools to find and interpret disclosure documents:
+- Query terms: `KSEI`, `registrasi pemegang efek`, `5%`, `kepemilikan saham`, `laporan registrasi`
+
+**Important:** ownership reports can have a **T+2** settlement lag; treat changes as already in motion.
+
+### C) Negotiated Market (Pasar Nego) & Crossings
+
+Block transfers and negotiated moves can distort “regular tape” interpretation.
+
+**Knowledge (reference):** `get-knowledge pasar-nego-and-crossing`
+
+### D) REPO / Matched-Flow Risk Overlay
+
+Some engineered flows reflect collateral/maintenance rather than organic demand.
+
+**Knowledge (reference):** `get-knowledge repo-and-matched-flow-signals`
+
+---
+
+## Module 4: Foreign Flow Analysis
 
 ### Key Indicators
 
@@ -174,7 +216,7 @@ If you see heavy foreign buying with no obvious catalyst, the catalyst may not b
 
 ---
 
-## Module 4: Frequency & Transaction Analysis
+## Module 5: Frequency & Transaction Analysis
 
 ### Frequency as Participant Classifier
 
@@ -205,7 +247,7 @@ Calculate average lot size: `volume / frequency`
 
 ---
 
-## Module 5: Flow-Price Divergence & Scoring
+## Module 6: Flow-Price Divergence & Scoring
 
 ### Divergence Matrix
 
@@ -258,6 +300,12 @@ Calculate average lot size: `volume / frequency`
 - Top buyers: {broker codes + interpretation}
 - Top sellers: {broker codes + interpretation}
 - Phase: {Early Accumulation / Late Accumulation / Markup / Distribution / Markdown}
+
+### Ownership & Microstructure (Weekly–Monthly)
+- SID trend: {Contracting / Expanding / Flat} over {timeframe}
+- Ownership notes: {5% disclosures / KSEI monthly signals, if available}
+- Nego/crossing risk: {Low / Medium / High}
+- REPO/matched-flow risk: {Low / Medium / High}
 
 ### Foreign Flow
 - Cumulative trend: {Rising / Falling / Flat} over {timeframe}

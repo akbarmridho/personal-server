@@ -77,6 +77,15 @@ description: Trading desk and portfolio operations — position sizing (50:30:10
 | **10% Maximum** | Speculative/high-risk stocks ≤10% total | Contains downside from risky bets |
 | **Sector Limit** | ≤2 stocks per sector | True cross-sector diversification |
 
+### Liquidity-Based Sizing (Exit First)
+
+For weekly–monthly positions, sizing must assume you may need to exit in **days** if the thesis breaks.
+
+Use the knowledge catalog entry as the reference rule:
+- `get-knowledge liquidity-three-board-rule`
+
+**Practical guardrail:** if your position size is large relative to liquidity, prefer (a) smaller size, (b) staged exits, or (c) avoid the name even if conviction is high.
+
 ### 1% Risk Rule (Per-Trade)
 
 For tactical/technical entries:
@@ -91,6 +100,36 @@ Position Size = (Portfolio × 1%) / (Entry Price - Stop Loss)
 ---
 
 ## Module 3: Entry & Exit Strategies
+
+### Winning Series (Weekly–Monthly Discipline)
+
+This module translates Mentorbaik’s “Winning Series” into weekly–monthly operating rules.
+
+#### 1) Buy “Discount”, Not Chase
+
+Multibagger outcomes are heavily determined by **entry price**.
+
+- Prefer entries during **drawdowns** when weakness is **temporary** (cycle/headwind) and the long-term thesis remains intact.
+- Avoid “discount” entries if the drop is caused by **permanent fundamental impairment** (business model break, governance violation, terminal dilution).
+
+#### 2) Set the Time Frame First (Time Frame → Risk)
+
+Shorter time frame = higher noise and psychological stress. Use a deliberate horizon:
+
+| Time frame | Typical risk profile | How to use |
+|---|---|---|
+| Short (intraday/daily) | Highest noise | Not the default operating mode |
+| Medium (quarterly → 1–3 years) | Lower noise | Good for weekly–monthly tracking |
+| Long (>3 years) | Lowest noise | Best when conviction is strongest |
+
+Rule: before entering, write a **minimum holding expectation** and a **review cadence** (weekly/monthly). Treat short-term fluctuations as noise unless they break the thesis.
+
+#### 3) Patience Has Two Failure Modes
+
+| Where patience breaks | What it looks like | Counter-rule |
+|---|---|---|
+| **Position building** (thin liquidity) | You can’t get size without moving price | Size smaller, stage entries, or skip illiquid names |
+| **During fast markups** (temptation to “take quick wins”) | You sell too early after 1–3 bagger speed-run | Use a plan: staged profit-taking + thesis-based invalidation |
 
 ### Entry Strategies
 
