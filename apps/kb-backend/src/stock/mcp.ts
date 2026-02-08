@@ -35,6 +35,101 @@ let sourceNamesCache: {
 
 const SOURCE_NAMES_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+const SymbolSchema = z
+  .string()
+  .trim()
+  .transform((value) => value.toUpperCase().replace(/\.JK$/, ""))
+  .refine(
+    (value) => /^[A-Z]{4}$/.test(value),
+    "Symbol must be 4 uppercase letters (e.g., BBCA).",
+  );
+
+const SymbolArraySchema = z
+  .array(SymbolSchema)
+  .describe("Array of stock symbols represented as four-letter uppercase.");
+
+const DateYmdSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format.");
+
+const LimitSchema = z
+  .number()
+  .int()
+  .min(1)
+  .max(100)
+  .describe("The search limit. Default to 10. Min is 1 and max is 100");
+
+const SubsectorArraySchema = z
+  .array(z.string())
+  .describe(
+    `Array of subsector. Supported slugs: ${Array.from(supportedSubsectors).join(", ")}`,
+  );
+
+const SourceNamesSchema = z
+  .array(z.string())
+  .describe(
+    "Array of source names from metadata.source.name. Use get-document-sources to discover valid values.",
+  );
+
+const SearchQuerySchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(300)
+  .superRefine((query, ctx) => {
+    const hasInlineFilterSyntax =
+      /\b(limit|date_from|date_to|symbols|subsectors|types|source_names|pure_sector)\s*=/.test(
+        query,
+      );
+    if (hasInlineFilterSyntax) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Do not embed filter keys in query text. Use dedicated fields (symbols, types, date_from/date_to, source_names, etc.).",
+      });
+    }
+
+    if (/\bsite:/i.test(query)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Do not use site: in query. Use source_names filter (discoverable via get-document-sources).",
+      });
+    }
+  });
+
+const DocumentFiltersSchema = z
+  .object({
+    limit: LimitSchema.optional(),
+    page: z
+      .number()
+      .int()
+      .min(1)
+      .describe("Page number for pagination (1-indexed). Default to 1.")
+      .optional(),
+    symbols: SymbolArraySchema.optional(),
+    subsectors: SubsectorArraySchema.optional(),
+    types: z.enum(["news", "filing", "analysis", "rumour"]).array().optional(),
+    date_from: DateYmdSchema.describe("Start date limit in YYYY-MM-DD format").optional(),
+    date_to: DateYmdSchema.describe("End date limit in YYYY-MM-DD format").optional(),
+    source_names: SourceNamesSchema.optional(),
+    pure_sector: z
+      .boolean()
+      .describe(
+        "Filter for documents without symbols (pure sector/market news). If true, will return document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
+      )
+      .optional(),
+  })
+  .superRefine((args, ctx) => {
+    if (args.date_from && args.date_to && args.date_from > args.date_to) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "date_from must be earlier than or equal to date_to.",
+        path: ["date_to"],
+      });
+    }
+  });
+
 export const setupStockMcp = async () => {
   const server = new FastMCP({
     name: "Stock Tools Server",
@@ -137,7 +232,7 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-stock-fundamental",
     description: "Returns fundamental data for a specific stock symbol.",
-    parameters: z.object({ symbol: z.string() }),
+    parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
       logger.info({ symbol: args.symbol }, "Executing get-stock-fundamental");
       try {
@@ -163,7 +258,7 @@ export const setupStockMcp = async () => {
     name: "get-stock-profile",
     description:
       "Returns an enriched company profile for a stock symbol. Uses Stockbit profile as baseline and grounded web research for updates. If not cached, execution may take a while while research completes.",
-    parameters: z.object({ symbol: z.string() }),
+    parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
       logger.info({ symbol: args.symbol }, "Executing get-stock-profile");
       try {
@@ -189,7 +284,7 @@ export const setupStockMcp = async () => {
     name: "get-stock-bandarmology",
     description: "Returns market detector data for a specific stock symbol.",
     parameters: z.object({
-      symbol: z.string(),
+      symbol: SymbolSchema,
       period: z.enum(["1d", "1w", "1m", "3m", "1y"]),
     }),
     execute: async (args) => {
@@ -220,7 +315,7 @@ export const setupStockMcp = async () => {
     name: "get-stock-financials",
     description: "Returns financial statements for a specific stock symbol.",
     parameters: z.object({
-      symbol: z.string(),
+      symbol: SymbolSchema,
       reportType: z.enum(["income-statement", "balance-sheet", "cash-flow"]),
       statementType: z.enum(["quarterly", "annually", "ttm"]),
     }),
@@ -256,7 +351,7 @@ export const setupStockMcp = async () => {
     name: "get-stock-governance",
     description:
       "Returns governance data for a specific stock symbol including management, executives, ownership structure, and insider activity.",
-    parameters: z.object({ symbol: z.string() }),
+    parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
       logger.info({ symbol: args.symbol }, "Executing get-stock-governance");
       try {
@@ -513,57 +608,7 @@ export const setupStockMcp = async () => {
     name: "list-documents",
     description:
       "List investment documents with optional filters. Returns document snapshots (table of contents) with id, type, title, first 100 tokens of content preview, date, symbols, and source metadata (including source.name). Use get-document tool to retrieve full content.",
-    parameters: z.object({
-      limit: z
-        .number()
-        .describe("The search limit. Default to 10. Min is 1 and max is 100")
-        .optional(),
-      page: z
-        .number()
-        .describe("Page number for pagination (1-indexed). Default to 1.")
-        .optional(),
-      symbols: z
-        .string()
-        .array()
-        .describe(
-          "Array of stock symbols represented as four-letter uppercase.",
-        )
-        .optional(),
-      subsectors: z
-        .string()
-        .array()
-        .describe(
-          `Array of subsector. Supported slugs: ${Array.from(
-            supportedSubsectors,
-          ).join(", ")}`,
-        )
-        .optional(),
-      types: z
-        .enum(["news", "filing", "analysis", "rumour"])
-        .array()
-        .optional(),
-      date_from: z
-        .string()
-        .describe("Start date limit in YYYY-MM-DD format")
-        .optional(),
-      date_to: z
-        .string()
-        .describe("Start date limit in YYYY-MM-DD format")
-        .optional(),
-      source_names: z
-        .string()
-        .array()
-        .describe(
-          "Array of source names from metadata.source.name. Use get-document-sources to discover valid values.",
-        )
-        .optional(),
-      pure_sector: z
-        .boolean()
-        .describe(
-          "Filter for documents without symbols (pure sector/market news). If true, will return document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
-        )
-        .optional(),
-    }),
+    parameters: DocumentFiltersSchema,
     execute: async (args) => {
       logger.info({ args }, "Executing list-documents");
       try {
@@ -591,42 +636,8 @@ export const setupStockMcp = async () => {
     name: "search-documents",
     description:
       "Search investment documents using semantic search. Returns relevant documents with similarity scores based on the query.",
-    parameters: z.object({
-      query: z.string().describe("The search query"),
-      limit: z.number().describe("The search limit. Default to 10.").optional(),
-      symbols: z
-        .string()
-        .array()
-        .describe(
-          "Array of stock symbols represented as four-letter uppercase.",
-        )
-        .optional(),
-      subsectors: z.string().array().optional(),
-      types: z
-        .enum(["news", "filing", "analysis", "rumour"])
-        .array()
-        .optional(),
-      date_from: z
-        .string()
-        .describe("Start date limit in YYYY-MM-DD format")
-        .optional(),
-      date_to: z
-        .string()
-        .describe("End date limit in YYYY-MM-DD format")
-        .optional(),
-      source_names: z
-        .string()
-        .array()
-        .describe(
-          "Array of source names from metadata.source.name. Use get-document-sources to discover valid values.",
-        )
-        .optional(),
-      pure_sector: z
-        .boolean()
-        .describe(
-          "Filter for documents without symbols (pure sector/market news)",
-        )
-        .optional(),
+    parameters: DocumentFiltersSchema.extend({
+      query: SearchQuerySchema.describe("The search query"),
     }),
     execute: async (args) => {
       logger.info({ args }, "Executing search-documents");

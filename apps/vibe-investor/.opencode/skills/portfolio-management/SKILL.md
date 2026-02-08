@@ -16,9 +16,9 @@ description: Trading desk and portfolio operations — position sizing (50:30:10
 |------|---------|
 | `memory/notes/portfolio.md` | Open/closed positions, P&L tracking |
 | `memory/notes/watchlist.md` | Stocks under observation with trigger conditions |
-| `memory/tickers/{TICKER}.md` | Per-ticker trading plan, thesis, key levels |
+| `memory/symbols/{SYMBOL}.md` | Per-symbol trading plan, thesis, key levels |
 | `memory/sessions/{DATE}.md` | Daily session logs |
-| `memory/analysis/{TICKER}/` | Analysis outputs from all skills |
+| `memory/analysis/{SYMBOL}/` | Analysis outputs from all skills |
 
 ---
 
@@ -216,7 +216,7 @@ Acceptable if:
 
 **Defensive (Recession-Resistant):**
 
-| Sector | Tickers | Rationale |
+| Sector | Symbols | Rationale |
 |--------|---------|-----------|
 | Consumer Goods | ICBP, INDF, UNVR | Essential daily needs |
 | Finance (Banking) | BBCA, BBRI, BMRI | Always needed |
@@ -226,7 +226,7 @@ Acceptable if:
 
 **Offensive (Cyclicals — Expansion Phase):**
 
-| Sector | Tickers | Rationale |
+| Sector | Symbols | Rationale |
 |--------|---------|-----------|
 | Commodities | Coal, Metals, Oil, CPO | Industrial demand surge |
 | Property | BSDE, CTRA, SMRA | Big-ticket purchases |
@@ -268,10 +268,10 @@ Acceptable if:
 
 ## Module 5: Trading Plan Template
 
-Every position must have a plan before entry. Write to `memory/tickers/{TICKER}.md`:
+Every position must have a plan before entry. Write to `memory/symbols/{SYMBOL}.md`:
 
 ```markdown
-# {TICKER} — Trading Plan
+# {SYMBOL} — Trading Plan
 
 **Date**: {YYYY-MM-DD}
 **Category**: {Core / Value / Growth / Speculative}
@@ -345,7 +345,7 @@ Write to `memory/notes/watchlist.md`:
 ```markdown
 ## Watchlist
 
-| Ticker | Status | Thesis | Trigger | Added |
+| Symbol | Status | Thesis | Trigger | Added |
 |--------|--------|--------|---------|-------|
 | BBCA | Ready | Rate cut beneficiary | Break above 10,000 with volume | 2025-01-15 |
 | ADRO | Watching | Coal cycle + restructuring | Foreign accumulation signal | 2025-01-20 |
@@ -367,14 +367,14 @@ Write to `memory/sessions/{YYYY-MM-DD}.md`:
 - {action 2}
 
 ## Positions Updated
-| Ticker | Action | Price | Notes |
+| Symbol | Action | Price | Notes |
 |--------|--------|-------|-------|
 | ... | ... | ... | ... |
 
 ## Watchlist Changes
-- Added: {tickers + reason}
-- Removed: {tickers + reason}
-- Triggered: {tickers}
+- Added: {symbols + reason}
+- Removed: {symbols + reason}
+- Triggered: {symbols}
 
 ## Key Observations
 - {insight 1}

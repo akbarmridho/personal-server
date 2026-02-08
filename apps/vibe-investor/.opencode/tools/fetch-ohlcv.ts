@@ -6,10 +6,10 @@ export default tool({
   description:
     "Fetch 3 years of OHLCV (Open, High, Low, Close, Volume) data for Indonesian stocks and save to file. Use this to get historical price data for technical analysis. The data includes daily OHLCV, foreign flow, trading frequency, and other metrics.",
   args: {
-    ticker: tool.schema
+    symbol: tool.schema
       .string()
       .describe(
-        "Stock ticker symbol (e.g., 'BBCA', 'TLKM', 'GOTO'). Must be uppercase Indonesian stock symbol.",
+        "Stock symbol (e.g., 'BBCA', 'TLKM', 'GOTO'). Must be uppercase Indonesian stock symbol.",
       ),
     output_path: tool.schema
       .string()
@@ -18,18 +18,18 @@ export default tool({
       ),
   },
   async execute(args, context) {
-    const { ticker, output_path } = args;
+    const { symbol, output_path } = args;
 
-    // Validate ticker format
-    const normalizedTicker = ticker.trim().toUpperCase();
-    if (!normalizedTicker || !/^[A-Z]{4}$/.test(normalizedTicker)) {
+    // Validate symbol format
+    const normalizedSymbol = symbol.trim().toUpperCase();
+    if (!normalizedSymbol || !/^[A-Z]{4}$/.test(normalizedSymbol)) {
       throw new Error(
-        `Invalid ticker format: "${ticker}". Must be 4 uppercase letters (e.g., BBCA, TLKM).`,
+        `Invalid symbol format: "${symbol}". Must be 4 uppercase letters (e.g., BBCA, TLKM).`,
       );
     }
     if (!output_path.trim().toLowerCase().endsWith(".json")) {
       throw new Error(
-        `Invalid output_path: "${output_path}". fetch-ohlcv writes JSON only, so use a .json file path (e.g., work/${normalizedTicker}_ohlcv.json).`,
+        `Invalid output_path: "${output_path}". fetch-ohlcv writes JSON only, so use a .json file path (e.g., work/${normalizedSymbol}_ohlcv.json).`,
       );
     }
 
@@ -38,12 +38,12 @@ export default tool({
 
     try {
       // Fetch data from kb-backend
-      const url = `https://kb.akbarmr.dev/stock-market-id/stock/${normalizedTicker}/chartbit/raw`;
+      const url = `https://kb.akbarmr.dev/stock-market-id/stock/${normalizedSymbol}/chartbit/raw`;
       const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(
-          `Failed to fetch data for ${normalizedTicker}: ${response.status} ${response.statusText}`,
+          `Failed to fetch data for ${normalizedSymbol}: ${response.status} ${response.statusText}`,
         );
       }
 
@@ -70,7 +70,7 @@ export default tool({
           ? `${data.data[0].date} to ${data.data[dataPoints - 1].date}`
           : "unknown range";
 
-      return `✅ Successfully fetched and saved OHLCV data for ${normalizedTicker}
+      return `✅ Successfully fetched and saved OHLCV data for ${normalizedSymbol}
 
 File: ${absolutePath}
 Data points: ${dataPoints} days
@@ -86,7 +86,7 @@ The JSON file contains daily trading data with the following fields:
 Load this file with JSON parsers (e.g., pd.read_json / json.load), not CSV parsers.`;
     } catch (error) {
       throw new Error(
-        `Failed to fetch OHLCV data for ${normalizedTicker}: ${(error as Error).message}`,
+        `Failed to fetch OHLCV data for ${normalizedSymbol}: ${(error as Error).message}`,
       );
     }
   },

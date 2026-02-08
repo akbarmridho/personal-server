@@ -7,7 +7,7 @@ description: Expert technical analysis for IDX stocks — Wyckoff methodology, s
 
 **`fetch-ohlcv`** — downloads 3 years of daily data to a file. Save to `work/` to avoid context explosion.
 
-- **ticker**: 4 uppercase letters (e.g., "BBCA")
+- **symbol**: 4 uppercase letters (e.g., "BBCA")
 - **output_path**: e.g., `work/BBCA_ohlcv.json`
 - **format**: JSON array of objects (`.json`) — **NOT CSV**
 - If `fetch-ohlcv` returns an error, **STOP**. Do not retry or use alternative sources.
@@ -419,7 +419,7 @@ When distribution appears near peaks without obvious news:
 
 ## Output Report Structure
 
-**A. Header** — Ticker, date, price, data range, position status, intent (ENTRY/HOLD/EXIT/SCREENING)
+**A. Header** — Symbol, date, price, data range, position status, intent (ENTRY/HOLD/EXIT/SCREENING)
 
 **B. Quick Assessment** — Trend status, MA position, volume pattern, overall risk level
 
@@ -653,8 +653,8 @@ for level in swing_lows[:5]:
 
 mpf.plot(plot_df, type='candle', volume=True, style=style,
     alines=dict(alines=alines, colors=colors, linewidths=[0.8]*len(colors), linestyle='--'),
-    title=f'{ticker} Full Context',
-    savefig=dict(fname=f'work/{ticker}_context.png', dpi=150, bbox_inches='tight'))
+    title=f'{symbol} Full Context',
+    savefig=dict(fname=f'work/{symbol}_context.png', dpi=150, bbox_inches='tight'))
 
 # Chart 2: Recent (150 days)
 plot_recent = plot_df.tail(150)
@@ -664,8 +664,8 @@ apds = [
 ]
 mpf.plot(plot_recent, type='candle', volume=True, style=style, addplot=apds,
     alines=dict(alines=alines, colors=colors, linewidths=[0.8]*len(colors), linestyle='--'),
-    title=f'{ticker} Recent',
-    savefig=dict(fname=f'work/{ticker}_recent.png', dpi=150, bbox_inches='tight'))
+    title=f'{symbol} Recent',
+    savefig=dict(fname=f'work/{symbol}_recent.png', dpi=150, bbox_inches='tight'))
 
 # Chart 3: Detail (zoom into critical period)
 detail_df = df.loc['2025-12-01':].copy()
@@ -678,8 +678,8 @@ apds = [
     mpf.make_addplot(markers_l, type='scatter', markersize=50, color='green', marker='^')
 ]
 mpf.plot(detail_df, type='candle', volume=True, style=style, addplot=apds,
-    title=f'{ticker} Detail',
-    savefig=dict(fname=f'work/{ticker}_detail.png', dpi=150, bbox_inches='tight'))
+    title=f'{symbol} Detail',
+    savefig=dict(fname=f'work/{symbol}_detail.png', dpi=150, bbox_inches='tight'))
 ```
 
 **All patterns are context-dependent.** Distribution in a speculative play = suspicious. In a mature stock = normal profit-taking. Use these as tools, not rigid rules.

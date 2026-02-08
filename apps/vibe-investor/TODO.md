@@ -98,7 +98,7 @@ Expert fundamental analyst for IDX. Uses MCP tools for structured data.
 **Identity:** Trading desk and portfolio manager. Creates trading plans, manages positions, maintains watchlist, tracks P&L, enforces risk rules. Reads outputs from all analyst agents but doesn't do deep analysis itself.
 
 **Prompt modules:**
-1. **Trading plan template** — Standardized plan: ticker, thesis (1-2 sentences), entry zone, stop loss, targets (T1/T2/T3), position size, timeframe, risk score, conditions to invalidate
+1. **Trading plan template** — Standardized plan: symbol, thesis (1-2 sentences), entry zone, stop loss, targets (T1/T2/T3), position size, timeframe, risk score, conditions to invalidate
 2. **Position sizing & risk rules** — 1% risk per trade rule, portfolio heat limit (max open risk), pyramiding rules, correlation limits, max position size
 3. **Portfolio review checklist** — Daily routine (check stops, news, flow changes), weekly routine (review all positions, update P&L, rebalance), monthly routine (performance review, strategy assessment)
 4. **Watchlist management** — Entry criteria (what puts a stock on watchlist), trigger conditions (what moves it to "ready to trade"), removal criteria, watchlist categories (accumulation watch, breakout watch, narrative developing)
@@ -113,7 +113,7 @@ Expert fundamental analyst for IDX. Uses MCP tools for structured data.
 **Memory structure:**
 - `memory/notes/portfolio.md` — Open/closed positions, P&L tracking
 - `memory/notes/watchlist.md` — Stocks under observation with trigger conditions
-- `memory/tickers/{TICKER}.md` — Per-ticker trading plan, thesis, key levels
+- `memory/symbols/{SYMBOL}.md` — Per-symbol trading plan, thesis, key levels
 - `memory/agents/portfolio-desk/sessions/{DATE}.md` — Daily session logs
 - Reads from: `memory/agents/*/analysis/` — All analyst outputs
 

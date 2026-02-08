@@ -86,7 +86,7 @@ Post-2020 the dominance of foreign flow has weakened due to massive local conglo
 
 **Knowledge (reference):**
 - Use `get-knowledge broker-archetypes` for broker heuristics and “retail imposter” camouflage patterns.
-- Use `get-knowledge conglomerate-house-styles` if the ticker is known to trade like an operator agenda (house-style affects waiting time and risk).
+- Use `get-knowledge conglomerate-house-styles` if the symbol is known to trade like an operator agenda (house-style affects waiting time and risk).
 
 ---
 
@@ -286,7 +286,7 @@ Calculate average lot size: `volume / frequency`
 ## Output Report Structure
 
 ```markdown
-## Flow Analysis: {TICKER}
+## Flow Analysis: {SYMBOL}
 
 **Verdict:** {ACCUMULATION / DISTRIBUTION / NEUTRAL / TRANSITION}
 **Flow Score:** {X}/15

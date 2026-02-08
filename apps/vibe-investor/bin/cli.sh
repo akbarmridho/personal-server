@@ -44,6 +44,15 @@ export XDG_CONFIG_HOME="$OPENCODE_HOME_BASE/config"
 export XDG_CACHE_HOME="$OPENCODE_HOME_BASE/cache"
 export XDG_STATE_HOME="$OPENCODE_HOME_BASE/state"
 
+# Provide `python` alias behavior via PATH shim when only `python3` exists.
+# This survives `exec opencode`, unlike bash aliases.
+if ! command -v python >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  SHIM_BIN_DIR="$OPENCODE_HOME_BASE/bin"
+  mkdir -p "$SHIM_BIN_DIR"
+  ln -sf "$(command -v python3)" "$SHIM_BIN_DIR/python"
+  export PATH="$SHIM_BIN_DIR:$PATH"
+fi
+
 # Launch opencode CLI (replace current process)
 cd "$WORK_DIR"
 exec opencode "$@"

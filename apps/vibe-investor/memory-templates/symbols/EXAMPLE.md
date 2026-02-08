@@ -1,4 +1,4 @@
-# TICKER - Company Name
+# SYMBOL - Company Name
 
 Last updated:
 

@@ -48,10 +48,10 @@ $OPENCODE_CWD/
 │   ├── notes/
 │   │   ├── portfolio.md          # Open/closed positions, P&L
 │   │   └── watchlist.md          # Stocks under observation
-│   ├── tickers/
-│   │   └── {TICKER}.md           # Trading plan, thesis, key levels
+│   ├── symbols/
+│   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
 │   ├── analysis/
-│   │   └── {TICKER}/{DATE}/      # Analysis outputs + charts
+│   │   └── {SYMBOL}/{DATE}/      # Analysis outputs + charts
 │   └── sessions/
 │       └── {DATE}.md             # Session logs
 └── work/                         # Temporary scratch (delete anytime)
@@ -109,8 +109,8 @@ Filesystem-based memory using markdown files.
 
 - **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
 - **`memory/notes/`** — Portfolio positions, watchlist
-- **`memory/tickers/`** — Per-ticker trading plans, theses, key levels
-- **`memory/analysis/`** — Dated analysis outputs organized by ticker
+- **`memory/symbols/`** — Per-symbol trading plans, theses, key levels
+- **`memory/analysis/`** — Dated analysis outputs organized by symbol
 - **`memory/sessions/`** — Daily session logs
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 

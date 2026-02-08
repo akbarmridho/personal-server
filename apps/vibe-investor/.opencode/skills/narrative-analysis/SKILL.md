@@ -286,7 +286,7 @@ The higher the halu-ation premium, the harder the fall when narrative breaks:
 ## Output Report Structure
 
 ```markdown
-## Narrative Analysis: {TICKER}
+## Narrative Analysis: {SYMBOL}
 
 **Verdict:** {STRONG / MODERATE / WEAK / BROKEN}
 **Narrative Score:** {X}/15

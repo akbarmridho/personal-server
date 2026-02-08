@@ -27,14 +27,14 @@ echo ""
 # Create directory structure
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
-mkdir -p "$OPENCODE_CWD/memory/tickers"
+mkdir -p "$OPENCODE_CWD/memory/symbols"
 mkdir -p "$OPENCODE_CWD/memory/analysis"
 mkdir -p "$OPENCODE_CWD/memory/sessions"
 mkdir -p "$OPENCODE_CWD/work"
 
 # Copy templates (only if target doesn't already exist)
 echo "Copying memory templates..."
-for f in MEMORY.md notes/portfolio.md notes/watchlist.md tickers/EXAMPLE.md; do
+for f in MEMORY.md notes/portfolio.md notes/watchlist.md symbols/EXAMPLE.md; do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
   dst="$OPENCODE_CWD/memory/$f"
   if [ ! -f "$dst" ]; then
@@ -54,7 +54,7 @@ echo "  │   ├── MEMORY.md"
 echo "  │   ├── notes/"
 echo "  │   │   ├── portfolio.md"
 echo "  │   │   └── watchlist.md"
-echo "  │   ├── tickers/"
+echo "  │   ├── symbols/"
 echo "  │   ├── analysis/"
 echo "  │   └── sessions/"
 echo "  └── work/"
