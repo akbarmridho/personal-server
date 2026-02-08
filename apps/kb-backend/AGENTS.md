@@ -4,7 +4,7 @@ Backend service for Indonesian stock market analysis with AI/LLM integrations, d
 
 ## Architecture Overview
 
-**Two separate servers run independently via PM2** (see `ecosystem.config.cjs`):
+Main server and internal services run via PM2 (see `ecosystem.config.cjs`):
 
 ### 1. Main KB Backend Server (`src/index.ts`)
 Port: `HTTP_SERVER_PORT` (default: 3010)
@@ -22,51 +22,23 @@ Multi-layer architecture using Express as a proxy router:
 └─────────────────────────────────────────────────────────┘
 ```
 
-### 2. Mastra AI Server (`src/mastra.ts`)
-Port: `MASTRA_SERVER_PORT` (default: 3011)
-
-**IMPORTANT**: This is a SEPARATE server, NOT proxied through the main server!
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Mastra Server                         │
-│                Port: MASTRA_SERVER_PORT                  │
-├─────────────────────────────────────────────────────────┤
-│  /api/chat/:agentId  → AI chat endpoint                  │
-│  /api/agents/*       → Memory/thread management          │
-│  /studio/*           → Mastra Studio UI                  │
-└─────────────────────────────────────────────────────────┘
-```
-
-- Handles AI agent chat with streaming responses
-- Manages conversation threads via Memory system
-- Provides Mastra Studio UI for agent management
-
 ### Components
 
 1. **Express Proxy Server** (`src/index.ts`)
    - Main entry point that routes requests to specialized servers
    - Handles graceful shutdown and error handling
-   - **Does NOT proxy Mastra** - it's a separate server
 
-2. **Mastra AI Server** (`src/mastra.ts`)
-   - Standalone Express server for AI agents
-   - Chat endpoint: `POST /api/chat/:agentId`
-   - Thread management: `/api/agents/:agentId/memory/threads`
-   - Uses `@mastra/core` with PostgreSQL storage
-   - Configured agents in `src/mastra/agents/`
-
-3. **Stock MCP Server** (`src/stock/mcp.ts`)
+2. **Stock MCP Server** (`src/stock/mcp.ts`)
    - FastMCP server with httpStream transport (stateless)
    - Provides MCP tools for stock analysis and knowledge base access
    - Returns YAML-formatted responses (better for nested data in LLMs)
 
-4. **Elysia HTTP API Server** (`src/server.ts`)
+3. **Elysia HTTP API Server** (`src/server.ts`)
    - REST API with Swagger documentation (Scalar UI)
    - Provides HTTP endpoints for stock market data
    - Graceful shutdown support with `graceful-server-elysia`
 
-5. **Inngest Durable Execution** (`src/infrastructure/inngest.ts`)
+4. **Inngest Durable Execution** (`src/infrastructure/inngest.ts`)
    - Background job orchestration with checkpointing
    - Event-driven data ingestion pipelines
    - Automatic failure notifications via Discord
@@ -360,7 +332,6 @@ Environment variables managed via:
 ### Key Variables
 
 - `HTTP_SERVER_PORT` - Main proxy server port (default: 3010)
-- `MASTRA_SERVER_PORT` - Mastra AI server port (default: 3011) **SEPARATE SERVER**
 - `API_SERVER_PORT` - Elysia HTTP server port (default: 10001)
 - `STOCK_MCP_PORT` - Stock MCP server port (default: 10004)
 - `INNGEST_BASE_URL` - Inngest server URL
@@ -374,19 +345,6 @@ Swagger UI available at:
 
 - HTTP endpoint: `http://localhost:{HTTP_SERVER_PORT}/docs`
 - Provider: Scalar (modern Swagger UI)
-
-## Mastra Server Access
-
-**IMPORTANT**: Mastra runs as a separate server on a different port!
-
-Mastra AI chat server accessible at:
-
-- Chat endpoint: `http://localhost:{MASTRA_SERVER_PORT}/api/chat/:agentId`
-- Thread management: `http://localhost:{MASTRA_SERVER_PORT}/api/agents/:agentId/memory/threads`
-- Studio UI: `http://localhost:{MASTRA_SERVER_PORT}/studio`
-- Default ports: 3011 (local), needs nginx/reverse proxy for production
-
-For production deployment, set up nginx to proxy to MASTRA_SERVER_PORT or use a subdomain.
 
 ## MCP Server Access
 

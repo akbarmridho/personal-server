@@ -16,7 +16,6 @@ export const env = createEnv({
 
     // Server ports
     HTTP_SERVER_PORT: z.coerce.number().prefault(3010),
-    MASTRA_SERVER_PORT: z.coerce.number().prefault(3011),
     API_SERVER_PORT: z.coerce.number().prefault(10001),
     STOCK_MCP_PORT: z.coerce.number().prefault(10004),
 

@@ -14,7 +14,6 @@ import { inngest } from "./infrastructure/inngest.js";
 // import { inngestConnect } from "./infrastructure/inngest-connect.js";
 import { inngestFunctions } from "./infrastructure/inngest-functions.js";
 import { setupKnowledgeRoutes } from "./knowledge/http.js";
-import { mastra } from "./mastra/index.js";
 import { setupStockRoutes } from "./stock/http.js";
 import { setupStockMcp } from "./stock/mcp.js";
 import { logger } from "./utils/logger.js";
@@ -136,7 +135,7 @@ async function main() {
     });
     apiHttpServer.stop();
 
-    await Promise.all([stockMcpServer.stop(), mastra.shutdown()]);
+    await stockMcpServer.stop();
     process.exit(0);
   };
 
