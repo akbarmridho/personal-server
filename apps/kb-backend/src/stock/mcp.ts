@@ -35,28 +35,26 @@ let sourceNamesCache: {
 
 const SOURCE_NAMES_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+const normalizeSymbol = (value: string) =>
+  value.trim().toUpperCase().replace(/\.JK$/, "");
+
+const SYMBOL_REGEX = /^[A-Z]{4}$/;
+const DATE_YMD_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
 const SymbolSchema = z
   .string()
-  .trim()
-  .transform((value) => value.toUpperCase().replace(/\.JK$/, ""))
-  .refine(
-    (value) => /^[A-Z]{4}$/.test(value),
-    "Symbol must be 4 uppercase letters (e.g., BBCA).",
+  .describe(
+    "Stock symbol. Accepts 4 letters, optionally with .JK suffix (e.g., BBCA or BBCA.JK).",
   );
 
 const SymbolArraySchema = z
   .array(SymbolSchema)
   .describe("Array of stock symbols represented as four-letter uppercase.");
 
-const DateYmdSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format.");
+const DateYmdSchema = z.string().describe("Date in YYYY-MM-DD format.");
 
 const LimitSchema = z
   .number()
-  .int()
-  .min(1)
-  .max(100)
   .describe("The search limit. Default to 10. Min is 1 and max is 100");
 
 const SubsectorArraySchema = z
@@ -71,68 +69,107 @@ const SourceNamesSchema = z
     "Array of source names from metadata.source.name. Use get-document-sources to discover valid values.",
   );
 
-const SearchQuerySchema = z
-  .string()
-  .trim()
-  .min(2)
-  .max(300)
-  .superRefine((query, ctx) => {
-    const hasInlineFilterSyntax =
-      /\b(limit|date_from|date_to|symbols|subsectors|types|source_names|pure_sector)\s*=/.test(
-        query,
-      );
-    if (hasInlineFilterSyntax) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Do not embed filter keys in query text. Use dedicated fields (symbols, types, date_from/date_to, source_names, etc.).",
-      });
-    }
+const SearchQuerySchema = z.string();
 
-    if (/\bsite:/i.test(query)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Do not use site: in query. Use source_names filter (discoverable via get-document-sources).",
-      });
-    }
-  });
+const DocumentFiltersSchema = z.object({
+  limit: LimitSchema.optional(),
+  page: z
+    .number()
+    .describe("Page number for pagination (1-indexed). Default to 1.")
+    .optional(),
+  symbols: SymbolArraySchema.optional(),
+  subsectors: SubsectorArraySchema.optional(),
+  types: z.enum(["news", "filing", "analysis", "rumour"]).array().optional(),
+  date_from: DateYmdSchema.describe(
+    "Start date limit in YYYY-MM-DD format",
+  ).optional(),
+  date_to: DateYmdSchema.describe(
+    "End date limit in YYYY-MM-DD format",
+  ).optional(),
+  source_names: SourceNamesSchema.optional(),
+  pure_sector: z
+    .boolean()
+    .describe(
+      "Filter for documents without symbols (pure sector/market news). If true, will return document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
+    )
+    .optional(),
+});
 
-const DocumentFiltersSchema = z
-  .object({
-    limit: LimitSchema.optional(),
-    page: z
-      .number()
-      .int()
-      .min(1)
-      .describe("Page number for pagination (1-indexed). Default to 1.")
-      .optional(),
-    symbols: SymbolArraySchema.optional(),
-    subsectors: SubsectorArraySchema.optional(),
-    types: z.enum(["news", "filing", "analysis", "rumour"]).array().optional(),
-    date_from: DateYmdSchema.describe(
-      "Start date limit in YYYY-MM-DD format",
-    ).optional(),
-    date_to: DateYmdSchema.describe(
-      "End date limit in YYYY-MM-DD format",
-    ).optional(),
-    source_names: SourceNamesSchema.optional(),
-    pure_sector: z
-      .boolean()
-      .describe(
-        "Filter for documents without symbols (pure sector/market news). If true, will return document without symbols. If false, return document WITH symbols. If nonexistent this filter doesn't apply",
-      )
-      .optional(),
-  })
-  .superRefine((args, ctx) => {
-    if (args.date_from && args.date_to && args.date_from > args.date_to) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "date_from must be earlier than or equal to date_to.",
-        path: ["date_to"],
-      });
-    }
-  });
+const normalizeAndValidateSymbol = (value: string): string => {
+  const normalized = normalizeSymbol(value);
+  if (!SYMBOL_REGEX.test(normalized)) {
+    throw new Error(
+      "Symbol must be 4 letters, optionally with .JK suffix (e.g., BBCA or BBCA.JK).",
+    );
+  }
+  return normalized;
+};
+
+const validateDateYmd = (value: string, fieldName: "date_from" | "date_to") => {
+  if (!DATE_YMD_REGEX.test(value)) {
+    throw new Error(`${fieldName} must be in YYYY-MM-DD format.`);
+  }
+};
+
+const validateSearchQuery = (value: string): string => {
+  const query = value.trim();
+  if (query.length < 2 || query.length > 300) {
+    throw new Error("query must be between 2 and 300 characters.");
+  }
+
+  const hasInlineFilterSyntax =
+    /\b(limit|date_from|date_to|symbols|subsectors|types|source_names|pure_sector)\s*=/.test(
+      query,
+    );
+  if (hasInlineFilterSyntax) {
+    throw new Error(
+      "Do not embed filter keys in query text. Use dedicated fields (symbols, types, date_from/date_to, source_names, etc.).",
+    );
+  }
+
+  if (/\bsite:/i.test(query)) {
+    throw new Error(
+      "Do not use site: in query. Use source_names filter (discoverable via get-document-sources).",
+    );
+  }
+
+  return query;
+};
+
+const normalizeAndValidateDocumentFilters = (
+  args: z.infer<typeof DocumentFiltersSchema>,
+) => {
+  if (
+    args.limit !== undefined &&
+    (!Number.isInteger(args.limit) || args.limit < 1 || args.limit > 100)
+  ) {
+    throw new Error("limit must be an integer between 1 and 100.");
+  }
+
+  if (
+    args.page !== undefined &&
+    (!Number.isInteger(args.page) || args.page < 1)
+  ) {
+    throw new Error("page must be an integer greater than or equal to 1.");
+  }
+
+  if (args.date_from) {
+    validateDateYmd(args.date_from, "date_from");
+  }
+
+  if (args.date_to) {
+    validateDateYmd(args.date_to, "date_to");
+  }
+
+  if (args.date_from && args.date_to && args.date_from > args.date_to) {
+    throw new Error("date_from must be earlier than or equal to date_to.");
+  }
+
+  return {
+    ...args,
+    symbols: args.symbols?.map(normalizeAndValidateSymbol),
+  };
+};
 
 export const setupStockMcp = async () => {
   const server = new FastMCP({
@@ -238,13 +275,14 @@ export const setupStockMcp = async () => {
     description: "Returns fundamental data for a specific stock symbol.",
     parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
-      logger.info({ symbol: args.symbol }, "Executing get-stock-fundamental");
+      const symbol = normalizeAndValidateSymbol(args.symbol);
+      logger.info({ symbol }, "Executing get-stock-fundamental");
       try {
-        const data = await getCompanyFundamental(args.symbol);
-        logger.info({ symbol: args.symbol }, "Get fundamental completed");
+        const data = await getCompanyFundamental(symbol);
+        logger.info({ symbol }, "Get fundamental completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, symbol: args.symbol }, "Get fundamental failed");
+        logger.error({ error, symbol }, "Get fundamental failed");
         return {
           content: [
             {
@@ -264,16 +302,14 @@ export const setupStockMcp = async () => {
       "Returns an enriched company profile for a stock symbol. Uses Stockbit profile as baseline and grounded web research for updates. If not cached, execution may take a while while research completes.",
     parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
-      logger.info({ symbol: args.symbol }, "Executing get-stock-profile");
+      const symbol = normalizeAndValidateSymbol(args.symbol);
+      logger.info({ symbol }, "Executing get-stock-profile");
       try {
-        const data = await getStockProfileReport(args.symbol);
-        logger.info({ symbol: args.symbol }, "Get stock profile completed");
+        const data = await getStockProfileReport(symbol);
+        logger.info({ symbol }, "Get stock profile completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error(
-          { error, symbol: args.symbol },
-          "Get stock profile failed",
-        );
+        logger.error({ error, symbol }, "Get stock profile failed");
         return {
           content: [
             {
@@ -295,16 +331,17 @@ export const setupStockMcp = async () => {
       period: z.enum(["1d", "1w", "1m", "3m", "1y"]),
     }),
     execute: async (args) => {
+      const symbol = normalizeAndValidateSymbol(args.symbol);
       logger.info(
-        { symbol: args.symbol, period: args.period },
+        { symbol, period: args.period },
         "Executing get-stock-bandarmology",
       );
       try {
-        const data = await getStockBandarmology(args.symbol, args.period);
-        logger.info({ symbol: args.symbol }, "Get bandarmology completed");
+        const data = await getStockBandarmology(symbol, args.period);
+        logger.info({ symbol }, "Get bandarmology completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, symbol: args.symbol }, "Get bandarmology failed");
+        logger.error({ error, symbol }, "Get bandarmology failed");
         return {
           content: [
             {
@@ -327,20 +364,30 @@ export const setupStockMcp = async () => {
       statementType: z.enum(["quarterly", "annually", "ttm"]),
     }),
     execute: async (args) => {
+      const normalizedArgs = {
+        ...args,
+        symbol: normalizeAndValidateSymbol(args.symbol),
+      };
       logger.info(
         {
-          symbol: args.symbol,
-          reportType: args.reportType,
-          statementType: args.statementType,
+          symbol: normalizedArgs.symbol,
+          reportType: normalizedArgs.reportType,
+          statementType: normalizedArgs.statementType,
         },
         "Executing get-stock-financials",
       );
       try {
-        const data = await getStockFinancials(args);
-        logger.info({ symbol: args.symbol }, "Get financials completed");
+        const data = await getStockFinancials(normalizedArgs);
+        logger.info(
+          { symbol: normalizedArgs.symbol },
+          "Get financials completed",
+        );
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, symbol: args.symbol }, "Get financials failed");
+        logger.error(
+          { error, symbol: normalizedArgs.symbol },
+          "Get financials failed",
+        );
         return {
           content: [
             {
@@ -360,17 +407,18 @@ export const setupStockMcp = async () => {
       "Returns governance data for a specific stock symbol including management, executives, ownership structure, and insider activity.",
     parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
-      logger.info({ symbol: args.symbol }, "Executing get-stock-governance");
+      const symbol = normalizeAndValidateSymbol(args.symbol);
+      logger.info({ symbol }, "Executing get-stock-governance");
       try {
         const [management, ownership] = await Promise.all([
-          getStockManagement(args.symbol),
-          getStockOwnership(args.symbol),
+          getStockManagement(symbol),
+          getStockOwnership(symbol),
         ]);
         const data = { management, ownership };
-        logger.info({ symbol: args.symbol }, "Get governance completed");
+        logger.info({ symbol }, "Get governance completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, symbol: args.symbol }, "Get governance failed");
+        logger.error({ error, symbol }, "Get governance failed");
         return {
           content: [
             {
@@ -617,15 +665,17 @@ export const setupStockMcp = async () => {
       "List investment documents with optional filters. Returns document snapshots (table of contents) with id, type, title, first 100 tokens of content preview, date, symbols, and source metadata (including source.name). Use get-document tool to retrieve full content.",
     parameters: DocumentFiltersSchema,
     execute: async (args) => {
-      logger.info({ args }, "Executing list-documents");
+      const normalizedArgs = normalizeAndValidateDocumentFilters(args);
+      logger.info({ args: normalizedArgs }, "Executing list-documents");
       try {
         // todo don't return all
-        const data = await knowledgeService.listDocumentsPreview(args);
+        const data =
+          await knowledgeService.listDocumentsPreview(normalizedArgs);
 
-        logger.info({ args }, "List documents completed");
+        logger.info({ args: normalizedArgs }, "List documents completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, args }, "List documents failed");
+        logger.error({ error, args: normalizedArgs }, "List documents failed");
         return {
           content: [
             {
@@ -647,13 +697,20 @@ export const setupStockMcp = async () => {
       query: SearchQuerySchema.describe("The search query"),
     }),
     execute: async (args) => {
-      logger.info({ args }, "Executing search-documents");
+      const normalizedArgs = {
+        ...normalizeAndValidateDocumentFilters(args),
+        query: validateSearchQuery(args.query),
+      };
+      logger.info({ args: normalizedArgs }, "Executing search-documents");
       try {
-        const data = await knowledgeService.searchDocuments(args);
-        logger.info({ args }, "Search documents completed");
+        const data = await knowledgeService.searchDocuments(normalizedArgs);
+        logger.info({ args: normalizedArgs }, "Search documents completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, args }, "Search documents failed");
+        logger.error(
+          { error, args: normalizedArgs },
+          "Search documents failed",
+        );
         return {
           content: [
             {
