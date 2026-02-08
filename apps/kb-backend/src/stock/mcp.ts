@@ -110,8 +110,12 @@ const DocumentFiltersSchema = z
     symbols: SymbolArraySchema.optional(),
     subsectors: SubsectorArraySchema.optional(),
     types: z.enum(["news", "filing", "analysis", "rumour"]).array().optional(),
-    date_from: DateYmdSchema.describe("Start date limit in YYYY-MM-DD format").optional(),
-    date_to: DateYmdSchema.describe("End date limit in YYYY-MM-DD format").optional(),
+    date_from: DateYmdSchema.describe(
+      "Start date limit in YYYY-MM-DD format",
+    ).optional(),
+    date_to: DateYmdSchema.describe(
+      "End date limit in YYYY-MM-DD format",
+    ).optional(),
     source_names: SourceNamesSchema.optional(),
     pure_sector: z
       .boolean()
@@ -266,7 +270,10 @@ export const setupStockMcp = async () => {
         logger.info({ symbol: args.symbol }, "Get stock profile completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
-        logger.error({ error, symbol: args.symbol }, "Get stock profile failed");
+        logger.error(
+          { error, symbol: args.symbol },
+          "Get stock profile failed",
+        );
         return {
           content: [
             {
@@ -636,7 +643,7 @@ export const setupStockMcp = async () => {
     name: "search-documents",
     description:
       "Search investment documents using semantic search. Returns relevant documents with similarity scores based on the query.",
-    parameters: DocumentFiltersSchema.extend({
+    parameters: DocumentFiltersSchema.safeExtend({
       query: SearchQuerySchema.describe("The search query"),
     }),
     execute: async (args) => {
