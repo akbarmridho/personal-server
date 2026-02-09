@@ -3,10 +3,15 @@ name: portfolio-management
 description: Trading desk and portfolio operations — position sizing (50:30:10 rule), entry/exit strategies, economic cycle rotation, trading plan templates, portfolio review checklists, watchlist management, and session logging format.
 ---
 
+## Scope Guardrail (IDX Only)
+
+- This skill is strictly for **Indonesian Stock Exchange (IDX/BEI) equities** and cash management around that equity book.
+
 ## Data Sources
 
 - **`get-stock-fundamental`** — Current price for P&L calculation, basic stats.
 - **`get-stock-financials`** — Dividend check for income positions.
+- **`fetch-ohlcv`** — Daily price history for rolling return/correlation and rebalancing diagnostics.
 - **Knowledge Base:** `search-documents`, `list-documents` for recent news/filings for position monitoring.
 - **Filesystem:** Primary tool — heavy read/write to memory files.
 
@@ -76,6 +81,26 @@ description: Trading desk and portfolio operations — position sizing (50:30:10
 | **30% Maximum** | No single stock >30% of portfolio | Prevents emotional attachment, maintains objectivity |
 | **10% Maximum** | Speculative/high-risk stocks ≤10% total | Contains downside from risky bets |
 | **Sector Limit** | ≤2 stocks per sector | True cross-sector diversification |
+
+### Correlation-Aware Diversification (IDX Practical)
+
+Holding many names is not enough. Diversification quality is driven by **co-movement**.
+
+- Prioritize combinations with lower correlation of daily returns, not just different tickers.
+- In IDX, same-theme names often move together even across sub-sectors during stress.
+- Treat diversification as a spectrum:
+  - High positive correlation: weak diversification
+  - Near zero/low positive correlation: useful diversification
+  - Negative correlation: strongest hedge effect, but rare and unstable
+
+**Implementation rules:**
+
+- Compute rolling correlation from daily returns.
+- Use correlation as a **position sizing modifier**, not a hard filter:
+  - Corr > 0.75 with existing large holding: cut target size or skip
+  - Corr 0.40-0.75: allow with reduced size and clear role
+  - Corr < 0.40: best candidate for diversification benefit
+- In broad risk-off periods, assume correlation rises toward 1.0 and increase cash buffer.
 
 ### Liquidity-Based Sizing (Exit First)
 
@@ -186,6 +211,37 @@ Acceptable if:
 | GCG (governance) violation | Market-wide correction |
 | Significantly better opportunity available | Short-term noise without fundamental impact |
 
+### Cut Loss Execution Discipline (Capital Preservation)
+
+- Cut loss is operational cost, not personal failure.
+- No thesis = no hold. If invalidation is hit, exit without bargaining.
+- Do not widen stop after entry unless thesis quality objectively improves.
+- Do not average down after thesis break (that is risk concentration, not strategy).
+- Let winners run while structure is intact; do not rush take-profit on healthy trend.
+
+**Behavioral guardrails:**
+
+- Avoid "quick TP, deep hold loser" behavior.
+- Require pre-trade invalidation and max loss before sending order.
+- Post-exit review should focus on process quality, not ego recovery.
+
+### Rebalancing Protocol (Capture Diversification Edge)
+
+Correlation helps only if rebalancing is executed with discipline.
+
+**Default method (IDX portfolio):**
+
+- Baseline cadence: quarterly (monthly only for highly active books).
+- Drift trigger: rebalance when position weight deviates by >20% from target weight.
+- Event trigger: rebalance/replace when thesis breaks, governance risk appears, or liquidity deteriorates.
+
+**Execution rules:**
+
+- Rebalance by trimming outperformers and adding underweights **only if thesis remains valid**.
+- If thesis is broken, replace the name (do not mechanically top up losers).
+- Prefer replacement with lower correlation to remaining core holdings and acceptable liquidity.
+- Include transaction costs/slippage in decision; skip tiny rebalance trades that add friction without material risk improvement.
+
 ---
 
 ## Module 4: Economic Cycle & Sector Rotation
@@ -285,6 +341,7 @@ Every position must have a plan before entry. Write to `memory/symbols/{SYMBOL}.
 - Narrative: {STRONG / MODERATE / WEAK}
 - Technical: {bullish setup / neutral / bearish}
 - Fundamental: {undervalued / fair / overvalued}, MoS: {X%}
+- Correlation Role: {DIVERSIFIER / NEUTRAL / CONCENTRATOR}, vs {key holding}: {corr value}
 - Conviction: {HIGH / MEDIUM / LOW}
 
 ## Plan
@@ -318,12 +375,14 @@ Every position must have a plan before entry. Write to `memory/symbols/{SYMBOL}.
 **Weekly:**
 - Review all open positions — thesis still intact?
 - Check position sizing vs limits (50:30:10)
+- Check rolling correlation changes among top positions
 - Update watchlist — any triggers hit?
 - Log weekly P&L, portfolio heat
 
 **Monthly:**
 - Full performance review (realized + unrealized)
 - Sector allocation check
+- Rebalancing check (cadence + drift + thesis validity)
 - Strategy assessment — what's working, what's not
 - Update memory/MEMORY.md with key learnings
 

@@ -68,7 +68,7 @@ Systematically check all red flag categories (see section below).
 
 Answer these questions with evidence from charts:
 
-1. **Structure**: What Wyckoff phase? Trend intact or broken?
+1. **Structure**: Balance or Imbalance state? What Wyckoff phase? Trend intact or broken?
 2. **Levels**: Which S/R levels matter most? Confluence?
 3. **Price Action**: Patterns detected (spring, climax, distribution, breakout)?
 4. **Volume**: Confirming or contradicting price?
@@ -89,6 +89,31 @@ Answer these questions with evidence from charts:
 | **Markup** | Price rises, trend established. | Everyone joins |
 | **Distribution** | Smart money selling. Sideways after uptrend. | Institutions SELL, Retail BUYS |
 | **Markdown** | Price falls, supply > demand. | Retail left holding |
+
+### Balance/Imbalance State Model (Primary Lens)
+
+- **Balance** = price accepted inside a value area (range). This is where accumulation or distribution usually happens.
+- **Imbalance** = aggressive repricing (trend) after acceptance is lost. Market seeks a new value area.
+- Core sequence usually repeats: **Balance -> Imbalance -> Balance -> Imbalance**.
+- Default assumption: price remains inside its current value area until proven otherwise.
+
+**How to execute by state:**
+
+- In **Balance**, trade the extremes (support/resistance), not the middle of the range.
+- In **Imbalance**, trade with momentum and trend continuation, not early reversal guesses.
+- When breakout appears, require acceptance before committing size:
+  - Daily close outside value area (not wick-only)
+  - Follow-through in the same direction
+  - Supportive volume expansion vs recent average
+- Failed acceptance (quick return back inside range) is a trap signal, not trend confirmation.
+
+**State shift / exhaustion clues:**
+
+- Trend structure break (e.g., uptrend closes below latest swing low, downtrend closes above latest swing high)
+- Loss of momentum after extension (churning/distribution signs)
+- Inability to hold above/below newly broken value area edge
+
+**Operating principle:** React to what price does at key levels. Do not assume fixed targets first, then force the chart to match.
 
 ### Trend Definition
 
@@ -300,6 +325,24 @@ Position Size = (Total Capital × 1%) / (Entry Price − Stop Loss)
 
 **C. Volume Emergency** — Support breaks with HIGH volume (real supply) OR massive volume spike without price progress (churning) after rally.
 
+### Bearish Divergence Risk Protocol (Prepare, Don't Predict)
+
+- Bearish divergence is an early warning, not an automatic reversal call.
+- Definition: price makes a higher high while momentum oscillator (RSI14 or MACD histogram) makes a lower high.
+- Always run a quick divergence scan in every technical analysis.
+- Escalate to full protocol only when context is risky: extended uptrend, resistance test/failed breakout, euphoric sentiment, weakening push volume.
+
+**Action Ladder:**
+
+1. Divergence only (unconfirmed):
+   - Reduce exposure gradually (tranches), tighten stop, avoid adding new size.
+2. Divergence + structure confirmation (close below key swing/MA with sell pressure):
+   - De-risk aggressively or exit by structure rules.
+3. No structure confirmation:
+   - Stay reactive, do not front-run a top call.
+
+**Mandatory reporting status:** `No divergence`, `Divergence (unconfirmed)`, or `Divergence (confirmed)`, plus confidence and invalidation trigger.
+
 ### No Resistance Phase
 
 When stock breaks ATH / clears all resistance:
@@ -331,6 +374,9 @@ For each chart, verify ALL applicable items:
 
 **Structure (Module 1):**
 
+- [ ] State first: Balance or Imbalance?
+- [ ] If Balance: define value area high/low and avoid entries in middle of range
+- [ ] If Imbalance: breakout accepted (close + follow-through + volume), or still unconfirmed?
 - [ ] Wyckoff Phase: Accumulation/Markup/Distribution/Markdown?
 - [ ] Trend: HH/HL (up)? LH/LL (down)? Mixed (sideways)?
 - [ ] Last 5 swing points — rising or falling?
@@ -355,6 +401,8 @@ For each chart, verify ALL applicable items:
 - [ ] Volume anomalies: >1.5x or <0.5x average?
 - [ ] Distribution signs: price flat/up at highs with high volume?
 - [ ] Accumulation signs: sideways with increasing volume/frequency?
+- [ ] Quick divergence scan: Price HH vs RSI/MACD LH?
+- [ ] If divergence exists: unconfirmed vs confirmed by structure break?
 - [ ] Selling Climax: massive spike at lows + stability?
 - [ ] Spring: fake break below support on LOW volume + quick recovery?
 - [ ] Breakout validation: close beyond level with HIGH volume?
@@ -401,6 +449,13 @@ For each chart, verify ALL applicable items:
 - Distance to stop < 5%
 - Underwater with deteriorating structure
 
+**6. Momentum Divergence (Early Warning):**
+
+- Price prints higher high but RSI14/MACD prints lower high (bearish divergence)
+- Signal quality increases if second high forms near resistance and with weaker volume
+- Divergence alone is not exit confirmation; treat as preparation signal
+- Escalate severity only after structural confirmation (close below key swing/MA)
+
 **Severity:** LOW / MEDIUM / HIGH / CRITICAL with specific evidence.
 
 ### Informed Money Signals
@@ -421,11 +476,11 @@ When distribution appears near peaks without obvious news:
 
 **A. Header** — Symbol, date, price, data range, position status, intent (ENTRY/HOLD/EXIT/SCREENING)
 
-**B. Quick Assessment** — Trend status, MA position, volume pattern, overall risk level
+**B. Quick Assessment** — State (Balance/Imbalance), trend status, value area context, MA position, volume pattern, overall risk level
 
 **C. Key Levels** — Top 3 resistance zones, top 3 support zones, **stop loss (MANDATORY)**
 
-**D. Risk Assessment** — Red flags by category with severity/evidence, informed money signals (if applicable), overall risk (LOW/MED/HIGH/CRITICAL), scenario analysis, risk mitigation, critical warnings
+**D. Risk Assessment** — Red flags by category with severity/evidence, divergence status (none/unconfirmed/confirmed), informed money signals (if applicable), overall risk (LOW/MED/HIGH/CRITICAL), scenario analysis, risk mitigation, critical warnings
 
 **E. Action** — BUY/HOLD/SELL/WAIT/EXIT with rationale, conditions that change recommendation, mandatory stop loss
 
@@ -525,10 +580,62 @@ def classify_pv(row):
 df['pv_signal'] = df.apply(classify_pv, axis=1)
 ```
 
+### Bearish Divergence Detection (Pivot-based)
+
+```python
+def calculate_rsi(close, period=14):
+    delta = close.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1/period, adjust=False, min_periods=period).mean()
+    avg_loss = loss.ewm(alpha=1/period, adjust=False, min_periods=period).mean()
+    rs = avg_gain / avg_loss.replace(0, np.nan)
+    return 100 - (100 / (1 + rs))
+
+df['RSI14'] = calculate_rsi(df['close'])
+
+def detect_bearish_divergence(df, min_bars=5, max_bars=60):
+    pivots = df[df['swing_high'].notna()].copy()
+    pivots = pivots[pivots['RSI14'].notna()]
+    if len(pivots) < 2:
+        return {'status': 'none', 'reason': 'Insufficient pivot highs'}
+
+    last2 = pivots.tail(2)
+    i1, i2 = last2.index[0], last2.index[1]
+    bars_apart = df.index.get_loc(i2) - df.index.get_loc(i1)
+    if bars_apart < min_bars or bars_apart > max_bars:
+        return {'status': 'none', 'reason': 'Pivot spacing not comparable'}
+
+    p1, p2 = last2['high'].iloc[0], last2['high'].iloc[1]
+    r1, r2 = last2['RSI14'].iloc[0], last2['RSI14'].iloc[1]
+    if not (p2 > p1 and r2 < r1):
+        return {'status': 'none', 'reason': 'No bearish divergence'}
+
+    # Divergence is warning first; confirmation requires a structural break.
+    recent_swing_low = df[df['swing_low'].notna()]['swing_low'].iloc[-1] if df['swing_low'].notna().any() else np.nan
+    confirmed = (
+        pd.notna(recent_swing_low)
+        and df['close'].iloc[-1] < recent_swing_low
+        and df['vol_ratio'].iloc[-1] > 1.0
+    )
+    status = 'confirmed' if confirmed else 'unconfirmed'
+    confidence = 'HIGH' if max(r1, r2) >= 60 and (r1 - r2) >= 5 else 'MEDIUM'
+
+    return {
+        'status': status,
+        'confidence': confidence,
+        'price_high_1': float(p1),
+        'price_high_2': float(p2),
+        'rsi_high_1': float(r1),
+        'rsi_high_2': float(r2),
+        'reference_swing_low': float(recent_swing_low) if pd.notna(recent_swing_low) else None
+    }
+```
+
 ### Red Flags Detection
 
 ```python
-def analyze_red_flags(df, current_price, user_entry=None, stop_loss=None):
+def analyze_red_flags(df, current_price, user_entry=None, stop_loss=None, divergence_signal=None):
     flags = []
     if current_price < df['MA20'].iloc[-1]:
         flags.append({'category': 'Structure', 'signal': 'Below MA20', 'severity': 'HIGH',
@@ -555,6 +662,14 @@ def analyze_red_flags(df, current_price, user_entry=None, stop_loss=None):
         if distance < 5:
             flags.append({'category': 'Position', 'signal': 'Close to stop',
                 'severity': 'HIGH', 'evidence': f"{distance:.1f}% to stop at {stop_loss}"})
+    if divergence_signal and divergence_signal.get('status') == 'unconfirmed':
+        flags.append({'category': 'Momentum', 'signal': 'Bearish divergence (unconfirmed)',
+            'severity': 'MEDIUM',
+            'evidence': f"Price HH with weaker RSI ({divergence_signal.get('confidence', 'N/A')} confidence)"})
+    if divergence_signal and divergence_signal.get('status') == 'confirmed':
+        flags.append({'category': 'Momentum', 'signal': 'Bearish divergence (confirmed)',
+            'severity': 'HIGH',
+            'evidence': "Divergence + structural break confirmation"})
     return flags
 ```
 
