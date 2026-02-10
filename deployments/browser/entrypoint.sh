@@ -17,6 +17,7 @@ CHROME_USER_DATA_DIR="${PROFILE_DIR}/profiles/${PROFILE_NAME}"
 DISPLAY_NUM="${DISPLAY#:}"
 XVFB_LOCK_FILE="/tmp/.X${DISPLAY_NUM}-lock"
 XVFB_SOCKET_FILE="/tmp/.X11-unix/X${DISPLAY_NUM}"
+CDP_STARTUP_ATTEMPTS="${BROWSER_CDP_STARTUP_ATTEMPTS:-150}"
 
 mkdir -p "${PROFILE_DIR}" "${XDG_CONFIG_HOME}" "${XDG_CACHE_HOME}" "${CHROME_USER_DATA_DIR}"
 
@@ -78,7 +79,7 @@ chromium "${CHROME_ARGS[@]}" about:blank &
 CHROMIUM_PID=$!
 
 READY=0
-for _ in $(seq 1 50); do
+for _ in $(seq 1 "${CDP_STARTUP_ATTEMPTS}"); do
   if curl -sS --max-time 1 "http://127.0.0.1:${CHROME_CDP_PORT}/json/version" >/dev/null; then
     READY=1
     break
@@ -98,8 +99,19 @@ SOCAT_PID=$!
 if [[ "${ENABLE_NOVNC}" == "1" && "${HEADLESS}" != "1" ]]; then
   x11vnc -display "${DISPLAY}" -rfbport "${VNC_PORT}" -shared -forever -nopw -localhost &
   VNC_PID=$!
+  sleep 0.3
+  if ! kill -0 "${VNC_PID}" >/dev/null 2>&1; then
+    echo "x11vnc failed to start on display ${DISPLAY} port ${VNC_PORT}" >&2
+    exit 1
+  fi
+
   websockify --web /usr/share/novnc/ "${NOVNC_PORT}" "localhost:${VNC_PORT}" &
   NOVNC_PID=$!
+  sleep 0.3
+  if ! kill -0 "${NOVNC_PID}" >/dev/null 2>&1; then
+    echo "websockify failed to start on port ${NOVNC_PORT}" >&2
+    exit 1
+  fi
 fi
 
 wait "${CHROMIUM_PID}"
