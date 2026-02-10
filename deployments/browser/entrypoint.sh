@@ -105,7 +105,7 @@ if [[ "${ENABLE_NOVNC}" == "1" && "${HEADLESS}" != "1" ]]; then
     exit 1
   fi
 
-  websockify --web /usr/share/novnc/ "${NOVNC_PORT}" "localhost:${VNC_PORT}" &
+  websockify --web /usr/share/novnc/ "${NOVNC_PORT}" "127.0.0.1:${VNC_PORT}" &
   NOVNC_PID=$!
   sleep 0.3
   if ! kill -0 "${NOVNC_PID}" >/dev/null 2>&1; then
