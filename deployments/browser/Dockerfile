@@ -23,6 +23,10 @@ RUN apt-get update \
 COPY entrypoint.sh /usr/local/bin/sandbox-browser
 RUN chmod +x /usr/local/bin/sandbox-browser
 
+RUN mkdir -p /tmp/.X11-unix \
+  && chmod 1777 /tmp/.X11-unix \
+  && chown root:root /tmp/.X11-unix
+
 RUN useradd --create-home --shell /bin/bash sandbox \
   && mkdir -p /home/sandbox/.browser-profile \
   && chown -R sandbox:sandbox /home/sandbox

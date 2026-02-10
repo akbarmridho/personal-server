@@ -11,6 +11,7 @@ services:
       BROWSER_ENABLE_NOVNC: 1
       BROWSER_HEADLESS: 0
       BROWSER_PROFILE_DIR: /home/sandbox/.browser-profile
+      BROWSER_PROFILE_NAME: main
     ports:
       - "9222:9222"
       - "5900:5900"
