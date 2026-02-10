@@ -12,9 +12,9 @@ services:
       BROWSER_HEADLESS: 0
       BROWSER_PROFILE_DIR: /home/sandbox/.browser-profile
     ports:
-      - "8026:9222"
-      - "5901:5900"
-      - "8027:6080"
+      - "9222:9222"
+      - "5900:5900"
+      - "6080:6080"
     volumes:
       - browser_profile:/home/sandbox/.browser-profile
     shm_size: "1g"
