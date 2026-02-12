@@ -140,13 +140,13 @@ type Events = {
   "data/golden-article": {
     data: GoldenArticleEvent;
   };
-  // "data/phintraco-company-update-ingest": {
-  //   data: {
-  //     title: string;
-  //     pdfUrl: string;
-  //     date: string;
-  //   };
-  // };
+  "data/phintraco-company-update-ingest": {
+    data: {
+      title: string;
+      pdfUrl: string;
+      date: string;
+    };
+  };
   "data/general-news": {
     data: GeneralNewsEvent;
   };

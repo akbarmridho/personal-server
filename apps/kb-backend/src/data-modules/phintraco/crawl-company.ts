@@ -4,6 +4,7 @@ import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { logger } from "../../utils/logger.js";
 import { generalProxiedAxios } from "../../utils/proxy.js";
 
 dayjs.extend(utc);
@@ -121,5 +122,20 @@ export const phintracoCompanyUpdateCrawl = inngest.createFunction(
         await KV.set(keystoneKey, { urls: [...newUrls] } satisfies Keystone);
       });
     }
+  },
+);
+
+// use dummy fn cause this fucking inngest throws error when a function are removed
+export const phintracoCompanyUpdateCrawlDummy = inngest.createFunction(
+  {
+    id: "phintraco-company-update-crawl",
+    concurrency: 1,
+  },
+  // every date 1
+  { cron: "TZ=Asia/Jakarta 0 0 1 * *" },
+  async ({ step }) => {
+    await step.run("print", () => {
+      logger.info("hello!");
+    });
   },
 );
