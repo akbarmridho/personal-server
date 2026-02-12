@@ -9,7 +9,7 @@ import { env } from "../infrastructure/env.js";
 import { knowledgeService } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";
 import { GetCompaniesParams, getCompanies } from "./aggregator/companies.js";
-import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
+// import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
@@ -323,37 +323,37 @@ export const setupStockMcp = async () => {
     },
   });
 
-  server.addTool({
-    name: "get-stock-bandarmology",
-    description: "Returns market detector data for a specific stock symbol.",
-    parameters: z.object({
-      symbol: SymbolSchema,
-      period: z.enum(["1d", "1w", "1m", "3m", "1y"]),
-    }),
-    execute: async (args) => {
-      const symbol = normalizeAndValidateSymbol(args.symbol);
-      logger.info(
-        { symbol, period: args.period },
-        "Executing get-stock-bandarmology",
-      );
-      try {
-        const data = await getStockBandarmology(symbol, args.period);
-        logger.info({ symbol }, "Get bandarmology completed");
-        return { type: "text", text: yaml.dump(data) };
-      } catch (error) {
-        logger.error({ error, symbol }, "Get bandarmology failed");
-        return {
-          content: [
-            {
-              type: "text",
-              text: error instanceof Error ? error.message : String(error),
-            },
-          ],
-          isError: true,
-        };
-      }
-    },
-  });
+  // server.addTool({
+  //   name: "get-stock-bandarmology",
+  //   description: "Returns market detector data for a specific stock symbol.",
+  //   parameters: z.object({
+  //     symbol: SymbolSchema,
+  //     period: z.enum(["1d", "1w", "1m", "3m", "1y"]),
+  //   }),
+  //   execute: async (args) => {
+  //     const symbol = normalizeAndValidateSymbol(args.symbol);
+  //     logger.info(
+  //       { symbol, period: args.period },
+  //       "Executing get-stock-bandarmology",
+  //     );
+  //     try {
+  //       const data = await getStockBandarmology(symbol, args.period);
+  //       logger.info({ symbol }, "Get bandarmology completed");
+  //       return { type: "text", text: yaml.dump(data) };
+  //     } catch (error) {
+  //       logger.error({ error, symbol }, "Get bandarmology failed");
+  //       return {
+  //         content: [
+  //           {
+  //             type: "text",
+  //             text: error instanceof Error ? error.message : String(error),
+  //           },
+  //         ],
+  //         isError: true,
+  //       };
+  //     }
+  //   },
+  // });
 
   server.addTool({
     name: "get-stock-financials",
