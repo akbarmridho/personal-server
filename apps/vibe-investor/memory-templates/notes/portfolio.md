@@ -2,10 +2,18 @@
 
 Last updated:
 
-## Open Positions
+## Latest Input Snapshot
+- as_of:
+- Source file: `notes/portfolio_inputs/YYYY-MM-DD.json`
 
-## Closed Positions
+## Requested Input Table
+| Symbol | Lots | Avg | Last |
+| --- | ---: | ---: | ---: |
 
-## Performance
+## Computed Summary (Derived)
+- Total market value:
+- Cash:
+- Total equity:
+- Concentration (Top 3):
 
 ## Notes

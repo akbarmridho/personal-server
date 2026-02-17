@@ -27,18 +27,38 @@ echo ""
 # Create directory structure
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
+mkdir -p "$OPENCODE_CWD/memory/notes/portfolio_inputs"
+mkdir -p "$OPENCODE_CWD/memory/notes/actions"
+mkdir -p "$OPENCODE_CWD/memory/scripts"
 mkdir -p "$OPENCODE_CWD/memory/symbols"
-mkdir -p "$OPENCODE_CWD/memory/analysis"
+mkdir -p "$OPENCODE_CWD/memory/templates"
+mkdir -p "$OPENCODE_CWD/memory/analysis/symbols"
+mkdir -p "$OPENCODE_CWD/memory/analysis/market"
+mkdir -p "$OPENCODE_CWD/memory/analysis/themes"
 mkdir -p "$OPENCODE_CWD/memory/sessions"
 mkdir -p "$OPENCODE_CWD/work"
 
 # Copy templates (only if target doesn't already exist)
 echo "Copying memory templates..."
-for f in MEMORY.md notes/portfolio.md notes/watchlist.md symbols/EXAMPLE.md; do
+for f in \
+  MEMORY.md \
+  INDEX.md \
+  notes/portfolio.md \
+  notes/watchlist.md \
+  notes/theses_active.md \
+  notes/theses_archived.md \
+  templates/symbol_note_template.md \
+  analysis/INDEX.md \
+  scripts/portfolio_calc.py
+do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
   dst="$OPENCODE_CWD/memory/$f"
   if [ ! -f "$dst" ]; then
+    mkdir -p "$(dirname "$dst")"
     cp "$src" "$dst"
+    if [[ "$f" == scripts/* ]]; then
+      chmod +x "$dst"
+    fi
   else
     echo "  Skipping $f (already exists)"
   fi
@@ -51,11 +71,22 @@ echo "Structure:"
 echo "  $OPENCODE_CWD/"
 echo "  ├── memory/"
 echo "  │   ├── MEMORY.md"
+echo "  │   ├── INDEX.md"
 echo "  │   ├── notes/"
 echo "  │   │   ├── portfolio.md"
+echo "  │   │   ├── portfolio_inputs/"
+echo "  │   │   ├── actions/"
+echo "  │   │   ├── theses_active.md"
+echo "  │   │   ├── theses_archived.md"
 echo "  │   │   └── watchlist.md"
+echo "  │   ├── scripts/"
 echo "  │   ├── symbols/"
+echo "  │   ├── templates/"
 echo "  │   ├── analysis/"
+echo "  │   │   ├── INDEX.md"
+echo "  │   │   ├── symbols/"
+echo "  │   │   ├── market/"
+echo "  │   │   └── themes/"
 echo "  │   └── sessions/"
 echo "  └── work/"
 echo ""
