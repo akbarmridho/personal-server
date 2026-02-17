@@ -1,5 +1,9 @@
-import { readFile } from "node:fs/promises";
-import { basename, resolve } from "node:path";
+import type { NonSharedBuffer } from "node:buffer";
+import { execFile } from "node:child_process";
+import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join, resolve } from "node:path";
+import { promisify } from "node:util";
 import { tool } from "@opencode-ai/plugin";
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { type FilePart, generateText, type ImagePart } from "ai";
@@ -7,6 +11,97 @@ import { lookup } from "mime-types";
 
 const DEFAULT_MODEL = "google/gemini-2.5-flash-lite-preview-09-2025";
 const FALLBACK_MODEL = "google/gemini-3-flash-preview";
+const PDF_COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024;
+
+const execFileAsync = promisify(execFile);
+let ghostscriptBinary: string | null = null;
+
+async function resolveGhostscriptBinary(): Promise<string> {
+  if (ghostscriptBinary) {
+    return ghostscriptBinary;
+  }
+
+  const candidates =
+    process.platform === "win32" ? ["gswin64c", "gswin32c", "gs"] : ["gs"];
+
+  for (const binary of candidates) {
+    try {
+      await execFileAsync(binary, ["--version"]);
+      ghostscriptBinary = binary;
+      return binary;
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(
+    "Ghostscript is required for PDF compression but was not found in PATH. Install it and ensure the `gs` command is available.",
+  );
+}
+
+async function runGhostscriptPdfCompression(
+  inputPath: string,
+  outputPath: string,
+): Promise<void> {
+  const binary = await resolveGhostscriptBinary();
+
+  try {
+    await execFileAsync(binary, [
+      "-sDEVICE=pdfwrite",
+      "-dCompatibilityLevel=1.6",
+      "-dPDFSETTINGS=/ebook",
+      "-dNOPAUSE",
+      "-dQUIET",
+      "-dBATCH",
+      "-dDetectDuplicateImages=true",
+      "-dCompressFonts=true",
+      `-sOutputFile=${outputPath}`,
+      inputPath,
+    ]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Ghostscript failed to compress PDF (${inputPath}): ${message}`,
+    );
+  }
+}
+
+async function compressPdfBufferIfNeeded(
+  inputBuffer: NonSharedBuffer,
+  sourceLabel: string,
+): Promise<NonSharedBuffer> {
+  if (inputBuffer.byteLength <= PDF_COMPRESSION_THRESHOLD_BYTES) {
+    return inputBuffer;
+  }
+
+  const tempDir = await mkdtemp(join(tmpdir(), "deep-doc-extract-"));
+  const tempInputPath = join(tempDir, "input.pdf");
+  const tempOutputPath = join(tempDir, "output.pdf");
+
+  try {
+    await writeFile(tempInputPath, inputBuffer);
+    await runGhostscriptPdfCompression(tempInputPath, tempOutputPath);
+    const compressed = await readFile(tempOutputPath);
+
+    if (compressed.byteLength === 0) {
+      throw new Error("compressed output is empty");
+    }
+
+    // Keep the original if compression is not beneficial.
+    if (compressed.byteLength >= inputBuffer.byteLength) {
+      return inputBuffer;
+    }
+
+    return compressed;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Failed to compress PDF source (${sourceLabel}): ${message}`,
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+}
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -87,6 +182,30 @@ export default tool({
             mediaType,
           });
         } else {
+          if (mediaType === "application/pdf") {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+              throw new Error(
+                `Failed to download remote PDF ${source}: ${response.status} ${response.statusText}`,
+              );
+            }
+
+            const rawBuffer = Buffer.from(await response.arrayBuffer());
+            const pdfBuffer = await compressPdfBufferIfNeeded(
+              rawBuffer,
+              source,
+            );
+
+            fileParts.push({
+              type: "file",
+              data: pdfBuffer,
+              mediaType,
+              filename: guessedPath,
+            });
+            continue;
+          }
+
           fileParts.push({
             type: "file",
             data: url,
@@ -96,7 +215,6 @@ export default tool({
         }
       } else {
         const absolutePath = resolve(context.directory, source);
-        const fileBuffer = await readFile(absolutePath);
         const mediaType = lookup(absolutePath);
 
         if (!mediaType) {
@@ -104,12 +222,22 @@ export default tool({
         }
 
         if (mediaType.startsWith("image/")) {
+          const fileBuffer = await readFile(absolutePath);
           fileParts.push({
             type: "image",
             image: fileBuffer,
             mediaType,
           });
         } else {
+          let fileBuffer = await readFile(absolutePath);
+
+          if (mediaType === "application/pdf") {
+            const fileStats = await stat(absolutePath);
+            if (fileStats.size > PDF_COMPRESSION_THRESHOLD_BYTES) {
+              fileBuffer = await compressPdfBufferIfNeeded(fileBuffer, source);
+            }
+          }
+
           fileParts.push({
             type: "file",
             data: fileBuffer,

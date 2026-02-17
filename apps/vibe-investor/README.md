@@ -61,6 +61,9 @@ $OPENCODE_CWD/
 ## Quick Setup
 
 ```bash
+# 0. Dependencies
+brew install ghostscript
+
 # 1. Install
 pnpm install
 
