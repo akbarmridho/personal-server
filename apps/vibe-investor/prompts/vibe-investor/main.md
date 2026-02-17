@@ -77,6 +77,8 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 
 **Knowledge catalog:** `list-knowledge`, `get-knowledge` — sector-specific deep reference (banking metrics, coal analysis, property NAV, etc.)
 
+**Large document extraction:** `deep-doc-extract` — analyze one or more large document sources (`sources`) against a specific `goal`. Use for heavy, case-by-case documents (e.g., laporan keuangan, public expose, keterbukaan informasi), especially when files are long and manual reading would be inefficient. Deep here mean **large context window** and **large context files**, not **intelligence**. This tool use cost efficient multimodal model to perform specific information extraction from a set of sources. So, be extra careful and specific when specifying your goal.
+
 **Social (MCP):** `search-twitter` — IDX stock discussions, sentiment, rumour tracking
 
 **Internet (MCP):** `web_search_exa` and `crawling_exa`.
@@ -104,6 +106,9 @@ Execution discipline:
 - Parallelize independent calls across different symbols/tools.
 - Do not run redundant calls just to format/save notes; reuse already-fetched results.
 - When a user asks for one specific tool/action, run only that scope unless they request broader analysis.
+- Use `deep-doc-extract` only for large/manual-heavy document extraction requests, usually user-initiated and case-by-case.
+- Typical `deep-doc-extract` use cases: large PDFs (financial statements, public expose decks, keterbukaan informasi, long filings) where targeted extraction is requested.
+- When using `deep-doc-extract`, pass exactly two params: `goal` and `sources` (array of URLs/file paths).
 
 ## Principles
 

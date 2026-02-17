@@ -20,7 +20,8 @@ apps/vibe-investor/
 │   ├── tools/
 │   │   ├── fetch-ohlcv.ts        # Fetch 3yr OHLCV data for IDX stocks
 │   │   ├── list-knowledge.ts     # Browse knowledge catalog entries
-│   │   └── get-knowledge.ts      # Retrieve a knowledge entry by name
+│   │   ├── get-knowledge.ts      # Retrieve a knowledge entry by name
+│   │   └── deep-doc-extract.ts   # Goal-based large-doc extraction via OpenRouter
 │   └── skills/                   # On-demand knowledge modules
 │       ├── technical-analysis/
 │       ├── fundamental-analysis/
@@ -123,6 +124,15 @@ Fetches 3 years of daily OHLCV data for Indonesian stocks from kb.akbarmr.dev. S
 ### list-knowledge / get-knowledge
 
 Reads from the knowledge catalog directory (`KNOWLEDGE_CATALOG_PATH`). Each `.md` file has YAML frontmatter with `name`, `description`, and `category`. Categories: `technical-analysis`, `fundamental-analysis`, `flow-analysis`, `narrative-analysis`, `portfolio-management`.
+
+### deep-doc-extract
+
+One-off extraction for PDFs/images without embeddings. Pass only:
+
+- `goal`: what to extract
+- `sources`: array of strings (each item is either a downloadable URL or local file path, relative/absolute)
+
+The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK.
 
 ## Configuration
 
