@@ -4,7 +4,7 @@ import { tool } from "@opencode-ai/plugin";
 
 export default tool({
   description:
-    "Fetch 3 years of OHLCV (Open, High, Low, Close, Volume) data for Indonesian stocks and save to file. Use this to get historical price data for technical analysis. The data includes daily OHLCV, foreign flow, trading frequency, and other metrics.",
+    "Fetch unified chart data for Indonesian stocks and save to file. The output includes: 3 years daily OHLCV, 7 calendar days intraday OHLCV (resampled to 60-minute bars, partial bar kept), and corporate action events.",
   args: {
     symbol: tool.schema
       .string()
@@ -64,26 +64,36 @@ export default tool({
         "utf-8",
       );
 
-      const dataPoints = Array.isArray(data.data) ? data.data.length : 0;
-      const dateRange =
-        dataPoints > 0
-          ? `${data.data[0].date} to ${data.data[dataPoints - 1].date}`
-          : "unknown range";
+      const payload = data.data as {
+        daily?: Array<{ date?: string; is_partial?: boolean }>;
+        intraday?: Array<{ is_partial?: boolean }>;
+        corp_actions?: unknown[];
+      };
 
-      return `✅ Successfully fetched and saved OHLCV data for ${normalizedSymbol}
+      const dailyPoints = Array.isArray(payload.daily)
+        ? payload.daily.length
+        : 0;
+      const intradayPoints = Array.isArray(payload.intraday)
+        ? payload.intraday.length
+        : 0;
+      const corpActionPoints = Array.isArray(payload.corp_actions)
+        ? payload.corp_actions.length
+        : 0;
+      const partialIntradayBars = Array.isArray(payload.intraday)
+        ? payload.intraday.filter((bar) => bar.is_partial).length
+        : 0;
+      const dailyFrom =
+        dailyPoints > 0 ? (payload.daily?.[0]?.date ?? "unknown") : "unknown";
+      const dailyTo =
+        dailyPoints > 0
+          ? (payload.daily?.[dailyPoints - 1]?.date ?? "unknown")
+          : "unknown";
 
+      return `Saved unified chart data for ${normalizedSymbol}
 File: ${absolutePath}
-Data points: ${dataPoints} days
-Date range: ${dateRange}
-Format: JSON array of objects (NOT CSV)
-
-The JSON file contains daily trading data with the following fields:
-- OHLCV: open, high, low, close, volume
-- Foreign flow: foreignbuy, foreignsell, foreignflow
-- Trading metrics: frequency, value, soxclose
-- Company data: shareoutstanding, dividend
-
-Load this file with JSON parsers (e.g., pd.read_json / json.load), not CSV parsers.`;
+Daily: ${dailyPoints} (${dailyFrom} to ${dailyTo})
+Intraday 60m: ${intradayPoints} (partial: ${partialIntradayBars})
+Corp actions: ${corpActionPoints}`;
     } catch (error) {
       throw new Error(
         `Failed to fetch OHLCV data for ${normalizedSymbol}: ${(error as Error).message}`,

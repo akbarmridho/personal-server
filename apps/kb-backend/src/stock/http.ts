@@ -23,7 +23,7 @@ import { getStockTechnicals } from "./endpoints/stock/technicals.js";
 import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
 import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { stockbitAuth } from "./stockbit/auth.js";
-import { getChartbitData } from "./stockbit/chartbit.js";
+import { getUnifiedChartbitRawData } from "./stockbit/chartbit.js";
 import { removeKeysRecursive } from "./utils.js";
 
 export const setupStockRoutes = () =>
@@ -300,21 +300,10 @@ export const setupStockRoutes = () =>
     )
     .get(
       "/stock/:symbol/chartbit/raw",
-      async ({ params, query, set }) => {
+      async ({ params, set }) => {
         try {
-          // Default to past 3 years if not specified
-          const to = query.to
-            ? dayjs.tz(query.to, "Asia/Jakarta").toDate()
-            : dayjs().tz("Asia/Jakarta").toDate();
-          const from = query.from
-            ? dayjs.tz(query.from, "Asia/Jakarta").toDate()
-            : dayjs(to).subtract(3, "year").toDate();
-
-          const data = await getChartbitData({
-            symbol: params.symbol,
-            from,
-            to,
-          });
+          const symbol = params.symbol.trim().toUpperCase();
+          const data = await getUnifiedChartbitRawData(symbol);
 
           return { success: true, data };
         } catch (err) {
@@ -325,23 +314,12 @@ export const setupStockRoutes = () =>
       },
       {
         params: t.Object({ symbol: t.String() }),
-        query: t.Object({
-          from: t.Optional(
-            t.String({
-              description: "Start date (YYYY-MM-DD). Defaults to 3 years ago.",
-            }),
-          ),
-          to: t.Optional(
-            t.String({
-              description: "End date (YYYY-MM-DD). Defaults to today.",
-            }),
-          ),
-        }),
         detail: {
           tags: ["Stock Technical Analysis"],
-          summary: "Get raw OHLCV chartbit data",
+          summary:
+            "Get unified raw chartbit data (daily + intraday + corp actions)",
           description:
-            "Returns raw OHLCV (Open, High, Low, Close, Volume) data from Stockbit. Default range is past 3 years. Includes foreign flow, frequency, and other trading metrics.",
+            "Returns unified chart data from Stockbit: past 3 years daily candles, past 7 calendar days intraday candles resampled to 60-minute bars (partial bar kept), and corporate action events. Fails the whole request if any component fetch fails.",
         },
       },
     )

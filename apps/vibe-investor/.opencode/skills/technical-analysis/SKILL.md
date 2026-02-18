@@ -5,11 +5,12 @@ description: Expert technical analysis for IDX stocks — Wyckoff methodology, s
 
 ## Data & Charting Tools
 
-**`fetch-ohlcv`** — downloads 3 years of daily data to a file. Save to `work/` to avoid context explosion.
+**`fetch-ohlcv`** — downloads unified chart data to a file. Save to `work/` to avoid context explosion.
 
 - **symbol**: 4 uppercase letters (e.g., "BBCA")
 - **output_path**: e.g., `work/BBCA_ohlcv.json`
-- **format**: JSON array of objects (`.json`) — **NOT CSV**
+- **format**: JSON object (`.json`) — **NOT CSV**
+- **defaults**: 3 years daily + 7 calendar days intraday (60-minute, partial bar kept) + corp actions
 - If `fetch-ohlcv` returns an error, **STOP**. Do not retry or use alternative sources.
 
 **Python libraries:** `pandas`, `numpy`, `mplfinance` for calculations and chart generation.
@@ -18,26 +19,41 @@ After generating a chart, **use Read tool to view the image**. Visual reasoning 
 
 ### OHLCV Data Schema
 
-JSON array of daily records (parse as JSON, never CSV):
+Unified JSON object:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `date` | string | "YYYY-MM-DD" |
-| `unixdate` | int | Unix timestamp |
-| `open`, `high`, `low`, `close` | int | Prices in IDR |
-| `volume` | int | Shares traded |
-| `foreignbuy`, `foreignsell` | int | Foreign flow values in IDR |
-| `foreignflow` | int | Cumulative foreign flow |
-| `frequency` | int | Number of transactions |
-| `freq_analyzer` | float | Frequency analysis metric |
-| `value` | int | Total trading value |
-| `dividend` | int | Dividend amount (0 if none) |
-| `shareoutstanding` | int | Outstanding shares |
-| `soxclose` | int | Market cap at close |
+- `daily[]`: normalized daily candles (`interval: "1d"`)
+- `intraday[]`: normalized intraday candles (`interval: "60m"`, resampled by session-gap logic, partial bar kept)
+- `corp_actions[]`: event timeline (dividends and other corporate actions)
 
-Load with: `pd.read_json('work/BBCA_ohlcv.json')`
+Core candle keys (daily + intraday):
+
+- `timestamp`, `datetime`, `date`
+- `open`, `high`, `low`, `close`, `volume`, `value`, `frequency`
+- `foreign_buy`, `foreign_sell`, `foreign_flow`
+- `interval`, `is_partial`
+
+Daily-only keys:
+
+- `cumulative_foreign_flow`, `dividend`, `share_outstanding`, `market_cap_close`, `freq_analyzer`
+
+Load with JSON parsing first, then build DataFrames:
+
+```python
+import json
+import pandas as pd
+
+with open('work/BBCA_ohlcv.json', 'r', encoding='utf-8') as f:
+    raw = json.load(f)
+
+df_daily = pd.DataFrame(raw['daily']).sort_values('timestamp')
+df_intraday = pd.DataFrame(raw['intraday']).sort_values('timestamp')
+df_corp_actions = pd.DataFrame(raw['corp_actions']).sort_values('timestamp')
+```
 
 Never use `pd.read_csv` for `fetch-ohlcv` output.
+
+Price adjustment note:
+- Trading chart prices are split-style corporate-action adjusted (stock split, reverse split, rights issue), but **not dividend-adjusted**.
 
 ---
 
@@ -495,6 +511,11 @@ When distribution appears near peaks without obvious news:
 ### Indicators
 
 ```python
+# Start from daily candles parsed from fetch-ohlcv output.
+df = df_daily.copy()
+df['datetime'] = pd.to_datetime(df['datetime'])
+df = df.set_index('datetime').sort_index()
+
 # Moving Averages
 for n in [5, 10, 20, 50]:
     df[f'MA{n}'] = df['close'].rolling(n).mean()
@@ -757,6 +778,7 @@ atr_stop = current_price - (atr * 2)      # ATR-based
 ```python
 import mplfinance as mpf
 
+plot_df = df.copy()
 style = mpf.make_mpf_style(base_mpf_style='yahoo', gridstyle=':', rc={'font.size': 8})
 
 # Chart 1: Context (full history)

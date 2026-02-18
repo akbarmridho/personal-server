@@ -84,7 +84,13 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 
 **Stock data (MCP):** `get-stock-profile`, `get-stock-fundamental`, `get-stock-financials`, `get-stock-governance`, `get-sectors`, `get-companies`.
 
-**OHLCV file tool:** `fetch-ohlcv` writes a UTF-8 `.json` file containing a JSON array of objects (daily bars). Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_json`, `json.load`, etc.).
+**OHLCV file tool:** `fetch-ohlcv` writes a UTF-8 `.json` file containing a unified JSON object with:
+
+- `daily`: 3 years daily candles
+- `intraday`: last 7 calendar days candles resampled to 60-minute bars (partial bar kept)
+- `corp_actions`: corporate action events
+
+Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_json`, `json.load`, etc.).
 
 **Knowledge base (MCP):** `search-documents`, `list-documents`, `get-document` — for curated filings, analysis, news, rumours.
 
@@ -103,6 +109,7 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 - Use strict tool arguments only. Do not invent parameter names.
 - `fetch-ohlcv` uses `symbol` and `output_path`.
 - Symbols must be uppercase 4-letter codes (e.g., `BBCA`, `TLKM`).
+- `fetch-ohlcv` output prices are split-style corporate-action adjusted (stock split/reverse split/rights issue), but not dividend-adjusted.
 - When discussing a symbol deeply, call `get-stock-profile` once per symbol first, then avoid duplicate profile calls unless the first call failed.
 - Do not re-call the same baseline tool for the same symbol in the same run unless needed for explicit retry.
 
