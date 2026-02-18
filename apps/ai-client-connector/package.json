@@ -1,0 +1,31 @@
+{
+  "name": "@personal-server/ai-client-connector",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client-side connector for transparent HTTP proxy and future browser interception tasks.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "playwright": "npx playwright install"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.8",
+    "dotenv": "^16.6.1",
+    "pino": "^9.14.0",
+    "pino-pretty": "^13.1.2",
+    "playwright": "^1.56.1",
+    "proxy-chain": "^2.5.9",
+    "zod": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
