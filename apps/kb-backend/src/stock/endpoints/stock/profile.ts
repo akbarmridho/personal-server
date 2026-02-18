@@ -3,10 +3,13 @@ import { generateText } from "ai";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
+import { normalizeSector } from "../../../data-modules/profiles/sector.js";
 import { KV } from "../../../infrastructure/db/kv.js";
 import type { JsonObject } from "../../../infrastructure/db/types.js";
 import { logger } from "../../../utils/logger.js";
 import { checkSymbol } from "../../aggregator/companies.js";
+import { getCompanyReport } from "../../aggregator/company-report.js";
+import { getEmittenInfo } from "../../stockbit/emitten-info.js";
 import { getStockProfile as getStockbitProfile } from "../../stockbit/profile.js";
 
 dayjs.extend(utc);
@@ -85,7 +88,11 @@ Return only the markdown report.`;
 export interface EnrichedStockProfile {
   symbol: string;
   generated_at: string;
-  profile_markdown: string;
+  profile: string;
+  company_name: string;
+  subsector: string;
+  listing_date: string;
+  priceOverview: Record<string, number>;
 }
 
 const buildStockbitContextForPrompt = (
@@ -112,11 +119,28 @@ export const getStockProfileReport = async (
 
   const existing = await KV.get(cacheKey);
 
+  const [stockbitProfile, companyReport, emittenInfo] = await Promise.all([
+    getStockbitProfile(symbol),
+    getCompanyReport({ symbol }),
+    getEmittenInfo({ symbol }),
+  ]);
+
+  const priceOverview = {
+    price: +emittenInfo.price,
+    change: +emittenInfo.change,
+    percentage: emittenInfo.percentage,
+    previous: +emittenInfo.previous,
+    average: +emittenInfo.average,
+    volume: +emittenInfo.volume,
+  };
+
   if (existing) {
-    return existing as unknown as EnrichedStockProfile;
+    return {
+      ...(existing as unknown as Omit<EnrichedStockProfile, "priceOverview">),
+      priceOverview,
+    } as EnrichedStockProfile;
   }
 
-  const stockbitProfile = await getStockbitProfile(symbol);
   const stockbitContext = buildStockbitContextForPrompt(
     stockbitProfile as Record<string, any>,
   );
@@ -170,7 +194,11 @@ ${JSON.stringify(stockbitContext, null, 2)}`;
   const payload: EnrichedStockProfile = {
     symbol,
     generated_at: dayjs().utc().toISOString(),
-    profile_markdown: profileMarkdown,
+    profile: profileMarkdown,
+    company_name: companyReport.company_name,
+    subsector: normalizeSector(companyReport.sub_sector),
+    listing_date: companyReport.listing_date,
+    priceOverview,
   };
 
   await KV.set(
