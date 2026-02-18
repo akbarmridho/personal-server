@@ -20,8 +20,6 @@ import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockProfileReport } from "./endpoints/stock/profile.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
-import { getBottomFishingSignal } from "./skills/catalog/bottom-fishing-playbook.js";
-import { getGCStochPSARSignal } from "./skills/catalog/gc-oversold-playbook.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 import { getUnifiedChartbitRawData } from "./stockbit/chartbit.js";
 import { removeKeysRecursive } from "./utils.js";
@@ -389,58 +387,6 @@ export const setupStockRoutes = () =>
           summary: "Test Stockbit authentication",
           description:
             "Validates the stored Stockbit access token by making a test API request",
-        },
-      },
-    )
-    .get(
-      "/playbook/gc-oversold/:symbol",
-      async ({ params, query, set }) => {
-        try {
-          const asOfDate = query.asOf
-            ? dayjs.tz(query.asOf, "Asia/Jakarta").toDate()
-            : dayjs().tz("Asia/Jakarta").toDate();
-          const data = await getGCStochPSARSignal(params.symbol, asOfDate);
-          return { success: true, data };
-        } catch (err) {
-          logger.error({ err }, "Get GC Oversold signal failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        params: t.Object({ symbol: t.String() }),
-        query: t.Object({ asOf: t.Optional(t.String()) }),
-        detail: {
-          tags: ["Trading Playbooks"],
-          summary: "Golden Cross + Oversold playbook signal",
-          description:
-            "Returns swing trading setup combining Golden Cross, Stochastic Oversold, and PSAR indicators. Phases: FORMING, READY, TRIGGERED, ACTIVE.",
-        },
-      },
-    )
-    .get(
-      "/playbook/bottom-fishing/:symbol",
-      async ({ params, query, set }) => {
-        try {
-          const asOfDate = query.asOf
-            ? dayjs.tz(query.asOf, "Asia/Jakarta").toDate()
-            : dayjs().tz("Asia/Jakarta").toDate();
-          const data = await getBottomFishingSignal(params.symbol, asOfDate);
-          return { success: true, data };
-        } catch (err) {
-          logger.error({ err }, "Get Bottom Fishing signal failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        params: t.Object({ symbol: t.String() }),
-        query: t.Object({ asOf: t.Optional(t.String()) }),
-        detail: {
-          tags: ["Trading Playbooks"],
-          summary: "Bottom fishing playbook signal",
-          description:
-            "Returns market crash reversal signals using weekly RSI, volume spikes, and Heikin Ashi patterns. Phases: WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED.",
         },
       },
     )
