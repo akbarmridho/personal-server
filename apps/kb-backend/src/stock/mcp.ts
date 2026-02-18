@@ -10,6 +10,7 @@ import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockProfileReport } from "./endpoints/stock/profile.js";
+import { getFiling, listFilings } from "./stockbit/filing.js";
 import { searchTwitter } from "./twitter-search.js";
 
 // why yaml instead of json?
@@ -60,6 +61,15 @@ const SourceNamesSchema = z
   );
 
 const SearchQuerySchema = z.string();
+const FilingReportTypeSchema = z.enum([
+  "all",
+  "laporan_keuangan",
+  "rups",
+  "kepemilikan_saham",
+  "dividen",
+  "corporate_action",
+  "other",
+]);
 
 const DocumentFiltersSchema = z.object({
   limit: LimitSchema.optional(),
@@ -292,6 +302,91 @@ export const setupStockMcp = async () => {
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, symbol }, "Get governance failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "list-filing",
+    description:
+      "List Stockbit filing announcements for a stock symbol. Returns compact filing data with id, title, created_at, and pagination. Keyword hints: RUPS often uses 'laporan hasil', 'penyampaian materi', 'ringkasan'. Corporate action often uses 'keterbukaan informasi'. Other filings often use 'keterbukaan informasi', 'penyampaian press release', 'informasi tambahan', 'tambahan informasi', 'penyampaian laporan', 'penyampaian prospektus'.",
+    parameters: z.object({
+      symbol: SymbolSchema,
+      report_type: FilingReportTypeSchema.optional().describe(
+        "Filing category filter. Default: all.",
+      ),
+      last_stream_id: z
+        .number()
+        .int()
+        .min(0)
+        .optional()
+        .describe("Pagination cursor. Use 0 for first page (default)."),
+      keyword: z
+        .string()
+        .optional()
+        .describe(
+          "Optional keyword filter. Common hints: RUPS -> 'laporan hasil', 'penyampaian materi', 'ringkasan'; corporate action -> 'keterbukaan informasi'; other -> 'keterbukaan informasi', 'penyampaian press release', 'informasi tambahan', 'tambahan informasi', 'penyampaian laporan', 'penyampaian prospektus'. Example: 'laporan tahunan'.",
+        ),
+    }),
+    execute: async (args) => {
+      const normalizedArgs = {
+        ...args,
+        symbol: normalizeAndValidateSymbol(args.symbol),
+      };
+
+      logger.info({ args: normalizedArgs }, "Executing list-filing");
+      try {
+        const data = await listFilings({
+          symbol: normalizedArgs.symbol,
+          reportType: normalizedArgs.report_type,
+          lastStreamId: normalizedArgs.last_stream_id,
+          keyword: normalizedArgs.keyword,
+        });
+        logger.info({ args: normalizedArgs }, "List filing completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, args: normalizedArgs }, "List filing failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-filing",
+    description:
+      "Get filing announcement detail by Stockbit filing id. Accepts id, path, or URL and returns compact attachment data.",
+    parameters: z.object({
+      filing_id: z
+        .string()
+        .describe(
+          "Filing id from list-filing. Also accepts Stockbit announcement path/URL.",
+        ),
+    }),
+    execute: async (args) => {
+      logger.info({ filingId: args.filing_id }, "Executing get-filing");
+      try {
+        const data = await getFiling(args.filing_id);
+        logger.info({ filingId: args.filing_id }, "Get filing completed");
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, filingId: args.filing_id }, "Get filing failed");
         return {
           content: [
             {
