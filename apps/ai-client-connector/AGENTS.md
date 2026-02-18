@@ -52,6 +52,9 @@ Environment variables (see `.env.example`):
 - `GOLDEN_ARTICLE_URL` (required for startup capture task)
 - `INNGEST_URL` (required for startup dispatch)
 - `PLAYWRIGHT_CDP_URL` (optional, default `http://127.0.0.1:9222`)
+- `PLAYWRIGHT_BROWSER_PATH` (used to restart browser on startup)
+- `PLAYWRIGHT_USER_DATA_DIR` (used to restart browser on startup)
+- `PLAYWRIGHT_PROFILE_DIR` (used to restart browser on startup)
 
 Integration target in `kb-backend`:
 
@@ -61,7 +64,7 @@ Integration target in `kb-backend`:
 
 - Keep proxy pass-through by default.
 - Do not add forced headers, origin spoofing, or body rewriting in the proxy layer.
-- Keep Playwright interception logic in `src/playwright/*`, not mixed with proxy bootstrap.
+- Keep Playwright interception logic in `src/browser/*` and task modules, not mixed into proxy request handling.
 - If adding request capture/forwarding later, gate it by explicit config and keep defaults transparent.
 
 ## User Preferences (High Priority)
@@ -86,7 +89,7 @@ Integration target in `kb-backend`:
 
 Planned tasks to implement in separate modules:
 
-1. Attach Playwright to an already-running browser over CDP.
+1. Check CDP on startup; restart configured browser only if CDP is unreachable, then attach Playwright.
 2. Manual login flow by user (no credential automation).
 3. Intercept golden article response payload and forward to configured endpoint.
 4. Intercept stockbit.com request headers and forward to configured endpoint.

@@ -27,11 +27,9 @@ export const env = createEnv({
     GOLDEN_ARTICLE_URL: z.string().url().optional(),
     INNGEST_URL: z.string().url().optional(),
 
-    PLAYWRIGHT_HEADLESS: z.stringbool().prefault("false"),
+    PLAYWRIGHT_CDP_URL: z.string().url().prefault("http://127.0.0.1:9222"),
     PLAYWRIGHT_BROWSER_PATH: z.string().optional(),
-    PLAYWRIGHT_USER_DATA_DIR: z
-      .string()
-      .prefault(path.resolve(appRoot, ".playwright-user-data")),
+    PLAYWRIGHT_USER_DATA_DIR: z.string().optional(),
     PLAYWRIGHT_PROFILE_DIR: z.string().optional(),
 
     STATE_FILE_PATH: z.string().prefault(path.resolve(appRoot, "state.json")),

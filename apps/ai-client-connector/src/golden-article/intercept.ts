@@ -1,4 +1,4 @@
-import { launchAutomationContext } from "../browser/context.js";
+import { openAutomationPage } from "../browser/context.js";
 import { env } from "../infrastructure/env.js";
 import {
   getGoldenArticleLastSuccessAt,
@@ -103,10 +103,10 @@ async function collectGoldenArticlePayload(
 ): Promise<InngestPayloadItem[]> {
   const pageUrl = new URL(goldenArticleUrl);
   const pageBaseHost = getBaseHost(pageUrl.hostname);
-  const context = await launchAutomationContext();
+  const session = await openAutomationPage();
 
   try {
-    const page = context.pages().at(0) ?? (await context.newPage());
+    const page = session.page;
 
     const responsePromise = page.waitForResponse(
       (response) => {
@@ -139,7 +139,7 @@ async function collectGoldenArticlePayload(
 
     return normalizePayload(json);
   } finally {
-    await context.close();
+    await session.close();
   }
 }
 

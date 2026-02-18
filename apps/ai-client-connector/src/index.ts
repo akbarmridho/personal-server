@@ -1,4 +1,5 @@
 import { Server } from "proxy-chain";
+import { ensureAutomationBrowserReady } from "./browser/bootstrap.js";
 import { runGoldenArticleTaskAtStartup } from "./golden-article/intercept.js";
 import { env } from "./infrastructure/env.js";
 import { logger } from "./utils/logger.js";
@@ -15,6 +16,10 @@ const proxyServer = new Server({
 
 await proxyServer.listen();
 logger.info({ host, port }, "ai-client-connector proxy is listening");
+
+await ensureAutomationBrowserReady().catch((error) => {
+  logger.error({ err: error }, "browser readiness check failed");
+});
 
 void runGoldenArticleTaskAtStartup();
 
