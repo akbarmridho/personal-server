@@ -308,8 +308,8 @@ function normalizeDailyData(rows: ChartbitData[]): UnifiedChartCandle[] {
 
 function normalizeIntradayRows(
   rows: ChartbitIntradayData[],
-): Array<UnifiedIntradayCandle & { session_id: string }> {
-  const baseRows = rows
+): UnifiedIntradayCandle[] {
+  return rows
     .map((row) => {
       const timestamp = toNumber(row.unix_timestamp);
       const dateTime = parseJakartaDateTime(row.datetime);
@@ -329,54 +329,45 @@ function normalizeIntradayRows(
         foreign_buy: toNumber(row.foreign_buy),
         foreign_sell: toNumber(row.foreign_sell),
         foreign_flow: toNumber(row.foreign_buy) - toNumber(row.foreign_sell),
+        is_partial: false,
       };
     })
     .sort((a, b) => a.timestamp - b.timestamp);
+}
 
-  let sessionCounter = 1;
-  const output: Array<UnifiedIntradayCandle & { session_id: string }> = [];
+function resampleIntradayTo60m(
+  rows: UnifiedIntradayCandle[],
+): UnifiedIntradayCandle[] {
+  const resolutionSeconds = INTRADAY_RESOLUTION_MINUTES * 60;
+  const nowUnix = dayjs().tz(JAKARTA_TIMEZONE).unix();
+  const sortedRows = [...rows].sort((a, b) => a.timestamp - b.timestamp);
+  const sessions: UnifiedIntradayCandle[][] = [];
+  let currentSession: UnifiedIntradayCandle[] = [];
 
-  for (let i = 0; i < baseRows.length; i += 1) {
-    const current = baseRows[i];
-    const previous = baseRows[i - 1];
+  for (let i = 0; i < sortedRows.length; i += 1) {
+    const current = sortedRows[i];
+    const previous = sortedRows[i - 1];
 
     if (previous) {
       const gapSeconds = current.timestamp - previous.timestamp;
       if (current.date !== previous.date || gapSeconds > 60) {
-        sessionCounter += 1;
+        if (currentSession.length > 0) {
+          sessions.push(currentSession);
+        }
+        currentSession = [];
       }
     }
 
-    output.push({
-      ...current,
-      session_id: `S${sessionCounter}`,
-      is_partial: false,
-    });
+    currentSession.push(current);
   }
 
-  return output;
-}
-
-function resampleIntradayTo60m(
-  rows: Array<UnifiedIntradayCandle & { session_id: string }>,
-): UnifiedIntradayCandle[] {
-  const resolutionSeconds = INTRADAY_RESOLUTION_MINUTES * 60;
-  const nowUnix = dayjs().tz(JAKARTA_TIMEZONE).unix();
-  const grouped = new Map<string, typeof rows>();
-
-  for (const row of rows) {
-    const key = `${row.date}|${row.session_id}`;
-    const existing = grouped.get(key);
-    if (existing) {
-      existing.push(row);
-    } else {
-      grouped.set(key, [row]);
-    }
+  if (currentSession.length > 0) {
+    sessions.push(currentSession);
   }
 
   const output: UnifiedIntradayCandle[] = [];
 
-  for (const points of grouped.values()) {
+  for (const points of sessions) {
     points.sort((a, b) => a.timestamp - b.timestamp);
     const firstPoint = points[0];
 
@@ -398,9 +389,8 @@ function resampleIntradayTo60m(
       const existingBucket = buckets.get(bucketStart);
 
       if (!existingBucket) {
-        const { session_id: _, ...bucketSeed } = point;
         buckets.set(bucketStart, {
-          ...bucketSeed,
+          ...point,
           timestamp: bucketStart,
           datetime: dayjs
             .unix(bucketStart)

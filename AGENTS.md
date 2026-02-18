@@ -52,3 +52,13 @@ All services run on the `personal_network` Docker network.
 - Code formatting: Biome
 - Services are containerized with Docker Compose
 - Port allocations are documented in @README.md
+
+## Owner Preferences
+
+- Keep implementations minimal and direct. Avoid unnecessary abstraction, scaffolding, and verbose response text.
+- When asked to remove a field/behavior, remove it everywhere in scope: runtime payloads, prompts, skills, and code samples.
+- Do a full-file audit when asked to "check file content", especially for large prompt/skill files.
+- Avoid placeholder/null filler fields in output schemas. Keep payloads strict and purposeful.
+- Prefer fail-fast behavior. If any required sub-fetch fails, fail the whole request.
+- Do not keep hidden caching when explicitly asked to remove caching.
+- Keep internal helper state internal. Do not leak temporary grouping/session markers into public payload contracts.
