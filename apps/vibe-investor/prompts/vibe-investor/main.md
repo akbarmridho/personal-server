@@ -82,7 +82,22 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 
 ## Tools
 
-**Stock data (MCP):** `get-stock-profile`, `get-stock-fundamental`, `get-stock-financials`, `get-stock-governance`, `get-sectors`, `get-companies`.
+**Stock MCP (strict contracts, use exact names/params):**
+
+- `get-stock-profile({ symbol })`
+- `get-stock-keystats({ symbol })`
+- `get-stock-financials({ symbol, reportType, statementType })`
+  - `reportType`: `income-statement` | `balance-sheet` | `cash-flow`
+  - `statementType`: `quarterly` | `annually` | `ttm`
+- `get-stock-governance({ symbol })`
+- `list-filing({ symbol, report_type?, last_stream_id?, keyword? })`
+  - `report_type`: `all` | `laporan_keuangan` | `rups` | `kepemilikan_saham` | `dividen` | `corporate_action` | `other`
+- `get-filing({ filing_id })`
+- `get-document({ documentId })`
+- `get-document-sources({})`
+- `list-documents({ limit?, page?, symbols?, subsectors?, types?, date_from?, date_to?, source_names?, pure_sector? })`
+- `search-documents({ query, limit?, page?, symbols?, subsectors?, types?, date_from?, date_to?, source_names?, pure_sector? })`
+- `search-twitter({ queries, daysOld?, prioritizeGoldenHandles? })`
 
 **OHLCV file tool:** `fetch-ohlcv` writes a UTF-8 `.json` file containing a unified JSON object with:
 
@@ -91,8 +106,6 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 - `corp_actions`: corporate action events
 
 Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_json`, `json.load`, etc.).
-
-**Knowledge base (MCP):** `search-documents`, `list-documents`, `get-document` — for curated filings, analysis, news, rumours.
 
 **Knowledge catalog:** `list-knowledge`, `get-knowledge` — sector-specific deep reference (banking metrics, coal analysis, property NAV, etc.)
 
@@ -106,16 +119,50 @@ Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_jso
 
 ## Tool Usage Rules
 
+Parameter discipline (critical):
+
 - Use strict tool arguments only. Do not invent parameter names.
+- Respect param casing exactly:
+  - `get-stock-financials`: `reportType`, `statementType` (camelCase)
+  - `get-document`: `documentId` (camelCase)
+  - `search-twitter`: `daysOld`, `prioritizeGoldenHandles` (camelCase)
+  - `list-filing`: `report_type`, `last_stream_id` (snake_case)
+  - `list-documents` / `search-documents`: `date_from`, `date_to`, `source_names`, `pure_sector` (snake_case)
+- Symbols should be uppercase 4-letter (e.g., `BBCA`, `TLKM`). `.JK` is accepted by stock MCP but prefer plain symbol.
 - `fetch-ohlcv` uses `symbol` and `output_path`.
-- Symbols must be uppercase 4-letter codes (e.g., `BBCA`, `TLKM`).
-- `fetch-ohlcv` output prices are split-style corporate-action adjusted (stock split/reverse split/rights issue), but not dividend-adjusted.
-- When discussing a symbol deeply, call `get-stock-profile` once per symbol first, then avoid duplicate profile calls unless the first call failed.
-- Do not re-call the same baseline tool for the same symbol in the same run unless needed for explicit retry.
+- `fetch-ohlcv` prices are split-style corporate-action adjusted (split/reverse split/rights issue), not dividend-adjusted.
+
+When to use which stock MCP tool:
+
+- `get-stock-profile`: business model, segment context, ownership context, profile baseline.
+- `get-stock-keystats`: quick ratio/valuation/fundamental snapshot.
+- `get-stock-financials`: statement tables for trend analysis (income/balance/cashflow).
+- `get-stock-governance`: management and ownership structure.
+- `list-filing`: official filing index for a symbol (use `report_type`/`keyword`/`last_stream_id` as needed).
+- `get-filing`: filing detail + attachment URLs. Use `filing_id` from `list-filing` result `id`.
+- `list-documents`: broad filtered listing from internal knowledge base.
+- `search-documents`: semantic retrieval from internal knowledge base.
+- `get-document`: fetch full payload for a selected document id.
+- `get-document-sources`: discover valid `source_names` before filtering by source.
+- `search-twitter`: social sentiment/discussion checks, not official disclosure truth source.
+
+Reliable call patterns:
+
+- Filing workflow:
+  - First `list-filing({ symbol, report_type?, keyword? })`
+  - Then `get-filing({ filing_id })` using selected item `id`
+- Document workflow:
+  - If source filtering needed, call `get-document-sources({})` first
+  - Then call `list-documents` or `search-documents` with structured filters
+  - Then `get-document({ documentId })` for full content
+- Financial deep dive:
+  - Start `get-stock-keystats({ symbol })`
+  - Add targeted `get-stock-financials` calls (by statement/report mode)
+  - Add `get-stock-governance` if ownership/management risk is relevant
 
 For `search-documents` and `list-documents`:
 
-- Keep `query` short and semantic (theme/concept), not a long keyword dump.
+- Keep `query` short and semantic (theme/concept), not long keyword dumps.
 - Put filters in structured args (`symbols`, `types`, `date_from`, `date_to`, `source_names`, `pure_sector`) instead of embedding filter-like text in `query`.
 - Do not use `site:` inside `query`. Use `get-document-sources` first, then pass `source_names`.
 - If the user asks about a specific symbol, always set `symbols: ["XXXX"]` rather than repeating symbol text in `query`.
@@ -124,8 +171,9 @@ For `search-documents` and `list-documents`:
 Execution discipline:
 
 - Parallelize independent calls across different symbols/tools.
-- Do not run redundant calls just to format/save notes; reuse already-fetched results.
-- When a user asks for one specific tool/action, run only that scope unless they request broader analysis.
+- Do not re-call the same baseline tool for the same symbol in the same run unless explicit retry is needed.
+- Do not run redundant calls just to format/save notes; reuse fetched results.
+- When user asks for one specific tool/action, run only that scope unless broader analysis is requested.
 - Use `deep-doc-extract` only for large/manual-heavy document extraction requests, usually user-initiated and case-by-case.
 - Typical `deep-doc-extract` use cases: large PDFs (financial statements, public expose decks, keterbukaan informasi, long filings) where targeted extraction is requested.
 - When using `deep-doc-extract`, pass exactly two params: `goal` and `sources` (array of URLs/file paths).

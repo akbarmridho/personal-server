@@ -62,3 +62,4 @@ All services run on the `personal_network` Docker network.
 - Prefer fail-fast behavior. If any required sub-fetch fails, fail the whole request.
 - Do not keep hidden caching when explicitly asked to remove caching.
 - Keep internal helper state internal. Do not leak temporary grouping/session markers into public payload contracts.
+- When interfaces/features (tools, params, fields, behaviors) are removed, delete them everywhere in scope: code, runtime payloads, prompts, docs, comments, and examples. Do not leave or add "X no longer exists/removed" statements; present only the current valid contract.
