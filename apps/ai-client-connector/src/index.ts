@@ -1,5 +1,8 @@
 import { Server } from "proxy-chain";
-import { ensureAutomationBrowserReady } from "./browser/bootstrap.js";
+import {
+  ensureAutomationBrowserReady,
+  shutdownAutomationBrowser,
+} from "./browser/bootstrap.js";
 import { runGoldenArticleTaskAtStartup } from "./golden-article/intercept.js";
 import { env } from "./infrastructure/env.js";
 import { runStockbitTaskAtStartup } from "./stockbit/intercept.js";
@@ -27,6 +30,11 @@ void runStockbitTaskAtStartup();
 
 const shutdown = async () => {
   logger.info("Shutdown signal received, closing proxy server");
+
+  await shutdownAutomationBrowser().catch((error) => {
+    logger.warn({ err: error }, "failed to stop managed automation browser");
+  });
+
   await proxyServer.close(true);
   process.exit(0);
 };

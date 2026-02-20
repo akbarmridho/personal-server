@@ -1,4 +1,4 @@
-import { execFile, spawn } from "node:child_process";
+import { type ChildProcess, execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { env } from "../infrastructure/env.js";
 import { logger } from "../utils/logger.js";
@@ -6,6 +6,9 @@ import { ensureAutomationBrowserConnection } from "./context.js";
 
 const execFileAsync = promisify(execFile);
 const BROWSER_STARTUP_TIMEOUT_MS = 20_000;
+const BROWSER_SHUTDOWN_TIMEOUT_MS = 5_000;
+
+let managedBrowserProcess: ChildProcess | null = null;
 
 export async function ensureAutomationBrowserReady(): Promise<void> {
   try {
@@ -43,7 +46,7 @@ async function restartAutomationBrowser(): Promise<void> {
     env.PLAYWRIGHT_CDP_URL,
   ).toString();
 
-  await terminateExistingBrowser(browserPath);
+  await terminateExistingBrowser(browserPath, cdpPort, userDataDir);
 
   logger.info(
     { browserPath, userDataDir, profileDir, cdpPort },
@@ -59,12 +62,16 @@ async function restartAutomationBrowser(): Promise<void> {
       "about:blank",
     ],
     {
-      detached: true,
       stdio: "ignore",
     },
   );
 
-  child.unref();
+  managedBrowserProcess = child;
+  child.once("exit", () => {
+    if (managedBrowserProcess === child) {
+      managedBrowserProcess = null;
+    }
+  });
 
   await waitForCdpEndpoint(cdpHealthUrl, BROWSER_STARTUP_TIMEOUT_MS);
   logger.info(
@@ -73,18 +80,102 @@ async function restartAutomationBrowser(): Promise<void> {
   );
 }
 
-async function terminateExistingBrowser(browserPath: string): Promise<void> {
-  logger.info({ browserPath }, "closing existing browser process");
+export async function shutdownAutomationBrowser(): Promise<void> {
+  const child = managedBrowserProcess;
 
+  if (!child) {
+    return;
+  }
+
+  const pid = child.pid;
+  if (!pid) {
+    managedBrowserProcess = null;
+    return;
+  }
+
+  logger.info({ pid }, "stopping managed automation browser");
+
+  child.kill("SIGTERM");
+  const terminated = await waitForChildExit(child, BROWSER_SHUTDOWN_TIMEOUT_MS);
+
+  if (!terminated) {
+    logger.warn(
+      { pid, timeoutMs: BROWSER_SHUTDOWN_TIMEOUT_MS },
+      "managed automation browser did not stop in time, sending SIGKILL",
+    );
+    child.kill("SIGKILL");
+    await waitForChildExit(child, BROWSER_SHUTDOWN_TIMEOUT_MS);
+  }
+
+  managedBrowserProcess = null;
+}
+
+async function terminateExistingBrowser(
+  browserPath: string,
+  cdpPort: number,
+  userDataDir: string,
+): Promise<void> {
+  const debugFlag = `--remote-debugging-port=${cdpPort}`;
+  const userDataFlag = `--user-data-dir=${userDataDir}`;
+
+  logger.info(
+    { browserPath, cdpPort, userDataDir },
+    "checking existing automation browser process",
+  );
+
+  let stdout = "";
   try {
-    await execFileAsync("pkill", ["-f", browserPath]);
+    const result = await execFileAsync("pgrep", ["-af", browserPath]);
+    stdout = result.stdout;
   } catch (error) {
-    if (!isNoMatchingProcessError(error)) {
-      logger.warn(
-        { err: error },
-        "failed to terminate browser process cleanly, continuing",
-      );
+    if (isNoMatchingProcessError(error)) {
       return;
+    }
+
+    logger.warn(
+      { err: error },
+      "failed to inspect existing browser process, continuing",
+    );
+    return;
+  }
+
+  const pids = stdout
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .flatMap((line) => {
+      const match = line.match(/^(\d+)\s+(.+)$/);
+      if (!match) {
+        return [];
+      }
+
+      const pid = match[1];
+      const command = match[2].replaceAll("\\ ", " ");
+
+      if (
+        !command.includes(debugFlag) ||
+        !command.includes(userDataFlag)
+      ) {
+        return [];
+      }
+
+      return [pid];
+    });
+
+  if (pids.length === 0) {
+    return;
+  }
+
+  logger.info({ pids }, "terminating previous automation browser process");
+
+  for (const pid of pids) {
+    try {
+      await execFileAsync("kill", [pid]);
+    } catch (error) {
+      logger.warn(
+        { err: error, pid },
+        "failed to terminate previous automation browser process",
+      );
     }
   }
 
@@ -136,5 +227,33 @@ function isNoMatchingProcessError(error: unknown): boolean {
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
+  });
+}
+
+async function waitForChildExit(
+  child: ChildProcess,
+  timeoutMs: number,
+): Promise<boolean> {
+  if (child.exitCode !== null) {
+    return true;
+  }
+
+  return await new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      cleanup();
+      resolve(false);
+    }, timeoutMs);
+
+    const onExit = () => {
+      cleanup();
+      resolve(true);
+    };
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      child.off("exit", onExit);
+    };
+
+    child.on("exit", onExit);
   });
 }
