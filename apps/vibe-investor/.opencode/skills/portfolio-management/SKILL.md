@@ -1,450 +1,72 @@
 ---
 name: portfolio-management
-description: Trading desk and portfolio operations — position sizing (50:30:10 rule), entry/exit strategies, economic cycle rotation, trading plan templates, portfolio review checklists, watchlist management, and session logging format.
+description: Trading desk and portfolio operations for IDX equities, including position sizing, entry/exit playbooks, cycle-aware allocation, trading plans, watchlist process, and session review routines.
 ---
 
 ## Scope Guardrail (IDX Only)
 
-- This skill is strictly for **Indonesian Stock Exchange (IDX/BEI) equities** and cash management around that equity book.
+- This skill is strictly for Indonesian Stock Exchange (IDX/BEI) equities and cash management around that equity book.
+
+## How To Use This Skill
+
+Use this file as the entrypoint. Do not load every reference by default.
+
+1. Classify the request.
+2. Load only the relevant reference files from the index below.
+3. Execute with tools and memory updates.
+4. If the request spans multiple areas, load multiple references deliberately.
+
+## Reference Index (Modular)
+
+- [Capital protection and loss math](references/capital-protection-and-loss-math.md)
+Use for drawdown math, portfolio blow-up prevention, and money management failure checks.
+
+- [Position sizing and diversification](references/position-sizing-and-diversification.md)
+Use for category mix, concentration caps, correlation-aware sizing, and per-trade risk sizing.
+
+- [Liquidity three-board rule](references/liquidity-three-board-rule.md)
+Use for exit-liquidity sizing constraints before entering or scaling positions.
+
+- [Entry, exit, and rebalancing playbook](references/entry-exit-and-rebalancing-playbook.md)
+Use for weekly-monthly execution discipline, invalidation, staged exits, and rebalance rules.
+
+- [Economic cycle and sector rotation](references/economic-cycle-and-sector-rotation.md)
+Use for top-down allocation changes across contraction/recovery/expansion/recession phases.
+
+- [Trading plan template](references/trading-plan-template.md)
+Use when creating or updating `memory/symbols/{SYMBOL}.md`.
+
+- [Portfolio review, watchlist, and session logging](references/review-watchlist-and-session-logging.md)
+Use for daily/weekly/monthly process and operating logs in memory files.
 
 ## Data Sources
 
-- **`get-stock-fundamental`** — Current price for P&L calculation, basic stats.
-- **`get-stock-financials`** — Dividend check for income positions.
-- **`fetch-ohlcv`** — Daily price history for rolling return/correlation and rebalancing diagnostics.
-- **Knowledge Base:** `search-documents`, `list-documents` for recent news/filings for position monitoring.
-- **Filesystem:** Primary tool — heavy read/write to memory files.
+- `get-stock-fundamental`: current price and key stats for P&L and sizing sanity checks.
+- `get-stock-financials`: dividend checks and fundamental monitoring for held positions.
+- `fetch-ohlcv`: daily prices for rolling return/correlation and rebalance diagnostics.
+- `search-documents`, `list-documents`: filings/news monitoring for open positions.
+- Filesystem memory files: primary operating surface.
 
-### Memory Files
+## Memory Files
 
 | File | Purpose |
 |------|---------|
-| `memory/notes/portfolio.md` | Open/closed positions, P&L tracking |
-| `memory/notes/watchlist.md` | Stocks under observation with trigger conditions |
-| `memory/symbols/{SYMBOL}.md` | Per-symbol trading plan, thesis, key levels |
-| `memory/sessions/{DATE}.md` | Daily session logs |
-| `memory/analysis/{SYMBOL}/` | Analysis outputs from all skills |
-
----
-
-## Module 1: Capital Protection & Loss Math
-
-### The Mathematics of Recovery
-
-| Loss | Required Gain to Break Even |
-|------|---------------------------|
-| 10% | 11% |
-| 25% | 33% |
-| 50% | 100% |
-| 75% | 300% |
-| 90% | 1000% |
-
-**Principle**: Protecting capital is more important than chasing returns. A 50% loss requires doubling your money just to get back to zero.
-
-### Common Money Management Mistakes
-
-| Mistake | Problem | Rule |
-|---------|---------|------|
-| Overdiversification (30+ stocks) | Significant gains in one stock have negligible portfolio impact | Quality over quantity |
-| Under-diversification (1-2 stocks) | Wrong hypothesis = portfolio disaster | Never all eggs in one basket |
-| Sector concentration | 4 banks is NOT diversification — same-sector stocks correlate | Cross-sector exposure required |
-| Imbalanced sizing | One stock at 50%, others at 2-5% | Balance sizes systematically |
-| Speculative FOMO | Buying hype without thesis | Always have a thesis before entering |
-| All blue-chip | Stability but lower returns | Include value/growth for alpha |
-| No cash reserves | Can't capitalize on corrections | Always maintain cash buffer |
-
----
-
-## Module 2: Position Sizing
-
-### Diversification by Capital Size
-
-| Capital Range | Max Stocks | Allocation |
-|--------------|------------|-----------|
-| < Rp 100M | 5 | 2 core + 3 value |
-| Rp 100M – 1B | 10 | 4 core + 6 value |
-| > Rp 1B | 15 | 6 core + 9 value |
-
-### Stock Categories
-
-| Category | Profile | Purpose |
-|----------|---------|---------|
-| **Core** | Large-cap blue chip, stable, mature | Wealth preservation, dividends |
-| **Value** | Mid-cap, consistent growth, moderate risk | Portfolio growth, accumulation |
-| **Growth** | High upside, high volatility, higher risk | Alpha generation (limited allocation) |
-
-### The 50:30:10 Rule
-
-| Rule | Constraint | Rationale |
-|------|-----------|-----------|
-| **50% Minimum** | ≥50% of portfolio in stocks with MoS >30% | Ensures bulk of capital is in undervalued positions |
-| **30% Maximum** | No single stock >30% of portfolio | Prevents emotional attachment, maintains objectivity |
-| **10% Maximum** | Speculative/high-risk stocks ≤10% total | Contains downside from risky bets |
-| **Sector Limit** | ≤2 stocks per sector | True cross-sector diversification |
-
-### Correlation-Aware Diversification (IDX Practical)
-
-Holding many names is not enough. Diversification quality is driven by **co-movement**.
-
-- Prioritize combinations with lower correlation of daily returns, not just different tickers.
-- In IDX, same-theme names often move together even across sub-sectors during stress.
-- Treat diversification as a spectrum:
-  - High positive correlation: weak diversification
-  - Near zero/low positive correlation: useful diversification
-  - Negative correlation: strongest hedge effect, but rare and unstable
-
-**Implementation rules:**
-
-- Compute rolling correlation from daily returns.
-- Use correlation as a **position sizing modifier**, not a hard filter:
-  - Corr > 0.75 with existing large holding: cut target size or skip
-  - Corr 0.40-0.75: allow with reduced size and clear role
-  - Corr < 0.40: best candidate for diversification benefit
-- In broad risk-off periods, assume correlation rises toward 1.0 and increase cash buffer.
-
-### Liquidity-Based Sizing (Exit First)
-
-For weekly–monthly positions, sizing must assume you may need to exit in **days** if the thesis breaks.
-
-Use the knowledge catalog entry as the reference rule:
-- `get-knowledge liquidity-three-board-rule`
-
-**Practical guardrail:** if your position size is large relative to liquidity, prefer (a) smaller size, (b) staged exits, or (c) avoid the name even if conviction is high.
-
-### 1% Risk Rule (Per-Trade)
-
-For tactical/technical entries:
-
-```
-Position Size = (Portfolio × 1%) / (Entry Price - Stop Loss)
-```
-
-- Max portfolio risk at any time ("portfolio heat"): 5-6% total open risk
-- Adjust for conviction: high conviction = 1.5%, low = 0.5%
-
----
-
-## Module 3: Entry & Exit Strategies
-
-### Winning Series (Weekly–Monthly Discipline)
-
-This module translates Mentorbaik’s “Winning Series” into weekly–monthly operating rules.
-
-#### 1) Buy “Discount”, Not Chase
-
-Multibagger outcomes are heavily determined by **entry price**.
-
-- Prefer entries during **drawdowns** when weakness is **temporary** (cycle/headwind) and the long-term thesis remains intact.
-- Avoid “discount” entries if the drop is caused by **permanent fundamental impairment** (business model break, governance violation, terminal dilution).
-
-#### 2) Set the Time Frame First (Time Frame → Risk)
-
-Shorter time frame = higher noise and psychological stress. Use a deliberate horizon:
-
-| Time frame | Typical risk profile | How to use |
-|---|---|---|
-| Short (intraday/daily) | Highest noise | Not the default operating mode |
-| Medium (quarterly → 1–3 years) | Lower noise | Good for weekly–monthly tracking |
-| Long (>3 years) | Lowest noise | Best when conviction is strongest |
-
-Rule: before entering, write a **minimum holding expectation** and a **review cadence** (weekly/monthly). Treat short-term fluctuations as noise unless they break the thesis.
-
-#### 3) Patience Has Two Failure Modes
-
-| Where patience breaks | What it looks like | Counter-rule |
-|---|---|---|
-| **Position building** (thin liquidity) | You can’t get size without moving price | Size smaller, stage entries, or skip illiquid names |
-| **During fast markups** (temptation to “take quick wins”) | You sell too early after 1–3 bagger speed-run | Use a plan: staged profit-taking + thesis-based invalidation |
-
-### Entry Strategies
-
-**Dollar-Cost Averaging (DCA):**
-- Best for: Core/stable stocks
-- Method: Fixed amount at regular intervals
-- Advantage: Reduces timing risk
-
-**Lump Sum:**
-- Best for: Value stocks with confirmed momentum
-- Method: Full position at once
-- Advantage: Maximizes exposure if timing is right
-
-**Scaling Down (Averaging Down):**
-
-| Current Position Size | Trigger |
-|----------------------|---------|
-| < 20% of portfolio | Every 10% price drop |
-| > 20% of portfolio | Wait for 30% drop |
-
-**Critical**: Only average down on fundamentally sound companies. Never average down on deteriorating businesses.
-
-**Scaling Up (Adding to Winners):**
-
-If position is profitable but MoS still >30%, use the triangle concept:
-
-- First buy: Full position
-- Second buy: 50% of first
-- Third buy: 25% of first
-
-### Exit Strategies
-
-**Profit Taking (Staged):**
-
-| Price vs Intrinsic Value | Action |
-|-------------------------|--------|
-| 70-80% of IV | Hold |
-| 90-100% of IV | Sell 30-50% |
-| 100-120% of IV | Sell remaining |
-
-**Early Exit (Before IV):**
-
-Acceptable if:
-1. Better opportunity requires cash
-2. Portfolio cash level too low
-3. Market outlook is bearish
-4. Position sizing exceeded limits
-
-**Cut Loss Framework:**
-
-| Cut Loss | Don't Cut Loss |
-|----------|---------------|
-| Permanent fundamental change | Price fluctuation on healthy business |
-| GCG (governance) violation | Market-wide correction |
-| Significantly better opportunity available | Short-term noise without fundamental impact |
-
-### Cut Loss Execution Discipline (Capital Preservation)
-
-- Cut loss is operational cost, not personal failure.
-- No thesis = no hold. If invalidation is hit, exit without bargaining.
-- Do not widen stop after entry unless thesis quality objectively improves.
-- Do not average down after thesis break (that is risk concentration, not strategy).
-- Let winners run while structure is intact; do not rush take-profit on healthy trend.
-
-**Behavioral guardrails:**
-
-- Avoid "quick TP, deep hold loser" behavior.
-- Require pre-trade invalidation and max loss before sending order.
-- Post-exit review should focus on process quality, not ego recovery.
-
-### Rebalancing Protocol (Capture Diversification Edge)
-
-Correlation helps only if rebalancing is executed with discipline.
-
-**Default method (IDX portfolio):**
-
-- Baseline cadence: quarterly (monthly only for highly active books).
-- Drift trigger: rebalance when position weight deviates by >20% from target weight.
-- Event trigger: rebalance/replace when thesis breaks, governance risk appears, or liquidity deteriorates.
-
-**Execution rules:**
-
-- Rebalance by trimming outperformers and adding underweights **only if thesis remains valid**.
-- If thesis is broken, replace the name (do not mechanically top up losers).
-- Prefer replacement with lower correlation to remaining core holdings and acceptable liquidity.
-- Include transaction costs/slippage in decision; skip tiny rebalance trades that add friction without material risk improvement.
-
----
-
-## Module 4: Economic Cycle & Sector Rotation
-
-### The 6-Stage Business Cycle
-
-| Stage | GDP | Strategy |
-|-------|-----|----------|
-| **1. Start of Contraction** | Negative growth begins | Reduce equity, accumulate bonds |
-| **2. Bottoming** | Still negative, rate slowing | Start accumulating blue chips |
-| **3. Early Recovery** | Turns positive, below average | Move into mid-cap second-liners |
-| **4. Expansion** | Exceeds average | Overweight cyclicals/offensive |
-| **5. Topping Out** | At peak, starting to limit | Begin profit-taking, increase cash |
-| **6. Early Recession** | Turns negative again | Heavy cash, defensive stocks only |
-
-**Critical Insight**: The stock market cycle is *ahead* of the economic cycle. Stocks start rising when economy is at its worst (anticipating recovery) and start falling when economy peaks.
-
-### Stock Market Cycle (4 Stages)
-
-| Stage | Economic Phase | Behavior |
-|-------|---------------|----------|
-| **Accumulation** | Late recession / early recovery | Institutional/foreign entry, volume up, blue chips ascend |
-| **Markup** | Early to mid expansion | Retail FOMO enters, broad gains |
-| **Distribution** | Late expansion / early contraction | Institutional profit-taking, sideways volatility |
-| **Markdown** | Mid to late contraction | Panic selling, rapid decline |
-
-### Defensive vs Offensive Stocks
-
-**Defensive (Recession-Resistant):**
-
-| Sector | Symbols | Rationale |
-|--------|---------|-----------|
-| Consumer Goods | ICBP, INDF, UNVR | Essential daily needs |
-| Finance (Banking) | BBCA, BBRI, BMRI | Always needed |
-| Healthcare | SILO, KLBF | Non-discretionary |
-| Energy | PGAS, AKRA | Essential utilities |
-| Telecom | TLKM, EXCL | Communication necessity |
-
-**Offensive (Cyclicals — Expansion Phase):**
-
-| Sector | Symbols | Rationale |
-|--------|---------|-----------|
-| Commodities | Coal, Metals, Oil, CPO | Industrial demand surge |
-| Property | BSDE, CTRA, SMRA | Big-ticket purchases |
-| Construction | WIKA, PTPP, ADHI | Infrastructure spending |
-| Cement | INTP, SMGR | Building materials demand |
-| Retail | MAPI, RALS | Discretionary spending |
-| Automotive | ASII, AUTO | Big-ticket consumer goods |
-
-### Rotation Transitions
-
-| Transition | Action |
-|-----------|--------|
-| Late Recession → Early Recovery | Accumulate blue chips, then early-cycle industrials |
-| Early Recovery → Expansion | Rotate into mid-cap cyclicals, maximize equity exposure |
-| Late Expansion → Early Recession | Take profits on cyclicals, shift to defensive, raise cash |
-
-### Indonesian Market Indicators
-
-**Global:**
-- **PMI**: >50 = expansion, <50 = contraction
-- **Fed Balance Sheet**: Expansion = bullish, Tapering = bearish
-- **Fed Rate**: Low = acceleration, High = deceleration
-
-**Domestic:**
-- **Trade Balance**: Surplus strengthens IDR, deficit weakens
-- **IDR/USD**: Weak Rupiah hurts USD-debt companies
-- **Inflation**: BI targets 3% ± 1%
-- **BI Rate**: Needs ~3% spread vs Fed Rate to prevent outflow
-- **Bond Yields**: High yields = money exits stocks for bonds
-
-### Macroeconomic Asset Allocation
-
-| Phase | Stocks | Fixed Growth | Alternatives |
-|-------|--------|-------------|-------------|
-| Recession | ~40% (defensive) | ~40% | ~20% (gold, FX) |
-| Expansion | ~60% (include cyclicals) | ~25% | ~15% |
-
----
-
-## Module 5: Trading Plan Template
-
-Every position must have a plan before entry. Write to `memory/symbols/{SYMBOL}.md`:
-
-```markdown
-# {SYMBOL} — Trading Plan
-
-**Date**: {YYYY-MM-DD}
-**Category**: {Core / Value / Growth / Speculative}
-**Timeframe**: {Swing / Position / Long-term}
-
-## Thesis
-{1-2 sentences: WHY this stock, what's the edge}
-
-## Tier Alignment
-- Flow: {ACCUMULATION / DISTRIBUTION / NEUTRAL}
-- Narrative: {STRONG / MODERATE / WEAK}
-- Technical: {bullish setup / neutral / bearish}
-- Fundamental: {undervalued / fair / overvalued}, MoS: {X%}
-- Correlation Role: {DIVERSIFIER / NEUTRAL / CONCENTRATOR}, vs {key holding}: {corr value}
-- Conviction: {HIGH / MEDIUM / LOW}
-
-## Plan
-- **Entry zone**: {price range}
-- **Position size**: {X% of portfolio} ({amount})
-- **Stop loss**: {price} (-{X%} from entry)
-- **Risk per trade**: {Rp amount} ({X%} of portfolio)
-- **Target 1**: {price} (+{X%}) — sell {X%}
-- **Target 2**: {price} (+{X%}) — sell {X%}
-- **Target 3**: {price} (+{X%}) — sell remaining
-
-## Invalidation
-{What conditions would kill this thesis — be specific}
-
-## Notes
-{Additional context, key dates, things to watch}
-```
-
----
-
-## Module 6: Portfolio Review & Session Logging
-
-### Review Cadence
-
-**Daily (Quick Check):**
-- Check stop loss levels — any triggered?
-- Scan news/filings for held positions
-- Check flow changes on key positions
-- Update P&L in portfolio.md
-
-**Weekly:**
-- Review all open positions — thesis still intact?
-- Check position sizing vs limits (50:30:10)
-- Check rolling correlation changes among top positions
-- Update watchlist — any triggers hit?
-- Log weekly P&L, portfolio heat
-
-**Monthly:**
-- Full performance review (realized + unrealized)
-- Sector allocation check
-- Rebalancing check (cadence + drift + thesis validity)
-- Strategy assessment — what's working, what's not
-- Update memory/MEMORY.md with key learnings
-
-### Portfolio Health Red Flag
-
-If portfolio stays flat or red while IHSG hits all-time highs → strategy needs fundamental overhaul. Not capturing market upside indicates misalignment.
-
-### Watchlist Management
-
-| Status | Criteria | Action |
-|--------|----------|--------|
-| **Watching** | Interesting thesis but not ready | Monitor for catalyst/flow/price trigger |
-| **Ready** | Trigger conditions approaching | Prepare trading plan, set alerts |
-| **Active** | Triggered, position open | Execute plan, monitor |
-| **Removed** | Thesis broken or better opportunity | Document reason for removal |
-
-Write to `memory/notes/watchlist.md`:
-
-```markdown
-## Watchlist
-
-| Symbol | Status | Thesis | Trigger | Added |
-|--------|--------|--------|---------|-------|
-| BBCA | Ready | Rate cut beneficiary | Break above 10,000 with volume | 2025-01-15 |
-| ADRO | Watching | Coal cycle + restructuring | Foreign accumulation signal | 2025-01-20 |
-```
-
-### Session Log Template
-
-Write to `memory/sessions/{YYYY-MM-DD}.md`:
-
-```markdown
-# Session: {YYYY-MM-DD}
-
-## Market Context
-- IHSG: {level} ({change%})
-- Key news: {1-2 headlines}
-
-## Actions Taken
-- {action 1}
-- {action 2}
-
-## Positions Updated
-| Symbol | Action | Price | Notes |
-|--------|--------|-------|-------|
-| ... | ... | ... | ... |
-
-## Watchlist Changes
-- Added: {symbols + reason}
-- Removed: {symbols + reason}
-- Triggered: {symbols}
-
-## Key Observations
-- {insight 1}
-- {insight 2}
-
-## Tomorrow's Plan
-- {what to check/do next session}
-```
-
-### Profit Realization
-
-- After significant gains (>50%), realize some in cash
-- Continuous "portfolio rolling" without enjoying profits leads to burnout
-- Periodically withdraw gains to improve quality of life — makes trading meaningful
+| `memory/notes/portfolio.md` | Open and closed positions, P&L tracking |
+| `memory/notes/watchlist.md` | Symbols under observation and trigger conditions |
+| `memory/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
+| `memory/sessions/{DATE}.md` | Session logs and next actions |
+| `memory/analysis/{SYMBOL}/` | Supporting analysis artifacts |
+
+## Operating Rules
+
+- Capital preservation is first priority; upside is secondary.
+- No thesis, no hold. If invalidation is hit, exit.
+- Do not average down after thesis break.
+- Position size must be liquidity-aware before entry.
+- Keep portfolio heat controlled; avoid hidden concentration via high correlation.
+
+## Execution Defaults
+
+- Run required data fetches in parallel when the task is a full portfolio or position review.
+- Write concrete outputs to memory files, not only narrative answers.
+- When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
