@@ -25,7 +25,6 @@ Use this file as the entrypoint. Do not load all references by default.
 - `get-stock-governance`: ownership, management, insider and control context.
 - `get-sectors`, `get-companies`: peer and subsector mapping.
 - `search-documents`, `list-documents`, `get-document`: filings, research, and disclosures.
-- `list-knowledge`, `get-knowledge`: sector and mechanism-specific deep references.
 
 ## Reference Index (Modular)
 
@@ -36,7 +35,6 @@ Use this file as the entrypoint. Do not load all references by default.
 - [Valuation methods framework](references/valuation-methods-framework.md)
 - [Company quality framework](references/company-quality-framework.md)
 - [Risk assessment framework](references/risk-assessment-framework.md)
-- [Knowledge-catalog and sector routing](references/knowledge-catalog-and-sector-routing.md)
 - [Output report template](references/output-report-template.md)
 
 ### Existing specialized references
@@ -51,6 +49,20 @@ Use this file as the entrypoint. Do not load all references by default.
 - [Property sector](references/property-sector.md)
 - [Retail consumer sector](references/retail-consumer-sector.md)
 - [Indonesia gold playbook](references/indonesia-gold-playbook.md)
+
+## Sector And Mechanism Routing
+
+Use this quick routing when sector or mechanism detail is thesis-critical.
+
+1. Identify the exact sector or mechanism required by the thesis.
+2. Load only the matching specialized references.
+3. Apply sector/mechanism-specific checks before final verdict.
+
+Routing defaults:
+
+- Holder interpretation and custody-vs-active guardrails: [company-quality-framework](references/company-quality-framework.md)
+- Bank asset-quality mechanics: [bank-ckpn-writeoff-overdue-diagnostics](references/bank-ckpn-writeoff-overdue-diagnostics.md)
+- Sector deep dives: banking, sharia-banking, coal, construction, oil-gas, property, retail-consumer, gold playbook references above
 
 ## Execution Defaults
 

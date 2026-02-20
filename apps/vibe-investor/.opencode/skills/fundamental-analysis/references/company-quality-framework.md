@@ -67,7 +67,7 @@ Checklist:
 Important interpretation warning:
 
 - Custody or nominee names can be misread as active directional holders.
-- Use `get-knowledge ownership-entities-custody-vs-active` before inferring active accumulation from holder names.
+- Validate custody vs active-holder interpretation before inferring active accumulation from holder names.
 
 ## Management Quality
 

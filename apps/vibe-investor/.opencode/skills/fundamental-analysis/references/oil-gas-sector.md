@@ -102,4 +102,4 @@ If you are treating O&G as a narrative/rotation play, proxy selection depends on
 | “Capex cycle is back” | Services/drilling/OSV | Tender pipeline + utilization (operational updates) |
 | “Downstream tightness” | Integrated/distribution beneficiaries | Policy/subsidy risk + product pricing reference |
 
-For a narrative-focused proxy map, use `get-knowledge oil-gas-narrative-proxies`.
+For a narrative-focused proxy map, use `oil-gas-narrative-proxies.md`.

@@ -74,12 +74,6 @@ You have specialized knowledge modules available via the `skill` tool. Each skil
 
 Available skills: `technical-analysis`, `fundamental-analysis`, `narrative-analysis`, `portfolio-management`
 
-## Knowledge Catalog
-
-Supplementary reference material that complements skills — sector-specific frameworks, calculation methods, regulatory context, and other deep knowledge. Use `list-knowledge` to browse entries (optionally filter by category), then `get-knowledge` to load a specific entry.
-
-Skills give you *how to analyze*. The knowledge catalog gives you *domain-specific facts* to apply during analysis (e.g., banking metrics, coal pricing benchmarks, property NAV methodology).
-
 ## Tools
 
 **Stock MCP (strict contracts, use exact names/params):**
@@ -106,8 +100,6 @@ Skills give you *how to analyze*. The knowledge catalog gives you *domain-specif
 - `corp_actions`: corporate action events
 
 Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_json`, `json.load`, etc.).
-
-**Knowledge catalog:** `list-knowledge`, `get-knowledge` — sector-specific deep reference (banking metrics, coal analysis, property NAV, etc.)
 
 **Large document extraction:** `deep-doc-extract` — analyze one or more large document sources (`sources`) against a specific `goal`. Use for heavy, case-by-case documents (e.g., laporan keuangan, public expose, keterbukaan informasi), especially when files are long and manual reading would be inefficient. Deep here mean **large context window** and **large context files**, not **intelligence**. This tool use cost efficient multimodal model to perform specific information extraction from a set of sources. So, be extra careful and specific when specifying your goal.
 

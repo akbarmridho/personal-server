@@ -40,4 +40,4 @@ IDX narratives often follow this curve:
 | Corporate actions (RI, M&A, backdoor) | Repricing via structure and control changes |
 | Macro rotation (SoV/commodities) | Cross-sector money flow narratives |
 
-Use with: `get-knowledge peak-news-distribution-pattern`, `get-knowledge msci-free-float-market-cap-and-adjustment-factor`, and `get-knowledge sid-and-ksei-ownership-signals`.
+Use with: `narrative-strength-and-priced-in-tests.md`, `hype-lifecycle-pompom-to-cuci-piring.md`, and `rights-issue-purpose-and-signal-map.md`.

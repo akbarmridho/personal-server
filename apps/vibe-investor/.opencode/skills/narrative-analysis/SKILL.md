@@ -25,7 +25,6 @@ Use this file as the entrypoint. Do not load all references by default.
 - `get-stock-fundamental`: valuation context and market-cap framing.
 - `get-stock-governance`: owner behavior, control quality, insider signals.
 - `get-sectors`, `get-companies`: thematic and peer mapping.
-- `list-knowledge`, `get-knowledge`: external knowledge-catalog entries for sector and corporate-action mechanics.
 
 ## Reference Index (Modular)
 
@@ -51,7 +50,6 @@ Use when writing final structured narrative outputs.
 
 ### Specialized deep references
 
-- [Knowledge-catalog routing](references/knowledge-catalog-routing.md)
 - [Narrative valuation framework](references/narrative-valuation-framework.md)
 - [Haluasi and rerating premium](references/haluasi-and-rerating-premium.md)
 - [Hype lifecycle pompom to cuci piring](references/hype-lifecycle-pompom-to-cuci-piring.md)
@@ -59,6 +57,21 @@ Use when writing final structured narrative outputs.
 - [Backdoor listing screening](references/backdoor-listing-screening.md)
 - [WTFF backdoor cycle](references/wtff-backdoor-cycle.md)
 - [IPO analysis](references/ipo-analysis.md)
+
+## Sector And Corporate-Action Routing
+
+Use this quick routing when narrative quality depends on mechanism-level details.
+
+1. Map the thesis to a concrete mechanism (rights issue, backdoor cycle, rerating premium, hype phase).
+2. Load only the matching specialized references.
+3. Evaluate timing, dilution/control implications, and late-cycle risk before final verdict.
+
+Routing defaults:
+
+- Rights issue mechanics: [rights-issue-purpose-and-signal-map](references/rights-issue-purpose-and-signal-map.md)
+- Backdoor quality and cycle risk: [backdoor-listing-screening](references/backdoor-listing-screening.md), [wtff-backdoor-cycle](references/wtff-backdoor-cycle.md)
+- Premium and priced-in framing: [narrative-valuation-framework](references/narrative-valuation-framework.md), [haluasi-and-rerating-premium](references/haluasi-and-rerating-premium.md)
+- Hype phase mapping: [hype-lifecycle-pompom-to-cuci-piring](references/hype-lifecycle-pompom-to-cuci-piring.md)
 
 ## Execution Defaults
 

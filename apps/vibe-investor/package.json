@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "ejs": "^3.1.10",
-    "gray-matter": "^4.0.3"
+    "ejs": "^3.1.10"
   },
   "devDependencies": {
     "@types/ejs": "^3.1.5",

@@ -2,7 +2,7 @@
 
 OpenCode-based AI investment analyst and portfolio manager for the Indonesian Stock Market (IDX/BEI).
 
-Single agent with on-demand skills and a knowledge catalog, built on the Stock Market 2.0 framework — four lenses: flow, narrative, technical, fundamental.
+Single agent with on-demand skills, built on the Stock Market 2.0 framework — four lenses: flow, narrative, technical, fundamental.
 
 ## Structure
 
@@ -19,8 +19,6 @@ apps/vibe-investor/
 ├── .opencode/
 │   ├── tools/
 │   │   ├── fetch-ohlcv.ts        # Fetch 3yr OHLCV data for IDX stocks
-│   │   ├── list-knowledge.ts     # Browse knowledge catalog entries
-│   │   ├── get-knowledge.ts      # Retrieve a knowledge entry by name
 │   │   └── deep-doc-extract.ts   # Goal-based large-doc extraction via OpenRouter
 │   └── skills/                   # On-demand knowledge modules
 │       ├── technical-analysis/
@@ -31,10 +29,6 @@ apps/vibe-investor/
 ├── prompts/
 │   └── vibe-investor/
 │       └── main.md               # Base agent prompt
-├── knowledge-catalog/            # Supplementary reference material
-│   ├── banking-sector.md
-│   ├── coal-sector.md
-│   └── property-sector.md
 ├── memory-templates/             # Templates for init-memory.sh
 └── scripts/
     └── init-memory.sh            # Initialize workspace memory
@@ -72,7 +66,6 @@ cp .env.example .env
 # Edit .env:
 #   OPENROUTER_API_KEY=your_key
 #   OPENCODE_CWD=/path/to/workspace
-#   KNOWLEDGE_CATALOG_PATH=/path/to/knowledge-catalog
 
 # 3. Initialize workspace memory
 ./scripts/init-memory.sh
@@ -98,15 +91,6 @@ One `vibe-investor` agent with a lightweight base prompt. Deep domain knowledge 
 
 Skills are loaded as tool results and are protected from session compaction — they stay in context even as conversations grow long.
 
-### Knowledge Catalog
-
-Supplementary reference material that complements skills. Skills teach *how to analyze*; the knowledge catalog provides *domain-specific facts* (sector metrics, regulatory context, benchmarks).
-
-- `list-knowledge(category?)` — Browse entries, optionally filter by category
-- `get-knowledge(name)` — Load a specific entry
-
-Knowledge entries are markdown files with frontmatter (`name`, `description`, `category`) stored at `KNOWLEDGE_CATALOG_PATH`.
-
 ### Memory System
 
 Filesystem-based memory using markdown files.
@@ -123,10 +107,6 @@ Filesystem-based memory using markdown files.
 ### fetch-ohlcv
 
 Fetches 3 years of daily OHLCV data for Indonesian stocks from kb.akbarmr.dev. Saves to file to avoid context window bloat.
-
-### list-knowledge / get-knowledge
-
-Reads from the knowledge catalog directory (`KNOWLEDGE_CATALOG_PATH`). Each `.md` file has YAML frontmatter with `name`, `description`, and `category`. Categories: `technical-analysis`, `fundamental-analysis`, `flow-analysis`, `narrative-analysis`, `portfolio-management`.
 
 ### deep-doc-extract
 
@@ -152,7 +132,6 @@ The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK
 |----------|----------|-------------|
 | `OPENROUTER_API_KEY` | Yes | OpenRouter API key |
 | `OPENCODE_CWD` | Yes | Workspace directory (memory, work files) |
-| `KNOWLEDGE_CATALOG_PATH` | Yes | Path to knowledge catalog directory |
 | `OPENCODE_DATA_HOME` | No | Session storage (default: `~/.local/share/vibe-investor`) |
 | `OPENCODE_PORT` | No | Web UI port (default: 4096) |
 | `OPENCODE_HOSTNAME` | No | Web UI hostname (default: 0.0.0.0) |
