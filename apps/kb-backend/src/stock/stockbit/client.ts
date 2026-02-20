@@ -1,5 +1,5 @@
 import got, { HTTPError, RequestError } from "got";
-import * as http2wrapper from "http2-wrapper";
+import http2wrapper from "http2-wrapper";
 import {
   getAuthorizationHeaderValue,
   type StockbitClientProfile,
@@ -96,7 +96,9 @@ function buildReplayHeaders(
   }
 
   if (
-    !Object.keys(output).some((headerKey) => headerKey.toLowerCase() === "authorization")
+    !Object.keys(output).some(
+      (headerKey) => headerKey.toLowerCase() === "authorization",
+    )
   ) {
     output.authorization = authorization;
   }
