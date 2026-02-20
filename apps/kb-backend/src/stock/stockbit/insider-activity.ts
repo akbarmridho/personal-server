@@ -1,11 +1,7 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
-import { proxiedAxios } from "../../utils/proxy.js";
-import {
-  type BaseStockbitResponse,
-  StockbitAuthError,
-  stockbitAuth,
-} from "./auth.js";
+import type { BaseStockbitResponse } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 export interface InsiderTransaction {
   /** Date of the insider transaction (ISO format, YYYY-MM-DD) */
@@ -111,31 +107,18 @@ export const getInsiderActivity = async (input: {
   const rawData = await KV.getOrSet(
     `stockbit.insider.${input.symbol}`,
     async () => {
-      const authData = await stockbitAuth.get();
-
-      if (!authData) {
-        throw new StockbitAuthError("Stockbit auth not found");
-      }
-
       const movements: any[] = [];
 
       let page = 1;
       const maxPage = input.maxPage ? input.maxPage : 5;
 
       while (true) {
-        const response = await proxiedAxios.get(
-          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.symbol}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
-          {
-            headers: {
-              Authorization: `Bearer ${authData.accessToken}`,
-            },
-          },
-        );
-
-        const data = response.data as BaseStockbitResponse<{
+        const data = await stockbitGetJson<BaseStockbitResponse<{
           is_more: boolean;
           movement: any[];
-        }>;
+        }>>(
+          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.symbol}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
+        );
 
         movements.push(...data.data.movement);
 

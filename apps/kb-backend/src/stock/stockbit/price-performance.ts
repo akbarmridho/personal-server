@@ -1,8 +1,7 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonValue } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../../utils/proxy.js";
-import { StockbitAuthError, stockbitAuth } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 export interface PricePerformance {
   close: number;
@@ -16,22 +15,9 @@ export const getPricePerformance = async (symbol: string) => {
   const rawData = await KV.getOrSet(
     `stockbit.price-performance.${symbol}`,
     async () => {
-      const authData = await stockbitAuth.get();
-
-      if (!authData) {
-        throw new StockbitAuthError("Stockbit auth not found");
-      }
-
-      const response = await proxiedAxios.get(
+      const data = await stockbitGetJson(
         `https://exodus.stockbit.com/company-price-feed/price-performance/${symbol}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authData.accessToken}`,
-          },
-        },
       );
-
-      const data = response.data;
 
       return data as JsonValue;
     },

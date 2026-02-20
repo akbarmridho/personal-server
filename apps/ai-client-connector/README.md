@@ -1,12 +1,13 @@
 # AI Client Connector
 
-Client-side services for routing requests through your local IP, plus a startup golden-article capture task.
+Client-side services for routing requests through your local IP, plus startup browser capture tasks.
 
 ## Current scope
 
 - Transparent forward HTTP proxy (no custom request/header mutation in app code)
 - HTTPS tunneling via `CONNECT`
 - Startup golden-article capture task (runs at most once every 2 hours via `state.json` key `goldenArticleLastSuccessAt`)
+- Startup Stockbit request-header capture task (runs every startup and sends captured headers to kb-backend)
 
 ## Planned next scope
 
@@ -43,6 +44,8 @@ If `kb-backend` uses `HttpProxyAgent`/`HttpsProxyAgent`, requests will exit usin
 
 Required:
 
+- `KB_BACKEND_URL` (default `https://kb.akbarmr.dev`)
+- `AI_CLIENT_CONNECTOR_PUBLIC_PROXY_URL`
 - `GOLDEN_ARTICLE_URL`
 - `INNGEST_URL`
 
@@ -61,3 +64,4 @@ On app startup, connector will:
 2. If CDP is reachable: reuse existing browser instance (no restart)
 3. If CDP is unreachable: close Brave, relaunch with remote debugging, then connect
 4. Run golden-article interception task
+5. Run stockbit header interception task

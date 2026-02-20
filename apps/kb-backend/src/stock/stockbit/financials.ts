@@ -3,12 +3,8 @@ import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonValue } from "../../infrastructure/db/types.js";
 import { formatHtml, htmlToMarkdown } from "../../utils/html.js";
-import { proxiedAxios } from "../../utils/proxy.js";
-import {
-  type BaseStockbitResponse,
-  StockbitAuthError,
-  stockbitAuth,
-} from "./auth.js";
+import type { BaseStockbitResponse } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 interface HeaderInfo {
   dataLabel: string; // e.g., "Q225" or "12M24"
@@ -206,22 +202,11 @@ export const getFinancials = async (input: {
   const rawData = await KV.getOrSet(
     `stockbit.financials.${input.reportType}.${input.statementType}.${input.symbol}`,
     async () => {
-      const authData = await stockbitAuth.get();
-
-      if (!authData) {
-        throw new StockbitAuthError("Stockbit auth not found");
-      }
-
-      const response = await proxiedAxios.get(
+      const data = await stockbitGetJson(
         `https://exodus.stockbit.com/findata-view/company/financial?symbol=${input.symbol}&data_type=1&report_type=${mapper.reportType[input.reportType]}&statement_type=${mapper.statementType[input.statementType]}`,
-        {
-          headers: {
-            Authorization: `Bearer ${authData.accessToken}`,
-          },
-        },
       );
 
-      return sanitizeJson(response.data) as JsonValue;
+      return sanitizeJson(data) as JsonValue;
     },
     dayjs().add(3, "hour").toDate(),
     true,

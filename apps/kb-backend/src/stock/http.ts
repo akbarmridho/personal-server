@@ -356,37 +356,17 @@ export const setupStockRoutes = () =>
       },
       {
         body: t.Object({
-          // refreshToken: t.String(),
-          // refreshExpiredAt: t.String(),
-          accessToken: t.String(),
-          // accessExpiredAt: t.String(),
+          proxy_url: t.String(),
+          captured_at: t.String(),
+          capture_source_url: t.String(),
+          target_request_url: t.String(),
+          headers: t.Record(t.String(), t.String()),
         }),
         detail: {
           tags: ["Authentication"],
-          summary: "Set Stockbit access token",
+          summary: "Set Stockbit captured client profile",
           description:
-            "Stores Stockbit API access token for authenticated requests to Stockbit services",
-        },
-      },
-    )
-    .get(
-      "/stockbit-auth/test",
-      async ({ set }) => {
-        try {
-          await stockbitAuth.test();
-          return { success: true };
-        } catch (err) {
-          logger.error({ err }, "Test auth failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
-        }
-      },
-      {
-        detail: {
-          tags: ["Authentication"],
-          summary: "Test Stockbit authentication",
-          description:
-            "Validates the stored Stockbit access token by making a test API request",
+            "Stores captured Stockbit request profile (proxy target + raw request headers) for authenticated Stockbit API requests",
         },
       },
     )

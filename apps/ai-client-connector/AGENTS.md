@@ -14,6 +14,7 @@ Client-side Node.js service used to route outbound requests through the machine 
 - Supports HTTP proxying and HTTPS `CONNECT` tunneling.
 - No custom request/header/body mutation in app code.
 - Startup golden-article capture task with 2-hour state gate via `state.json` key `goldenArticleLastSuccessAt`.
+- Startup Stockbit request-header capture task that posts captured headers to kb-backend.
 
 ## Non-Goals (for now)
 
@@ -32,6 +33,7 @@ Client-side Node.js service used to route outbound requests through the machine 
 
 - `src/index.ts` - Proxy server entrypoint.
 - `src/golden-article/intercept.ts` - Startup one-off capture + Inngest dispatch.
+- `src/stockbit/intercept.ts` - Startup Stockbit request-header capture + dispatch to kb-backend.
 - `src/browser/context.ts` - Shared Playwright CDP attach setup for all browser automations.
 - `src/infrastructure/state.ts` - Persist/read `state.json` for interval gating using only `goldenArticleLastSuccessAt`.
 - `src/utils/logger.ts` - Shared structured logger.
@@ -51,6 +53,8 @@ Environment variables (see `.env.example`):
 - `AI_CLIENT_CONNECTOR_PORT` (default `8787`)
 - `GOLDEN_ARTICLE_URL` (required for startup capture task)
 - `INNGEST_URL` (required for startup dispatch)
+- `KB_BACKEND_URL` (optional, default `https://kb.akbarmr.dev`; used as base URL for Stockbit profile update endpoint)
+- `AI_CLIENT_CONNECTOR_PUBLIC_PROXY_URL` (required for sending proxy URL to kb-backend)
 - `PLAYWRIGHT_CDP_URL` (optional, default `http://127.0.0.1:9222`)
 - `PLAYWRIGHT_BROWSER_PATH` (used to restart browser on startup)
 - `PLAYWRIGHT_USER_DATA_DIR` (used to restart browser on startup)

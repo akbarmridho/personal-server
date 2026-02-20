@@ -1,8 +1,7 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonValue } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../../utils/proxy.js";
-import { StockbitAuthError, stockbitAuth } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 export interface Keystats {
   stats: {
@@ -41,22 +40,9 @@ export const getKeystats = async (symbol: string) => {
   const rawData = await KV.getOrSet(
     `stockbit.keystats.${symbol}`,
     async () => {
-      const authData = await stockbitAuth.get();
-
-      if (!authData) {
-        throw new StockbitAuthError("Stockbit auth not found");
-      }
-
-      const response = await proxiedAxios.get(
+      const data = await stockbitGetJson(
         `https://exodus.stockbit.com/keystats/ratio/v1/${symbol}?year_limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${authData.accessToken}`,
-          },
-        },
       );
-
-      const data = response.data;
 
       return data as JsonValue;
     },

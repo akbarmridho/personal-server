@@ -186,8 +186,7 @@ Dual-interface design: Same functionality exposed as both **HTTP REST endpoints*
      - Phases: WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED
 
 5. **Authentication**
-   - `POST /stock-market-id/stockbit-auth/set` - Set Stockbit access token
-   - `GET /stock-market-id/stockbit-auth/test` - Test authentication
+   - `POST /stock-market-id/stockbit-auth/set` - Set captured Stockbit client profile (proxy URL + captured request headers)
 
 6. **Stock Universe Management**
    - `POST /stock-market-id/stock-universe/add` - Add symbols to stock universe and trigger initial crawl

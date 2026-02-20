@@ -1,10 +1,5 @@
-import { AxiosError } from "axios";
-import { proxiedAxios } from "../../utils/proxy.js";
-import {
-  type BaseStockbitResponse,
-  StockbitAuthError,
-  stockbitAuth,
-} from "./auth.js";
+import { type BaseStockbitResponse, StockbitAuthError } from "./auth.js";
+import { getStockbitStatusCode, stockbitGetJson } from "./client.js";
 
 export type FilingReportType =
   | "all"
@@ -64,14 +59,6 @@ interface ListFilingInput {
   keyword?: string;
 }
 
-const getAccessToken = async () => {
-  const authData = await stockbitAuth.get();
-  if (!authData) {
-    throw new StockbitAuthError("Stockbit auth not found");
-  }
-  return authData.accessToken;
-};
-
 const extractAnnouncementHash = (titleUrl: string): string => {
   const hash = titleUrl
     .trim()
@@ -99,8 +86,6 @@ export const normalizeAnnouncementHash = (value: string): string => {
 };
 
 export const listFilings = async (input: ListFilingInput) => {
-  const accessToken = await getAccessToken();
-
   const reportType = input.reportType ?? "all";
   const query = new URLSearchParams({
     category: "STREAM_CATEGORY_REPORTS",
@@ -115,18 +100,13 @@ export const listFilings = async (input: ListFilingInput) => {
   }
 
   try {
-    const response = await proxiedAxios.get<
+    const response = await stockbitGetJson<
       BaseStockbitResponse<StockbitFilingListData>
     >(
       `https://exodus.stockbit.com/stream/v3/symbol/${input.symbol}?${query.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      },
     );
 
-    const payload = response.data.data;
+    const payload = response.data;
     if (!payload || typeof payload !== "object") {
       throw new Error("Invalid filing list response shape from Stockbit.");
     }
@@ -161,32 +141,23 @@ export const listFilings = async (input: ListFilingInput) => {
       })),
     };
   } catch (error) {
-    if (error instanceof AxiosError) {
-      const status = error.response?.status;
-      if (status === 401 || status === 403) {
-        throw new StockbitAuthError(
-          `Stockbit API authentication failed: ${status}`,
-        );
-      }
+    const status = getStockbitStatusCode(error);
+    if (status === 401 || status === 403) {
+      throw new StockbitAuthError(`Stockbit API authentication failed: ${status}`);
     }
     throw error;
   }
 };
 
 export const getFiling = async (filingId: string) => {
-  const accessToken = await getAccessToken();
   const announcementHash = normalizeAnnouncementHash(filingId);
 
   try {
-    const response = await proxiedAxios.get<
+    const response = await stockbitGetJson<
       BaseStockbitResponse<AnnouncementDetailItem[]>
-    >(`https://exodus.stockbit.com/stream/announcement/${announcementHash}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    >(`https://exodus.stockbit.com/stream/announcement/${announcementHash}`);
 
-    const items = Array.isArray(response.data.data) ? response.data.data : [];
+    const items = Array.isArray(response.data) ? response.data : [];
     if (items.length === 0) {
       throw new Error("Filing announcement not found.");
     }
@@ -206,16 +177,12 @@ export const getFiling = async (filingId: string) => {
       })),
     };
   } catch (error) {
-    if (error instanceof AxiosError) {
-      const status = error.response?.status;
-      if (status === 401 || status === 403) {
-        throw new StockbitAuthError(
-          `Stockbit API authentication failed: ${status}`,
-        );
-      }
-      if (status === 404) {
-        throw new Error("Filing announcement not found.");
-      }
+    const status = getStockbitStatusCode(error);
+    if (status === 401 || status === 403) {
+      throw new StockbitAuthError(`Stockbit API authentication failed: ${status}`);
+    }
+    if (status === 404) {
+      throw new Error("Filing announcement not found.");
     }
     throw error;
   }

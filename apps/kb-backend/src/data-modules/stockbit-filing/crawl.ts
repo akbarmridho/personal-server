@@ -1,10 +1,11 @@
-import { AxiosError } from "axios";
 import { NonRetriableError } from "inngest";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
-import { stockbitAuth } from "../../stock/stockbit/auth.js";
+import {
+  getStockbitStatusCode,
+  stockbitGetJson,
+} from "../../stock/stockbit/client.js";
 import { logger } from "../../utils/logger.js";
-import { proxiedAxios } from "../../utils/proxy.js";
 
 type ReportType = "RUPS" | "CORPORATE_ACTION" | "OTHER";
 
@@ -30,6 +31,7 @@ interface StockbitStreamItem {
 }
 
 interface StockbitStreamResponse {
+  message: string;
   data: {
     stream?: StockbitStreamItem[];
   };
@@ -83,24 +85,13 @@ async function crawlCategory(
     `Crawling ${reportType} for ${symbol} (limit: ${limit}, last_id: ${lastCrawl?.id || "none"})`,
   );
 
-  // 3. Get auth data
-  const authData = await stockbitAuth.get();
-  if (!authData) {
-    throw new NonRetriableError("Stockbit auth not found");
-  }
-
-  // 4. Fetch from Stockbit API
+  // 3. Fetch from Stockbit API
   const reportTypeParam = `REPORT_TYPE_${reportType}`;
   const url = `https://exodus.stockbit.com/stream/v3/symbol/${symbol}?category=STREAM_CATEGORY_REPORTS&last_stream_id=0&limit=${limit}&report_type=${reportTypeParam}`;
 
   try {
-    const response = await proxiedAxios.get<StockbitStreamResponse>(url, {
-      headers: {
-        Authorization: `Bearer ${authData.accessToken}`,
-      },
-    });
-
-    const items = response.data.data.stream || [];
+    const response = await stockbitGetJson<StockbitStreamResponse>(url);
+    const items = response.data.stream || [];
 
     // 4. Filter by ID (if incremental)
     let filtered = items;
@@ -159,16 +150,12 @@ async function crawlCategory(
     }));
   } catch (error) {
     // Handle authentication errors as non-retriable
-    if (error instanceof AxiosError) {
-      const status = error.response?.status;
-      if (status === 401 || status === 403) {
-        logger.error(
-          `Authentication error (${status}) crawling ${reportType} for ${symbol}`,
-        );
-        throw new NonRetriableError(
-          `Stockbit API authentication failed: ${status}`,
-        );
-      }
+    const status = getStockbitStatusCode(error);
+    if (status === 401 || status === 403) {
+      logger.error(
+        `Authentication error (${status}) crawling ${reportType} for ${symbol}`,
+      );
+      throw new NonRetriableError(`Stockbit API authentication failed: ${status}`);
     }
 
     logger.error(

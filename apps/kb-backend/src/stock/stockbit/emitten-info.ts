@@ -1,33 +1,16 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonValue } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../../utils/proxy.js";
-import {
-  type BaseStockbitResponse,
-  StockbitAuthError,
-  stockbitAuth,
-} from "./auth.js";
+import type { BaseStockbitResponse } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 export const getEmittenInfo = async (input: { symbol: string }) => {
   const rawData = await KV.getOrSet(
     `stockbit.emitteninfo.${input.symbol}`,
     async () => {
-      const authData = await stockbitAuth.get();
-
-      if (!authData) {
-        throw new StockbitAuthError("Stockbit auth not found");
-      }
-
-      const response = await proxiedAxios.get(
+      const data = await stockbitGetJson(
         `https://exodus.stockbit.com/emitten/${input.symbol}/info`,
-        {
-          headers: {
-            Authorization: `Bearer ${authData.accessToken}`,
-          },
-        },
       );
-
-      const data = response.data;
 
       return data as JsonValue;
     },

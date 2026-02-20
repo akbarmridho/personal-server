@@ -1,13 +1,9 @@
 import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { JsonValue } from "../../infrastructure/db/types.js";
-import { proxiedAxios } from "../../utils/proxy.js";
 import { dateToFormatted } from "../utils.js";
-import {
-  type BaseStockbitResponse,
-  StockbitAuthError,
-  stockbitAuth,
-} from "./auth.js";
+import type { BaseStockbitResponse } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 export const getMarketDetector = async (input: {
   symbol: string;
@@ -20,22 +16,9 @@ export const getMarketDetector = async (input: {
   const rawData = await KV.getOrSet(
     `stockbit.marketdetector.${input.symbol}.${fromFormatted}.${toFormatted}`,
     async () => {
-      const authData = await stockbitAuth.get();
-
-      if (!authData) {
-        throw new StockbitAuthError("Stockbit auth not found");
-      }
-
-      const response = await proxiedAxios.get(
+      const data = await stockbitGetJson(
         `https://exodus.stockbit.com/marketdetectors/${input.symbol}?from=${fromFormatted}&to=${toFormatted}&transaction_type=TRANSACTION_TYPE_NET&market_board=MARKET_BOARD_REGULER&investor_type=INVESTOR_TYPE_ALL&limit=25`,
-        {
-          headers: {
-            Authorization: `Bearer ${authData.accessToken}`,
-          },
-        },
       );
-
-      const data = response.data;
 
       return data as JsonValue;
     },

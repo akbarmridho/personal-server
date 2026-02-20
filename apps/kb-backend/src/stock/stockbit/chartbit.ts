@@ -1,13 +1,9 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
-import { proxiedAxios } from "../../utils/proxy.js";
 import { dateToFormatted } from "../utils.js";
-import {
-  type BaseStockbitResponse,
-  StockbitAuthError,
-  stockbitAuth,
-} from "./auth.js";
+import type { BaseStockbitResponse } from "./auth.js";
+import { stockbitGetJson } from "./client.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -215,25 +211,14 @@ export const getIntradayChartbitData = async (input: {
   fromUnix: number;
   toUnix: number;
 }) => {
-  const authData = await stockbitAuth.get();
-
-  if (!authData) {
-    throw new StockbitAuthError("Stockbit auth not found");
-  }
-
-  const response = await proxiedAxios.get(
+  const data = await stockbitGetJson<
+    BaseStockbitResponse<{
+      allow_decimal: number;
+      chartbit: ChartbitIntradayData[];
+    }>
+  >(
     `https://exodus.stockbit.com/chartbit/${input.symbol}/price/intraday?from=${input.fromUnix}&to=${input.toUnix}&limit=0`,
-    {
-      headers: {
-        Authorization: `Bearer ${authData.accessToken}`,
-      },
-    },
   );
-
-  const data = response.data as BaseStockbitResponse<{
-    allow_decimal: number;
-    chartbit: ChartbitIntradayData[];
-  }>;
 
   if (!Array.isArray(data.data?.chartbit)) {
     throw new Error("Invalid intraday response shape from Stockbit");
@@ -247,22 +232,10 @@ export const getChartbitCorpActions = async (input: {
   from: string;
   to: string;
 }) => {
-  const authData = await stockbitAuth.get();
-
-  if (!authData) {
-    throw new StockbitAuthError("Stockbit auth not found");
-  }
-
-  const response = await proxiedAxios.get(
+  const data =
+    await stockbitGetJson<BaseStockbitResponse<ChartbitCorpActionData[]>>(
     `https://exodus.stockbit.com/chartbit/chart/corpaction?from=${input.from}&to=${input.to}&symbol=${input.symbol}`,
-    {
-      headers: {
-        Authorization: `Bearer ${authData.accessToken}`,
-      },
-    },
   );
-
-  const data = response.data as BaseStockbitResponse<ChartbitCorpActionData[]>;
 
   if (!Array.isArray(data.data)) {
     throw new Error("Invalid corporate action response shape from Stockbit");
@@ -474,25 +447,14 @@ export const getChartbitData = async (input: {
   const fromFormatted = dateToFormatted(input.from);
   const toFormatted = dateToFormatted(input.to);
 
-  const authData = await stockbitAuth.get();
-
-  if (!authData) {
-    throw new StockbitAuthError("Stockbit auth not found");
-  }
-
   // somehow stockbit swap the from and to date filtering logic. not sure why they did this
-  const response = await proxiedAxios.get(
+  const data = await stockbitGetJson<
+    BaseStockbitResponse<{
+      chartbit: ChartbitData[];
+    }>
+  >(
     `https://exodus.stockbit.com/chartbit/${input.symbol}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
-    {
-      headers: {
-        Authorization: `Bearer ${authData.accessToken}`,
-      },
-    },
   );
-
-  const data = response.data as BaseStockbitResponse<{
-    chartbit: ChartbitData[];
-  }>;
 
   return data.data.chartbit;
 };

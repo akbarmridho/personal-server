@@ -1,6 +1,5 @@
 import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
-import { AxiosError } from "axios";
 import { NonRetriableError } from "inngest";
 import { v5 as uuidv5 } from "uuid";
 import { inngest } from "../../infrastructure/inngest.js";
@@ -8,9 +7,11 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { stockbitAuth } from "../../stock/stockbit/auth.js";
+import {
+  getStockbitStatusCode,
+  stockbitGetJson,
+} from "../../stock/stockbit/client.js";
 import { logger } from "../../utils/logger.js";
-import { proxiedAxios } from "../../utils/proxy.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
@@ -59,40 +60,26 @@ export const stockbitAnnouncementIngest = inngest.createFunction(
 
     // Step 1: Fetch announcement detail
     const announcement = await step.run("fetch-detail", async () => {
-      const authData = await stockbitAuth.get();
-      if (!authData) {
-        throw new NonRetriableError("Stockbit auth not found");
-      }
-
       const hash = eventData.title_url.split("/").pop();
       const url = `https://exodus.stockbit.com/stream/announcement/${hash}`;
 
       try {
-        const response = await proxiedAxios.get<AnnouncementDetailResponse>(
-          url,
-          {
-            headers: {
-              Authorization: `Bearer ${authData.accessToken}`,
-            },
-          },
-        );
+        const response = await stockbitGetJson<AnnouncementDetailResponse>(url);
 
         logger.info(
-          `Fetched announcement detail: ${response.data.data.length} items`,
+          `Fetched announcement detail: ${response.data.length} items`,
         );
-        return response.data.data;
+        return response.data;
       } catch (error) {
         // Handle authentication errors as non-retriable
-        if (error instanceof AxiosError) {
-          const status = error.response?.status;
-          if (status === 401 || status === 403) {
-            logger.error(
-              `Authentication error (${status}) fetching announcement detail`,
-            );
-            throw new NonRetriableError(
-              `Stockbit API authentication failed: ${status}`,
-            );
-          }
+        const status = getStockbitStatusCode(error);
+        if (status === 401 || status === 403) {
+          logger.error(
+            `Authentication error (${status}) fetching announcement detail`,
+          );
+          throw new NonRetriableError(
+            `Stockbit API authentication failed: ${status}`,
+          );
         }
 
         logger.error(

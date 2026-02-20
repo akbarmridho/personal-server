@@ -26,6 +26,8 @@ export const env = createEnv({
 
     GOLDEN_ARTICLE_URL: z.string().url().optional(),
     INNGEST_URL: z.string().url().optional(),
+    KB_BACKEND_URL: z.string().url().prefault("https://kb.akbarmr.dev"),
+    AI_CLIENT_CONNECTOR_PUBLIC_PROXY_URL: z.string().url(),
 
     PLAYWRIGHT_CDP_URL: z.string().url().prefault("http://127.0.0.1:9222"),
     PLAYWRIGHT_BROWSER_PATH: z.string().optional(),
