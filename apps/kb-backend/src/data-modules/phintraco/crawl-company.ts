@@ -1,11 +1,14 @@
+import axios from "axios";
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
+import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { stockProxyUrl } from "../../stock/proxy-url.js";
 import { logger } from "../../utils/logger.js";
-import { generalProxiedAxios } from "../../utils/proxy.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -58,8 +61,16 @@ export const phintracoCompanyUpdateCrawl = inngest.createFunction(
       const keystoneData = (await KV.get(keystoneKey)) as Keystone | null;
 
       const scrapedUrls = new Set<string>(keystoneData?.urls || []);
+      const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
 
-      const { data: html } = await generalProxiedAxios.get(targetUrl);
+      const { data: html } = await axios.get(targetUrl, {
+        httpAgent: new HttpProxyAgent(proxyUrl),
+        httpsAgent: new HttpsProxyAgent(proxyUrl),
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
+      });
 
       const data: Array<{ url: string; title: string }> = [];
 

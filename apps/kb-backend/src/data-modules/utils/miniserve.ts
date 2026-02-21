@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
+import axios from "axios";
 import { env } from "../../infrastructure/env.js";
-import { generalProxiedAxios } from "../../utils/proxy.js";
 
 const PDF_UPLOAD_PATH = "/pdfs/";
 
@@ -45,7 +45,7 @@ export async function uploadPdfBufferToMiniserve(
 }
 
 export async function uploadPdfUrlToMiniserve(pdfUrl: string): Promise<string> {
-  const response = await generalProxiedAxios.get<ArrayBuffer>(pdfUrl, {
+  const response = await axios.get<ArrayBuffer>(pdfUrl, {
     responseType: "arraybuffer",
   });
 

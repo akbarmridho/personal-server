@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import axios from "axios";
+import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { NonRetriableError } from "inngest";
 import normalizeUrl from "normalize-url";
 import pRetry from "p-retry";
@@ -8,7 +11,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { generalProxiedAxios } from "../../utils/proxy.js";
+import { stockProxyUrl } from "../../stock/proxy-url.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { reconstructPdfWithLLM } from "../utils/pdf-reconstruction.js";
 import { tagMetadata } from "../utils/tagging.js";
@@ -21,7 +24,14 @@ const namespace = "f33a43b1-015d-448d-8f72-a8789dcc5187";
 const fetchPdfViaProxy = async (url: string): Promise<Buffer> => {
   return await pRetry(
     async () => {
-      const response = await generalProxiedAxios.get(url, {
+      const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
+      const response = await axios.get(url, {
+        httpAgent: new HttpProxyAgent(proxyUrl),
+        httpsAgent: new HttpsProxyAgent(proxyUrl),
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
         responseType: "arraybuffer",
       });
 
