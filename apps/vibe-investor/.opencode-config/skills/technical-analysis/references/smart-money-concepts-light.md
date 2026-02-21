@@ -59,46 +59,9 @@ Include evidence for each used module:
 
 If a module is not used, do not fabricate placeholders.
 
-## Reference Code
+## Implementation Note
 
-```python
-import numpy as np
-import pandas as pd
+Deterministic SMC helper outputs (EQH/EQL and premium-discount context) are implemented in:
 
-
-def detect_equal_levels(df: pd.DataFrame, atr_col: str = "ATR14", atr_mult: float = 0.2):
-    x = df.copy()
-    highs = x[x["swing_high"].notna()][["datetime", "swing_high", atr_col]].copy()
-    lows = x[x["swing_low"].notna()][["datetime", "swing_low", atr_col]].copy()
-
-    eqh, eql = [], []
-    for i in range(1, len(highs)):
-        h0, h1 = float(highs["swing_high"].iloc[i - 1]), float(highs["swing_high"].iloc[i])
-        tol = float(highs[atr_col].iloc[i]) * atr_mult if pd.notna(highs[atr_col].iloc[i]) else 0
-        if abs(h1 - h0) <= tol:
-            eqh.append((str(highs["datetime"].iloc[i]), h1))
-    for i in range(1, len(lows)):
-        l0, l1 = float(lows["swing_low"].iloc[i - 1]), float(lows["swing_low"].iloc[i])
-        tol = float(lows[atr_col].iloc[i]) * atr_mult if pd.notna(lows[atr_col].iloc[i]) else 0
-        if abs(l1 - l0) <= tol:
-            eql.append((str(lows["datetime"].iloc[i]), l1))
-    return {"eqh": eqh[-3:], "eql": eql[-3:]}
-
-
-def premium_discount_zone(range_low: float, range_high: float, price: float):
-    eq = (range_low + range_high) / 2.0
-    if price > eq:
-        zone = "premium"
-    elif price < eq:
-        zone = "discount"
-    else:
-        zone = "equilibrium"
-    return {"range_low": range_low, "range_high": range_high, "equilibrium": eq, "zone": zone}
-
-
-def choose_structure_bias(swing_bias: str, internal_bias: str):
-    # swing_bias/internal_bias in {"bullish", "bearish", "neutral"}
-    if swing_bias != "neutral":
-        return swing_bias
-    return internal_bias
-```
+- Module: `smc`
+- Script: `scripts/build_ta_context.py`

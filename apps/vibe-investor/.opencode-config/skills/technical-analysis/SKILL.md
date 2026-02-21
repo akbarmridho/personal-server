@@ -64,12 +64,34 @@ Use this flow by default, but adapt depth to context. The process is structured,
 8. `SETUP_RISK` - Build setup and risk plan (or no-trade plan).
 9. `DECISION` - Produce action, invalidation, and monitoring triggers.
 
+### Scripted Context Build (Deterministic)
+
+Use the context builder script during `DATA_PREP` to convert raw OHLCV into deterministic analysis inputs.
+
+```bash
+python scripts/build_ta_context.py \
+  --input {FETCH_OHLCV_OUTPUT_PATH} \
+  --symbol {SYMBOL} \
+  --outdir work \
+  --modules core,vpvr,imbalance,breakout,smc
+```
+
+- Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
+- Output contract: `work/{SYMBOL}_ta_context.json` (or `--output` path) with deterministic fields for regime, levels, MA posture, IB state, structure events, and liquidity.
+- Available modules for `--modules`:
+  - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity
+  - `vpvr`: adds `poc/vah/val/hvn/lvn` context
+  - `imbalance`: adds FVG zones and CE levels
+  - `breakout`: adds breakout trigger/follow-through snapshot
+  - `smc`: adds EQH/EQL and premium-discount context
+  - `all`: shorthand for `core,vpvr,imbalance,breakout,smc`
+
 ### Scripted Chart Build (Deterministic)
 
 Use the chart generator script to build artifacts from OHLCV JSON before `CHART_READ`.
 
 ```bash
-python .opencode-config/skills/technical-analysis/scripts/generate_ta_charts.py \
+python scripts/generate_ta_charts.py \
   --input {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --outdir work \
@@ -195,30 +217,19 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 
 ## Python Libraries
 
-Reference code in this skill and its references uses:
+Deterministic scripts under `scripts/` use:
 
 - `json` (stdlib)
 - `pandas`
 - `numpy`
+- `matplotlib`
+- `mplfinance`
 
-## Reference Code
+## Implementation Note
 
-```python
-import json
-import pandas as pd
+For deterministic preprocessing and artifact generation, use:
 
-
-def load_ohlcv(path: str):
-    with open(path, "r", encoding="utf-8") as f:
-        raw = json.load(f)
-
-    required = ["daily", "intraday", "corp_actions"]
-    for key in required:
-        if key not in raw or not isinstance(raw[key], list) or len(raw[key]) == 0:
-            raise ValueError(f"Missing required dependency: {key}")
-
-    df_daily = pd.DataFrame(raw["daily"]).sort_values("timestamp").reset_index(drop=True)
-    df_intraday = pd.DataFrame(raw["intraday"]).sort_values("timestamp").reset_index(drop=True)
-    df_corp = pd.DataFrame(raw["corp_actions"]).sort_values("timestamp").reset_index(drop=True)
-    return df_daily, df_intraday, df_corp
-```
+- Context modules (`build_ta_context.py`): `core`, `vpvr`, `imbalance`, `breakout`, `smc`
+- Chart modules (`generate_ta_charts.py`): `core`, `vpvr`, `imbalance`, `detail`
+- Script: `scripts/build_ta_context.py`
+- Script: `scripts/generate_ta_charts.py`

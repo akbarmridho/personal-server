@@ -22,13 +22,32 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 - Multi-lens optionality: alternate lens can be requested and compared against `UNIFIED`.
 - Iterative lifecycle: supports `INITIAL`, `UPDATE`, `THESIS_REVIEW`, `POSTMORTEM`.
 
+## Deterministic Context Script
+
+- Input source:
+  - Use the exact `output_path` from `fetch-ohlcv`.
+  - Input JSON must contain `daily[]`, `intraday[]`, and `corp_actions[]`.
+- Script location:
+  - `scripts/build_ta_context.py` (relative to `.opencode-config/skills/technical-analysis/SKILL.md`)
+- Output:
+  - `work/{SYMBOL}_ta_context.json` (or custom `--output` path)
+- Available modules for `--modules`:
+  - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity
+  - `vpvr`: adds `poc/vah/val/hvn/lvn`
+  - `imbalance`: adds FVG zones with CE
+  - `breakout`: adds breakout trigger/follow-through snapshot
+  - `smc`: adds EQH/EQL and premium-discount context
+  - `all`: shorthand for `core,vpvr,imbalance,breakout,smc`
+- Example run:
+  - `python scripts/build_ta_context.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance,breakout,smc`
+
 ## Chart Artifact Contract
 
 - Input source:
   - Use the exact `output_path` used by `fetch-ohlcv` as script input.
   - That JSON must contain `daily[]`, `intraday[]`, and `corp_actions[]`.
 - Script location:
-  - `.opencode-config/skills/technical-analysis/scripts/generate_ta_charts.py`
+  - `scripts/generate_ta_charts.py` (relative to `.opencode-config/skills/technical-analysis/SKILL.md`)
 - Available modules for `--modules`:
   - `core`: baseline required artifacts (`daily_structure`, `intraday_ibh_ibl`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
   - `vpvr`: adds `vpvr_profile`
@@ -36,7 +55,7 @@ This guide explains both how to run the skill and what conceptual frameworks it 
   - `detail`: adds optional deep-dive detail chart
   - `all`: shorthand for `core,vpvr,imbalance,detail`
 - Example run:
-  - `python .opencode-config/skills/technical-analysis/scripts/generate_ta_charts.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance`
+  - `python scripts/generate_ta_charts.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance`
 - Core required charts (every run):
   - `work/{SYMBOL}_daily_structure.png`
   - `work/{SYMBOL}_intraday_ibh_ibl.png`
@@ -50,6 +69,7 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 - Optional deep-dive chart:
   - `work/{SYMBOL}_detail.png`
 - Workflow expectation:
+  - Run deterministic context script first (`build_ta_context.py`), then build charts (`generate_ta_charts.py`).
   - Build charts first, read charts second, then run numeric cross-check before action.
   - If chart-read and numeric checks conflict, resolve conflict explicitly with evidence.
 

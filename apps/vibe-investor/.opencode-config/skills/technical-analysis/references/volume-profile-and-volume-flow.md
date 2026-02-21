@@ -61,72 +61,10 @@ Report these when volume-profile module is active:
 - prior-session POC levels and reaction notes
 - acceptance state: above VAH / below VAL / inside value
 
-## Reference Code
+## Implementation Note
 
-```python
-import numpy as np
-import pandas as pd
+Deterministic volume-profile context extraction is implemented in:
 
-
-def value_area_from_hist(mids: np.ndarray, hist: np.ndarray, pct: float = 0.70):
-    total = float(hist.sum())
-    if total <= 0:
-        return {"poc": None, "vah": None, "val": None}
-
-    poc_idx = int(hist.argmax())
-    order = np.argsort(hist)[::-1]
-    cum = 0.0
-    chosen = []
-    for i in order:
-        chosen.append(i)
-        cum += float(hist[i])
-        if cum >= total * pct:
-            break
-
-    vals = mids[np.array(chosen)]
-    return {
-        "poc": float(mids[poc_idx]),
-        "vah": float(vals.max()),
-        "val": float(vals.min()),
-    }
-
-
-def acceptance_vs_value(close_price: float, vah: float, val: float, prev_close: float | None = None):
-    if close_price > vah:
-        if prev_close is not None and prev_close >= vah:
-            return "accepted_above_vah"
-        return "probe_above_vah"
-    if close_price < val:
-        if prev_close is not None and prev_close <= val:
-            return "accepted_below_val"
-        return "probe_below_val"
-    return "inside_value"
-
-
-def prior_session_pocs(df_intraday: pd.DataFrame, max_sessions: int = 3):
-    x = df_intraday.copy()
-    x["dt"] = pd.to_datetime(x["datetime"])
-    x["session"] = x["dt"].dt.date
-    sessions = sorted(x["session"].unique())
-    if len(sessions) <= 1:
-        return []
-
-    out = []
-    for s in sessions[-(max_sessions + 1):-1]:
-        d = x[x["session"] == s]
-        if len(d) == 0:
-            continue
-        # proxy POC via price bin with max allocated volume
-        lo, hi = float(d["low"].min()), float(d["high"].max())
-        bins = 30
-        edges = np.linspace(lo, hi, bins + 1)
-        hist = np.zeros(bins)
-        mids = (edges[:-1] + edges[1:]) / 2
-        for _, r in d.iterrows():
-            li = max(np.searchsorted(edges, r["low"], side="right") - 1, 0)
-            hi_i = min(np.searchsorted(edges, r["high"], side="right") - 1, bins - 1)
-            if hi_i >= li:
-                hist[li:hi_i + 1] += float(r["volume"])
-        out.append({"session": str(s), "poc": float(mids[int(hist.argmax())])})
-    return out
-```
+- Module: `vpvr`
+- Script: `scripts/build_ta_context.py`
+- Script: `scripts/generate_ta_charts.py`

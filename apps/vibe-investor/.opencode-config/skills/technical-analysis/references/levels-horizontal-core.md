@@ -46,49 +46,9 @@ Use one method consistently per report:
 - top support/resistance zone values and touched dates
 - role-reversal or failed-break notes when present
 
-## Reference Code
+## Implementation Note
 
-```python
-import numpy as np
+Deterministic level clustering and strength outputs are implemented in:
 
-
-def cluster_levels(levels, tolerance=0.02):
-    if len(levels) == 0:
-        return []
-    clusters = []
-    for lvl in sorted(levels):
-        if not clusters:
-            clusters.append([lvl])
-            continue
-        if abs(lvl - np.mean(clusters[-1])) / max(np.mean(clusters[-1]), 1e-9) <= tolerance:
-            clusters[-1].append(lvl)
-        else:
-            clusters.append([lvl])
-    out = []
-    for c in clusters:
-        out.append({
-            "zone_mid": float(np.mean(c)),
-            "zone_low": float(min(c)),
-            "zone_high": float(max(c)),
-            "touches": len(c),
-        })
-    return out
-
-
-def classify_level_strength(touches: int):
-    if touches <= 1:
-        return "strong_first_test"
-    if touches == 2:
-        return "strong"
-    if touches == 3:
-        return "weakening"
-    return "fragile"
-
-
-def role_reversal(last_close: float, level: float, was_support: bool):
-    if was_support and last_close < level:
-        return "support_broken_may_flip_to_resistance"
-    if (not was_support) and last_close > level:
-        return "resistance_broken_may_flip_to_support"
-    return "no_flip_signal"
-```
+- Module: `core`
+- Script: `scripts/build_ta_context.py`

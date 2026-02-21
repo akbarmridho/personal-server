@@ -53,34 +53,9 @@ Alternation model (base expectation, not certainty):
 - `sweep_outcome`: accepted / rejected / unresolved
 - `liquidity_path`: external_to_internal / internal_to_external / unclear
 
-## Reference Code
+## Implementation Note
 
-```python
-def liquidity_path_after_event(event_type: str):
-    # event_type in {"external_sweep", "internal_tag", "none"}
-    if event_type == "external_sweep":
-        return "external_to_internal"
-    if event_type == "internal_tag":
-        return "internal_to_external"
-    return "unclear"
+Deterministic liquidity draw target extraction is implemented in:
 
-
-def sweep_outcome(close_price: float, level: float, side: str):
-    # side in {"above", "below"} means swept above level or below level
-    if side == "above":
-        return "accepted" if close_price > level else "rejected"
-    return "accepted" if close_price < level else "rejected"
-
-
-def pick_draw_targets(external_levels: list[float], internal_levels: list[float], price: float):
-    ext_up = sorted([x for x in external_levels if x > price])
-    ext_dn = sorted([x for x in external_levels if x < price], reverse=True)
-    int_up = sorted([x for x in internal_levels if x > price])
-    int_dn = sorted([x for x in internal_levels if x < price], reverse=True)
-    return {
-        "external_up": ext_up[0] if ext_up else None,
-        "external_down": ext_dn[0] if ext_dn else None,
-        "internal_up": int_up[0] if int_up else None,
-        "internal_down": int_dn[0] if int_dn else None,
-    }
-```
+- Module: `core`
+- Script: `scripts/build_ta_context.py`

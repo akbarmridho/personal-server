@@ -31,59 +31,9 @@ Validate breakout and continuation quality using close behavior, follow-through,
 - trigger volume ratio
 - displacement quality note: clean displacement or stalling
 
-## Reference Code
+## Implementation Note
 
-```python
-import pandas as pd
+Deterministic breakout snapshot extraction is implemented in:
 
-
-def add_volume_features(df: pd.DataFrame):
-    out = df.copy()
-    out["vol_ma20"] = out["volume"].rolling(20).mean()
-    out["vol_ratio"] = out["volume"] / out["vol_ma20"]
-    out["ret"] = out["close"].pct_change()
-    return out
-
-
-def breakout_quality(df: pd.DataFrame, level: float, side: str):
-    # side in {"up", "down"}
-    x = df.tail(10).reset_index(drop=True)
-    trig = x.iloc[-2]
-    foll = x.iloc[-1]
-
-    if side == "up":
-        trigger = trig["close"] > level
-        follow = foll["close"] >= level
-    else:
-        trigger = trig["close"] < level
-        follow = foll["close"] <= level
-
-    vol_ok = trig["vol_ratio"] >= 1.2
-    if trigger and follow and vol_ok:
-        quality = "valid_breakout"
-    elif trigger and not follow:
-        quality = "failed_breakout"
-    else:
-        quality = "no_breakout"
-
-    proof = {
-        "trigger_dt": str(trig["datetime"]),
-        "trigger_close": float(trig["close"]),
-        "follow_dt": str(foll["datetime"]),
-        "follow_close": float(foll["close"]),
-        "trigger_vol_ratio": float(trig["vol_ratio"]) if pd.notna(trig["vol_ratio"]) else None,
-    }
-    return quality, proof
-
-
-def classify_price_volume(change_pct: float, vol_ratio: float):
-    if change_pct > 0 and vol_ratio >= 1.2:
-        return "strong_up"
-    if change_pct < 0 and vol_ratio <= 0.8:
-        return "healthy_pullback"
-    if change_pct > 0 and vol_ratio <= 0.8:
-        return "weak_rally"
-    if change_pct < 0 and vol_ratio >= 1.2:
-        return "distribution"
-    return "neutral"
-```
+- Module: `breakout`
+- Script: `scripts/build_ta_context.py`

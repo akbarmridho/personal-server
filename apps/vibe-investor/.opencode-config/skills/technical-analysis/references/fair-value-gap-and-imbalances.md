@@ -40,31 +40,10 @@ Standardize imbalance analysis so FVG-based decisions are evidence-driven, conte
 - Report mitigation status: unmitigated / partially mitigated / fully mitigated.
 - If IFVG used, report original FVG violation evidence and retest behavior.
 
-## Reference Code
+## Implementation Note
 
-```python
-def fvg_bounds(c1_high, c1_low, c3_high, c3_low, direction: str):
-    # direction in {"bullish", "bearish"}
-    if direction == "bullish":
-        # gap between candle1 high and candle3 low
-        low = c1_high
-        high = c3_low
-    else:
-        # gap between candle3 high and candle1 low
-        low = c3_high
-        high = c1_low
-    if high <= low:
-        return None
-    ce = (low + high) / 2.0
-    return {"low": low, "high": high, "ce": ce}
+Deterministic imbalance/FVG extraction is implemented in:
 
-
-def mitigation_state(zone_low: float, zone_high: float, price_low: float, price_high: float):
-    touched = price_high >= zone_low and price_low <= zone_high
-    if not touched:
-        return "unmitigated"
-    fully = price_low <= zone_low and price_high >= zone_high
-    if fully:
-        return "fully_mitigated"
-    return "partially_mitigated"
-```
+- Module: `imbalance`
+- Script: `scripts/build_ta_context.py`
+- Script: `scripts/generate_ta_charts.py`
