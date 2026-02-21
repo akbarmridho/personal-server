@@ -59,11 +59,12 @@ Use this structure for every technical analysis output.
 ### D. Chart Build And Read
 - Generated charts:
   - Core required charts:
-  - `work/{SYMBOL}_daily_structure.png`
-  - `work/{SYMBOL}_intraday_ibh_ibl.png`
-  - `work/{SYMBOL}_ib_overlay.png`
-  - `work/{SYMBOL}_structure_events.png`
-  - `work/{SYMBOL}_liquidity_map.png`
+- `work/{SYMBOL}_daily_structure.png`
+- `work/{SYMBOL}_intraday_ibh_ibl.png`
+- `work/{SYMBOL}_intraday_vwap_momentum.png`
+- `work/{SYMBOL}_ib_overlay.png`
+- `work/{SYMBOL}_structure_events.png`
+- `work/{SYMBOL}_liquidity_map.png`
   - `work/{SYMBOL}_trade_plan.png`
   - Conditional required charts:
   - `work/{SYMBOL}_vpvr_profile.png` (when volume-profile context is used)

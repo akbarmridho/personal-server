@@ -101,8 +101,9 @@ python scripts/generate_ta_charts.py \
 - Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
 - Input JSON contract at that path: required arrays `daily[]`, `intraday[]`, `corp_actions[]`.
 - Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
+- Time-window mode: `--range-mode auto|fixed` (`auto` selects a focus window from recent structure/imbalance context).
 - Available modules for `--modules`:
-  - `core`: required baseline artifacts (`daily_structure`, `intraday_ibh_ibl`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
+  - `core`: required baseline artifacts (`daily_structure`, `intraday_ibh_ibl`, `intraday_vwap_momentum`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
   - `vpvr`: adds `vpvr_profile` chart
   - `imbalance`: adds `imbalance_fvg` chart
   - `detail`: adds optional detail chart
