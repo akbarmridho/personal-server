@@ -8,7 +8,6 @@ import makeWASocket, {
   proto,
   useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
-import qrcodeTerminal from "qrcode-terminal";
 import { env } from "../infrastructure/env.js";
 import {
   getWhatsAppChannelLastSuccessAt,
@@ -156,6 +155,7 @@ async function openWhatsAppSocket(): Promise<WhatsAppSocket> {
   const socket = makeWASocket({
     auth: state,
     logger: logger.child({ module: "baileys" }),
+    printQRInTerminal: true,
     syncFullHistory: false,
     markOnlineOnConnect: false,
     shouldSyncHistoryMessage: () => false,
@@ -176,8 +176,6 @@ async function waitForWhatsAppConnection(
   timeoutMs: number,
 ): Promise<void> {
   await new Promise<void>((resolve, reject) => {
-    let lastQr = "";
-
     const timeout = setTimeout(() => {
       cleanup();
       reject(
@@ -192,12 +190,10 @@ async function waitForWhatsAppConnection(
       qr?: string;
       lastDisconnect?: { error?: unknown };
     }) => {
-      if (update.qr && update.qr !== lastQr) {
-        lastQr = update.qr;
+      if (update.qr) {
         logger.info(
           "WhatsApp QR received. Scan the QR code in this terminal to login.",
         );
-        qrcodeTerminal.generate(update.qr, { small: true });
       }
 
       if (update.connection === "open") {
