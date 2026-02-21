@@ -55,7 +55,7 @@ Alternation model (base expectation, not certainty):
 
 ## Implementation Note
 
-Deterministic liquidity draw target extraction is implemented in:
+Deterministic liquidity draw target extraction and sweep event classification (including trendline sweep detection) are implemented in:
 
 - Module: `core`
 - Script: `scripts/build_ta_context.py`

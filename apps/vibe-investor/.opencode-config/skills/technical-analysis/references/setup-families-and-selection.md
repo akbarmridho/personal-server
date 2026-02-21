@@ -27,7 +27,7 @@ Select one setup family based on regime, structure status, and acceptance contex
 
 ## Implementation Note
 
-Deterministic setup-family selection output is implemented in:
+Deterministic setup-family selection and Wyckoff spring detection outputs are implemented in:
 
 - Module: `core`
 - Script: `scripts/build_ta_context.py`

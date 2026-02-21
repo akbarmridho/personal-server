@@ -7,10 +7,10 @@ Use volume-by-price structure to strengthen level reliability and improve reacti
 ## Rules
 
 - `R-LVL-05` Prefer confluence zones (swing + VPVR + fib/round number) over isolated levels.
-- `R-VPVR-01` Use POC as fair-value magnet.
-- `R-VPVR-02` HVN is reaction zone; LVN is fast-travel zone.
-- `R-VPVR-03` Use VPVR as confluence, not standalone trigger.
-- `R-VPVR-04` If breakout enters LVN with acceptance, continuation probability increases toward next HVN.
+- `R-VP-08` Use POC as fair-value magnet.
+- `R-VP-09` HVN is reaction zone; LVN is fast-travel zone.
+- `R-VP-10` Use VPVR as confluence, not standalone trigger.
+- `R-VP-11` If breakout enters LVN with acceptance, continuation probability increases toward next HVN.
 
 ## Practical Notes
 

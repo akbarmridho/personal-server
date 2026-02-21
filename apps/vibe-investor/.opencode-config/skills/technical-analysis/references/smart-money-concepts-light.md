@@ -61,7 +61,7 @@ If a module is not used, do not fabricate placeholders.
 
 ## Implementation Note
 
-Deterministic SMC helper outputs (EQH/EQL and premium-discount context) are implemented in:
+Deterministic SMC helper outputs (EQH/EQL, premium-discount context, and sweep event enrichment with EQH/EQL matching) are implemented in:
 
 - Module: `smc`
 - Script: `scripts/build_ta_context.py`
