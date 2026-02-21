@@ -39,6 +39,5 @@ Every red flag should include:
 - `flag_id`
 - `severity`
 - `why`
-- `evidence_refs`
 
 Also include overall risk summary: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` with one-sentence rationale.

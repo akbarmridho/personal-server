@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import mplfinance as mpf
@@ -118,6 +117,58 @@ def add_swings(df: pd.DataFrame, n: int = 2) -> pd.DataFrame:
         sl &= out["low"] < out["low"].shift(-i)
     out["swing_high"] = np.where(sh, out["high"], np.nan)
     out["swing_low"] = np.where(sl, out["low"], np.nan)
+    return out
+
+
+def add_volume_features(df: pd.DataFrame) -> pd.DataFrame:
+    x = df.copy()
+    x["vol_ma20"] = x["volume"].rolling(20).mean()
+    x["vol_ratio"] = x["volume"] / x["vol_ma20"]
+    x["ret"] = x["close"].pct_change()
+    return x
+
+
+def add_rsi(df: pd.DataFrame, period: int = 14) -> pd.DataFrame:
+    x = df.copy()
+    delta = x["close"].diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+    avg_loss = loss.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
+    rs = avg_gain / avg_loss.replace(0, np.nan)
+    x["RSI14"] = 100 - (100 / (1 + rs))
+    return x
+
+
+def derive_recent_fib_lines(df: pd.DataFrame) -> list[float]:
+    x = add_swings(df)
+    highs = x[x["swing_high"].notna()][["datetime", "swing_high"]]
+    lows = x[x["swing_low"].notna()][["datetime", "swing_low"]]
+    if len(highs) == 0 or len(lows) == 0:
+        return []
+    anchor_low = lows.iloc[-1]
+    cands = highs[highs["datetime"] >= anchor_low["datetime"]]
+    anchor_high = cands.iloc[-1] if len(cands) > 0 else highs.iloc[-1]
+    lo = float(anchor_low["swing_low"])
+    hi = float(anchor_high["swing_high"])
+    if hi <= lo:
+        return []
+    span = hi - lo
+    return [float(hi - span * r) for r in (0.236, 0.382, 0.5, 0.618, 0.786)]
+
+
+def anomaly_overrides(df: pd.DataFrame) -> list[str | None]:
+    x = add_volume_features(df)
+    out: list[str | None] = []
+    for _, row in x.iterrows():
+        vr = float(row.get("vol_ratio", 1.0) or 1.0)
+        chg = float(row.get("ret", 0.0) or 0.0)
+        if vr >= 1.5 and chg < 0:
+            out.append("#8B0000")
+        elif vr >= 1.5:
+            out.append("#0B6E4F")
+        else:
+            out.append(None)
     return out
 
 
@@ -318,39 +369,128 @@ def vpvr_stats(df_daily: pd.DataFrame, bins: int = 40) -> dict[str, Any]:
     }
 
 
-def detect_fvg(df_daily: pd.DataFrame) -> list[dict[str, Any]]:
+def detect_imbalance_zones(df_daily: pd.DataFrame) -> list[dict[str, Any]]:
     x = df_daily.reset_index(drop=True)
     out: list[dict[str, Any]] = []
-    for i in range(2, len(x)):
-        c1 = x.iloc[i - 2]
+    for i in range(1, len(x)):
+        c2 = x.iloc[i - 1]
         c3 = x.iloc[i]
-        if c1["high"] < c3["low"]:
-            low = float(c1["high"])
+
+        if c2["high"] < c3["low"]:
+            low = float(c2["high"])
             high = float(c3["low"])
             out.append(
                 {
+                    "type": "OPENING_GAP",
                     "direction": "bullish",
                     "low": low,
                     "high": high,
                     "ce": (low + high) / 2.0,
-                    "start_dt": c1["datetime"],
+                    "start_dt": c2["datetime"],
                     "end_dt": c3["datetime"],
                 }
             )
-        elif c3["high"] < c1["low"]:
+        elif c3["high"] < c2["low"]:
             low = float(c3["high"])
-            high = float(c1["low"])
+            high = float(c2["low"])
             out.append(
                 {
+                    "type": "OPENING_GAP",
                     "direction": "bearish",
                     "low": low,
                     "high": high,
                     "ce": (low + high) / 2.0,
-                    "start_dt": c1["datetime"],
+                    "start_dt": c2["datetime"],
                     "end_dt": c3["datetime"],
                 }
             )
-    return out[-8:]
+
+        if c3["close"] > c2["high"] and c3["open"] < c2["high"]:
+            low = float(min(c3["open"], c2["high"]))
+            high = float(max(c3["open"], c2["high"]))
+            if high > low:
+                out.append(
+                    {
+                        "type": "VOLUME_IMBALANCE",
+                        "direction": "bullish",
+                        "low": low,
+                        "high": high,
+                        "ce": (low + high) / 2.0,
+                        "start_dt": c2["datetime"],
+                        "end_dt": c3["datetime"],
+                    }
+                )
+        elif c3["close"] < c2["low"] and c3["open"] > c2["low"]:
+            low = float(min(c3["open"], c2["low"]))
+            high = float(max(c3["open"], c2["low"]))
+            if high > low:
+                out.append(
+                    {
+                        "type": "VOLUME_IMBALANCE",
+                        "direction": "bearish",
+                        "low": low,
+                        "high": high,
+                        "ce": (low + high) / 2.0,
+                        "start_dt": c2["datetime"],
+                        "end_dt": c3["datetime"],
+                    }
+                )
+
+        if i >= 2:
+            c1 = x.iloc[i - 2]
+            if c1["high"] < c3["low"]:
+                low = float(c1["high"])
+                high = float(c3["low"])
+                out.append(
+                    {
+                        "type": "FVG",
+                        "direction": "bullish",
+                        "low": low,
+                        "high": high,
+                        "ce": (low + high) / 2.0,
+                        "start_dt": c1["datetime"],
+                        "end_dt": c3["datetime"],
+                    }
+                )
+            elif c3["high"] < c1["low"]:
+                low = float(c3["high"])
+                high = float(c1["low"])
+                out.append(
+                    {
+                        "type": "FVG",
+                        "direction": "bearish",
+                        "low": low,
+                        "high": high,
+                        "ce": (low + high) / 2.0,
+                        "start_dt": c1["datetime"],
+                        "end_dt": c3["datetime"],
+                    }
+                )
+
+    base_zones = out.copy()
+    if len(x) >= 2:
+        last_close = float(x["close"].iloc[-1])
+        prev_close = float(x["close"].iloc[-2])
+        ifvg: list[dict[str, Any]] = []
+        for z in out:
+            if z.get("type") != "FVG":
+                continue
+            if (
+                z["direction"] == "bullish"
+                and last_close < z["low"]
+                and prev_close <= z["low"]
+            ):
+                ifvg.append({**z, "type": "IFVG", "direction": "bearish"})
+            elif (
+                z["direction"] == "bearish"
+                and last_close > z["high"]
+                and prev_close >= z["high"]
+            ):
+                ifvg.append({**z, "type": "IFVG", "direction": "bullish"})
+        mixed = base_zones[-12:] + ifvg[-6:]
+        return mixed[-18:]
+
+    return out[-14:]
 
 
 def _base_style() -> Any:
@@ -364,13 +504,23 @@ def plot_daily_structure(
     symbol: str,
     lookback: int,
 ) -> None:
-    x = add_ma(df_daily.tail(lookback))
+    x = add_rsi(add_ma(add_swings(df_daily.tail(lookback))))
     hlines = [z["zone_mid"] for z in zones[:8]]
+    fib_lines = derive_recent_fib_lines(x)
+    merged_hlines = hlines + fib_lines
+    sh = x["swing_high"].copy()
+    sl = x["swing_low"].copy()
     apds = [
         mpf.make_addplot(x["EMA21"], color="#f39c12", width=1.0),
         mpf.make_addplot(x["SMA50"], color="#3498db", width=1.0),
         mpf.make_addplot(x["SMA100"], color="#2ecc71", width=1.0),
         mpf.make_addplot(x["SMA200"], color="#9b59b6", width=1.0),
+        mpf.make_addplot(
+            sh, type="scatter", marker="v", markersize=40, color="#d62728"
+        ),
+        mpf.make_addplot(
+            sl, type="scatter", marker="^", markersize=40, color="#2ca02c"
+        ),
     ]
     mpf.plot(
         to_mpf(x),
@@ -379,12 +529,13 @@ def plot_daily_structure(
         style=_base_style(),
         addplot=apds,
         hlines=dict(
-            hlines=hlines,
-            colors=["#1f77b4"] * len(hlines),
-            linewidths=[0.8] * len(hlines),
+            hlines=merged_hlines,
+            colors=(["#1f77b4"] * len(hlines)) + (["#8e44ad"] * len(fib_lines)),
+            linewidths=([0.8] * len(hlines)) + ([0.7] * len(fib_lines)),
         )
-        if hlines
+        if merged_hlines
         else None,
+        marketcolor_overrides=anomaly_overrides(x),
         title=f"{symbol} Daily Structure",
         savefig=dict(fname=str(path), dpi=160, bbox_inches="tight"),
     )
@@ -481,10 +632,13 @@ def plot_structure_events(
     ax = axes[0]
     for e in events[-6:]:
         dt = pd.Timestamp(e["datetime"])
-        if dt < x["datetime"].iloc[0]:
+        if dt < x["datetime"].iloc[0] or dt > x["datetime"].iloc[-1]:
             continue
-        xnum = mdates.date2num(dt)
-        ax.text(xnum, e["close"], e["label"], fontsize=8)
+        matches = x.index[x["datetime"] == dt]
+        if len(matches) == 0:
+            continue
+        xpos = int(matches[0])
+        ax.text(xpos, e["close"], e["label"], fontsize=8)
     fig.savefig(str(path), dpi=160, bbox_inches="tight")
     plt.close(fig)
 
@@ -561,14 +715,20 @@ def plot_vpvr_profile(
     fig, (ax_price, ax_prof) = plt.subplots(
         1, 2, figsize=(12, 6), gridspec_kw={"width_ratios": [4, 1]}
     )
-    ax_price.plot(x["datetime"], x["close"], color="#1f77b4", linewidth=1.0)
+    mpf.plot(
+        to_mpf(x),
+        type="candle",
+        style=_base_style(),
+        ax=ax_price,
+        volume=False,
+    )
     for lvl, color, name in [
         (stats["poc"], "#d62728", "POC"),
         (stats["vah"], "#2ca02c", "VAH"),
         (stats["val"], "#ff7f0e", "VAL"),
     ]:
         ax_price.axhline(lvl, color=color, linewidth=1.0, linestyle="--")
-        ax_price.text(x["datetime"].iloc[-1], lvl, f" {name}", fontsize=8)
+        ax_price.text(len(x) - 1, lvl, f" {name}", fontsize=8)
     ax_price.set_title(f"{symbol} Price + VPVR Levels")
     ax_price.grid(alpha=0.2)
 
@@ -587,12 +747,12 @@ def plot_vpvr_profile(
 
 def plot_imbalance_fvg(
     df_daily: pd.DataFrame,
-    fvgs: list[dict[str, Any]],
+    zones: list[dict[str, Any]],
     path: Path,
     symbol: str,
     lookback: int,
 ) -> None:
-    x = df_daily.tail(lookback)
+    x = df_daily.tail(lookback).copy().reset_index(drop=True)
     fig, axes = mpf.plot(
         to_mpf(x),
         type="candle",
@@ -605,15 +765,32 @@ def plot_imbalance_fvg(
     min_dt = x["datetime"].iloc[0]
     max_dt = x["datetime"].iloc[-1]
 
-    for zone in fvgs[-5:]:
+    for zone in zones[-7:]:
         x0 = max(pd.Timestamp(zone["start_dt"]), min_dt)
         x1 = min(pd.Timestamp(zone["end_dt"]), max_dt)
         if x1 <= min_dt or x0 >= max_dt:
             continue
-        color = "#2ca02c" if zone["direction"] == "bullish" else "#d62728"
+        zone_type = str(zone.get("type", "FVG"))
+        if zone_type == "IFVG":
+            color = "#8e44ad"
+        elif zone_type == "OPENING_GAP":
+            color = "#1f77b4"
+        elif zone_type == "VOLUME_IMBALANCE":
+            color = "#e67e22"
+        else:
+            color = "#2ca02c" if zone["direction"] == "bullish" else "#d62728"
+        s_idx = x[x["datetime"] >= x0].index
+        e_idx = x[x["datetime"] <= x1].index
+        if len(s_idx) == 0 or len(e_idx) == 0:
+            continue
+        start_idx = int(s_idx[0])
+        end_idx = int(e_idx[-1])
+        if end_idx < start_idx:
+            continue
+
         rect = Rectangle(
-            (mdates.date2num(x0), zone["low"]),
-            max(mdates.date2num(x1) - mdates.date2num(x0), 0.5),
+            (start_idx, zone["low"]),
+            max(float(end_idx - start_idx), 1.0),
             zone["high"] - zone["low"],
             facecolor=color,
             edgecolor=color,
@@ -622,8 +799,8 @@ def plot_imbalance_fvg(
         ax.add_patch(rect)
         ax.hlines(
             zone["ce"],
-            mdates.date2num(x0),
-            mdates.date2num(x1),
+            start_idx,
+            end_idx,
             colors=color,
             linewidth=1.0,
             linestyles="--",
@@ -633,10 +810,24 @@ def plot_imbalance_fvg(
 
 
 def plot_detail(df_daily: pd.DataFrame, path: Path, symbol: str) -> None:
-    x = add_ma(df_daily.tail(120))
+    x = add_rsi(add_ma(add_swings(df_daily.tail(120))))
+    sh = x["swing_high"].copy()
+    sl = x["swing_low"].copy()
+    fib_lines = derive_recent_fib_lines(x)
+    rsi70 = pd.Series(70.0, index=x.index)
+    rsi30 = pd.Series(30.0, index=x.index)
     apds = [
         mpf.make_addplot(x["EMA21"], color="#f39c12", width=1.0),
         mpf.make_addplot(x["SMA50"], color="#3498db", width=1.0),
+        mpf.make_addplot(
+            sh, type="scatter", marker="v", markersize=40, color="#d62728"
+        ),
+        mpf.make_addplot(
+            sl, type="scatter", marker="^", markersize=40, color="#2ca02c"
+        ),
+        mpf.make_addplot(x["RSI14"], panel=2, color="#9b59b6", width=1.0),
+        mpf.make_addplot(rsi70, panel=2, color="#95a5a6", width=0.8),
+        mpf.make_addplot(rsi30, panel=2, color="#95a5a6", width=0.8),
     ]
     mpf.plot(
         to_mpf(x),
@@ -644,6 +835,14 @@ def plot_detail(df_daily: pd.DataFrame, path: Path, symbol: str) -> None:
         volume=True,
         style=_base_style(),
         addplot=apds,
+        hlines=dict(
+            hlines=fib_lines,
+            colors=["#8e44ad"] * len(fib_lines),
+            linewidths=[0.8] * len(fib_lines),
+        )
+        if fib_lines
+        else None,
+        marketcolor_overrides=anomaly_overrides(x),
         title=f"{symbol} Detail",
         savefig=dict(fname=str(path), dpi=170, bbox_inches="tight"),
     )
@@ -711,11 +910,11 @@ def main() -> None:
         plot_vpvr_profile(daily, vpvr, p_vpvr, symbol)
         generated["vpvr_profile"] = str(p_vpvr)
 
-    fvgs = None
+    imbalance_zones = None
     if "imbalance" in modules:
-        fvgs = detect_fvg(daily)
+        imbalance_zones = detect_imbalance_zones(daily)
         p_fvg = outdir / f"{symbol}_imbalance_fvg.png"
-        plot_imbalance_fvg(daily, fvgs, p_fvg, symbol, args.daily_lookback)
+        plot_imbalance_fvg(daily, imbalance_zones, p_fvg, symbol, args.daily_lookback)
         generated["imbalance_fvg"] = str(p_fvg)
 
     if "detail" in modules:
@@ -764,9 +963,10 @@ def main() -> None:
             "hvn_top3": vpvr["hvn_top3"],
             "lvn_top3": vpvr["lvn_top3"],
         }
-    if fvgs is not None:
-        evidence["fvg_zones"] = [
+    if imbalance_zones is not None:
+        evidence["imbalance_zones"] = [
             {
+                "type": z.get("type", "FVG"),
                 "direction": z["direction"],
                 "low": z["low"],
                 "high": z["high"],
@@ -774,7 +974,7 @@ def main() -> None:
                 "start_dt": str(z["start_dt"]),
                 "end_dt": str(z["end_dt"]),
             }
-            for z in fvgs
+            for z in imbalance_zones
         ]
 
     evidence_path = outdir / f"{symbol}_chart_evidence.json"

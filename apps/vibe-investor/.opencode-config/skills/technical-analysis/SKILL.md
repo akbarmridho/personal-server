@@ -79,11 +79,11 @@ python scripts/build_ta_context.py \
 - Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
 - Output contract: `work/{SYMBOL}_ta_context.json` (or `--output` path) with deterministic fields for regime, levels, MA posture, IB state, structure events, and liquidity.
 - Available modules for `--modules`:
-  - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity
+  - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity, divergence, price-volume summary, distribution days, informed money, red flags, Wyckoff context
   - `vpvr`: adds `poc/vah/val/hvn/lvn` context
-  - `imbalance`: adds FVG zones and CE levels
-  - `breakout`: adds breakout trigger/follow-through snapshot
-  - `smc`: adds EQH/EQL and premium-discount context
+  - `imbalance`: adds imbalance zones (`FVG`, `VOLUME_IMBALANCE`, `OPENING_GAP`, `IFVG`) and CE levels
+  - `breakout`: adds breakout trigger/follow-through snapshot and displacement quality
+  - `smc`: adds EQH/EQL, OB/Breaker zones, and premium-discount context
   - `all`: shorthand for `core,vpvr,imbalance,breakout,smc`
 
 ### Scripted Chart Build (Deterministic)

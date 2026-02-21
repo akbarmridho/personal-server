@@ -8,10 +8,9 @@ Reference index for checklist and risk-warning modules.
 
 - [Analysis checkpoints](analysis-checkpoints.md)
 - [Red flags taxonomy](red-flags-taxonomy.md)
-- [Red flag helpers](red-flag-helpers.md)
 
 ## Usage Notes
 
 - Use checkpoints to ensure report completeness.
 - Use taxonomy for consistent risk language.
-- Use helpers for structured flag generation in reference implementations.
+- Red flag generation is implemented in code via `scripts/build_ta_context.py`.
