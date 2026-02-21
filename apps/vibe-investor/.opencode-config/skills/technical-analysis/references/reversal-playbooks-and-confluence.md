@@ -54,14 +54,9 @@ When lens is `SMC_ICT_LIGHT`, confluence may also include OB/Breaker/IFVG/EQH-EQ
 - divergence status and invalidator
 - confluence bounds when FVG/OTE is used
 
-## Reference Code
+## Implementation Note
 
-```python
-def ote_zone(swing_low: float, swing_high: float):
-    span = swing_high - swing_low
-    return {
-        "fib_0_618": swing_high - span * 0.618,
-        "fib_0_706": swing_high - span * 0.706,
-        "fib_0_786": swing_high - span * 0.786,
-    }
-```
+Deterministic structure-status and OTE helper outputs are implemented in:
+
+- Module: `core`
+- Script: `scripts/build_ta_context.py`

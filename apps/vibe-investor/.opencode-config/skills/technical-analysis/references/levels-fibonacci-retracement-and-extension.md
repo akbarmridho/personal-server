@@ -44,33 +44,9 @@ Interpretation guide:
 - extension levels used for target ladder (if used)
 - confluence note: structure / MA / VPVR alignment
 
-## Reference Code
+## Implementation Note
 
-```python
-def fib_retracement_levels(swing_low: float, swing_high: float, trend: str = "up"):
-    # trend in {"up", "down"}
-    ratios = [0.236, 0.382, 0.5, 0.618, 0.706, 0.786]
-    out = {}
-    if trend == "up":
-        span = swing_high - swing_low
-        for r in ratios:
-            out[f"fib_{r}"] = swing_high - span * r
-    else:
-        span = swing_high - swing_low
-        for r in ratios:
-            out[f"fib_{r}"] = swing_low + span * r
-    return out
+Deterministic Fib retracement/extension and OTE helper outputs are implemented in:
 
-
-def fib_extension_levels(swing_low: float, swing_high: float, trend: str = "up"):
-    ratios = [1.0, 1.272, 1.618, 2.618]
-    out = {}
-    span = swing_high - swing_low
-    if trend == "up":
-        for r in ratios:
-            out[f"ext_{r}"] = swing_low + span * r
-    else:
-        for r in ratios:
-            out[f"ext_{r}"] = swing_high - span * r
-    return out
-```
+- Module: `core`
+- Script: `scripts/build_ta_context.py`

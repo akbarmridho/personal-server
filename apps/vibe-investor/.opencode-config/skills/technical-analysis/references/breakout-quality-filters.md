@@ -27,28 +27,9 @@ Improve breakout selectivity using base-quality and market-context filters befor
 - breakout strength note (volume and displacement)
 - market context impact note (`supportive`, `neutral`, `adverse`)
 
-## Reference Code
+## Implementation Note
 
-```python
-import pandas as pd
+Deterministic breakout base-quality outputs are implemented in:
 
-
-def base_quality(window: pd.DataFrame, min_weeks=7, max_depth=0.35):
-    n_days = len(window)
-    weeks = n_days / 5.0
-    hi = float(window["high"].max())
-    lo = float(window["low"].min())
-    depth = (hi - lo) / hi if hi > 0 else 0.0
-    too_short = weeks < min_weeks
-    too_deep = depth > max_depth
-    status = "ok"
-    if too_short or too_deep:
-        status = "weak"
-    return {
-        "weeks": weeks,
-        "depth": depth,
-        "too_short": too_short,
-        "too_deep": too_deep,
-        "status": status,
-    }
-```
+- Module: `breakout`
+- Script: `scripts/build_ta_context.py`

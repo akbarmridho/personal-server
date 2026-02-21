@@ -25,23 +25,9 @@ Select one setup family based on regime, structure status, and acceptance contex
 - selected setup id and reason
 - setup rejection reason when `NO_VALID_SETUP`
 
-## Reference Code
+## Implementation Note
 
-```python
-def choose_setup(regime, ib_state, breakout_state, structure_state="no_signal", spring_confirmed=False):
-    if structure_state == "choch_plus_bos_confirmed":
-        return "S3"
-    if structure_state == "choch_only":
-        return "NO_VALID_SETUP"
-    if spring_confirmed:
-        return "S6"
-    if regime == "trend_continuation" and breakout_state == "valid_breakout":
-        return "S1"
-    if regime == "trend_continuation" and ib_state in {"inside_ib_range", "failed_break_below_ibl"}:
-        return "S2"
-    if regime in {"potential_reversal", "range_rotation"} and ib_state in {"failed_break_above_ibh", "failed_break_below_ibl"}:
-        return "S3"
-    if regime == "range_rotation":
-        return "S4"
-    return "NO_VALID_SETUP"
-```
+Deterministic setup-family selection output is implemented in:
+
+- Module: `core`
+- Script: `scripts/build_ta_context.py`

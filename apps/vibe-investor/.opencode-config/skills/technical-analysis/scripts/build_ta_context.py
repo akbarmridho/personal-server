@@ -216,14 +216,7 @@ def cluster_levels(
     out = []
     for c in clusters:
         touches = len(c)
-        if touches <= 1:
-            strength = "strong_first_test"
-        elif touches == 2:
-            strength = "strong"
-        elif touches == 3:
-            strength = "weakening"
-        else:
-            strength = "fragile"
+        strength = classify_level_strength(touches)
         out.append(
             {
                 "zone_mid": float(np.mean(c)),
@@ -596,30 +589,40 @@ def detect_fvg(df: pd.DataFrame) -> list[dict[str, Any]]:
     for i in range(2, len(x)):
         c1 = x.iloc[i - 2]
         c3 = x.iloc[i]
-        if c1["high"] < c3["low"]:
-            low = float(c1["high"])
-            high = float(c3["low"])
+        bull = fvg_bounds(
+            float(c1["high"]),
+            float(c1["low"]),
+            float(c3["high"]),
+            float(c3["low"]),
+            "bullish",
+        )
+        bear = fvg_bounds(
+            float(c1["high"]),
+            float(c1["low"]),
+            float(c3["high"]),
+            float(c3["low"]),
+            "bearish",
+        )
+        if bull is not None:
             out.append(
                 {
                     "type": "FVG",
                     "direction": "bullish",
-                    "low": low,
-                    "high": high,
-                    "ce": (low + high) / 2.0,
+                    "low": float(bull["low"]),
+                    "high": float(bull["high"]),
+                    "ce": float(bull["ce"]),
                     "start": str(c1["datetime"]),
                     "end": str(c3["datetime"]),
                 }
             )
-        elif c3["high"] < c1["low"]:
-            low = float(c3["high"])
-            high = float(c1["low"])
+        elif bear is not None:
             out.append(
                 {
                     "type": "FVG",
                     "direction": "bearish",
-                    "low": low,
-                    "high": high,
-                    "ce": (low + high) / 2.0,
+                    "low": float(bear["low"]),
+                    "high": float(bear["high"]),
+                    "ce": float(bear["ce"]),
                     "start": str(c1["datetime"]),
                     "end": str(c3["datetime"]),
                 }
@@ -689,35 +692,37 @@ def breakout_snapshot(df: pd.DataFrame, levels: list[dict[str, Any]]) -> dict[st
 
     status = "no_breakout"
     side = None
+    level = None
     if up_level is not None and float(trig["close"]) > up_level:
         side = "up"
-        status = (
-            "valid_breakout"
-            if float(foll["close"]) >= up_level
-            and float(trig["vol_ratio"] or 0.0) >= 1.2
-            else "failed_breakout"
-        )
+        level = float(up_level)
     elif dn_level is not None and float(trig["close"]) < dn_level:
         side = "down"
-        status = (
-            "valid_breakout"
-            if float(foll["close"]) <= dn_level
-            and float(trig["vol_ratio"] or 0.0) >= 1.2
-            else "failed_breakout"
-        )
+        level = float(dn_level)
+
+    if side is not None and level is not None:
+        status, proof = breakout_quality(df, level=level, side=side)
+    else:
+        proof = {
+            "trigger_dt": str(trig["datetime"]),
+            "trigger_close": float(trig["close"]),
+            "follow_dt": str(foll["datetime"]),
+            "follow_close": float(foll["close"]),
+            "trigger_vol_ratio": float(trig["vol_ratio"])
+            if pd.notna(trig["vol_ratio"])
+            else None,
+        }
 
     return {
         "status": status,
         "side": side,
         "up_level": up_level,
         "down_level": dn_level,
-        "trigger_dt": str(trig["datetime"]),
-        "trigger_close": float(trig["close"]),
-        "follow_dt": str(foll["datetime"]),
-        "follow_close": float(foll["close"]),
-        "trigger_vol_ratio": float(trig["vol_ratio"])
-        if pd.notna(trig["vol_ratio"])
-        else None,
+        "trigger_dt": proof["trigger_dt"],
+        "trigger_close": proof["trigger_close"],
+        "follow_dt": proof["follow_dt"],
+        "follow_close": proof["follow_close"],
+        "trigger_vol_ratio": proof["trigger_vol_ratio"],
     }
 
 
@@ -799,6 +804,139 @@ def choose_structure_bias(swing_bias: str, internal_bias: str) -> str:
     return internal_bias
 
 
+def fib_retracement_levels(
+    swing_low: float, swing_high: float, trend: str = "up"
+) -> dict[str, float]:
+    ratios = [0.236, 0.382, 0.5, 0.618, 0.706, 0.786]
+    span = swing_high - swing_low
+    out: dict[str, float] = {}
+    if trend == "up":
+        for r in ratios:
+            out[f"fib_{r}"] = float(swing_high - span * r)
+    else:
+        for r in ratios:
+            out[f"fib_{r}"] = float(swing_low + span * r)
+    return out
+
+
+def fib_extension_levels(
+    swing_low: float, swing_high: float, trend: str = "up"
+) -> dict[str, float]:
+    ratios = [1.0, 1.272, 1.618, 2.618]
+    span = swing_high - swing_low
+    out: dict[str, float] = {}
+    if trend == "up":
+        for r in ratios:
+            out[f"ext_{r}"] = float(swing_low + span * r)
+    else:
+        for r in ratios:
+            out[f"ext_{r}"] = float(swing_high - span * r)
+    return out
+
+
+def ote_zone(swing_low: float, swing_high: float) -> dict[str, float]:
+    span = swing_high - swing_low
+    return {
+        "fib_0_618": float(swing_high - span * 0.618),
+        "fib_0_706": float(swing_high - span * 0.706),
+        "fib_0_786": float(swing_high - span * 0.786),
+    }
+
+
+def base_quality(
+    window: pd.DataFrame, min_weeks: int = 7, max_depth: float = 0.35
+) -> dict[str, Any]:
+    n_days = len(window)
+    weeks = n_days / 5.0
+    hi = float(window["high"].max())
+    lo = float(window["low"].min())
+    depth = (hi - lo) / hi if hi > 0 else 0.0
+    too_short = weeks < min_weeks
+    too_deep = depth > max_depth
+    status = "weak" if (too_short or too_deep) else "ok"
+    return {
+        "weeks": float(weeks),
+        "depth": float(depth),
+        "too_short": bool(too_short),
+        "too_deep": bool(too_deep),
+        "status": status,
+    }
+
+
+def choose_setup(
+    regime: str,
+    ib_state: str,
+    breakout_state: str,
+    structure_state: str = "no_signal",
+    spring_confirmed: bool = False,
+) -> str:
+    if structure_state == "choch_plus_bos_confirmed":
+        return "S3"
+    if structure_state == "choch_only":
+        return "NO_VALID_SETUP"
+    if spring_confirmed:
+        return "S6"
+    if regime == "trend_continuation" and breakout_state == "valid_breakout":
+        return "S1"
+    if regime == "trend_continuation" and ib_state in {
+        "inside_ib_range",
+        "failed_break_below_ibl",
+    }:
+        return "S2"
+    if regime in {"potential_reversal", "range_rotation"} and ib_state in {
+        "failed_break_above_ibh",
+        "failed_break_below_ibl",
+    }:
+        return "S3"
+    if regime == "range_rotation":
+        return "S4"
+    return "NO_VALID_SETUP"
+
+
+def derive_fib_context(
+    df_daily: pd.DataFrame, trend_bias: str
+) -> dict[str, Any] | None:
+    highs = df_daily[df_daily["swing_high"].notna()][["datetime", "swing_high"]].copy()
+    lows = df_daily[df_daily["swing_low"].notna()][["datetime", "swing_low"]].copy()
+    if len(highs) == 0 or len(lows) == 0:
+        return None
+
+    if trend_bias == "bearish":
+        trend = "down"
+        anchor_high = highs.iloc[-1]
+        cands = lows[lows["datetime"] >= anchor_high["datetime"]]
+        anchor_low = cands.iloc[-1] if len(cands) > 0 else lows.iloc[-1]
+    else:
+        trend = "up"
+        anchor_low = lows.iloc[-1]
+        cands = highs[highs["datetime"] >= anchor_low["datetime"]]
+        anchor_high = cands.iloc[-1] if len(cands) > 0 else highs.iloc[-1]
+
+    swing_low = float(anchor_low["swing_low"])
+    swing_high = float(anchor_high["swing_high"])
+    if swing_high <= swing_low:
+        return None
+
+    retr = fib_retracement_levels(swing_low, swing_high, trend=trend)
+    ext = fib_extension_levels(swing_low, swing_high, trend=trend)
+    return {
+        "trend": trend,
+        "anchors": {
+            "swing_low": {
+                "datetime": str(anchor_low["datetime"]),
+                "value": swing_low,
+            },
+            "swing_high": {
+                "datetime": str(anchor_high["datetime"]),
+                "value": swing_high,
+            },
+        },
+        "retracements": retr,
+        "extensions": ext,
+        "ote": ote_zone(swing_low, swing_high),
+    }
+
+
 def main() -> None:
     args = parse_args()
     modules = parse_modules(args.modules)
@@ -820,7 +958,7 @@ def main() -> None:
     prev_close = float(daily.iloc[-2]["close"]) if len(daily) > 1 else None
     posture = ma_posture(last)
     adaptive_ma = choose_adaptive_ma(daily)
-    ib = latest_intraday_ib(intraday)
+    ib = latest_ib_state(intraday)
     period_ib = latest_period_ib_state(daily, period="M", first_n_bars=2)
     events = detect_structure_events(daily)
     vp_base = vpvr_core(daily.tail(260))
@@ -842,6 +980,13 @@ def main() -> None:
     nearest_mid = levels[-1]["zone_mid"] if levels else last_close
     role_reversal_note = role_reversal(
         last_close, float(nearest_mid), was_support=(regime["trend_bias"] == "bullish")
+    )
+    fib_ctx = derive_fib_context(daily, trend_bias=regime["trend_bias"])
+    setup_id = choose_setup(
+        regime=regime["regime"],
+        ib_state=str(ib.get("state", "inside_ib_range")),
+        breakout_state=breakout_snapshot(daily, levels).get("status", "no_breakout"),
+        structure_state=structure_state,
     )
 
     result: dict[str, Any] = {
@@ -872,10 +1017,12 @@ def main() -> None:
             "time_based_opens": time_based_opens(daily),
             "round_levels": nearest_round_levels(last_close),
             "role_reversal_note": role_reversal_note,
+            "fib_context": fib_ctx,
         },
         "ib_state": ib,
         "period_ib_state": period_ib,
         "structure_events": events,
+        "setup_selection": {"setup_id": setup_id},
     }
 
     fvg_zones = []
@@ -937,6 +1084,7 @@ def main() -> None:
             float(latest.get("ret", 0.0) or 0.0),
             float(latest.get("vol_ratio", 1.0) or 1.0),
         )
+        breakout["base_quality"] = base_quality(daily.tail(35))
         result["breakout"] = breakout
 
     if "smc" in modules:

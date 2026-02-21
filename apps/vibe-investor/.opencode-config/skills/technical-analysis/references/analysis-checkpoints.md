@@ -33,15 +33,3 @@ Enforce a consistent analysis flow without forcing rigid sequencing in every sce
 ## Soft Stops
 
 - Mixed or conflicting evidence -> reduce confidence and prefer `WAIT` or smaller risk.
-
-## Reference Code
-
-```python
-def checkpoint_result(checkpoint_id, status, why, evidence_refs):
-    return {
-        "checkpoint_id": checkpoint_id,
-        "status": status,  # PASS, MIXED, FAIL
-        "why": why,
-        "evidence_refs": evidence_refs,
-    }
-```
