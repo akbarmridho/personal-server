@@ -30,6 +30,7 @@ Use this structure for every technical analysis output.
 ### C. Key Levels And Liquidity
 - Support zones
 - Resistance zones
+- MA posture (dynamic S/R): above/below 21EMA, 50SMA, 100SMA, 200SMA
 - POC/HVN/LVN
 - VAH/VAL and value-area acceptance state
 - IBH/IBL values
@@ -81,6 +82,10 @@ Use this structure for every technical analysis output.
 - Zone bounds and CE (50 percent midpoint)
 - Mitigation state: unmitigated / partially_mitigated / fully_mitigated
 - CE behavior: respected / violated
+
+### E2. Breakout Quality Filters (for breakout setups)
+- Base quality: duration/depth/stage note
+- Market context impact: supportive / neutral / adverse
 
 ### F. Risk And Execution
 - Action: BUY / HOLD / WAIT / EXIT

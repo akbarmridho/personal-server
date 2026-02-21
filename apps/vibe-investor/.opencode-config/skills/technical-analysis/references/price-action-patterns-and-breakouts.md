@@ -8,6 +8,7 @@ Reference index for setup, breakout, and reversal modules.
 
 - [Setup families and selection](setup-families-and-selection.md)
 - [Breakout and participation](breakout-and-participation.md)
+- [Breakout quality filters](breakout-quality-filters.md)
 - [Reversal playbooks and confluence](reversal-playbooks-and-confluence.md)
 
 ## Usage Notes

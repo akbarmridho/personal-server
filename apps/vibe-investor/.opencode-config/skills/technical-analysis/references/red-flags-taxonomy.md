@@ -23,6 +23,7 @@ Standardize warning signals and severity assessment for risk communication.
 - `F15_NO_NEXT_ZONE_PATH`
 - `F16_LIQUIDITY_MAP_MISSING`
 - `F17_BREAKOUT_STALLING`
+- `F18_BREAKOUT_FILTER_WEAK`
 
 ## Severity
 

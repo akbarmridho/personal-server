@@ -12,6 +12,7 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 - `SMC_ICT_LIGHT`: BOS/CHOCH/CHOCH+, EQH/EQL, OB/Breaker, FVG/IFVG, Premium/Discount.
 - `LEVEL_TO_LEVEL`: entry near mapped zone, invalidation beyond structure, next-zone target path.
 - `IBH_IBL`: Initial Balance acceptance/deviation logic and stepped overlay chart.
+- `BREAKOUT_FILTERS`: MA posture, base-quality checks, and market-context filter before breakout action.
 
 ## Schools Of Thought In This Skill
 
@@ -125,6 +126,29 @@ Intent: ENTRY.
 Lens: UNIFIED.
 Build plan with entry zone, invalidation, next-zone target, and expected RR.
 If no clear next-zone path exists, return WAIT with required conditions.
+```
+
+### 11) Breakout Quality Filter Pass
+
+```text
+Run technical-analysis mode UPDATE for BBCA.
+Intent: ENTRY.
+Lens: UNIFIED.
+Previous analysis reference: work/BBCA_report_2026-02-14.md.
+If setup is breakout, include breakout quality filters: base quality and market context impact.
+Report MA posture separately under levels context.
+Downgrade conviction if filters are weak.
+```
+
+### 12) Dynamic S/R MA Context
+
+```text
+Run technical-analysis mode UPDATE for BBCA.
+Intent: HOLD.
+Lens: CLASSICAL_TA.
+Previous analysis reference: work/BBCA_report_2026-02-14.md.
+Report MA posture as dynamic support/resistance (21EMA, 50SMA, 100SMA, 200SMA) together with horizontal levels.
+Do not use MA alone as trade trigger.
 ```
 
 ## Notes

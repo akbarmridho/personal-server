@@ -83,6 +83,11 @@ Single source of truth for shared statuses and enum labels used across reference
 - `probe_below_val`
 - `inside_value`
 
+## Breakout Filter Notes
+
+- `breakout_displacement`: `clean_displacement`, `stalling`
+- `market_context_impact`: `supportive`, `neutral`, `adverse`
+
 ## Imbalance Types And Mitigation
 
 - `imbalance_type`: `FVG`, `VOLUME_IMBALANCE`, `OPENING_GAP`, `IFVG`

@@ -145,6 +145,18 @@ def add_breakout_stalling_flag(is_breakout_setup: bool, has_displacement: bool):
     return []
 
 
+def add_breakout_filter_weak_flag(is_breakout_setup: bool, base_quality_ok: bool, market_context_ok: bool):
+    if not is_breakout_setup:
+        return []
+    if base_quality_ok and market_context_ok:
+        return []
+    return [{
+        "flag_id": "F18_BREAKOUT_FILTER_WEAK",
+        "severity": "MEDIUM",
+        "why": "Breakout filters weak (base quality/market context)",
+    }]
+
+
 def add_ma_breakdown_flag(price, ma20, ma50):
     flags = []
     if price < ma20:

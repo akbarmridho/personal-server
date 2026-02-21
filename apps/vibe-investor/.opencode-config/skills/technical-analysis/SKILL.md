@@ -76,10 +76,12 @@ Topic ownership (avoid overlap):
 
 - Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
 - Levels index -> `references/levels-support-resistance-and-vpvr.md`
+- Levels moving-average dynamics -> `references/levels-moving-average-dynamics.md`
 - Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
 - Liquidity draw and sweep framework -> `references/liquidity-draw-and-sweep.md`
 - Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
 - Setup index -> `references/price-action-patterns-and-breakouts.md`
+- Breakout quality filters -> `references/breakout-quality-filters.md`
 - Level-to-level execution workflow -> `references/level-to-level-execution.md`
 - SMC modules (OB/Breaker/FVG/IFVG/EQH-EQL/Premium-Discount) -> `references/smart-money-concepts-light.md`
 - Risk/positioning/decision -> `references/execution-and-risk-protocol.md`
@@ -113,10 +115,12 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 
 - [Market structure and trend](references/market-structure-and-trend.md)
 - [Levels support resistance and VPVR (index)](references/levels-support-resistance-and-vpvr.md)
+- [Levels moving-average dynamics](references/levels-moving-average-dynamics.md)
 - [Volume profile and volume flow](references/volume-profile-and-volume-flow.md)
 - [Liquidity draw and sweep](references/liquidity-draw-and-sweep.md)
 - [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
 - [Price action patterns and breakouts (index)](references/price-action-patterns-and-breakouts.md)
+- [Breakout quality filters](references/breakout-quality-filters.md)
 - [Level to level execution](references/level-to-level-execution.md)
 - [Smart money concepts light](references/smart-money-concepts-light.md)
 - [Execution and risk protocol](references/execution-and-risk-protocol.md)
@@ -140,6 +144,8 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Use volume-profile context (POC/VAH/VAL/HVN/LVN) as decision support; prefer completed prior-session profiles for session references.
 - Include liquidity draw map: current draw, opposing draw, sweep event, sweep outcome, and path state.
 - Prefer level-to-level execution: entry near mapped zone, target next zone, explicit RR before action.
+- For breakout setups, include base-quality and market-context filter notes before final action.
+- MA posture should be reported in levels context as dynamic support/resistance.
 - Declare framework lens: `UNIFIED`, `CLASSICAL_TA`, `WYCKOFF`, `SMC_ICT_LIGHT`.
 - If alternate lens is requested, include agreement/disagreement vs `UNIFIED` conclusion.
 - When `SMC_ICT_LIGHT` is active, report used SMC modules and evidence for each used module.
