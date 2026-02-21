@@ -65,7 +65,7 @@ def parse_args() -> argparse.Namespace:
         "--range-mode",
         choices=["auto", "fixed"],
         default="auto",
-        help="auto: dynamic timeframe selection, fixed: use explicit lookbacks.",
+        help="auto: dynamic daily window + full intraday, fixed: explicit lookbacks.",
     )
     return parser.parse_args()
 
@@ -552,25 +552,6 @@ def compute_dynamic_daily_lookback(
     )
 
 
-def compute_dynamic_intraday_lookback(df_intraday: pd.DataFrame, max_bars: int) -> int:
-    if df_intraday.empty:
-        return 0
-    x = df_intraday.copy()
-    x["session"] = x["datetime"].dt.date
-    sessions = sorted(x["session"].unique())
-    if not sessions:
-        return min(max_bars, len(df_intraday))
-    start_session = sessions[max(len(sessions) - 4, 0)]
-    anchors = [pd.Timestamp(start_session)]
-    return _focus_lookback_from_anchors(
-        df_intraday,
-        anchors,
-        max_bars=max_bars,
-        min_bars=80,
-        pre_buffer=4,
-    )
-
-
 def vpvr_stats(df_daily: pd.DataFrame, bins: int = 40) -> dict[str, Any]:
     x = df_daily.tail(260)
     lo = float(x["low"].min())
@@ -747,6 +728,14 @@ def _base_style() -> Any:
     return mpf.make_mpf_style(base_mpf_style="yahoo", gridstyle=":")
 
 
+def prepare_daily_window(df_daily: pd.DataFrame, lookback: int) -> pd.DataFrame:
+    enriched = pd.DataFrame(add_rsi(add_ma(add_swings(df_daily))))
+    if enriched.empty:
+        return enriched
+    used = min(max(int(lookback), 1), len(enriched))
+    return enriched.tail(used).copy()
+
+
 def plot_daily_structure(
     df_daily: pd.DataFrame,
     zones: list[dict[str, float]],
@@ -754,7 +743,7 @@ def plot_daily_structure(
     symbol: str,
     lookback: int,
 ) -> None:
-    x = add_rsi(add_ma(add_swings(df_daily.tail(lookback))))
+    x = prepare_daily_window(df_daily, lookback)
     last_close = float(x["close"].iloc[-1])
     hlines = select_nearest_levels(
         [z["zone_mid"] for z in zones],
@@ -887,7 +876,7 @@ def plot_intraday_structure(
     merged_hlines = [ib["ibh"], ib["ibl"]] + hlines
     colors = ["#2ca02c", "#d62728"] + ["#1f77b4"] * len(hlines)
     linewidths = [1.8, 1.8] + [1.5] * len(hlines)
-    
+
     fig, axes = mpf.plot(
         to_mpf(x),
         type="candle",
@@ -907,10 +896,16 @@ def plot_intraday_structure(
     )
     ax = axes[0]
     latest = x.iloc[-1]
-    latest_vwap = float(latest["VWAP"]) if pd.notna(latest["VWAP"]) else float(latest["close"])
-    latest_ema9 = float(latest["EMA9"]) if pd.notna(latest["EMA9"]) else float(latest["close"])
-    latest_ema20 = float(latest["EMA20"]) if pd.notna(latest["EMA20"]) else float(latest["close"])
-    
+    latest_vwap = (
+        float(latest["VWAP"]) if pd.notna(latest["VWAP"]) else float(latest["close"])
+    )
+    latest_ema9 = (
+        float(latest["EMA9"]) if pd.notna(latest["EMA9"]) else float(latest["close"])
+    )
+    latest_ema20 = (
+        float(latest["EMA20"]) if pd.notna(latest["EMA20"]) else float(latest["close"])
+    )
+
     ax.legend(
         handles=[
             Line2D([], [], color="#00bcd4", linewidth=2.0, label="EMA9"),
@@ -918,7 +913,12 @@ def plot_intraday_structure(
             Line2D([], [], color="#ff9800", linewidth=2.0, label="VWAP"),
             Line2D([], [], color="#2ca02c", linewidth=2.0, label="IBH"),
             Line2D([], [], color="#d62728", linewidth=2.0, label="IBL"),
-        ] + ([Line2D([], [], color="#1f77b4", linewidth=1.5, label="Daily S/R")] if hlines else []),
+        ]
+        + (
+            [Line2D([], [], color="#1f77b4", linewidth=1.5, label="Daily S/R")]
+            if hlines
+            else []
+        ),
         loc="upper left",
         fontsize=8,
         ncol=2,
@@ -1104,7 +1104,11 @@ def plot_structure_events(
     down_choch = np.full(n, np.nan)
 
     dt_to_idx = {pd.Timestamp(dt): int(i) for i, dt in enumerate(x["datetime"])}
-    draws_list = [v for v in [draws.get("current_draw"), draws.get("opposing_draw")] if v is not None]
+    draws_list = [
+        v
+        for v in [draws.get("current_draw"), draws.get("opposing_draw")]
+        if v is not None
+    ]
     visible_events: list[dict[str, Any]] = []
     for e in events:
         dt = pd.Timestamp(e["datetime"])
@@ -1147,7 +1151,13 @@ def plot_structure_events(
         volume=True,
         style=_base_style(),
         addplot=apds,
-        hlines=dict(hlines=draws_list, colors=["#e91e63"]*len(draws_list), linewidths=[1.8]*len(draws_list)) if draws_list else None,
+        hlines=dict(
+            hlines=draws_list,
+            colors=["#e91e63"] * len(draws_list),
+            linewidths=[1.8] * len(draws_list),
+        )
+        if draws_list
+        else None,
         title=f"{symbol} Structure Events & Liquidity",
         figratio=DEFAULT_FIGRATIO,
         figscale=DEFAULT_FIGSCALE,
@@ -1236,7 +1246,12 @@ def plot_structure_events(
                 markersize=8,
                 label="Down CHOCH",
             ),
-        ] + ([Line2D([], [], color="#e91e63", linewidth=2.0, label="Liquidity Draw")] if draws_list else []),
+        ]
+        + (
+            [Line2D([], [], color="#e91e63", linewidth=2.0, label="Liquidity Draw")]
+            if draws_list
+            else []
+        ),
         loc="upper left",
         fontsize=8,
         ncol=2,
@@ -1667,7 +1682,7 @@ def plot_imbalance_fvg(
 
 
 def plot_detail(df_daily: pd.DataFrame, path: Path, symbol: str, lookback: int) -> None:
-    x = add_rsi(add_ma(add_swings(df_daily.tail(lookback))))
+    x = prepare_daily_window(df_daily, lookback)
     sh = x["swing_high"].copy()
     sl = x["swing_low"].copy()
     last_close = float(x["close"].iloc[-1])
@@ -1811,17 +1826,18 @@ def main() -> None:
             imbalance_zones_all,
             max_bars=args.daily_lookback,
         )
-        intraday_lookback = compute_dynamic_intraday_lookback(
-            intraday, max_bars=args.intraday_lookback
-        )
+        intraday_lookback = len(intraday)
     else:
         daily_lookback = min(args.daily_lookback, len(daily))
         intraday_lookback = min(args.intraday_lookback, len(intraday))
 
-    daily_lookback = max(60, daily_lookback)
-    intraday_lookback = max(30, intraday_lookback)
-    detail_lookback = max(90, min(daily_lookback, 150))
-    imbalance_lookback = max(80, min(daily_lookback, 130))
+    daily_lookback = min(len(daily), max(60, daily_lookback))
+    if args.range_mode == "auto":
+        intraday_lookback = len(intraday)
+    else:
+        intraday_lookback = min(len(intraday), max(30, intraday_lookback))
+    detail_lookback = min(len(daily), max(90, min(daily_lookback, 150)))
+    imbalance_lookback = min(len(daily), max(80, min(daily_lookback, 130)))
 
     ib = latest_intraday_ib(intraday)
     ibh_line, ibl_line = compute_period_ib(
@@ -1842,7 +1858,6 @@ def main() -> None:
     plot_intraday_structure(intraday, ib, zones, p_intraday, symbol, intraday_lookback)
     generated["intraday_structure"] = str(p_intraday)
 
-
     p_ib = outdir / f"{symbol}_ib_overlay.png"
     plot_ib_overlay(
         daily,
@@ -1859,7 +1874,6 @@ def main() -> None:
     p_events = outdir / f"{symbol}_structure_events.png"
     plot_structure_events(daily, events, draws, p_events, symbol, daily_lookback)
     generated["structure_events"] = str(p_events)
-
 
     p_plan = outdir / f"{symbol}_trade_plan.png"
     plot_trade_plan(daily, plan, p_plan, symbol, daily_lookback)
