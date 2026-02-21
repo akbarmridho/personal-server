@@ -2,6 +2,7 @@ import normalizeUrl from "normalize-url";
 import { v5 as uuidv5 } from "uuid";
 import { inngest } from "../../infrastructure/inngest.js";
 import { logger } from "../../utils/logger.js";
+import { uploadPdfUrlToMiniserve } from "../../utils/miniserve.js";
 import {
   extractPdfContentWithLLM,
   MANUAL_NAMESPACE,
@@ -22,6 +23,10 @@ export const pdfManualIngest = inngest.createFunction(
       { pdfUrl: event.data.pdfUrl, filename: event.data.filename },
       "Starting PDF manual ingestion",
     );
+
+    const uploadedPdfUrl = await step.run("upload-original-pdf", async () => {
+      return await uploadPdfUrlToMiniserve(event.data.pdfUrl);
+    });
 
     // Extract content from PDF using LLM
     const extracted = await step.run("extract-pdf-content", async () => {
@@ -61,7 +66,10 @@ export const pdfManualIngest = inngest.createFunction(
             title: extracted.title,
             content: extracted.content,
             document_date: finalDate,
-            source: event.data.source,
+            source: {
+              ...event.data.source,
+              url: uploadedPdfUrl,
+            },
             urls: [],
           },
         ],
