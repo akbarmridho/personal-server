@@ -3,12 +3,6 @@ name: fundamental-analysis
 description: Fundamental analysis for IDX stocks, including financial health checks, multi-method valuation, company quality assessment, sector context, and risk scoring.
 ---
 
-## Scope Guardrail (IDX Only)
-
-- This skill is for Indonesian Stock Exchange (IDX/BEI) equity fundamentals.
-- Focus on business quality, earnings and cash durability, valuation, and fundamental risk.
-- This is not a flow-only or chart-only skill.
-
 ## How To Use This Skill
 
 Use this file as the entrypoint. Do not load all references by default.
@@ -60,7 +54,7 @@ Use this quick routing when sector or mechanism detail is thesis-critical.
 
 Routing defaults:
 
-- Holder interpretation and custody-vs-active guardrails: [company-quality-framework](references/company-quality-framework.md)
+- Holder interpretation and custody-vs-active checks: [company-quality-framework](references/company-quality-framework.md)
 - Bank asset-quality mechanics: [bank-ckpn-writeoff-overdue-diagnostics](references/bank-ckpn-writeoff-overdue-diagnostics.md)
 - Sector deep dives: banking, sharia-banking, coal, construction, oil-gas, property, retail-consumer, gold playbook references above
 

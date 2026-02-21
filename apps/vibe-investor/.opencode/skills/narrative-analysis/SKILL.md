@@ -3,12 +3,6 @@ name: narrative-analysis
 description: Narrative and catalyst analysis for IDX stocks, including story classification, catalyst mapping, narrative strength scoring, failure-mode detection, and speculative premium assessment.
 ---
 
-## Scope Guardrail (IDX Only)
-
-- This skill is for Indonesian Stock Exchange (IDX/BEI) narrative work.
-- Focus on story quality, catalyst path, and failure risk.
-- Out of scope: deep flow analysis (`get-stock-bandarmology`) and chart-based technical analysis (`fetch-ohlcv`).
-
 ## How To Use This Skill
 
 Use this file as the entrypoint. Do not load all references by default.

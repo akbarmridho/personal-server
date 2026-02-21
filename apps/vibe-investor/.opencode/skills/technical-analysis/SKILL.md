@@ -3,12 +3,6 @@ name: technical-analysis
 description: Technical analysis for IDX stocks using Wyckoff, structure and trend diagnostics, support/resistance and volume context, execution risk protocols, and chart-first decision workflow.
 ---
 
-## Scope Guardrail (IDX Only)
-
-- This skill is for Indonesian Stock Exchange (IDX/BEI) technical analysis.
-- Focus on structure, levels, price-volume behavior, and execution risk.
-- Use chart evidence first, then narrative reasoning.
-
 ## Data And Workflow
 
 Use `fetch-ohlcv` as the only chart-data source.

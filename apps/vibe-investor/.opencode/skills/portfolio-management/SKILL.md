@@ -3,10 +3,6 @@ name: portfolio-management
 description: Trading desk and portfolio operations for IDX equities, including position sizing, entry/exit playbooks, cycle-aware allocation, trading plans, watchlist process, and session review routines.
 ---
 
-## Scope Guardrail (IDX Only)
-
-- This skill is strictly for Indonesian Stock Exchange (IDX/BEI) equities and cash management around that equity book.
-
 ## How To Use This Skill
 
 Use this file as the entrypoint. Do not load every reference by default.
