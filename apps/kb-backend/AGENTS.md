@@ -7,6 +7,7 @@ Backend service for Indonesian stock market analysis with AI/LLM integrations, d
 Main server and internal services run via PM2 (see `ecosystem.config.cjs`):
 
 ### 1. Main KB Backend Server (`src/index.ts`)
+
 Port: `HTTP_SERVER_PORT` (default: 3010)
 
 Multi-layer architecture using Express as a proxy router:
@@ -186,7 +187,9 @@ Dual-interface design: Same functionality exposed as both **HTTP REST endpoints*
      - Phases: WATCHING, MINOR_OPPORTUNITY, MAJOR_ALERT, CAPITULATION_DETECTED, REVERSAL_CONFIRMED
 
 5. **Authentication**
-   - `POST /stock-market-id/stockbit-auth/set` - Set captured Stockbit client profile (proxy URL + captured request headers)
+   - `POST /stock-market-id/proxy-url/set` - Set stock HTTP proxy URL
+   - `GET /stock-market-id/proxy-url` - Get stock HTTP proxy URL
+   - `POST /stock-market-id/stockbit-auth/set` - Set captured Stockbit client profile (captured request headers + metadata)
 
 6. **Stock Universe Management**
    - `POST /stock-market-id/stock-universe/add` - Add symbols to stock universe and trigger initial crawl

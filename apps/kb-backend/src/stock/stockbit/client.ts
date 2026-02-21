@@ -1,5 +1,6 @@
 import got, { HTTPError, RequestError } from "got";
 import http2wrapper from "http2-wrapper";
+import { stockProxyUrl } from "../proxy-url.js";
 import {
   getAuthorizationHeaderValue,
   type StockbitClientProfile,
@@ -38,10 +39,11 @@ export class StockbitHttpError extends Error {
 
 export async function stockbitGetJson<T>(url: string): Promise<T> {
   const profile = await stockbitAuth.getOrThrow();
+  const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
   const headers = buildReplayHeaders(profile);
   const agent = new http2wrapper.proxies.Http2OverHttp({
     proxyOptions: {
-      url: profile.proxy_url,
+      url: proxyUrl,
     },
   });
 

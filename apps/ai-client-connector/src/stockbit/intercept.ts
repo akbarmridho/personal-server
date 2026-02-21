@@ -5,6 +5,7 @@ import { logger } from "../utils/logger.js";
 const STOCKBIT_SYMBOL_URL = "https://stockbit.com/symbol/IHSG";
 const STOCKBIT_TARGET_HOST = "exodus.stockbit.com";
 const STOCKBIT_TARGET_PATH_PREFIX = "/charts/IHSG/daily";
+const STOCK_PROXY_URL_SET_PATH = "/stock-market-id/proxy-url/set";
 const STOCKBIT_AUTH_SET_PATH = "/stock-market-id/stockbit-auth/set";
 const STOCKBIT_INTERCEPT_TIMEOUT_MS = 90_000;
 
@@ -116,15 +117,21 @@ async function collectStockbitRequestHeaders(): Promise<CapturedRequest> {
   }
 }
 
-async function sendCapturedHeaders(captured: CapturedRequest): Promise<unknown> {
-  const authSetUrl = new URL(STOCKBIT_AUTH_SET_PATH, env.KB_BACKEND_URL).toString();
+async function sendCapturedHeaders(
+  captured: CapturedRequest,
+): Promise<unknown> {
+  await sendProxyUrl();
+
+  const authSetUrl = new URL(
+    STOCKBIT_AUTH_SET_PATH,
+    env.KB_BACKEND_URL,
+  ).toString();
   const response = await fetch(authSetUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      proxy_url: env.AI_CLIENT_CONNECTOR_PUBLIC_PROXY_URL,
       captured_at: new Date().toISOString(),
       capture_source_url: STOCKBIT_SYMBOL_URL,
       target_request_url: captured.targetRequestUrl,
@@ -147,6 +154,29 @@ async function sendCapturedHeaders(captured: CapturedRequest): Promise<unknown> 
   }
 }
 
+async function sendProxyUrl(): Promise<void> {
+  const proxySetUrl = new URL(
+    STOCK_PROXY_URL_SET_PATH,
+    env.KB_BACKEND_URL,
+  ).toString();
+  const response = await fetch(proxySetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      proxy_url: env.AI_CLIENT_CONNECTOR_PUBLIC_PROXY_URL,
+    }),
+  });
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    throw new Error(
+      `Failed to send stock proxy URL: ${response.status} ${response.statusText}. Response: ${responseText}`,
+    );
+  }
+}
+
 function isTargetStockbitRequest(urlRaw: string, method: string): boolean {
   if (method !== "GET") {
     return false;
@@ -163,7 +193,9 @@ function isTargetStockbitRequest(urlRaw: string, method: string): boolean {
   }
 }
 
-function normalizeHeaders(input: Record<string, unknown>): Record<string, string> {
+function normalizeHeaders(
+  input: Record<string, unknown>,
+): Record<string, string> {
   const output: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(input)) {

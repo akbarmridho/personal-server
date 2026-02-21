@@ -7,7 +7,6 @@ export interface BaseStockbitResponse<T> {
 }
 
 export interface StockbitClientProfile {
-  proxy_url: string;
   captured_at: string;
   capture_source_url: string;
   target_request_url: string;
@@ -67,7 +66,6 @@ export function validateStockbitClientProfile(
 
   const record = input as Record<string, unknown>;
 
-  const proxyUrl = requireString(record.proxy_url, "proxy_url");
   const capturedAt = requireString(record.captured_at, "captured_at");
   const captureSourceUrl = requireString(
     record.capture_source_url,
@@ -80,7 +78,6 @@ export function validateStockbitClientProfile(
   const headers = requireHeaders(record.headers);
 
   assertValidIsoDate(capturedAt, "captured_at");
-  assertValidUrl(proxyUrl, "proxy_url");
   assertValidUrl(captureSourceUrl, "capture_source_url");
   assertValidUrl(targetRequestUrl, "target_request_url");
 
@@ -94,7 +91,6 @@ export function validateStockbitClientProfile(
   assertBearerJwtNotExpired(authorization);
 
   return {
-    proxy_url: proxyUrl,
     captured_at: capturedAt,
     capture_source_url: captureSourceUrl,
     target_request_url: targetRequestUrl,

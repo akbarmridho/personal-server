@@ -20,6 +20,7 @@ import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockProfileReport } from "./endpoints/stock/profile.js";
 import { getStockTechnicals } from "./endpoints/stock/technicals.js";
+import { stockProxyUrl } from "./proxy-url.js";
 import { stockbitAuth } from "./stockbit/auth.js";
 import { getUnifiedChartbitRawData } from "./stockbit/chartbit.js";
 import { removeKeysRecursive } from "./utils.js";
@@ -343,6 +344,51 @@ export const setupStockRoutes = () =>
       },
     )
     .post(
+      "/proxy-url/set",
+      async ({ body, set }) => {
+        try {
+          await stockProxyUrl.set(body);
+          return { success: true };
+        } catch (err) {
+          logger.error({ err }, "Set proxy URL failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        body: t.Object({
+          proxy_url: t.String(),
+        }),
+        detail: {
+          tags: ["Authentication"],
+          summary: "Set stock HTTP proxy URL",
+          description:
+            "Stores stock HTTP proxy URL used by Stockbit requests and other proxy-aware functions",
+        },
+      },
+    )
+    .get(
+      "/proxy-url",
+      async ({ set }) => {
+        try {
+          const data = await stockProxyUrl.get();
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get proxy URL failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        detail: {
+          tags: ["Authentication"],
+          summary: "Get stock HTTP proxy URL",
+          description:
+            "Returns current stock HTTP proxy URL for clients that need to route requests through connector proxy",
+        },
+      },
+    )
+    .post(
       "/stockbit-auth/set",
       async ({ body, set }) => {
         try {
@@ -356,7 +402,6 @@ export const setupStockRoutes = () =>
       },
       {
         body: t.Object({
-          proxy_url: t.String(),
           captured_at: t.String(),
           capture_source_url: t.String(),
           target_request_url: t.String(),
@@ -366,7 +411,7 @@ export const setupStockRoutes = () =>
           tags: ["Authentication"],
           summary: "Set Stockbit captured client profile",
           description:
-            "Stores captured Stockbit request profile (proxy target + raw request headers) for authenticated Stockbit API requests",
+            "Stores captured Stockbit request profile (raw request headers + metadata) for authenticated Stockbit API requests",
         },
       },
     )
