@@ -16,7 +16,7 @@ apps/vibe-investor/
 ├── src/
 │   ├── config-resolver.ts        # {env:...} and {file:...} resolution
 │   └── resolve-config.ts         # Resolver entrypoint
-├── .opencode/
+├── .opencode-config/
 │   ├── tools/
 │   │   ├── fetch-ohlcv.ts        # Fetch 3yr OHLCV data for IDX stocks
 │   │   └── deep-doc-extract.ts   # Goal-based large-doc extraction via OpenRouter
@@ -145,7 +145,7 @@ Vibe-investor uses a separate `XDG_DATA_HOME` so its sessions don't mix with you
 1. Bash script loads `.env` and calls TypeScript resolver to process `opencode-config.json`
 2. Resolver expands `{env:...}` and `{file:...}` placeholders with EJS
 3. Bash exports resolved config, sets `XDG_DATA_HOME`, and `exec`s opencode
-4. OpenCode loads custom tools from `.opencode/tools/` and skills from `.opencode/skills/`
+4. OpenCode loads custom tools from `.opencode-config/tools/` and skills from `.opencode-config/skills/`
 5. Agent loads `memory/MEMORY.md` at session start for context continuity
 
 ## References

@@ -34,8 +34,8 @@ HOSTNAME="${OPENCODE_HOSTNAME:-0.0.0.0}"
 # Export resolved config for opencode
 export OPENCODE_CONFIG_CONTENT="$RESOLVED_CONFIG"
 
-# Point to vibe-investor's .opencode directory for custom tools/agents
-export OPENCODE_CONFIG_DIR="$ROOT_DIR/.opencode"
+# Point to vibe-investor's .opencode-config directory for custom tools/agents
+export OPENCODE_CONFIG_DIR="$ROOT_DIR/.opencode-config"
 
 # Isolate all OpenCode global state from the main coding opencode instance.
 # Since `exec` replaces this process, XDG vars only affect opencode.

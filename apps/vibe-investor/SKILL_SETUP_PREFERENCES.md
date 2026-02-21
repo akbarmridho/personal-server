@@ -10,8 +10,8 @@ Keep skills easy to trigger, fast to load, and predictable to maintain.
 
 Each skill lives at:
 
-- `.opencode/skills/<skill-name>/SKILL.md` (required)
-- `.opencode/skills/<skill-name>/references/*.md` (optional, preferred for depth)
+- `.opencode-config/skills/<skill-name>/SKILL.md` (required)
+- `.opencode-config/skills/<skill-name>/references/*.md` (optional, preferred for depth)
 
 Use this model for all skills in this repo.
 
