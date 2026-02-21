@@ -170,4 +170,4 @@ Core test:
 
 ## Implementation Note
 
-Enforcement: agent workflow during Phase 2 steps 1-4 (see SKILL.md). Business reality check uses `get-stock-fundamental` data where available. Narrative type classification, owner character assessment, catalyst impact, strength scoring, and failure risk scoring are agent judgment. Catalyst dates are deterministic when sourced from filings/announcements. All labels and score values must match `enums-and-glossary.md`.
+Enforcement: agent workflow during Phase 2 steps 1-4 (see SKILL.md). Business reality check uses `get-stock-keystats` data where available. Narrative type classification, owner character assessment, catalyst impact, strength scoring, and failure risk scoring are agent judgment. Catalyst dates are deterministic when sourced from filings/announcements. All labels and score values must match `enums-and-glossary.md`.

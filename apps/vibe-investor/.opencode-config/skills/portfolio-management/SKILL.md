@@ -27,24 +27,23 @@ Use this file as the entrypoint. Do not load every reference by default.
 
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
-| `get-stock-fundamental` | Current price, key stats for P&L and sizing | Stop |
-| `get-stock-financials` | Dividend checks, fundamental monitoring | Degrade: skip dividend check, note gap |
+| `get-stock-keystats` | Current price, key stats for P&L and sizing | Stop |
+| `get-stock-financials` | Dividend checks, fundamental monitoring | Stop |
 | `fetch-ohlcv` | Rolling return/correlation, rebalance diagnostics | Stop |
-| `search-documents`, `list-documents` | Filings/news monitoring for open positions | Degrade: skip news scan, note gap |
+| `search-documents`, `list-documents` | Filings/news monitoring for open positions | Stop |
 | Filesystem memory files | Primary operating surface | Stop |
 
 Stop: if fetch fails, stop the task and report dependency failure.
-Degrade: proceed with explicit note of what was skipped.
 
 ## Memory Files
 
 | File | Purpose |
 |------|---------|
 | `memory/notes/portfolio.md` | Open and closed positions, P&L tracking |
-| `memory/notes/watchlist.md` | Symbols under observation and trigger conditions |
+| `memory/notes/watchlist.md` | Status-driven symbols registry and trigger conditions |
 | `memory/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
 | `memory/sessions/{DATE}.md` | Session logs and next actions |
-| `memory/analysis/{SYMBOL}/` | Supporting analysis artifacts |
+| `memory/analysis/symbols/{SYMBOL}/{DATE}/` | Supporting analysis artifacts |
 
 ## Operating Rules
 
@@ -97,7 +96,7 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 
 1. Load `review-watchlist-and-session-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
-3. Fetch current prices via `get-stock-fundamental` for all held positions (parallel).
+3. Fetch current prices via `get-stock-keystats` for all held positions (parallel).
 4. For each position: check thesis status, stop levels, sizing compliance.
 5. Check portfolio-level: heat, correlation, 50:30:10, sector limits.
 6. Update watchlist statuses.
@@ -129,7 +128,7 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 ## Execution Defaults
 
 - Run required data fetches in parallel when the task is a full portfolio or position review.
-- Write concrete outputs to memory files, not only narrative answers.
+- Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
 - Check regime gate before any new long exposure.
 - Flag any portfolio health warnings from `enums-and-glossary.md` (PM-W01 through PM-W10) when detected during any workflow.

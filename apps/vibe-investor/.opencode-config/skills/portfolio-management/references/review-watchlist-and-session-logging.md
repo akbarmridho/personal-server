@@ -57,10 +57,10 @@ Write to: `memory/notes/watchlist.md`
 ```markdown
 ## Watchlist
 
-| Symbol | Status | Thesis | Trigger | Added | Leader |
-|--------|--------|--------|---------|-------|--------|
-| BBCA | READY | Rate cut beneficiary | Break above 10,000 with volume | 2025-01-15 | Yes |
-| ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | 2025-01-20 | No |
+| Symbol | Status | Thesis | Trigger | Invalidation | Added | Leader | Notes |
+|--------|--------|--------|---------|--------------|-------|--------|-------|
+| BBCA | READY | Rate cut beneficiary | Break above 10,000 with volume | Closes below 9,650 | 2025-01-15 | Yes | Waiting for volume confirmation |
+| ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | ASP weakens while volume distribution expands | 2025-01-20 | No | Monitor catalyst window |
 ```
 
 ## Session Log Template

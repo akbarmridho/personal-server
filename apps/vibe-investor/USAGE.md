@@ -49,7 +49,7 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 - Script location:
   - `scripts/generate_ta_charts.py` (relative to `.opencode-config/skills/technical-analysis/SKILL.md`)
 - Available modules for `--modules`:
-  - `core`: baseline required artifacts (`daily_structure`, `intraday_ibh_ibl`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
+  - `core`: baseline required artifacts (`daily_structure`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
   - `vpvr`: adds `vpvr_profile`
   - `imbalance`: adds `imbalance_fvg`
   - `detail`: adds optional deep-dive detail chart
@@ -58,16 +58,17 @@ This guide explains both how to run the skill and what conceptual frameworks it 
   - `python scripts/generate_ta_charts.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance`
 - Core required charts (every run):
   - `work/{SYMBOL}_daily_structure.png`
-  - `work/{SYMBOL}_intraday_ibh_ibl.png`
+  - `work/{SYMBOL}_intraday_structure.png`
   - `work/{SYMBOL}_ib_overlay.png`
   - `work/{SYMBOL}_structure_events.png`
-  - `work/{SYMBOL}_liquidity_map.png`
   - `work/{SYMBOL}_trade_plan.png`
 - Conditional required charts (when module is used):
   - `work/{SYMBOL}_vpvr_profile.png` for volume-profile context.
   - `work/{SYMBOL}_imbalance_fvg.png` for FVG/IFVG or imbalance context.
 - Optional deep-dive chart:
   - `work/{SYMBOL}_detail.png`
+- Evidence output (every run):
+  - `work/{SYMBOL}_chart_evidence.json` (includes `liquidity_draws` and other deterministic chart-read support fields)
 - Workflow expectation:
   - Run deterministic context script first (`build_ta_context.py`), then build charts (`generate_ta_charts.py`).
   - Build charts first, read charts second, then run numeric cross-check before action.
@@ -157,7 +158,7 @@ Lens: UNIFIED.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Return current draw, opposing draw, sweep event/outcome, and liquidity path state.
 Use HTF sweep context and LTF trigger evidence if available.
-Require `work/{SYMBOL}_liquidity_map.png`.
+Require `work/{SYMBOL}_structure_events.png` and `work/{SYMBOL}_chart_evidence.json`.
 ```
 
 ### 9) Horizontal S/R Heuristics Pass

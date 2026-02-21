@@ -23,7 +23,6 @@ apps/vibe-investor/
 │   └── skills/                   # On-demand knowledge modules
 │       ├── technical-analysis/
 │       ├── fundamental-analysis/
-│       ├── flow-analysis/
 │       ├── narrative-analysis/
 │       └── portfolio-management/
 ├── prompts/
@@ -85,7 +84,6 @@ One `vibe-investor` agent with a lightweight base prompt. Deep domain knowledge 
 |-------|--------|
 | `technical-analysis` | Wyckoff, S/R, price-volume, charting, execution |
 | `fundamental-analysis` | Financial health, valuation methods, moat, risk |
-| `flow-analysis` | Bandarmology, foreign flow, smart money |
 | `narrative-analysis` | Catalysts, story, re-rating potential |
 | `portfolio-management` | Position sizing, risk rules, reviews |
 

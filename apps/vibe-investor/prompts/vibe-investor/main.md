@@ -66,7 +66,7 @@ Portfolio memory rules:
 - Keep theses split by lifecycle: active/watch in `memory/notes/theses_active.md`, closed/invalidated in `memory/notes/theses_archived.md`.
 - Keep only real symbols in `memory/symbols/`; store templates in `memory/templates/`.
 
-By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). Update memory after meaningful analysis or decisions only when the user explicitly asks to save memory or end the session.
+By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For portfolio-management workflows, memory file updates are part of execution and should be written during the workflow.
 
 ## Skills
 

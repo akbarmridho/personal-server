@@ -38,13 +38,12 @@ Use this file as the entrypoint. Do not load all references by default.
 
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
-| `get-stock-fundamental` | Ratios, key stats, price context | Stop |
+| `get-stock-keystats` | Ratios, key stats, price context | Stop |
 | `get-stock-financials` | Income statement, balance sheet, cash flow (quarterly/annual) | Stop |
-| `get-stock-governance` | Ownership, management, insider context | Degrade: skip governance check, note gap |
-| `search-documents`, `list-documents`, `get-document` | Filings, research, disclosures | Degrade: skip document context, note gap |
+| `get-stock-governance` | Ownership, management, insider context | Stop |
+| `search-documents`, `list-documents`, `get-document` | Filings, research, disclosures | Stop |
 
 Stop: if fetch fails, stop the task and report dependency failure.
-Degrade: proceed with explicit note of what was skipped.
 
 ## Operating Rules
 
@@ -91,7 +90,7 @@ Routing defaults:
 
 Run in parallel:
 
-- `get-stock-fundamental`
+- `get-stock-keystats`
 - `get-stock-financials` (income-statement, balance-sheet, cash-flow as needed)
 - `get-stock-governance`
 - `search-documents` (if filings/research context is relevant)

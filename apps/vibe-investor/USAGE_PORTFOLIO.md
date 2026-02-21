@@ -15,7 +15,7 @@ This guide explains how to invoke the portfolio management skill and what each w
 ## Memory File Layout
 
 - `memory/notes/portfolio.md` — open/closed positions, P&L
-- `memory/notes/watchlist.md` — symbols under observation with trigger conditions
+- `memory/notes/watchlist.md` — status-driven watchlist (`WATCHING`/`READY`/`ACTIVE`/`REMOVED`) with trigger conditions
 - `memory/symbols/{SYMBOL}.md` — per-symbol trading plan (uses trading plan template)
 - `memory/sessions/{DATE}.md` — session logs and next actions
 
@@ -143,5 +143,5 @@ When any workflow detects a constraint breach, it reports the relevant flag:
 ## Notes
 
 - All workflows write to memory files, not just narrative answers.
-- If `get-stock-fundamental` or `fetch-ohlcv` fails, the workflow stops and reports dependency failure.
+- If `get-stock-keystats` or `fetch-ohlcv` fails, the workflow stops and reports dependency failure.
 - When TA skill is also active, TA provides entry/stop/targets and PM validates sizing before execution.

@@ -31,14 +31,13 @@ Use this file as the entrypoint. Do not load all references by default.
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
 | `search-documents`, `list-documents`, `get-document` | Filings, research, news, rumors | Stop |
-| `search-twitter` | Social narrative spread and momentum | Degrade: skip social layer, note gap |
-| `get-stock-fundamental` | Valuation context and market-cap framing | Degrade: skip valuation framing, note gap |
-| `get-stock-governance` | Owner behavior, control quality, insider signals | Degrade: skip ownership layer, note gap |
+| `search-twitter` | Social narrative spread and momentum | Stop |
+| `get-stock-keystats` | Valuation context and market-cap framing | Stop |
+| `get-stock-governance` | Owner behavior, control quality, insider signals | Stop |
 
 Stop: if fetch fails, stop the task and report dependency failure.
-Degrade: proceed with explicit note of what was skipped.
 
-Document/news retrieval is the hard dependency — narrative analysis without source material is guessing.
+All listed sources are hard dependencies — narrative analysis without complete source material is guessing.
 
 ## Operating Rules
 
@@ -85,7 +84,7 @@ Run in parallel:
 
 - `search-documents` for symbol and key themes
 - `search-twitter` for current social spread
-- `get-stock-fundamental` for valuation framing
+- `get-stock-keystats` for valuation framing
 - `get-stock-governance` for owner and control context
 
 ### Phase 2: Sequential Analysis

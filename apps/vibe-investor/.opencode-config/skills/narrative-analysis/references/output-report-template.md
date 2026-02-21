@@ -35,7 +35,7 @@ Use this structure for narrative outputs.
 
 ### Haluasi / Premium
 - Current premium vs sector: {Xx}
-- Premium potential: {low / moderate / high}
+- Premium band: {Moderate / High / Extreme}
 - Downside if break: {estimated drawdown range}
 ```
 
