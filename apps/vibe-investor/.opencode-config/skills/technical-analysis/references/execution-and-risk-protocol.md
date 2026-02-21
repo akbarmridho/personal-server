@@ -1,70 +1,83 @@
 # Execution And Risk Protocol
 
-## Entry Frameworks
+## Objective
 
-- Trend breakout entry when level break is volume-supported
-- Pullback-to-value entry near demand zones in intact uptrend
-- Spring/reclaim entry after failed downside break in range
+Convert valid setup into executable swing plan with explicit invalidation and measurable risk.
 
-## Position Sizing
+## Core Rules
 
-Use 1% risk sizing:
+- `R-RISK-01` No setup without invalidation.
+- `R-RISK-02` Position sizing is risk-first, not conviction-first.
+- `R-RISK-03` Add only when trade is working and structure remains valid.
+- `R-RISK-04` Do not average down into structural failure.
+- `R-RISK-05` Action must be one of: `BUY`, `HOLD`, `WAIT`, `EXIT`.
 
-```text
-Position Size = (Capital x 1%) / (Entry - Stop)
-```
+## Stop Hierarchy
 
-Guidelines:
+1. Structural invalidation stop (preferred).
+2. ATR fallback stop when structure is unclear.
+3. Time stop for stale setup (no progress in defined window).
 
-- Start 30-70% of max size by conviction
-- Add to winners, not to structurally broken losers
+## Target And Management
 
-## Exit Frameworks
+- Use nearest liquidity/level as first target.
+- Use partial exits at major resistance/support transitions.
+- Keep trailing stop rule explicit after first target.
 
-- Structural exit: close below key MA and broken structure
-- Target-based partial exit at major resistance/extension zones
-- Emergency exit on high-volume support failure or heavy churning
+## Trace Requirements
 
-## Bearish Divergence Protocol
-
-Divergence is warning first, not automatic reversal call.
-
-Action ladder:
-
-1. Unconfirmed divergence: trim risk, tighten stops, avoid fresh adds
-2. Divergence plus structural confirmation: de-risk aggressively or exit by structure
-3. No structural confirmation: remain reactive, do not front-run top calls
-
-Always report divergence status explicitly.
-
-## No-Resistance Phase
-
-When price is in discovery above major historical ceilings:
-
-- avoid arbitrary hard targets
-- trail by structure and risk rules
-- wait for break evidence instead of narrative overvaluation arguments
+- Provide proof for each risk field:
+  - entry basis and exact level
+  - stop basis and exact level
+  - position size math
+  - target ladder source levels
 
 ## Reference Code
 
-### Bearish Divergence Detection
-
 ```python
-def calculate_rsi(close, period=14):
-    delta = close.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-    avg_gain = gain.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
-    avg_loss = loss.ewm(alpha=1 / period, adjust=False, min_periods=period).mean()
-    rs = avg_gain / avg_loss.replace(0, np.nan)
-    return 100 - (100 / (1 + rs))
+def position_size(capital, risk_pct, entry, stop):
+    risk_amount = capital * risk_pct
+    per_share_risk = abs(entry - stop)
+    if per_share_risk <= 0:
+        raise ValueError("Invalid stop distance")
+    qty = risk_amount / per_share_risk
+    return {
+        "risk_amount": risk_amount,
+        "per_share_risk": per_share_risk,
+        "quantity": qty,
+        "position_value": qty * entry,
+    }
 
-df['RSI14'] = calculate_rsi(df['close'])
-```
 
-### Stop-Loss Examples
+def build_trade_plan(side, entry, invalidation, nearest_levels, capital=100_000_000, risk_pct=0.01):
+    if side == "long":
+        stop = min(invalidation, entry)
+        targets = sorted([x for x in nearest_levels if x > entry])[:3]
+    else:
+        stop = max(invalidation, entry)
+        targets = sorted([x for x in nearest_levels if x < entry], reverse=True)[:3]
 
-```python
-structural_stop = nearest_support * 0.98
-atr_stop = current_price - (atr * 2)
+    sizing = position_size(capital, risk_pct, entry, stop)
+    rr = []
+    for t in targets:
+        reward = abs(t - entry)
+        rr.append(reward / sizing["per_share_risk"])
+
+    return {
+        "side": side,
+        "entry": entry,
+        "stop": stop,
+        "invalidation": invalidation,
+        "targets": targets,
+        "rr_by_target": rr,
+        "sizing": sizing,
+    }
+
+
+def decision_from_plan(setup_id, red_flag_severity):
+    if setup_id == "NO_VALID_SETUP":
+        return "WAIT"
+    if red_flag_severity in {"HIGH", "CRITICAL"}:
+        return "WAIT"
+    return "BUY"
 ```

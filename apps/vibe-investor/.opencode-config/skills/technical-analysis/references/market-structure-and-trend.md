@@ -1,95 +1,90 @@
 # Market Structure And Trend
 
-## Wyckoff Phase Lens
+## Objective
 
-- Accumulation: sideways after decline with absorption behavior
-- Markup: trend expansion and broad participation
-- Distribution: sideways after rise with supply emergence
-- Markdown: declining structure and weak demand
+Classify daily market regime before any setup decision.
 
-## Balance/Imbalance Model
+## Core Rules
 
-- Balance: price accepted inside value area
-- Imbalance: repricing after acceptance loss
+- `R-REGIME-01` Uptrend: higher highs and higher lows on daily swings.
+- `R-REGIME-02` Downtrend: lower highs and lower lows on daily swings.
+- `R-REGIME-03` Range rotation: mixed swings with repeated rejection at range edges.
+- `R-REGIME-04` Potential reversal: CHOCH plus follow-through BOS in opposite direction.
+- `R-REGIME-05` Wick-only breaks do not change regime without close confirmation.
 
-Operating rules:
+## Strong And Weak Swing Logic
 
-- In balance, trade extremes instead of range midpoint.
-- In imbalance, prioritize continuation unless failure is confirmed.
-- Breakout acceptance requires close, follow-through, and supporting volume.
+- `R-SWING-01` Strong high/low: pivot that caused structural break.
+- `R-SWING-02` Weak high/low: pivot that failed to break structure and remains liquidity target.
 
-## Trend Definitions
+## Regime Output
 
-- Uptrend: HH and HL sequence
-- Downtrend: LH and LL sequence
-- Sideways: mixed swings with flattening moving averages
+Return one state only:
 
-## Swing-Point Logic (N=2)
+- `trend_continuation`
+- `range_rotation`
+- `potential_reversal`
+- `no_trade`
 
-- Swing high: higher than 2 bars on each side
-- Swing low: lower than 2 bars on each side
+## Trace Requirements
 
-Trend-break confirmation requires closing break beyond recent swing level; wick-only breaks are insufficient.
-
-## Moving Averages And Trendlines
-
-- MA as dynamic support in uptrends, dynamic resistance in downtrends
-- Typical stack: MA5/10 for fast, MA20 medium, MA50 slower trend
-- Trendline break quality improves with close confirmation plus volume support
-- Confluence break (trendline plus MA) increases signal strength
+- Add at least 2 evidence items for regime call:
+  - last confirmed swing highs and lows with timestamps
+  - break candle close values versus broken level
 
 ## Reference Code
 
-### Indicators, ATR, and Swing Points
-
 ```python
-df = df_daily.copy()
-df['datetime'] = pd.to_datetime(df['datetime'])
-df = df.set_index('datetime').sort_index()
+import numpy as np
+import pandas as pd
 
-for n in [5, 10, 20, 50]:
-    df[f'MA{n}'] = df['close'].rolling(n).mean()
 
-high, low, close = df['high'], df['low'], df['close']
-prev_close = close.shift(1)
-tr = pd.concat([
-    (high - low).abs(),
-    (high - prev_close).abs(),
-    (low - prev_close).abs()
-], axis=1).max(axis=1)
-df['ATR14'] = tr.rolling(14).mean()
+def add_swings(df: pd.DataFrame, n: int = 2) -> pd.DataFrame:
+    out = df.copy()
+    out["datetime"] = pd.to_datetime(out["datetime"])
+    out = out.sort_values("datetime").reset_index(drop=True)
 
-n = 2
-swing_high = True
-for i in range(1, n + 1):
-    swing_high &= (df['high'] > df['high'].shift(i))
-    swing_high &= (df['high'] > df['high'].shift(-i))
-df['swing_high'] = df['high'].where(swing_high)
+    sh = pd.Series(True, index=out.index)
+    sl = pd.Series(True, index=out.index)
+    for i in range(1, n + 1):
+        sh &= out["high"] > out["high"].shift(i)
+        sh &= out["high"] > out["high"].shift(-i)
+        sl &= out["low"] < out["low"].shift(i)
+        sl &= out["low"] < out["low"].shift(-i)
 
-swing_low = True
-for i in range(1, n + 1):
-    swing_low &= (df['low'] < df['low'].shift(i))
-    swing_low &= (df['low'] < df['low'].shift(-i))
-df['swing_low'] = df['low'].where(swing_low)
-```
+    out["swing_high"] = np.where(sh, out["high"], np.nan)
+    out["swing_low"] = np.where(sl, out["low"], np.nan)
+    return out
 
-### Trend Detection
 
-```python
-lookback = 5
-highs = df[df['swing_high'].notna()]['swing_high'].tail(lookback).values
-lows = df[df['swing_low'].notna()]['swing_low'].tail(lookback).values
+def classify_regime(df: pd.DataFrame):
+    swings_h = df[df["swing_high"].notna()][["datetime", "swing_high"]].tail(4)
+    swings_l = df[df["swing_low"].notna()][["datetime", "swing_low"]].tail(4)
 
-if len(highs) >= 2 and len(lows) >= 2:
-    higher_highs = all(highs[i] >= highs[i - 1] for i in range(1, len(highs)))
-    higher_lows = all(lows[i] >= lows[i - 1] for i in range(1, len(lows)))
-    lower_highs = all(highs[i] <= highs[i - 1] for i in range(1, len(highs)))
-    lower_lows = all(lows[i] <= lows[i - 1] for i in range(1, len(lows)))
+    if len(swings_h) < 2 or len(swings_l) < 2:
+        return "no_trade", {"reason": "insufficient_swings"}
 
-    if higher_highs and higher_lows:
-        trend = 'UPTREND'
-    elif lower_highs and lower_lows:
-        trend = 'DOWNTREND'
+    hh = swings_h["swing_high"].iloc[-1] > swings_h["swing_high"].iloc[-2]
+    hl = swings_l["swing_low"].iloc[-1] > swings_l["swing_low"].iloc[-2]
+    lh = swings_h["swing_high"].iloc[-1] < swings_h["swing_high"].iloc[-2]
+    ll = swings_l["swing_low"].iloc[-1] < swings_l["swing_low"].iloc[-2]
+
+    if hh and hl:
+        regime = "trend_continuation"
+    elif lh and ll:
+        regime = "potential_reversal"
     else:
-        trend = 'SIDEWAYS'
+        regime = "range_rotation"
+
+    proof = {
+        "last_swing_high": {
+            "t": str(swings_h["datetime"].iloc[-1]),
+            "v": float(swings_h["swing_high"].iloc[-1]),
+        },
+        "last_swing_low": {
+            "t": str(swings_l["datetime"].iloc[-1]),
+            "v": float(swings_l["swing_low"].iloc[-1]),
+        },
+    }
+    return regime, proof
 ```
