@@ -6,6 +6,7 @@ import { env } from "./env.js";
 type AppState = {
   goldenArticleLastSuccessAt?: string;
   generalNewsProxyQueueFlushLastSuccessAt?: string;
+  whatsappChannelLastSuccessAt?: string;
 };
 
 export async function getGoldenArticleLastSuccessAt(): Promise<
@@ -41,6 +42,24 @@ export async function setGeneralNewsProxyQueueFlushLastSuccessAt(
   await writeState({
     ...state,
     generalNewsProxyQueueFlushLastSuccessAt: value,
+  });
+}
+
+export async function getWhatsAppChannelLastSuccessAt(): Promise<
+  string | undefined
+> {
+  const state = await readState();
+  return state.whatsappChannelLastSuccessAt;
+}
+
+export async function setWhatsAppChannelLastSuccessAt(
+  value: string,
+): Promise<void> {
+  const state = await readState();
+
+  await writeState({
+    ...state,
+    whatsappChannelLastSuccessAt: value,
   });
 }
 

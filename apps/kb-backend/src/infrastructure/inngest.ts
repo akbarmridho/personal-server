@@ -8,6 +8,7 @@ import type { RawGoldenArticlePayload } from "../data-modules/golden-article/cra
 import type { GoldenArticleEvent } from "../data-modules/golden-article/ingest.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
 import type { FilingEventData } from "../data-modules/stockbit-filing/ingest.js";
+import type { WhatsAppChannelEvent } from "../data-modules/whatsapp-channel/ingest.js";
 import type { YoutubeVideoEntry } from "../data-modules/youtube/crawl.js";
 import type { YoutubeChannel } from "../data-modules/youtube/cron.js";
 import { logger } from "../utils/logger.js";
@@ -154,6 +155,9 @@ type Events = {
     data: {
       source?: string;
     };
+  };
+  "data/whatsapp-channel-crawl": {
+    data: WhatsAppChannelEvent;
   };
   "notify/discord-kb-ingestion": {
     data: {

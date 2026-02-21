@@ -8,6 +8,7 @@ import { runGoldenArticleTaskAtStartup } from "./golden-article/intercept.js";
 import { env } from "./infrastructure/env.js";
 import { runStockbitTaskAtStartup } from "./stockbit/intercept.js";
 import { logger } from "./utils/logger.js";
+import { runWhatsAppChannelTaskAtStartup } from "./whatsapp-news/intercept.js";
 
 const host = env.AI_CLIENT_CONNECTOR_HOST;
 const port = env.AI_CLIENT_CONNECTOR_PORT;
@@ -29,6 +30,7 @@ await ensureAutomationBrowserReady().catch((error) => {
 void runGoldenArticleTaskAtStartup();
 void runGeneralNewsProxyQueueFlushAtStartup();
 void runStockbitTaskAtStartup();
+void runWhatsAppChannelTaskAtStartup();
 
 const shutdown = async () => {
   logger.info("Shutdown signal received, closing proxy server");
