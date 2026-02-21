@@ -4,7 +4,7 @@ import { logger } from "../../utils/logger.js";
 import {
   type PdfReconstruction,
   reconstructPdfWithLLM,
-} from "../../utils/pdf-reconstruction.js";
+} from "../utils/pdf-reconstruction.js";
 
 // UUID v5 namespace for manual ingestion module
 export const MANUAL_NAMESPACE = "a7e4c8f2-9d3b-4e1a-8c6f-5b2a9d7e4c3f";

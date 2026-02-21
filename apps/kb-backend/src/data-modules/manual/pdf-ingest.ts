@@ -2,11 +2,11 @@ import normalizeUrl from "normalize-url";
 import { v5 as uuidv5 } from "uuid";
 import { inngest } from "../../infrastructure/inngest.js";
 import { logger } from "../../utils/logger.js";
-import { uploadPdfUrlToMiniserve } from "../../utils/miniserve.js";
 import {
   extractPdfContentWithLLM,
   MANUAL_NAMESPACE,
 } from "../discord-manual/pdf-processor.js";
+import { uploadPdfUrlToMiniserve } from "../utils/miniserve.js";
 
 /**
  * Processes PDF files (from URL or upload) and emits to manual ingest

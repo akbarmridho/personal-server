@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
-import { env } from "../infrastructure/env.js";
-import { generalProxiedAxios } from "./proxy.js";
+import { env } from "../../infrastructure/env.js";
+import { generalProxiedAxios } from "../../utils/proxy.js";
 
 const PDF_UPLOAD_PATH = "/pdfs/";
 

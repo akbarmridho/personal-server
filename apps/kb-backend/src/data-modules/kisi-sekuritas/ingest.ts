@@ -6,8 +6,8 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { reconstructPdfWithLLM } from "../../utils/pdf-reconstruction.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
+import { reconstructPdfWithLLM } from "../utils/pdf-reconstruction.js";
 import { tagMetadata } from "../utils/tagging.js";
 
 const extractPdfContent = async (url: string): Promise<string> => {

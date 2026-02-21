@@ -8,9 +8,9 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
-import { reconstructPdfWithLLM } from "../../utils/pdf-reconstruction.js";
 import { generalProxiedAxios } from "../../utils/proxy.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
+import { reconstructPdfWithLLM } from "../utils/pdf-reconstruction.js";
 import { tagMetadata } from "../utils/tagging.js";
 
 const namespace = "f33a43b1-015d-448d-8f72-a8789dcc5187";
