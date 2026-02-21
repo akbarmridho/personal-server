@@ -50,7 +50,7 @@ If structural setup is already valid, entry may be refined with:
 
 - FVG retrace zone
 - OTE zone (`0.618`, `0.706`, `0.786`)
-- Fib retracement and extension context from `levels-fibonacci-retracement-and-extension.md`
+- Fib retracement and extension context from the Fibonacci Retracement And Extension section of `levels.md`
 
 If refinement is not available, continue with base structural plan. Do not downgrade solely because optional confluence is absent.
 

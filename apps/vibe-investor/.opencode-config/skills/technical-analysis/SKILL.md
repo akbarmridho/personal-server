@@ -122,18 +122,15 @@ Hard requirements:
 Topic ownership (avoid overlap):
 
 - Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
-- Levels index -> `references/levels-support-resistance-and-vpvr.md`
-- Levels moving-average dynamics -> `references/levels-moving-average-dynamics.md`
-- Levels Fibonacci retracement/extension -> `references/levels-fibonacci-retracement-and-extension.md`
+- Levels (horizontal, MA, Fibonacci, time/psychological, VPVR confluence, IB) -> `references/levels.md`
 - Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
 - Liquidity draw and sweep framework -> `references/liquidity-draw-and-sweep.md`
 - Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
-- Setup index -> `references/price-action-patterns-and-breakouts.md`
-- Breakout quality filters -> `references/breakout-quality-filters.md`
+- Setups, breakouts, quality filters, and reversal playbooks -> `references/setups-and-breakouts.md`
 - Level-to-level execution workflow -> `references/level-to-level-execution.md`
 - SMC modules (OB/Breaker/FVG/IFVG/EQH-EQL/Premium-Discount) -> `references/smart-money-concepts-light.md`
 - Risk/positioning/decision -> `references/execution-and-risk-protocol.md`
-- Checklist and red-flag index -> `references/analysis-checklists-and-red-flags.md`
+- Checklists and red flags -> `references/checklists-and-red-flags.md`
 - Analysis lifecycle and framework modes -> `references/analysis-lifecycle-and-frameworks.md`
 - Shared enums and glossary -> `references/enums-and-glossary.md`
 - Output formatting contract -> `references/output-report-template.md`
@@ -162,18 +159,15 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 ## Reference Index
 
 - [Market structure and trend](references/market-structure-and-trend.md)
-- [Levels support resistance and VPVR (index)](references/levels-support-resistance-and-vpvr.md)
-- [Levels moving-average dynamics](references/levels-moving-average-dynamics.md)
-- [Levels Fibonacci retracement and extension](references/levels-fibonacci-retracement-and-extension.md)
+- [Levels](references/levels.md)
 - [Volume profile and volume flow](references/volume-profile-and-volume-flow.md)
 - [Liquidity draw and sweep](references/liquidity-draw-and-sweep.md)
 - [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
-- [Price action patterns and breakouts (index)](references/price-action-patterns-and-breakouts.md)
-- [Breakout quality filters](references/breakout-quality-filters.md)
+- [Setups and breakouts](references/setups-and-breakouts.md)
 - [Level to level execution](references/level-to-level-execution.md)
 - [Smart money concepts light](references/smart-money-concepts-light.md)
 - [Execution and risk protocol](references/execution-and-risk-protocol.md)
-- [Analysis checklists and red flags (index)](references/analysis-checklists-and-red-flags.md)
+- [Checklists and red flags](references/checklists-and-red-flags.md)
 - [Analysis lifecycle and frameworks](references/analysis-lifecycle-and-frameworks.md)
 - [Enums and glossary](references/enums-and-glossary.md)
 - [Output report template](references/output-report-template.md)
