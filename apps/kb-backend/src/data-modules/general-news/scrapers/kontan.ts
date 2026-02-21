@@ -1,5 +1,8 @@
+import axios from "axios";
 import * as cheerio from "cheerio";
-import { generalProxiedAxios } from "../../../utils/proxy.js";
+import { HttpProxyAgent } from "http-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { stockProxyUrl } from "../../../stock/proxy-url.js";
 import type { Scraper, ScraperResult } from "./types.js";
 
 /**
@@ -7,6 +10,7 @@ import type { Scraper, ScraperResult } from "./types.js";
  * URL pattern: https://{subdomain}.kontan.co.id/news/{title-slug}
  */
 export const kontanScraper: Scraper = {
+  requiresProxy: true,
   supportsUrl: (url: string) => {
     return /https?:\/\/(investasi|keuangan|industri)\.kontan\.co\.id\/news\//.test(
       url,
@@ -14,7 +18,15 @@ export const kontanScraper: Scraper = {
   },
 
   scrapeArticle: async (url: string): Promise<ScraperResult> => {
-    const response = await generalProxiedAxios.get(url);
+    const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
+    const response = await axios.get(url, {
+      httpAgent: new HttpProxyAgent(proxyUrl),
+      httpsAgent: new HttpsProxyAgent(proxyUrl),
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      },
+    });
 
     const $ = cheerio.load(response.data);
 

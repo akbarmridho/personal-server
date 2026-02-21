@@ -7,6 +7,7 @@ Client-side services for routing requests through your local IP, plus startup br
 - Transparent forward HTTP proxy (no custom request/header mutation in app code)
 - HTTPS tunneling via `CONNECT`
 - Startup golden-article capture task (runs at most once every 2 hours via `state.json` key `goldenArticleLastSuccessAt`)
+- Startup general-news proxy queue flush trigger (runs at most once every 1 hour via `state.json` key `generalNewsProxyQueueFlushLastSuccessAt`)
 - Startup Stockbit request-header capture task (runs every startup and sends captured headers to kb-backend)
 
 ## Planned next scope
@@ -64,4 +65,5 @@ On app startup, connector will:
 2. If CDP is reachable: reuse existing browser instance (no restart)
 3. If CDP is unreachable: close Brave, relaunch with remote debugging, then connect
 4. Run golden-article interception task
-5. Run stockbit header interception task
+5. Trigger general-news proxy queue flush event
+6. Run stockbit header interception task

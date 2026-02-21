@@ -9,6 +9,8 @@ import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { telegramSession } from "../../infrastructure/telegram.js";
 import { logger } from "../../utils/logger.js";
+import { queueGeneralNewsProxyItems } from "./proxy-queue.js";
+import { isProxyRequiredUrl } from "./scrapers/index.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -203,20 +205,44 @@ export const generalNewsKGCrawl = inngest.createFunction(
 
       // emit events
       if (messageUrls.length > 0) {
-        await step.sendEvent(
-          "queue-ingest",
-          messageUrls.map((message) => {
-            return {
-              name: "data/general-news",
-              data: {
-                url: message.url,
-                referenceDate: dayjs(message.message.date * 1000) // telegram original time is in seconds meanwhile dayjs expect in miliseconds
-                  .tz("Asia/Jakarta")
-                  .format("YYYY-MM-DD"),
-              },
-            };
-          }),
+        const mapped = messageUrls.map((message) => {
+          return {
+            url: message.url,
+            referenceDate: dayjs(message.message.date * 1000) // telegram original time is in seconds meanwhile dayjs expect in miliseconds
+              .tz("Asia/Jakarta")
+              .format("YYYY-MM-DD"),
+          };
+        });
+
+        const directEvents = mapped.filter(
+          (item) => !isProxyRequiredUrl(item.url),
         );
+        const proxyQueueEvents = mapped.filter((item) =>
+          isProxyRequiredUrl(item.url),
+        );
+
+        if (proxyQueueEvents.length > 0) {
+          await step.run("queue-proxy-ingest", async () => {
+            const queuedCount =
+              await queueGeneralNewsProxyItems(proxyQueueEvents);
+            return {
+              queuedNow: proxyQueueEvents.length,
+              queuedTotal: queuedCount,
+            };
+          });
+        }
+
+        if (directEvents.length > 0) {
+          await step.sendEvent(
+            "queue-ingest",
+            directEvents.map((message) => {
+              return {
+                name: "data/general-news",
+                data: message,
+              };
+            }),
+          );
+        }
       }
 
       // update keystone

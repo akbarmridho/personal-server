@@ -49,3 +49,8 @@ export async function scrapeArticle(url: string): Promise<ScraperResult> {
 export function isSupportedUrl(url: string): boolean {
   return scrapers.some((s) => s.supportsUrl(url));
 }
+
+export function isProxyRequiredUrl(url: string): boolean {
+  const scraper = scrapers.find((s) => s.supportsUrl(url));
+  return Boolean(scraper?.requiresProxy);
+}

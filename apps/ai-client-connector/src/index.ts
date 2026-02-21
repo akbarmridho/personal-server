@@ -3,6 +3,7 @@ import {
   ensureAutomationBrowserReady,
   shutdownAutomationBrowser,
 } from "./browser/bootstrap.js";
+import { runGeneralNewsProxyQueueFlushAtStartup } from "./general-news/proxy-queue-flush.js";
 import { runGoldenArticleTaskAtStartup } from "./golden-article/intercept.js";
 import { env } from "./infrastructure/env.js";
 import { runStockbitTaskAtStartup } from "./stockbit/intercept.js";
@@ -26,6 +27,7 @@ await ensureAutomationBrowserReady().catch((error) => {
 });
 
 void runGoldenArticleTaskAtStartup();
+void runGeneralNewsProxyQueueFlushAtStartup();
 void runStockbitTaskAtStartup();
 
 const shutdown = async () => {

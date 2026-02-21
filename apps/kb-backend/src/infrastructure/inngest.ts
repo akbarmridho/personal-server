@@ -150,6 +150,11 @@ type Events = {
   "data/general-news": {
     data: GeneralNewsEvent;
   };
+  "data/general-news-proxy-queue-flush": {
+    data: {
+      source?: string;
+    };
+  };
   "notify/discord-kb-ingestion": {
     data: {
       payload: InvestmentDocument[];
