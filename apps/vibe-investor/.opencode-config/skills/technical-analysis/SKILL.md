@@ -12,6 +12,22 @@ This skill is for swing and longer-horizon investing (days to months), not intra
 - Context events: `corp_actions[]`
 - Do not rescale daily candles into weekly candles.
 
+## Analysis Modes (Human Workflow)
+
+Pick one mode for each run:
+
+- `INITIAL` - first full thesis build for a symbol.
+- `UPDATE` - periodic refresh (for example weekly) against prior thesis.
+- `THESIS_REVIEW` - explicit check whether thesis still holds.
+- `POSTMORTEM` - review after invalidation/exit to improve process.
+
+Mode requirements:
+
+- `INITIAL`: full report using standard template.
+- `UPDATE`: include previous-analysis context and mandatory delta section.
+- `THESIS_REVIEW`: focus on thesis status and invalidation triggers.
+- `POSTMORTEM`: include what failed, what was missed, and rule improvements.
+
 ## Required Data And Fail-Fast
 
 Use `fetch-ohlcv` as the only chart-data source.
@@ -39,12 +55,14 @@ Price-adjustment note:
 Use this flow by default, but adapt depth to context. The process is structured, not rigid.
 
 1. `DATA_PREP` - Fetch, parse, validate data and build base features.
-2. `LEVEL_DRAFT` - Draft key levels/zones from daily structure and liquidity map.
-3. `CHART_BUILD` - Generate chart outputs with lines/zones/labels (daily + intraday).
-4. `CHART_READ` - Read the generated charts first; write chart observations before final decision.
-5. `CROSS_CHECK` - Cross-check chart observations with numeric evidence (volume ratios, closes, retests).
-6. `SETUP_RISK` - Build setup and risk plan (or no-trade plan).
-7. `DECISION` - Produce action, invalidation, and monitoring triggers.
+2. `PREV_CONTEXT` - For non-initial mode, extract prior thesis, action, invalidators, and evidence anchors.
+3. `LEVEL_DRAFT` - Draft key levels/zones from daily structure and liquidity map.
+4. `CHART_BUILD` - Generate chart outputs with lines/zones/labels (daily + intraday).
+5. `CHART_READ` - Read the generated charts first; write chart observations before final decision.
+6. `CROSS_CHECK` - Cross-check chart observations with numeric evidence (volume ratios, closes, retests).
+7. `DELTA_ASSESS` - For non-initial mode, classify what changed vs previous analysis.
+8. `SETUP_RISK` - Build setup and risk plan (or no-trade plan).
+9. `DECISION` - Produce action, invalidation, and monitoring triggers.
 
 Hard requirements:
 
@@ -52,14 +70,20 @@ Hard requirements:
 - If data dependency fails, stop and report missing dependency.
 - If no valid setup, output `WAIT` with conditions for re-entry review.
 - Resolve contradictions explicitly: if chart-read and numeric checks differ, state which side is trusted and why.
+- In `UPDATE` and `THESIS_REVIEW`, include explicit thesis delta and status.
 
 Topic ownership (avoid overlap):
 
 - Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
 - Levels/VPVR/IBH-IBL -> `references/levels-support-resistance-and-vpvr.md`
+- Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
+- Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
 - Setup quality/patterns -> `references/price-action-patterns-and-breakouts.md`
+- Level-to-level execution workflow -> `references/level-to-level-execution.md`
+- SMC modules (OB/Breaker/FVG/IFVG/EQH-EQL/Premium-Discount) -> `references/smart-money-concepts-light.md`
 - Risk/positioning/decision -> `references/execution-and-risk-protocol.md`
 - Checklist/red flags -> `references/analysis-checklists-and-red-flags.md`
+- Analysis lifecycle and framework modes -> `references/analysis-lifecycle-and-frameworks.md`
 - Output formatting contract -> `references/output-report-template.md`
 
 ## Reasoning Trace And Proof Contract
@@ -87,19 +111,34 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 
 - [Market structure and trend](references/market-structure-and-trend.md)
 - [Levels support resistance and VPVR](references/levels-support-resistance-and-vpvr.md)
+- [Volume profile and volume flow](references/volume-profile-and-volume-flow.md)
+- [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
 - [Price action patterns and breakouts](references/price-action-patterns-and-breakouts.md)
+- [Level to level execution](references/level-to-level-execution.md)
+- [Smart money concepts light](references/smart-money-concepts-light.md)
 - [Execution and risk protocol](references/execution-and-risk-protocol.md)
 - [Analysis checklists and red flags](references/analysis-checklists-and-red-flags.md)
+- [Analysis lifecycle and frameworks](references/analysis-lifecycle-and-frameworks.md)
 - [Output report template](references/output-report-template.md)
 
 ## Execution Defaults
 
 - Parse JSON directly. Never use CSV readers.
+- Declare `Mode` at top of output: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`.
+- For non-initial mode, require previous analysis reference (path/date) and prior thesis snapshot.
 - Daily drives thesis. Intraday refines timing and acceptance only.
 - Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
+- Reversal calls must follow BOS/CHOCH confirmation contract in market-structure reference.
+- FVG usage must state type, bounds, CE behavior, and mitigation status.
 - IBH/IBL is a structural acceptance tool, not a standalone signal.
+- Use volume-profile context (POC/VAH/VAL/HVN/LVN) as decision support; prefer completed prior-session profiles for session references.
+- Prefer level-to-level execution: entry near mapped zone, target next zone, explicit RR before action.
+- Declare framework lens: `UNIFIED`, `CLASSICAL_TA`, `WYCKOFF`, `SMC_ICT_LIGHT`.
+- If alternate lens is requested, include agreement/disagreement vs `UNIFIED` conclusion.
+- When `SMC_ICT_LIGHT` is active, report used SMC modules and evidence for each used module.
 - Every actionable output must include explicit invalidation and stop-loss.
 - Always include generated chart artifacts in output (`work/{SYMBOL}_*.png`) and reference them in evidence.
+- Include IB overlay chart artifact in analysis output: `work/{SYMBOL}_ib_overlay.png`.
 - In no-resistance conditions (new highs with no overhead supply), avoid fixed top calls; manage by structure until invalidated.
 
 ## Python Libraries

@@ -6,10 +6,19 @@ Use this structure for every technical analysis output.
 ## Technical Analysis: {SYMBOL}
 
 ### A. Context
+- Mode: INITIAL / UPDATE / THESIS_REVIEW / POSTMORTEM
+- Lens: UNIFIED / CLASSICAL_TA / WYCKOFF / SMC_ICT_LIGHT
 - Date
 - Intent: ENTRY / HOLD / EXIT / SCREENING
 - Timeframes used: daily + intraday(60m)
 - Data range and data dependency status
+- Previous analysis reference (required for non-initial modes)
+
+### A1. Previous Thesis Snapshot (non-initial modes)
+- Prior action
+- Prior thesis summary
+- Prior invalidators and stop
+- Prior key levels/regime
 
 ### B. Regime And State
 - State: balance / imbalance
@@ -22,9 +31,16 @@ Use this structure for every technical analysis output.
 - Support zones
 - Resistance zones
 - POC/HVN/LVN
+- VAH/VAL and value-area acceptance state
 - IBH/IBL values
 - Role reversal and level test count notes
 - Next liquidity draw
+
+### C1. Volume Profile Context
+- Profile modes used: anchored / fixed / session
+- Active profile anchors (start/end rationale)
+- Prior-session POCs (at least recent references when available)
+- Node reaction notes: HVN acceptance or LVN fast-travel behavior
 
 ### D. Chart Build And Read
 - Generated charts:
@@ -43,13 +59,26 @@ Use this structure for every technical analysis output.
 - Trigger condition
 - Invalidation condition
 - Why accepted or rejected
+- Structure status: no_signal / choch_only / choch_plus_bos_confirmed
+- CHOCH evidence: timestamp + broken level
+- Confirmation BOS evidence: timestamp + broken level
+- Trap filter outcome: valid confirmation / deviation / insufficient follow-through
 - Divergence status: no_divergence / divergence_unconfirmed / divergence_confirmed
+- Optional confluence (if used): FVG zone or OTE zone (`0.618`/`0.706`/`0.786`) with source swing
+
+### E1. Imbalance Context (if used)
+- Imbalance type: FVG / VOLUME_IMBALANCE / OPENING_GAP / IFVG
+- Zone bounds and CE (50 percent midpoint)
+- Mitigation state: unmitigated / partially_mitigated / fully_mitigated
+- CE behavior: respected / violated
 
 ### F. Risk And Execution
 - Action: BUY / HOLD / WAIT / EXIT
 - Entry zone
 - Stop-loss
 - Target ladder
+- Next-zone target (level-to-level)
+- Expected RR before entry
 - Position sizing basis
 - Red flags summary
 - Confidence
@@ -60,15 +89,42 @@ Use this structure for every technical analysis output.
 - Level conclusion
 - Price-volume conclusion
 - Conflict resolution: chart-first observation vs numeric cross-check
+- Thesis status: intact / improving / degrading / invalidated (non-initial modes)
+
+### G1. Delta Log (non-initial modes)
+| Category | Previous | Current | Change | Impact |
+|----------|----------|---------|--------|--------|
+| Structure | ... | ... | ... | ... |
+| Levels | ... | ... | ... | ... |
+| Volume | ... | ... | ... | ... |
+| Setup | ... | ... | ... | ... |
+| Risk | ... | ... | ... | ... |
+
+### G2. Lens Compare (when alternate lens requested)
+| Lens | Bias | Action | Key difference | Evidence refs |
+|------|------|--------|----------------|---------------|
+| UNIFIED | ... | ... | ... | ... |
+| Requested lens | ... | ... | ... | ... |
+
+### G3. SMC Modules (when lens is SMC_ICT_LIGHT)
+- Structure weighting: swing vs internal
+- Structure status: no_signal / choch_only / choch_plus_bos_confirmed
+- Liquidity event: none / eqh_swept / eql_swept / accepted_after_sweep / rejected_after_sweep
+- OB/Breaker state (if used): zone bounds + mitigation/violation
+- FVG/IFVG state (if used): zone bounds + reaction outcome
+- Premium/Discount zone: premium / discount / equilibrium with range anchors
+- SMC modules used and evidence refs
 
 ### H. Workflow Trace
 | Phase | Key observation | Rule refs | Evidence refs |
 |------|----------|-----------|---------------|
 | DATA_PREP | ... | ... | ... |
+| PREV_CONTEXT | ... | ... | ... |
 | LEVEL_DRAFT | ... | ... | ... |
 | CHART_BUILD | ... | ... | ... |
 | CHART_READ | ... | ... | ... |
 | CROSS_CHECK | ... | ... | ... |
+| DELTA_ASSESS | ... | ... | ... |
 | SETUP_RISK | ... | ... | ... |
 | DECISION | ... | ... | ... |
 
@@ -80,7 +136,9 @@ Use this structure for every technical analysis output.
 | E3 | level | support/resistance zone | ... |
 | E4 | ib_state | intraday session | ... |
 | E5 | volume | vol ratio | ... |
-| E6 | chart | work/{SYMBOL}_*.png | ... |
+| E6 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
+| E7 | prior_session_poc | intraday session profile | ... |
+| E8 | chart | work/{SYMBOL}_*.png | ... |
 
 ### J. Monitoring Triggers
 - Thesis confirmation triggers

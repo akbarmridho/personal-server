@@ -12,6 +12,8 @@ Convert valid setup into executable swing plan with explicit invalidation and me
 - `R-RISK-04` Do not average down into structural failure.
 - `R-RISK-05` Action must be one of: `BUY`, `HOLD`, `WAIT`, `EXIT`.
 - `R-RISK-06` Every actionable decision must include explicit stop-loss and invalidator.
+- `R-RISK-07` FVG/OTE are optional entry refinements only after structure confirmation.
+- `R-RISK-08` Optional confluence never overrides invalidation, stop, or risk sizing.
 
 ## Stop Hierarchy
 
@@ -29,6 +31,15 @@ Use stop as thesis invalidation, not arbitrary percentage.
 
 In no-resistance conditions (price discovery), prioritize structural trailing logic over fixed target projection.
 
+## Optional Entry Refinement
+
+If structural setup is already valid, entry may be refined with:
+
+- FVG retrace zone
+- OTE zone (`0.618`, `0.706`, `0.786`)
+
+If refinement is not available, continue with base structural plan. Do not downgrade solely because optional confluence is absent.
+
 ## Divergence Action Ladder
 
 1. `divergence_unconfirmed`: reduce aggressiveness, tighten risk, avoid adding size.
@@ -43,6 +54,7 @@ In no-resistance conditions (price discovery), prioritize structural trailing lo
   - position size math
   - target ladder source levels
 - Include confidence and invalidators in plain language.
+- If optional confluence is used, include: type (`FVG` or `OTE`), exact zone, and source swing/time references.
 
 ## Reference Code
 
@@ -84,6 +96,19 @@ def build_trade_plan(side, entry, invalidation, nearest_levels, capital=100_000_
         "rr_by_target": rr,
         "sizing": sizing,
     }
+
+
+def attach_optional_refinement(plan: dict, refinement_type=None, zone=None, source_ref=None):
+    # refinement_type in {None, "FVG", "OTE"}
+    if refinement_type is None:
+        return plan
+    out = dict(plan)
+    out["entry_refinement"] = {
+        "type": refinement_type,
+        "zone": zone,
+        "source_ref": source_ref,
+    }
+    return out
 
 
 def decision_with_position(has_position: bool, setup_id: str, red_flag_severity: str):

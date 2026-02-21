@@ -8,13 +8,20 @@ Enforce a consistent analysis flow without forcing rigid sequencing in every sce
 
 Use these checkpoints in most analyses. Depth can vary by context.
 
-1. `G1_DATA` - Data completeness and recency.
-2. `G2_STATE_REGIME` - Daily state (`balance` or `imbalance`) and regime are classifiable.
-3. `G3_LEVELS` - Tradable levels/zones are present.
-4. `G4_PARTICIPATION` - Volume and behavior do not contradict setup.
-5. `G5_SETUP` - Exactly one valid setup family selected.
-6. `G6_RISK` - Invalidation, stop, and size are explicit.
-7. `G7_CONFLICTS` - Any chart vs numeric contradiction is resolved explicitly.
+1. `G1_MODE` - Analysis mode and lens are explicitly declared.
+2. `G2_DATA` - Data completeness and recency.
+3. `G3_STATE_REGIME` - Daily state (`balance` or `imbalance`) and regime are classifiable.
+4. `G4_LEVELS` - Tradable levels/zones are present.
+5. `G5_PARTICIPATION` - Volume and behavior do not contradict setup.
+6. `G6_STRUCTURE_CONFIRM` - Reversal intent requires `CHOCH + BOS` confirmation.
+7. `G7_SETUP` - Exactly one valid setup family selected.
+8. `G8_RISK` - Invalidation, stop, and size are explicit.
+9. `G9_CONFLICTS` - Any chart vs numeric contradiction is resolved explicitly.
+10. `G10_DELTA` - Non-initial mode includes prior snapshot, delta log, and thesis status.
+11. `G11_SMC` - If lens is `SMC_ICT_LIGHT`, used SMC modules and evidence are explicitly reported.
+12. `G12_VOLUME_PROFILE` - If volume-profile context is used, report POC/VAH/VAL, HVN/LVN, and prior-session POC references.
+13. `G13_IMBALANCE` - If FVG/IFVG is used, report type, bounds, CE behavior, and mitigation state.
+14. `G14_L2L_PATH` - If action is BUY/EXIT, report next-zone target and expected RR.
 
 Hard stops:
 
@@ -36,6 +43,12 @@ Soft stops:
 - `F7_MA_BREAKDOWN`
 - `F8_POSITION_RISK`
 - `F9_NO_NEARBY_SUPPORT`
+- `F10_UNCONFIRMED_CHOCH`
+- `F11_MISSING_PRIOR_CONTEXT`
+- `F12_SMC_EVIDENCE_GAP`
+- `F13_VOLUME_CONFLUENCE_WEAK`
+- `F14_IMBALANCE_QUALITY_WEAK`
+- `F15_NO_NEXT_ZONE_PATH`
 
 Severity:
 
@@ -66,7 +79,7 @@ def checkpoint_result(checkpoint_id, status, why, evidence_refs):
     }
 
 
-def detect_red_flags(regime, breakout_state, level_touches, divergence_state):
+def detect_red_flags(regime, breakout_state, level_touches, divergence_state, structure_state="no_signal"):
     flags = []
 
     if regime == "potential_reversal":
@@ -97,7 +110,90 @@ def detect_red_flags(regime, breakout_state, level_touches, divergence_state):
             "why": "Confirmed momentum divergence",
         })
 
+    if structure_state == "choch_only":
+        flags.append({
+            "flag_id": "F10_UNCONFIRMED_CHOCH",
+            "severity": "MEDIUM",
+            "why": "CHOCH detected without confirmation BOS",
+        })
+
     return flags
+
+
+def add_prior_context_flag(mode: str, has_prior_context: bool):
+    if mode in {"UPDATE", "THESIS_REVIEW", "POSTMORTEM"} and not has_prior_context:
+        return [{
+            "flag_id": "F11_MISSING_PRIOR_CONTEXT",
+            "severity": "MEDIUM",
+            "why": "Non-initial mode missing prior analysis context",
+        }]
+    return []
+
+
+def add_smc_evidence_gap_flag(lens: str, modules_used: list, evidence_count: int):
+    if lens != "SMC_ICT_LIGHT":
+        return []
+    if len(modules_used) == 0:
+        return [{
+            "flag_id": "F12_SMC_EVIDENCE_GAP",
+            "severity": "MEDIUM",
+            "why": "SMC lens selected but no SMC module reported",
+        }]
+    if evidence_count < len(modules_used):
+        return [{
+            "flag_id": "F12_SMC_EVIDENCE_GAP",
+            "severity": "MEDIUM",
+            "why": "SMC modules used without sufficient evidence refs",
+        }]
+    return []
+
+
+def add_volume_confluence_flag(used_volume_profile: bool, has_key_levels: bool, uses_only_developing_session: bool):
+    if not used_volume_profile:
+        return []
+    flags = []
+    if not has_key_levels:
+        flags.append({
+            "flag_id": "F13_VOLUME_CONFLUENCE_WEAK",
+            "severity": "MEDIUM",
+            "why": "Volume-profile used without clear POC/VAH/VAL or node confluence",
+        })
+    if uses_only_developing_session:
+        flags.append({
+            "flag_id": "F13_VOLUME_CONFLUENCE_WEAK",
+            "severity": "MEDIUM",
+            "why": "Decision depends on developing session profile without prior-session reference",
+        })
+    return flags
+
+
+def add_imbalance_quality_flag(used_imbalance: bool, has_ce: bool, is_unmitigated_or_fresh: bool):
+    if not used_imbalance:
+        return []
+    flags = []
+    if not has_ce:
+        flags.append({
+            "flag_id": "F14_IMBALANCE_QUALITY_WEAK",
+            "severity": "MEDIUM",
+            "why": "Imbalance used without CE reference",
+        })
+    if not is_unmitigated_or_fresh:
+        flags.append({
+            "flag_id": "F14_IMBALANCE_QUALITY_WEAK",
+            "severity": "MEDIUM",
+            "why": "Imbalance appears spent/fully mitigated",
+        })
+    return flags
+
+
+def add_no_next_zone_path_flag(action: str, has_next_zone_target: bool):
+    if action in {"BUY", "EXIT"} and not has_next_zone_target:
+        return [{
+            "flag_id": "F15_NO_NEXT_ZONE_PATH",
+            "severity": "MEDIUM",
+            "why": "Action taken without clear next-zone target",
+        }]
+    return []
 
 
 def add_ma_breakdown_flag(price, ma20, ma50):

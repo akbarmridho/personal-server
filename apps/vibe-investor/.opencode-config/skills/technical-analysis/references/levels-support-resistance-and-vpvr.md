@@ -4,6 +4,8 @@
 
 Build actionable zones and liquidity map from daily structure, then validate tactical acceptance with intraday IBH/IBL.
 
+Detailed volume-profile workflows (POC/VAH/VAL, anchored/fixed/session usage, prior-session POC protocol) are defined in `volume-profile-and-volume-flow.md`.
+
 ## Initial Balance Concept (Market Agreement)
 
 Initial Balance represents early-session agreement between buyers and sellers.

@@ -21,6 +21,29 @@ Classify market state before setup selection using balance-imbalance logic, then
 - `R-SWING-01` Strong high/low: pivot that caused structural break.
 - `R-SWING-02` Weak high/low: pivot that failed to break structure and remains liquidity target.
 
+## BOS And CHOCH Taxonomy
+
+- `R-BOS-01` Continuation BOS: break of prior structural level in the direction of prevailing trend.
+- `R-CHOCH-01` CHOCH: first opposite-direction structural break against prevailing trend.
+- `R-BOS-02` Confirmation BOS: second structural break in the new direction after CHOCH.
+- `R-BOS-03` Reversal is considered confirmed only after `CHOCH + confirmation BOS`.
+- `R-BOS-04` Wick-only excursion does not qualify as BOS or CHOCH.
+- `R-CHOCH-02` CHOCH+ (momentum-failure variant): failed extension first, then opposite structural break.
+
+## Reversal Validation Chain
+
+Use this sequence for reversal classification:
+
+1. Confirm prior trend context (bullish or bearish).
+2. Detect CHOCH as the first opposite close-based break.
+3. Observe pullback behavior (higher low for bullish case, lower high for bearish case).
+4. Require confirmation BOS in new direction.
+5. If step 4 fails, keep state as unconfirmed and avoid reversal call.
+
+Liquidity-grab filter:
+
+- If break occurs but price quickly reclaims prior structure without follow-through, classify as deviation/liquidity grab, not reversal confirmation.
+
 ## Wyckoff Context Mapping
 
 Use one label as context after state call:
@@ -47,6 +70,7 @@ Return these fields:
   - last confirmed swing highs and lows with timestamps
   - break candle close values versus broken level
 - Add 1 state proof: range boundary and acceptance/failure evidence.
+- For reversal narratives, include CHOCH level/time and confirmation BOS level/time.
 - If conflict exists between numeric structure and visual read, report conflict and chosen precedence.
 
 ## No-Resistance Protocol
@@ -131,4 +155,15 @@ def infer_state(last_close: float, value_low: float, value_high: float, follow_c
     if last_close < value_low and follow_close <= value_low:
         return "imbalance", "accepted_below_value"
     return "balance", "failed_acceptance_back_inside"
+
+
+def structure_status(prev_trend: str, choch_triggered: bool, bos_confirmed: bool):
+    # prev_trend in {"bullish", "bearish", "neutral"}
+    if prev_trend == "neutral":
+        return "no_signal"
+    if choch_triggered and bos_confirmed:
+        return "choch_plus_bos_confirmed"
+    if choch_triggered:
+        return "choch_only"
+    return "no_signal"
 ```

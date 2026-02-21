@@ -21,6 +21,7 @@ Score setup quality for swing decisions using price-volume behavior and structur
 - `R-PA-04` Pattern labels without structure and volume confluence are not tradable.
 - `R-PA-05` Prefer setups aligned with daily regime and liquidity draw.
 - `R-PA-06` In balance state, prioritize edge-to-edge behavior; avoid middle-of-range entries.
+- `R-PA-07` Reversal setups require `CHOCH + confirmation BOS`; CHOCH alone is warning only.
 
 ## Volume Confirmation
 
@@ -47,13 +48,51 @@ Score setup quality for swing decisions using price-volume behavior and structur
 - Divergence alone is warning, not reversal confirmation.
 - Escalate only after structure break confirmation.
 
+## BOS And CHOCH Reversal Playbooks
+
+Bullish reversal flow:
+
+1. Market in bearish structure.
+2. Price prints bullish CHOCH (break above recent lower high).
+3. Pullback holds as higher low.
+4. Price breaks prior high again (confirmation BOS).
+5. Setup becomes eligible for long plan.
+
+Bearish reversal flow:
+
+1. Market in bullish structure.
+2. Price prints bearish CHOCH (break below recent higher low).
+3. Pullback fails as lower high.
+4. Price breaks prior low again (confirmation BOS).
+5. Setup becomes eligible for short-plan context.
+
+Structure status enum for reporting:
+
+- `no_signal`
+- `choch_only`
+- `choch_plus_bos_confirmed`
+
+## Optional Confluence (FVG And OTE)
+
+Use these only after structural confirmation. They refine entries, not validate reversals.
+
+Detailed FVG/IFVG definitions, CE handling, and mitigation states are defined in `fair-value-gap-and-imbalances.md`.
+
+- FVG: entry refinement on retrace to imbalance zone.
+- OTE: fib retracement zone `0.618`, `0.706`, `0.786` of latest impulse.
+- Neither FVG nor OTE can replace invalidation, stop, and structure confirmation.
+
+When lens is `SMC_ICT_LIGHT`, optional confluence may also include OB/Breaker/IFVG/EQH-EQL context from SMC reference.
+
 ## Trace Requirements
 
 - Provide at least 3 evidence ids for setup call:
   - trigger candle timestamp and close
   - broken/reclaimed level
   - volume ratio at trigger and follow-through candle
+- For reversal setups, include CHOCH and confirmation BOS evidence references.
 - If divergence exists, include status and invalidator level.
+- If FVG/OTE is used, include exact zone bounds and source swing.
 
 ## Reference Code
 
@@ -100,7 +139,11 @@ def breakout_quality(df: pd.DataFrame, level: float, side: str):
     return quality, proof
 
 
-def choose_setup(regime, ib_state, breakout_state, spring_confirmed=False):
+def choose_setup(regime, ib_state, breakout_state, structure_state="no_signal", spring_confirmed=False):
+    if structure_state == "choch_plus_bos_confirmed":
+        return "S3"
+    if structure_state == "choch_only":
+        return "NO_VALID_SETUP"
     if spring_confirmed:
         return "S6"
     if regime == "trend_continuation" and breakout_state == "valid_breakout":
@@ -124,4 +167,13 @@ def classify_price_volume(change_pct: float, vol_ratio: float):
     if change_pct < 0 and vol_ratio >= 1.2:
         return "distribution"
     return "neutral"
+
+
+def ote_zone(swing_low: float, swing_high: float):
+    span = swing_high - swing_low
+    return {
+        "fib_0_618": swing_high - span * 0.618,
+        "fib_0_706": swing_high - span * 0.706,
+        "fib_0_786": swing_high - span * 0.786,
+    }
 ```
