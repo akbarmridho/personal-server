@@ -33,24 +33,6 @@ Standardize imbalance analysis so FVG-based decisions are evidence-driven, conte
 - mitigation state (fresh vs spent)
 - reaction evidence on retest (reject/accept)
 
-## FVG Quality Scoring Matrix
-
-Score each criterion, then assign grade:
-
-- structural alignment: 0 to 2
-- location quality: 0 to 2
-- mitigation quality: 0 to 2
-- CE behavior clarity: 0 to 2
-- volume/participation confirmation: 0 to 2
-
-Grade mapping:
-
-- `A` = 8 to 10 (high quality)
-- `B` = 5 to 7 (tradable with caution)
-- `C` = 0 to 4 (avoid or require stronger confirmation)
-
-If grade is `C`, default bias is `WAIT` unless a separate stronger framework overrides with explicit evidence.
-
 ## Trace Requirements
 
 - Report imbalance type and zone bounds.
@@ -85,27 +67,4 @@ def mitigation_state(zone_low: float, zone_high: float, price_low: float, price_
     if fully:
         return "fully_mitigated"
     return "partially_mitigated"
-
-
-def fvg_quality_grade(
-    structural_alignment: int,
-    location_quality: int,
-    mitigation_quality: int,
-    ce_behavior_clarity: int,
-    volume_confirmation: int,
-):
-    score = (
-        structural_alignment
-        + location_quality
-        + mitigation_quality
-        + ce_behavior_clarity
-        + volume_confirmation
-    )
-    if score >= 8:
-        grade = "A"
-    elif score >= 5:
-        grade = "B"
-    else:
-        grade = "C"
-    return {"score": score, "grade": grade}
 ```

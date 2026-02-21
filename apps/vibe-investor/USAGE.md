@@ -1,27 +1,48 @@
-# Technical Analysis Skill Quick Usage
+# Technical Analysis Skill Usage
 
-Use these prompts with the `technical-analysis` skill.
+This guide explains both how to run the skill and what conceptual frameworks it covers.
 
-## 1) INITIAL (first full thesis)
+## Concepts Covered
+
+- `UNIFIED` baseline: market state, structure, levels, volume, liquidity, and risk integrated in one decision flow.
+- `CLASSICAL_TA`: horizontal support/resistance, role flips, time-based levels, and round-number confluence.
+- `WYCKOFF`: balance/imbalance context with accumulation/markup/distribution/markdown mapping.
+- `VOLUME_PROFILE`: POC/VAH/VAL/HVN/LVN behavior and prior-session profile context.
+- `LIQUIDITY`: draw-to-liquidity map, sweep outcome, and external/internal path framing.
+- `SMC_ICT_LIGHT`: BOS/CHOCH/CHOCH+, EQH/EQL, OB/Breaker, FVG/IFVG, Premium/Discount.
+- `LEVEL_TO_LEVEL`: entry near mapped zone, invalidation beyond structure, next-zone target path.
+- `IBH_IBL`: Initial Balance acceptance/deviation logic and stepped overlay chart.
+
+## Schools Of Thought In This Skill
+
+- Structure-first: price behavior is interpreted through structure and acceptance, not isolated candles.
+- Chart-first, evidence-backed: generate/read charts before final call and attach evidence refs.
+- Risk-first execution: no action without invalidation, stop-loss, and sizing logic.
+- Multi-lens optionality: alternate lens can be requested and compared against `UNIFIED`.
+- Iterative lifecycle: supports `INITIAL`, `UPDATE`, `THESIS_REVIEW`, `POSTMORTEM`.
+
+## Mode Prompts
+
+### 1) INITIAL (first thesis)
 
 ```text
 Run technical-analysis mode INITIAL for BBCA.
 Intent: ENTRY.
-Use default UNIFIED lens.
+Lens: UNIFIED.
 Build full report with workflow trace, evidence ledger, and chart artifacts.
 ```
 
-## 2) UPDATE (weekly refresh vs prior thesis)
+### 2) UPDATE (periodic refresh)
 
 ```text
 Run technical-analysis mode UPDATE for BBCA.
 Intent: HOLD.
-Use default UNIFIED lens.
+Lens: UNIFIED.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Return full report plus Delta Log (what changed, what stayed, and why action changed/stayed).
 ```
 
-## 3) THESIS_REVIEW (is thesis still valid?)
+### 3) THESIS_REVIEW (thesis health check)
 
 ```text
 Run technical-analysis mode THESIS_REVIEW for BBCA.
@@ -30,7 +51,7 @@ Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Focus on thesis status (intact/improving/degrading/invalidated), invalidators, and monitoring triggers.
 ```
 
-## 4) POSTMORTEM (after invalidation or exit)
+### 4) POSTMORTEM (after invalidation/exit)
 
 ```text
 Run technical-analysis mode POSTMORTEM for BBCA.
@@ -39,7 +60,9 @@ Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Explain what failed, what was missed, and what rule updates should be applied next time.
 ```
 
-## 5) Alternate Lens Compare (optional)
+## Lens And Concept Prompts
+
+### 5) Alternate Lens Compare
 
 ```text
 Run technical-analysis mode UPDATE for BBCA.
@@ -49,73 +72,63 @@ Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Return Lens Compare table with agreement/disagreement and evidence refs.
 ```
 
-## 6) SMC Lens Deep Check (optional modules)
+### 6) SMC Deep Check
 
 ```text
 Run technical-analysis mode UPDATE for BBCA.
 Intent: HOLD.
 Lens: SMC_ICT_LIGHT.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Include SMC Modules section with structure weighting, OB/Breaker state, FVG/IFVG state, EQH/EQL sweep result, and Premium/Discount zone.
+Include SMC modules: structure weighting, OB/Breaker state, FVG/IFVG state, EQH/EQL sweep result, Premium/Discount zone.
 Keep action risk-first with explicit invalidation and stop-loss.
 ```
 
-## 7) Volume Profile-Focused Update
+### 7) Volume Profile Focus
 
 ```text
 Run technical-analysis mode UPDATE for BBCA.
 Intent: HOLD.
 Lens: UNIFIED.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Emphasize volume profile context: anchored + fixed range + prior-session POCs.
-Include POC/VAH/VAL, HVN/LVN reaction notes, value-area acceptance state, and Delta Log impact on action.
+Emphasize anchored + fixed range + prior-session POCs.
+Include POC/VAH/VAL, HVN/LVN reaction notes, and value-area acceptance state.
 ```
 
-## 8) Level-to-Level Plan
+### 8) Liquidity Draw Map Focus
+
+```text
+Run technical-analysis mode UPDATE for BBCA.
+Intent: HOLD.
+Lens: UNIFIED.
+Previous analysis reference: work/BBCA_report_2026-02-14.md.
+Return current draw, opposing draw, sweep event/outcome, and liquidity path state.
+Use HTF sweep context and LTF trigger evidence if available.
+```
+
+### 9) Horizontal S/R Heuristics Pass
+
+```text
+Run technical-analysis mode UPDATE for BBCA.
+Intent: HOLD.
+Lens: UNIFIED.
+Previous analysis reference: work/BBCA_report_2026-02-14.md.
+Apply HTF-first mapping then refine LTF zones.
+Include monthly/weekly/daily open, round-number confluence, and breakout displacement quality.
+Keep levels minimal and actionable.
+```
+
+### 10) Level-To-Level Execution Plan
 
 ```text
 Run technical-analysis mode INITIAL for BBCA.
 Intent: ENTRY.
 Lens: UNIFIED.
-Build a level-to-level plan: entry zone, invalidation, next-zone target, and expected RR.
+Build plan with entry zone, invalidation, next-zone target, and expected RR.
 If no clear next-zone path exists, return WAIT with required conditions.
-```
-
-## 9) FVG/IFVG Validation Pass
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: SMC_ICT_LIGHT.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Evaluate imbalance context: FVG/IFVG type, zone bounds, CE behavior, mitigation state, and impact on action.
-```
-
-## 10) Liquidity Draw Update
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Return liquidity draw map with current draw, opposing draw, sweep event/outcome, and path state (external_to_internal or internal_to_external).
-Use HTF sweep context and LTF trigger evidence if available.
-```
-
-## 11) Horizontal S/R Heuristics Pass
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Apply HTF-first level mapping, then refine LTF zones.
-Include time-based levels (monthly/weekly/daily open), round-number confluence, and breakout displacement quality (clean vs stalling).
-Keep mapped levels minimal and only actionable.
 ```
 
 ## Notes
 
-- For `UPDATE`, `THESIS_REVIEW`, and `POSTMORTEM`, always provide previous analysis reference.
-- Always request chart artifacts, especially `work/{SYMBOL}_ib_overlay.png`.
-- If no valid setup is found, expected action is `WAIT` with clear re-entry conditions.
+- For `UPDATE`, `THESIS_REVIEW`, and `POSTMORTEM`, provide previous analysis reference.
+- Ask for chart artifacts explicitly when needed, including `work/{SYMBOL}_ib_overlay.png`.
+- If no valid setup exists, expected action is `WAIT` with re-entry conditions.
