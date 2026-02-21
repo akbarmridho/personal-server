@@ -22,6 +22,8 @@ Use these checkpoints in most analyses. Depth can vary by context.
 12. `G12_VOLUME_PROFILE` - If volume-profile context is used, report POC/VAH/VAL, HVN/LVN, and prior-session POC references.
 13. `G13_IMBALANCE` - If FVG/IFVG is used, report type, bounds, CE behavior, and mitigation state.
 14. `G14_L2L_PATH` - If action is BUY/EXIT, report next-zone target and expected RR.
+15. `G15_LIQUIDITY_MAP` - Report current draw, opposing draw, sweep event/outcome, and liquidity path state.
+16. `G16_LEVEL_HEURISTICS` - Include HTF-first mapping, time-based levels, and round-number checks when relevant.
 
 Hard stops:
 
@@ -49,6 +51,8 @@ Soft stops:
 - `F13_VOLUME_CONFLUENCE_WEAK`
 - `F14_IMBALANCE_QUALITY_WEAK`
 - `F15_NO_NEXT_ZONE_PATH`
+- `F16_LIQUIDITY_MAP_MISSING`
+- `F17_BREAKOUT_STALLING`
 
 Severity:
 
@@ -192,6 +196,27 @@ def add_no_next_zone_path_flag(action: str, has_next_zone_target: bool):
             "flag_id": "F15_NO_NEXT_ZONE_PATH",
             "severity": "MEDIUM",
             "why": "Action taken without clear next-zone target",
+        }]
+    return []
+
+
+def add_liquidity_map_flag(has_current_draw: bool, has_opposing_draw: bool, has_sweep_label: bool):
+    missing = not has_current_draw or not has_opposing_draw or not has_sweep_label
+    if missing:
+        return [{
+            "flag_id": "F16_LIQUIDITY_MAP_MISSING",
+            "severity": "MEDIUM",
+            "why": "Liquidity map incomplete (draw targets or sweep labeling missing)",
+        }]
+    return []
+
+
+def add_breakout_stalling_flag(is_breakout_setup: bool, has_displacement: bool):
+    if is_breakout_setup and not has_displacement:
+        return [{
+            "flag_id": "F17_BREAKOUT_STALLING",
+            "severity": "MEDIUM",
+            "why": "Breakout lacks clean displacement and may be a trap",
         }]
     return []
 

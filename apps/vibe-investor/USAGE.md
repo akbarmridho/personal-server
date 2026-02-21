@@ -91,6 +91,29 @@ Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Evaluate imbalance context: FVG/IFVG type, zone bounds, CE behavior, mitigation state, and impact on action.
 ```
 
+## 10) Liquidity Draw Update
+
+```text
+Run technical-analysis mode UPDATE for BBCA.
+Intent: HOLD.
+Lens: UNIFIED.
+Previous analysis reference: work/BBCA_report_2026-02-14.md.
+Return liquidity draw map with current draw, opposing draw, sweep event/outcome, and path state (external_to_internal or internal_to_external).
+Use HTF sweep context and LTF trigger evidence if available.
+```
+
+## 11) Horizontal S/R Heuristics Pass
+
+```text
+Run technical-analysis mode UPDATE for BBCA.
+Intent: HOLD.
+Lens: UNIFIED.
+Previous analysis reference: work/BBCA_report_2026-02-14.md.
+Apply HTF-first level mapping, then refine LTF zones.
+Include time-based levels (monthly/weekly/daily open), round-number confluence, and breakout displacement quality (clean vs stalling).
+Keep mapped levels minimal and only actionable.
+```
+
 ## Notes
 
 - For `UPDATE`, `THESIS_REVIEW`, and `POSTMORTEM`, always provide previous analysis reference.

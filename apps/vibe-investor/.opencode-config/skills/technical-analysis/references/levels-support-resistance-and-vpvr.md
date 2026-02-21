@@ -24,6 +24,8 @@ Use IB as a probabilistic structural reference, not certainty. The often-cited h
 - Keep level count focused: major zones first, then tactical zones.
 - Use chart annotations for support, resistance, IBH, IBL, and acceptance/failure labels.
 - Chart observations should be logged before the final setup decision.
+- Start from higher timeframe obvious structures first, then refine lower timeframe detail.
+- Less is more: map only levels that are clearly actionable.
 
 ## Core Rules
 
@@ -33,6 +35,20 @@ Use IB as a probabilistic structural reference, not certainty. The often-cited h
 - `R-LVL-04` Broken support/resistance can flip role after acceptance.
 - `R-LVL-05` Prefer confluence zones (swing + VPVR + fib/round number) over isolated levels.
 - `R-LVL-06` Use close-based confirmation, not wick-only breaches.
+- `R-LVL-07` Treat mapping and trading as separate steps; level map alone is not trade permission.
+- `R-LVL-08` Time-based pivots (monthly/weekly/daily open) can act as contextual decision levels.
+- `R-LVL-09` Psychological round numbers can strengthen confluence, not replace structure.
+
+## Time-Based And Psychological Levels
+
+Track these as secondary confluence levels:
+
+- Monthly Open
+- Weekly Open
+- Daily Open
+- Major round numbers (instrument-appropriate increments)
+
+Use them for context and trigger quality, not standalone calls.
 
 ## Strength By Test Count
 
@@ -88,6 +104,12 @@ For reporting, add a daily chart with stepped IBH/IBL overlays derived from peri
 - Treat quick reclaim after a wick break as potential deviation trap.
 - For execution, use stop buffers and close-confirmation rather than exact-touch assumptions.
 
+## Wick vs Body Guidance
+
+- For stop-run/spike/deviation setups: prioritize wick behavior and fast reclaim.
+- For breakout acceptance and reversal structure: prioritize close/body confirmation.
+- When both are informative, report both with explicit precedence.
+
 ## Trace Requirements
 
 - Evidence must include:
@@ -95,6 +117,8 @@ For reporting, add a daily chart with stepped IBH/IBL overlays derived from peri
   - POC/HVN/LVN values from analyzed window
   - latest IBH/IBL values and state label
 - For IB overlay chart, include period, `n` bars, latest period IBH/IBL, and acceptance/deviation label.
+- Include key time-based levels (daily/weekly/monthly open) when relevant.
+- Include major round-number level interactions when relevant.
 - Include at least one role-reversal or failed-break note when present.
 
 ## Reference Code

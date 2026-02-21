@@ -77,6 +77,7 @@ Topic ownership (avoid overlap):
 - Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
 - Levels/VPVR/IBH-IBL -> `references/levels-support-resistance-and-vpvr.md`
 - Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
+- Liquidity draw and sweep framework -> `references/liquidity-draw-and-sweep.md`
 - Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
 - Setup quality/patterns -> `references/price-action-patterns-and-breakouts.md`
 - Level-to-level execution workflow -> `references/level-to-level-execution.md`
@@ -112,6 +113,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - [Market structure and trend](references/market-structure-and-trend.md)
 - [Levels support resistance and VPVR](references/levels-support-resistance-and-vpvr.md)
 - [Volume profile and volume flow](references/volume-profile-and-volume-flow.md)
+- [Liquidity draw and sweep](references/liquidity-draw-and-sweep.md)
 - [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
 - [Price action patterns and breakouts](references/price-action-patterns-and-breakouts.md)
 - [Level to level execution](references/level-to-level-execution.md)
@@ -131,7 +133,10 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Reversal calls must follow BOS/CHOCH confirmation contract in market-structure reference.
 - FVG usage must state type, bounds, CE behavior, and mitigation status.
 - IBH/IBL is a structural acceptance tool, not a standalone signal.
+- Map levels HTF-first then refine lower timeframe; keep level map minimal and actionable.
+- Treat charting as market map only; execution still requires setup, invalidation, and risk criteria.
 - Use volume-profile context (POC/VAH/VAL/HVN/LVN) as decision support; prefer completed prior-session profiles for session references.
+- Include liquidity draw map: current draw, opposing draw, sweep event, sweep outcome, and path state.
 - Prefer level-to-level execution: entry near mapped zone, target next zone, explicit RR before action.
 - Declare framework lens: `UNIFIED`, `CLASSICAL_TA`, `WYCKOFF`, `SMC_ICT_LIGHT`.
 - If alternate lens is requested, include agreement/disagreement vs `UNIFIED` conclusion.

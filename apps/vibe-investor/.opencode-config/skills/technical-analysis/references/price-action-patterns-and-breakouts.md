@@ -22,6 +22,7 @@ Score setup quality for swing decisions using price-volume behavior and structur
 - `R-PA-05` Prefer setups aligned with daily regime and liquidity draw.
 - `R-PA-06` In balance state, prioritize edge-to-edge behavior; avoid middle-of-range entries.
 - `R-PA-07` Reversal setups require `CHOCH + confirmation BOS`; CHOCH alone is warning only.
+- `R-PA-08` Clean breakout should displace quickly; post-breakout stalling increases trap risk.
 
 ## Volume Confirmation
 
@@ -93,6 +94,7 @@ When lens is `SMC_ICT_LIGHT`, optional confluence may also include OB/Breaker/IF
 - For reversal setups, include CHOCH and confirmation BOS evidence references.
 - If divergence exists, include status and invalidator level.
 - If FVG/OTE is used, include exact zone bounds and source swing.
+- If breakout setup is selected, include note on displacement quality vs stalling.
 
 ## Reference Code
 

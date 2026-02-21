@@ -55,6 +55,7 @@ Rules:
 - `R-FW-04` If alternate lens disagrees with `UNIFIED`, report agreement/disagreement with evidence.
 - `R-FW-05` `UNIFIED` should include participation context (volume profile or equivalent volume-by-price evidence) when available.
 - `R-FW-06` Any actionable decision should map a level-to-level path (entry zone to next-zone target) or downgrade to `WAIT`.
+- `R-FW-07` Any directional call should include liquidity draw map (current draw and opposing draw).
 
 `SMC_ICT_LIGHT` scope:
 

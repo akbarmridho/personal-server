@@ -33,6 +33,8 @@ Use this structure for every technical analysis output.
 - POC/HVN/LVN
 - VAH/VAL and value-area acceptance state
 - IBH/IBL values
+- Time-based levels: monthly/weekly/daily open (when relevant)
+- Round-number levels (when relevant)
 - Role reversal and level test count notes
 - Next liquidity draw
 
@@ -41,6 +43,13 @@ Use this structure for every technical analysis output.
 - Active profile anchors (start/end rationale)
 - Prior-session POCs (at least recent references when available)
 - Node reaction notes: HVN acceptance or LVN fast-travel behavior
+
+### C2. Liquidity Draw Map
+- Current draw target
+- Opposing draw target
+- Sweep event: none / eqh_swept / eql_swept / trendline_swept / swing_swept
+- Sweep outcome: accepted / rejected / unresolved
+- Path state: external_to_internal / internal_to_external / unclear
 
 ### D. Chart Build And Read
 - Generated charts:
@@ -65,6 +74,7 @@ Use this structure for every technical analysis output.
 - Trap filter outcome: valid confirmation / deviation / insufficient follow-through
 - Divergence status: no_divergence / divergence_unconfirmed / divergence_confirmed
 - Optional confluence (if used): FVG zone or OTE zone (`0.618`/`0.706`/`0.786`) with source swing
+- Breakout displacement note: clean displacement / stalling
 
 ### E1. Imbalance Context (if used)
 - Imbalance type: FVG / VOLUME_IMBALANCE / OPENING_GAP / IFVG
@@ -139,6 +149,7 @@ Use this structure for every technical analysis output.
 | E6 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
 | E7 | prior_session_poc | intraday session profile | ... |
 | E8 | chart | work/{SYMBOL}_*.png | ... |
+| E9 | liquidity | draw target + sweep evidence | ... |
 
 ### J. Monitoring Triggers
 - Thesis confirmation triggers
