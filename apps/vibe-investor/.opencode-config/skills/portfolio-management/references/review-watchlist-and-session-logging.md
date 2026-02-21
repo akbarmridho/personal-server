@@ -29,6 +29,14 @@
 
 If portfolio is flat/red while IHSG prints new highs, strategy likely has structural misalignment and needs overhaul.
 
+## Leader Breadth Risk Monitor
+
+Track a small leader basket (from your active/watchlist universe) and count fresh invalidations.
+
+- If multiple leaders break structure/stop in the same review window, treat this as regime deterioration.
+- When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
+- Write the signal and resulting action to `memory/sessions/{YYYY-MM-DD}.md`.
+
 ## Watchlist Management
 
 | Status | Criteria | Action |
@@ -48,6 +56,8 @@ Write to: `memory/notes/watchlist.md`
 | BBCA | Ready | Rate cut beneficiary | Break above 10,000 with volume | 2025-01-15 |
 | ADRO | Watching | Coal cycle + restructuring | Foreign accumulation signal | 2025-01-20 |
 ```
+
+Prefer to include a `Leader` marker for names used in breadth monitoring.
 
 ## Session Log Template
 

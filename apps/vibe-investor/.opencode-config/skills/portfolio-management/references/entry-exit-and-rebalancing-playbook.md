@@ -4,6 +4,25 @@
 
 This framework translates weekly-monthly operating rules into explicit decision behavior.
 
+## Market Regime Gate (Before New Long Exposure)
+
+Only deploy full-size new longs when market regime is supportive.
+
+Evidence sources:
+
+- `fetch-ohlcv` on market proxy and current leaders/watchlist names.
+- `memory/notes/watchlist.md` and `memory/notes/portfolio.md` for active symbol universe.
+
+Operational gate:
+
+- **Pass**: market proxy structure is constructive and most leaders are not in fresh breakdown mode.
+- **Fail**: broad structure is weak and leader breakdowns are clustering.
+
+Actions:
+
+- Gate pass: normal sizing allowed by risk and liquidity rules.
+- Gate fail: no aggressive new long exposure; use smaller pilot size or stay in cash.
+
 ### 1) Buy Discount, Not Chase
 
 - Prefer entries during drawdowns when weakness is temporary and long-term thesis remains valid.
@@ -58,6 +77,12 @@ If profitable and MoS is still >30%:
 - First buy: full initial size
 - Second buy: 50% of first
 - Third buy: 25% of first
+
+Pyramid discipline:
+
+- Add only if prior tranche is green and thesis/structure remains valid.
+- Do not add to losing positions.
+- After adding, tighten risk so aggregate trade does not violate portfolio heat limits.
 
 ## Exit Strategies
 

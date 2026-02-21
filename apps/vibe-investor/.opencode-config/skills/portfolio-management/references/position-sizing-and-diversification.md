@@ -60,3 +60,11 @@ Position Size = (Portfolio x 1%) / (Entry Price - Stop Loss)
 
 - Max portfolio heat: 5-6% total open risk.
 - Conviction scaling guide: high conviction 1.5%, low conviction 0.5%.
+
+## Hard-Loss Fallback (When Invalidation Is Ambiguous)
+
+Primary stop should come from thesis/structure invalidation. If no clean invalidation level exists, enforce a hard-loss cap for tactical trades.
+
+- Default fallback cap: 7-8% from entry.
+- If volatility/liquidity is unusually high, reduce position size instead of widening risk blindly.
+- Never let fallback cap override a tighter, higher-quality technical invalidation.

@@ -30,6 +30,9 @@ Write to: `memory/symbols/{SYMBOL}.md`
 - Target 1: {price} (+{X%}) - sell {X%}
 - Target 2: {price} (+{X%}) - sell {X%}
 - Target 3: {price} (+{X%}) - sell remaining
+- Progress checkpoint date: {YYYY-MM-DD}
+- Progress expectation by checkpoint: {what must be true}
+- If checkpoint fails: {hold / trim / exit rule}
 
 ## Invalidation
 {Specific conditions that invalidate thesis}
@@ -44,5 +47,6 @@ Write to: `memory/symbols/{SYMBOL}.md`
 - Invalidation
 - Position size and stop loss
 - Timeframe and review cadence
+- Progress checkpoint and failure action
 
 No entry should be executed without these fields filled.

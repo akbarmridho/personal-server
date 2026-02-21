@@ -60,9 +60,11 @@ Use for daily/weekly/monthly process and operating logs in memory files.
 - Do not average down after thesis break.
 - Position size must be liquidity-aware before entry.
 - Keep portfolio heat controlled; avoid hidden concentration via high correlation.
+- Use only machine-verifiable rules for decisions (tool data + memory state), not discretionary outside context.
 
 ## Execution Defaults
 
 - Run required data fetches in parallel when the task is a full portfolio or position review.
 - Write concrete outputs to memory files, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
+- For new longs, check market regime and leader breadth from available symbols before allowing full-size risk.
