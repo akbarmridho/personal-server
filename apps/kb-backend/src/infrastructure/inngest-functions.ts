@@ -41,7 +41,6 @@ import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
 import { stockbitFilingCrawl } from "../data-modules/stockbit-filing/crawl.js";
 import { stockbitAnnouncementIngest } from "../data-modules/stockbit-filing/ingest.js";
 import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
-import { whatsAppChannelIngest } from "../data-modules/whatsapp-channel/ingest.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
 import { youtubeChannelIngest } from "../data-modules/youtube/ingest.js";
@@ -146,5 +145,4 @@ export const inngestFunctions: InngestFunction.Like[] = [
   generalNewsIngest,
   generalNewsKGCrawl,
   generalNewsProxyQueueFlush,
-  whatsAppChannelIngest,
 ];
