@@ -64,6 +64,29 @@ Use this flow by default, but adapt depth to context. The process is structured,
 8. `SETUP_RISK` - Build setup and risk plan (or no-trade plan).
 9. `DECISION` - Produce action, invalidation, and monitoring triggers.
 
+### Scripted Chart Build (Deterministic)
+
+Use the chart generator script to build artifacts from OHLCV JSON before `CHART_READ`.
+
+```bash
+python .opencode-config/skills/technical-analysis/scripts/generate_ta_charts.py \
+  --input {FETCH_OHLCV_OUTPUT_PATH} \
+  --symbol {SYMBOL} \
+  --outdir work \
+  --modules core,vpvr,imbalance
+```
+
+- Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
+- Input JSON contract at that path: required arrays `daily[]`, `intraday[]`, `corp_actions[]`.
+- Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
+- Available modules for `--modules`:
+  - `core`: required baseline artifacts (`daily_structure`, `intraday_ibh_ibl`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
+  - `vpvr`: adds `vpvr_profile` chart
+  - `imbalance`: adds `imbalance_fvg` chart
+  - `detail`: adds optional detail chart
+  - `all`: shorthand for `core,vpvr,imbalance,detail`
+- Use `--modules core` when only mandatory charts are needed.
+
 Hard requirements:
 
 - Do not skip `CHART_BUILD` and `CHART_READ`.
@@ -177,7 +200,6 @@ Reference code in this skill and its references uses:
 - `json` (stdlib)
 - `pandas`
 - `numpy`
-- `mplfinance`
 
 ## Reference Code
 

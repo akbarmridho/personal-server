@@ -47,7 +47,6 @@ For reporting, add stepped IBH/IBL overlay from period-open discovery windows.
 ```python
 import numpy as np
 import pandas as pd
-import mplfinance as mpf
 
 
 def latest_ib_state(df_intraday: pd.DataFrame):
@@ -127,42 +126,4 @@ def latest_period_ib_state(df_daily: pd.DataFrame, period: str = "M", first_n_ba
         state = "inside_ib_range"
 
     return {"period": period, "first_n_bars": first_n_bars, "ibh": ibh, "ibl": ibl, "state": state}
-
-
-def plot_intraday_with_ib(df_intraday: pd.DataFrame, ibh: float, ibl: float, symbol: str, out_path: str):
-    x = df_intraday.copy()
-    x["dt"] = pd.to_datetime(x["datetime"])
-    x = x.set_index("dt")[["open", "high", "low", "close", "volume"]]
-
-    style = mpf.make_mpf_style(base_mpf_style="yahoo", gridstyle=":")
-    mpf.plot(
-        x,
-        type="candle",
-        volume=True,
-        style=style,
-        hlines=dict(hlines=[ibh, ibl], colors=["#2ca02c", "#d62728"], linewidths=[1.0, 1.0]),
-        title=f"{symbol} Intraday IBH/IBL",
-        savefig=dict(fname=out_path, dpi=150, bbox_inches="tight"),
-    )
-
-
-def plot_daily_with_ib_overlay(df_daily: pd.DataFrame, symbol: str, out_path: str, period: str = "M", first_n_bars: int = 2):
-    x, ibh_line, ibl_line, _ = compute_period_ib_levels(df_daily, period=period, first_n_bars=first_n_bars)
-    x = x.set_index("dt")[["open", "high", "low", "close", "volume"]]
-
-    apds = [
-        mpf.make_addplot(ibh_line.values, color="#2f6bff", width=1.2),
-        mpf.make_addplot(ibl_line.values, color="#2f6bff", width=1.2),
-    ]
-
-    style = mpf.make_mpf_style(base_mpf_style="yahoo", gridstyle=":")
-    mpf.plot(
-        x,
-        type="candle",
-        volume=True,
-        style=style,
-        addplot=apds,
-        title=f"{symbol} Initial Balance Overlay ({period}, {first_n_bars})",
-        savefig=dict(fname=out_path, dpi=150, bbox_inches="tight"),
-    )
 ```

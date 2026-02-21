@@ -50,8 +50,6 @@ Use one method consistently per report:
 
 ```python
 import numpy as np
-import pandas as pd
-import mplfinance as mpf
 
 
 def cluster_levels(levels, tolerance=0.02):
@@ -93,25 +91,4 @@ def role_reversal(last_close: float, level: float, was_support: bool):
     if (not was_support) and last_close > level:
         return "resistance_broken_may_flip_to_support"
     return "no_flip_signal"
-
-
-def plot_daily_with_levels(df_daily: pd.DataFrame, zones: list, symbol: str, out_path: str):
-    x = df_daily.copy()
-    x["dt"] = pd.to_datetime(x["datetime"])
-    x = x.set_index("dt")[["open", "high", "low", "close", "volume"]]
-
-    hlines = []
-    for z in zones[:8]:
-        hlines.append(z["zone_mid"])
-
-    style = mpf.make_mpf_style(base_mpf_style="yahoo", gridstyle=":")
-    mpf.plot(
-        x,
-        type="candle",
-        volume=True,
-        style=style,
-        hlines=dict(hlines=hlines, colors=["#1f77b4"] * len(hlines), linewidths=[0.8] * len(hlines)) if hlines else None,
-        title=f"{symbol} Daily Structure",
-        savefig=dict(fname=out_path, dpi=150, bbox_inches="tight"),
-    )
 ```

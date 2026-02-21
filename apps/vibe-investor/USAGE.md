@@ -24,6 +24,19 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 
 ## Chart Artifact Contract
 
+- Input source:
+  - Use the exact `output_path` used by `fetch-ohlcv` as script input.
+  - That JSON must contain `daily[]`, `intraday[]`, and `corp_actions[]`.
+- Script location:
+  - `.opencode-config/skills/technical-analysis/scripts/generate_ta_charts.py`
+- Available modules for `--modules`:
+  - `core`: baseline required artifacts (`daily_structure`, `intraday_ibh_ibl`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
+  - `vpvr`: adds `vpvr_profile`
+  - `imbalance`: adds `imbalance_fvg`
+  - `detail`: adds optional deep-dive detail chart
+  - `all`: shorthand for `core,vpvr,imbalance,detail`
+- Example run:
+  - `python .opencode-config/skills/technical-analysis/scripts/generate_ta_charts.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance`
 - Core required charts (every run):
   - `work/{SYMBOL}_daily_structure.png`
   - `work/{SYMBOL}_intraday_ibh_ibl.png`
