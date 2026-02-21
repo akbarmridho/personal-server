@@ -11,6 +11,7 @@ Convert valid setup into executable swing plan with explicit invalidation and me
 - `R-RISK-03` Add only when trade is working and structure remains valid.
 - `R-RISK-04` Do not average down into structural failure.
 - `R-RISK-05` Action must be one of: `BUY`, `HOLD`, `WAIT`, `EXIT`.
+- `R-RISK-06` Every actionable decision must include explicit stop-loss and invalidator.
 
 ## Stop Hierarchy
 
@@ -18,11 +19,21 @@ Convert valid setup into executable swing plan with explicit invalidation and me
 2. ATR fallback stop when structure is unclear.
 3. Time stop for stale setup (no progress in defined window).
 
+Use stop as thesis invalidation, not arbitrary percentage.
+
 ## Target And Management
 
 - Use nearest liquidity/level as first target.
 - Use partial exits at major resistance/support transitions.
 - Keep trailing stop rule explicit after first target.
+
+In no-resistance conditions (price discovery), prioritize structural trailing logic over fixed target projection.
+
+## Divergence Action Ladder
+
+1. `divergence_unconfirmed`: reduce aggressiveness, tighten risk, avoid adding size.
+2. `divergence_confirmed` with structure break: de-risk or exit by structure.
+3. No structural confirmation: remain reactive, avoid top prediction.
 
 ## Trace Requirements
 
@@ -31,6 +42,7 @@ Convert valid setup into executable swing plan with explicit invalidation and me
   - stop basis and exact level
   - position size math
   - target ladder source levels
+- Include confidence and invalidators in plain language.
 
 ## Reference Code
 
@@ -74,10 +86,12 @@ def build_trade_plan(side, entry, invalidation, nearest_levels, capital=100_000_
     }
 
 
-def decision_from_plan(setup_id, red_flag_severity):
-    if setup_id == "NO_VALID_SETUP":
-        return "WAIT"
+def decision_with_position(has_position: bool, setup_id: str, red_flag_severity: str):
+    if not has_position:
+        return "WAIT" if setup_id == "NO_VALID_SETUP" else "BUY"
     if red_flag_severity in {"HIGH", "CRITICAL"}:
-        return "WAIT"
-    return "BUY"
+        return "EXIT"
+    if setup_id == "NO_VALID_SETUP":
+        return "HOLD"
+    return "HOLD"
 ```

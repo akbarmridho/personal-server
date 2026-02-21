@@ -1,14 +1,15 @@
 ---
 name: technical-analysis
-description: Swing and position technical analysis for IDX stocks using dual-horizon structure, liquidity, volume, and risk workflow with mandatory reasoning trace and evidence output.
+description: Expert swing and position technical analysis for IDX stocks using chart-first Wyckoff and balance-imbalance logic, support-resistance and volume diagnostics, and auditable evidence-first output for human decision support.
 ---
 
 ## Scope
 
-This skill is for swing and longer-horizon investing (days to months), not intraday trading.
+This skill is for swing and longer-horizon investing (days to months), not intraday scalping.
 
-- Primary context: `daily[]`
-- Tactical confirmation: `intraday[]` 60m (last 7 days)
+- Primary thesis: `daily[]`
+- Tactical acceptance timing: `intraday[]` 60m (last 7 days)
+- Context events: `corp_actions[]`
 - Do not rescale daily candles into weekly candles.
 
 ## Required Data And Fail-Fast
@@ -21,12 +22,17 @@ Use `fetch-ohlcv` as the only chart-data source.
 - Required arrays: `daily[]`, `intraday[]`, `corp_actions[]`
 
 If any required array is missing or empty, stop analysis and return dependency failure.
+If `fetch-ohlcv` errors, stop analysis. Do not retry with alternate sources.
 
 Expected fields:
 
 - `timestamp`, `datetime`, `date`
 - `open`, `high`, `low`, `close`, `volume`, `value`
 - `foreign_buy`, `foreign_sell`, `foreign_flow`
+
+Price-adjustment note:
+
+- Trading prices are split-style adjusted (split, reverse split, rights issue), not dividend-adjusted.
 
 ## Preferred Workflow (Chart-First)
 
@@ -45,6 +51,16 @@ Hard requirements:
 - Do not skip `CHART_BUILD` and `CHART_READ`.
 - If data dependency fails, stop and report missing dependency.
 - If no valid setup, output `WAIT` with conditions for re-entry review.
+- Resolve contradictions explicitly: if chart-read and numeric checks differ, state which side is trusted and why.
+
+Topic ownership (avoid overlap):
+
+- Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
+- Levels/VPVR/IBH-IBL -> `references/levels-support-resistance-and-vpvr.md`
+- Setup quality/patterns -> `references/price-action-patterns-and-breakouts.md`
+- Risk/positioning/decision -> `references/execution-and-risk-protocol.md`
+- Checklist/red flags -> `references/analysis-checklists-and-red-flags.md`
+- Output formatting contract -> `references/output-report-template.md`
 
 ## Reasoning Trace And Proof Contract
 
@@ -63,6 +79,7 @@ Use markdown sections and tables, not JSON-like payloads.
   - exact levels/ratios used
   - generated chart file path(s)
 - Include `Confidence` and `Invalidators` as normal markdown bullets in final call.
+- Include `Divergence Status` explicitly: `no_divergence`, `divergence_unconfirmed`, `divergence_confirmed`.
 
 Keep trace concise, human-readable, and evidence-backed. Do not make unsupported conclusions.
 
@@ -78,11 +95,12 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 ## Execution Defaults
 
 - Parse JSON directly. Never use CSV readers.
-- Daily drives thesis. Intraday refines timing and acceptance.
+- Daily drives thesis. Intraday refines timing and acceptance only.
+- Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
 - IBH/IBL is a structural acceptance tool, not a standalone signal.
-- Divergence status must be explicit: `no_divergence`, `divergence_unconfirmed`, `divergence_confirmed`.
 - Every actionable output must include explicit invalidation and stop-loss.
 - Always include generated chart artifacts in output (`work/{SYMBOL}_*.png`) and reference them in evidence.
+- In no-resistance conditions (new highs with no overhead supply), avoid fixed top calls; manage by structure until invalidated.
 
 ## Python Libraries
 

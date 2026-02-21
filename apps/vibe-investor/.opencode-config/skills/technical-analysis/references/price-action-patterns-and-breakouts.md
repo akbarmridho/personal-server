@@ -11,6 +11,7 @@ Score setup quality for swing decisions using price-volume behavior and structur
 - `S3` Sweep and reclaim reversal.
 - `S4` Range edge rotation.
 - `S5` Cup-and-handle continuation (optional, lower priority than structure + volume).
+- `S6` Wyckoff spring from support with reclaim (advanced, requires strict confirmation).
 
 ## Core Rules
 
@@ -19,12 +20,32 @@ Score setup quality for swing decisions using price-volume behavior and structur
 - `R-PA-03` Failed breakout (deviation) is a valid opposite signal only after reclaim/failure confirmation.
 - `R-PA-04` Pattern labels without structure and volume confluence are not tradable.
 - `R-PA-05` Prefer setups aligned with daily regime and liquidity draw.
+- `R-PA-06` In balance state, prioritize edge-to-edge behavior; avoid middle-of-range entries.
 
 ## Volume Confirmation
 
 - `R-VOL-01` Breakout volume should be above recent average (example 20-day mean).
 - `R-VOL-02` Up move on weak volume is lower quality.
 - `R-VOL-03` Repeated high-volume down closes near highs signals distribution risk.
+- `R-VOL-04` Price up + volume up is strongest continuation profile.
+- `R-VOL-05` Price down + volume down can be healthy pullback in uptrend context.
+
+## Wyckoff Pattern Notes
+
+- Selling climax context: panic spike, then inability to make fresh lows despite pressure.
+- Spring context: break below support on weak commitment, then quick reclaim and follow-through.
+- Distribution warning: churn at highs with high volume but poor progress.
+
+## Early Participation Signal
+
+- If first-hour intraday volume reaches roughly 70 percent of average daily volume, escalate monitoring for possible expansion move.
+- This is an alert condition, not standalone entry permission.
+
+## Divergence Protocol (Quick Scan)
+
+- Always run a quick bearish divergence scan (price higher high vs RSI14 or MACD histogram lower high).
+- Divergence alone is warning, not reversal confirmation.
+- Escalate only after structure break confirmation.
 
 ## Trace Requirements
 
@@ -32,6 +53,7 @@ Score setup quality for swing decisions using price-volume behavior and structur
   - trigger candle timestamp and close
   - broken/reclaimed level
   - volume ratio at trigger and follow-through candle
+- If divergence exists, include status and invalidator level.
 
 ## Reference Code
 
@@ -78,7 +100,9 @@ def breakout_quality(df: pd.DataFrame, level: float, side: str):
     return quality, proof
 
 
-def choose_setup(regime, ib_state, breakout_state):
+def choose_setup(regime, ib_state, breakout_state, spring_confirmed=False):
+    if spring_confirmed:
+        return "S6"
     if regime == "trend_continuation" and breakout_state == "valid_breakout":
         return "S1"
     if regime == "trend_continuation" and ib_state in {"inside_ib_range", "failed_break_below_ibl"}:
@@ -88,4 +112,16 @@ def choose_setup(regime, ib_state, breakout_state):
     if regime == "range_rotation":
         return "S4"
     return "NO_VALID_SETUP"
+
+
+def classify_price_volume(change_pct: float, vol_ratio: float):
+    if change_pct > 0 and vol_ratio >= 1.2:
+        return "strong_up"
+    if change_pct < 0 and vol_ratio <= 0.8:
+        return "healthy_pullback"
+    if change_pct > 0 and vol_ratio <= 0.8:
+        return "weak_rally"
+    if change_pct < 0 and vol_ratio >= 1.2:
+        return "distribution"
+    return "neutral"
 ```
