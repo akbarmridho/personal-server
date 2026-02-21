@@ -848,8 +848,8 @@ def plot_daily_structure(
         framealpha=0.9,
     )
     ax.text(
-        0.99,
-        0.95,
+        1.02,
+        1.15,
         (
             f"S/R zones shown ({len(hlines)}): {zone_preview}\n"
             f"Fib levels shown ({len(fib_lines)}): {fib_preview}"
@@ -864,44 +864,73 @@ def plot_daily_structure(
     plt.close(fig)
 
 
-def plot_intraday_ibh_ibl(
+def plot_intraday_structure(
     df_intraday: pd.DataFrame,
     ib: dict[str, Any],
+    zones: list[dict[str, float]],
     path: Path,
     symbol: str,
     lookback: int,
 ) -> None:
-    x = df_intraday.tail(lookback)
+    x = add_intraday_context(df_intraday.tail(lookback))
+    last_close = float(x["close"].iloc[-1])
+    hlines = select_nearest_levels(
+        [z["zone_mid"] for z in zones],
+        ref_price=last_close,
+        max_n=2,
+    )
+    apds = [
+        mpf.make_addplot(x["EMA9"], color="#00bcd4", width=1.7),
+        mpf.make_addplot(x["EMA20"], color="#5e35b1", width=1.7),
+        mpf.make_addplot(x["VWAP"], color="#ff9800", width=1.9),
+    ]
+    merged_hlines = [ib["ibh"], ib["ibl"]] + hlines
+    colors = ["#2ca02c", "#d62728"] + ["#1f77b4"] * len(hlines)
+    linewidths = [1.8, 1.8] + [1.5] * len(hlines)
+    
     fig, axes = mpf.plot(
         to_mpf(x),
         type="candle",
         volume=True,
         style=_base_style(),
+        addplot=apds,
         hlines=dict(
-            hlines=[ib["ibh"], ib["ibl"]],
-            colors=["#2ca02c", "#d62728"],
-            linewidths=[1.8, 1.8],
+            hlines=merged_hlines,
+            colors=colors,
+            linewidths=linewidths,
         ),
-        title=f"{symbol} Intraday IBH/IBL ({ib['state']})",
+        title=f"{symbol} Intraday Structure",
         figratio=DEFAULT_FIGRATIO,
         figscale=DEFAULT_FIGSCALE,
         update_width_config=_width_config(),
         returnfig=True,
     )
     ax = axes[0]
+    latest = x.iloc[-1]
+    latest_vwap = float(latest["VWAP"]) if pd.notna(latest["VWAP"]) else float(latest["close"])
+    latest_ema9 = float(latest["EMA9"]) if pd.notna(latest["EMA9"]) else float(latest["close"])
+    latest_ema20 = float(latest["EMA20"]) if pd.notna(latest["EMA20"]) else float(latest["close"])
+    
     ax.legend(
         handles=[
+            Line2D([], [], color="#00bcd4", linewidth=2.0, label="EMA9"),
+            Line2D([], [], color="#5e35b1", linewidth=2.0, label="EMA20"),
+            Line2D([], [], color="#ff9800", linewidth=2.0, label="VWAP"),
             Line2D([], [], color="#2ca02c", linewidth=2.0, label="IBH"),
             Line2D([], [], color="#d62728", linewidth=2.0, label="IBL"),
-        ],
+        ] + ([Line2D([], [], color="#1f77b4", linewidth=1.5, label="Daily S/R")] if hlines else []),
         loc="upper left",
         fontsize=8,
+        ncol=2,
         framealpha=0.9,
     )
     ax.text(
-        0.99,
-        0.88,
-        f"IBH={ib['ibh']:.2f} | IBL={ib['ibl']:.2f}\nState={ib['state']}",
+        1.02,
+        1.15,
+        (
+            f"IBH={ib['ibh']:.2f} | IBL={ib['ibl']:.2f} | State={ib['state']}\n"
+            f"VWAP={latest_vwap:.2f} | EMA9={latest_ema9:.2f} | EMA20={latest_ema20:.2f}"
+        ),
         transform=ax.transAxes,
         ha="right",
         va="top",
@@ -981,8 +1010,8 @@ def plot_intraday_vwap_momentum(
         framealpha=0.9,
     )
     ax.text(
-        0.99,
-        0.88,
+        1.02,
+        1.15,
         (
             f"VWAP={latest_vwap:.2f} | EMA9={latest_ema9:.2f} | EMA20={latest_ema20:.2f}\n"
             "Use EMA9/20 and VWAP alignment for intraday continuation vs fade bias"
@@ -1040,8 +1069,8 @@ def plot_ib_overlay(
         framealpha=0.9,
     )
     ax.text(
-        0.99,
-        0.88,
+        1.02,
+        1.15,
         (
             f"IB period={period}, seed bars={first_n}\n"
             f"Latest IBH={latest_ibh:.2f} | Latest IBL={latest_ibl:.2f}\n"
@@ -1062,6 +1091,7 @@ def plot_ib_overlay(
 def plot_structure_events(
     df_daily: pd.DataFrame,
     events: list[dict[str, Any]],
+    draws: dict[str, Any],
     path: Path,
     symbol: str,
     lookback: int,
@@ -1074,6 +1104,7 @@ def plot_structure_events(
     down_choch = np.full(n, np.nan)
 
     dt_to_idx = {pd.Timestamp(dt): int(i) for i, dt in enumerate(x["datetime"])}
+    draws_list = [v for v in [draws.get("current_draw"), draws.get("opposing_draw")] if v is not None]
     visible_events: list[dict[str, Any]] = []
     for e in events:
         dt = pd.Timestamp(e["datetime"])
@@ -1116,7 +1147,8 @@ def plot_structure_events(
         volume=True,
         style=_base_style(),
         addplot=apds,
-        title=f"{symbol} Structure Events (CHOCH/BOS)",
+        hlines=dict(hlines=draws_list, colors=["#e91e63"]*len(draws_list), linewidths=[1.8]*len(draws_list)) if draws_list else None,
+        title=f"{symbol} Structure Events & Liquidity",
         figratio=DEFAULT_FIGRATIO,
         figscale=DEFAULT_FIGSCALE,
         update_width_config=_width_config(),
@@ -1204,12 +1236,24 @@ def plot_structure_events(
                 markersize=8,
                 label="Down CHOCH",
             ),
-        ],
+        ] + ([Line2D([], [], color="#e91e63", linewidth=2.0, label="Liquidity Draw")] if draws_list else []),
         loc="upper left",
         fontsize=8,
         ncol=2,
         framealpha=0.9,
     )
+    if draws_list:
+        txt = f"curr_draw={draws.get('current_draw')} | opp_draw={draws.get('opposing_draw')}"
+        ax.text(
+            1.02,
+            1.15,
+            txt,
+            transform=ax.transAxes,
+            ha="right",
+            va="top",
+            fontsize=9,
+            bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
+        )
     fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
     plt.close(fig)
 
@@ -1329,8 +1373,8 @@ def plot_trade_plan(
         f"note={reason}"
     )
     ax.text(
-        0.99,
-        0.98,
+        1.02,
+        1.15,
         txt,
         transform=ax.transAxes,
         ha="right",
@@ -1413,7 +1457,7 @@ def plot_vpvr_profile(
         (stats["vah"], "#2ca02c"),
         (stats["val"], "#ff7f0e"),
     ]:
-        ax_prof.axhline(lvl, color=color, linewidth=1.2, linestyle=":")
+        ax_prof.axhline(lvl, color=color, linewidth=1.15, linestyle=":")
     ax_prof.set_title("Volume by Price")
     ax_prof.set_xlabel("Normalized volume")
     ax_prof.set_xlim(0, max(float((up_width + down_width).max()) * 1.08, 0.15))
@@ -1480,7 +1524,7 @@ def plot_imbalance_fvg(
         type_weight = {
             "IFVG": 1.25,
             "FVG": 1.15,
-            "VOLUME_IMBALANCE": 1.05,
+            "VOLUME_IMBALANCE": 1.15,
             "OPENING_GAP": 0.95,
         }.get(zone_type, 1.0)
         recency = (end_idx + 1) / max(len(x), 1)
@@ -1597,8 +1641,8 @@ def plot_imbalance_fvg(
     )
     if plotted_count == 0:
         ax.text(
-            0.99,
-            0.92,
+            1.02,
+            1.15,
             "No imbalance zones inside the current plotted window.",
             transform=ax.transAxes,
             ha="right",
@@ -1608,8 +1652,8 @@ def plot_imbalance_fvg(
         )
     else:
         ax.text(
-            0.99,
-            0.92,
+            1.02,
+            1.15,
             f"Plotted zones: {plotted_count}",
             transform=ax.transAxes,
             ha="right",
@@ -1732,8 +1776,8 @@ def plot_detail(df_daily: pd.DataFrame, path: Path, symbol: str, lookback: int) 
         framealpha=0.9,
     )
     ax_price.text(
-        0.99,
-        0.95,
+        1.02,
+        1.15,
         f"Fib levels shown ({len(fib_lines)}): {fib_preview}",
         transform=ax_price.transAxes,
         ha="right",
@@ -1794,19 +1838,10 @@ def main() -> None:
     plot_daily_structure(daily, zones, p_daily, symbol, daily_lookback)
     generated["daily_structure"] = str(p_daily)
 
-    p_intraday = outdir / f"{symbol}_intraday_ibh_ibl.png"
-    plot_intraday_ibh_ibl(intraday, ib, p_intraday, symbol, intraday_lookback)
-    generated["intraday_ibh_ibl"] = str(p_intraday)
+    p_intraday = outdir / f"{symbol}_intraday_structure.png"
+    plot_intraday_structure(intraday, ib, zones, p_intraday, symbol, intraday_lookback)
+    generated["intraday_structure"] = str(p_intraday)
 
-    p_intraday_momo = outdir / f"{symbol}_intraday_vwap_momentum.png"
-    plot_intraday_vwap_momentum(
-        intraday,
-        ib,
-        p_intraday_momo,
-        symbol,
-        intraday_lookback,
-    )
-    generated["intraday_vwap_momentum"] = str(p_intraday_momo)
 
     p_ib = outdir / f"{symbol}_ib_overlay.png"
     plot_ib_overlay(
@@ -1822,12 +1857,9 @@ def main() -> None:
     generated["ib_overlay"] = str(p_ib)
 
     p_events = outdir / f"{symbol}_structure_events.png"
-    plot_structure_events(daily, events, p_events, symbol, daily_lookback)
+    plot_structure_events(daily, events, draws, p_events, symbol, daily_lookback)
     generated["structure_events"] = str(p_events)
 
-    p_liq = outdir / f"{symbol}_liquidity_map.png"
-    plot_liquidity_map(daily, draws, p_liq, symbol, daily_lookback)
-    generated["liquidity_map"] = str(p_liq)
 
     p_plan = outdir / f"{symbol}_trade_plan.png"
     plot_trade_plan(daily, plan, p_plan, symbol, daily_lookback)

@@ -103,7 +103,7 @@ python scripts/generate_ta_charts.py \
 - Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
 - Time-window mode: `--range-mode auto|fixed` (`auto` selects a focus window from recent structure/imbalance context).
 - Available modules for `--modules`:
-  - `core`: required baseline artifacts (`daily_structure`, `intraday_ibh_ibl`, `intraday_vwap_momentum`, `ib_overlay`, `structure_events`, `liquidity_map`, `trade_plan`)
+  - `core`: required baseline artifacts (`daily_structure`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
   - `vpvr`: adds `vpvr_profile` chart
   - `imbalance`: adds `imbalance_fvg` chart
   - `detail`: adds optional detail chart
@@ -204,10 +204,9 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Always include generated chart artifacts in output (`work/{SYMBOL}_*.png`) and reference each artifact in evidence.
 - Core chart artifacts (required every run):
   - `work/{SYMBOL}_daily_structure.png`
-  - `work/{SYMBOL}_intraday_ibh_ibl.png`
+  - `work/{SYMBOL}_intraday_structure.png`
   - `work/{SYMBOL}_ib_overlay.png`
   - `work/{SYMBOL}_structure_events.png`
-  - `work/{SYMBOL}_liquidity_map.png`
   - `work/{SYMBOL}_trade_plan.png`
 - Conditional chart artifacts (required when module is active):
   - `work/{SYMBOL}_vpvr_profile.png` when volume-profile context is used.

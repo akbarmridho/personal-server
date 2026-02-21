@@ -60,12 +60,10 @@ Use this structure for every technical analysis output.
 - Generated charts:
   - Core required charts:
 - `work/{SYMBOL}_daily_structure.png`
-- `work/{SYMBOL}_intraday_ibh_ibl.png`
-- `work/{SYMBOL}_intraday_vwap_momentum.png`
+- `work/{SYMBOL}_intraday_structure.png`
 - `work/{SYMBOL}_ib_overlay.png`
 - `work/{SYMBOL}_structure_events.png`
-- `work/{SYMBOL}_liquidity_map.png`
-  - `work/{SYMBOL}_trade_plan.png`
+- `work/{SYMBOL}_trade_plan.png`
   - Conditional required charts:
   - `work/{SYMBOL}_vpvr_profile.png` (when volume-profile context is used)
   - `work/{SYMBOL}_imbalance_fvg.png` (when FVG/IFVG or imbalance context is used)
