@@ -31,11 +31,15 @@ Use this structure for every technical analysis output.
 - Support zones
 - Resistance zones
 - MA posture (dynamic S/R): above/below 21EMA, 50SMA, 100SMA, 200SMA
+- MA mode: baseline_stack / adaptive_primary / hybrid (default: hybrid)
+- Adaptive MA note (if used): selected period + respect evidence
 - POC/HVN/LVN
 - VAH/VAL and value-area acceptance state
 - IBH/IBL values
 - Time-based levels: monthly/weekly/daily open (when relevant)
 - Round-number levels (when relevant)
+- Fibonacci context (when relevant): swing anchors + retracement map (`0.236`/`0.382`/`0.5`/`0.618`/`0.786`)
+- Fibonacci extensions (when relevant): `1.0`/`1.272`/`1.618`/`2.618`
 - Role reversal and level test count notes
 - Next liquidity draw
 
@@ -75,6 +79,7 @@ Use this structure for every technical analysis output.
 - Trap filter outcome: valid confirmation / deviation / insufficient follow-through
 - Divergence status: no_divergence / divergence_unconfirmed / divergence_confirmed
 - Optional confluence (if used): FVG zone or OTE zone (`0.618`/`0.706`/`0.786`) with source swing
+- Fib usage note (if used): retracement level role (entry/invalidation context) and extension role (target context)
 - Breakout displacement note: clean displacement / stalling
 
 ### E1. Imbalance Context (if used)

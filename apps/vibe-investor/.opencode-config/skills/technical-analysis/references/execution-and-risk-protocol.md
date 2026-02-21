@@ -14,6 +14,7 @@ Convert valid setup into executable swing plan with explicit invalidation and me
 - `R-RISK-06` Every actionable decision must include explicit stop-loss and invalidator.
 - `R-RISK-07` FVG/OTE are optional entry refinements only after structure confirmation.
 - `R-RISK-08` Optional confluence never overrides invalidation, stop, or risk sizing.
+- `R-RISK-09` Fib retracement/extension may support entry/target mapping only when swing anchors and structure context are explicit.
 
 ## Stop Hierarchy
 
@@ -37,6 +38,7 @@ If structural setup is already valid, entry may be refined with:
 
 - FVG retrace zone
 - OTE zone (`0.618`, `0.706`, `0.786`)
+- Fib retracement and extension context from `levels-fibonacci-retracement-and-extension.md`
 
 If refinement is not available, continue with base structural plan. Do not downgrade solely because optional confluence is absent.
 
@@ -55,6 +57,7 @@ If refinement is not available, continue with base structural plan. Do not downg
   - target ladder source levels
 - Include confidence and invalidators in plain language.
 - If optional confluence is used, include: type (`FVG` or `OTE`), exact zone, and source swing/time references.
+- If Fib is used, include: anchor swings, retracement level used, and extension target references.
 
 ## Reference Code
 

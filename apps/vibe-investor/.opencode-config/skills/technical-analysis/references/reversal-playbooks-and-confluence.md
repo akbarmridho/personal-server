@@ -41,6 +41,8 @@ Use only after structural confirmation. These refine entries and do not validate
 - FVG retrace zone
 - OTE zone (`0.618`, `0.706`, `0.786`)
 
+OTE is tactical; broader Fib retracement/extension context remains in `levels-fibonacci-retracement-and-extension.md`.
+
 Detailed FVG/IFVG and mitigation logic is in `fair-value-gap-and-imbalances.md`.
 
 When lens is `SMC_ICT_LIGHT`, confluence may also include OB/Breaker/IFVG/EQH-EQL context.

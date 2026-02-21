@@ -23,6 +23,7 @@ Enforce a consistent analysis flow without forcing rigid sequencing in every sce
 15. `G15_LIQUIDITY_MAP` - Report current draw, opposing draw, sweep event/outcome, and liquidity path state.
 16. `G16_LEVEL_HEURISTICS` - Include HTF-first mapping, time-based levels, and round-number checks when relevant.
 17. `G17_BREAKOUT_FILTERS` - For breakout setups, include base quality and market-context filters; MA posture should be covered in level context.
+18. `G18_FIB_CONTEXT` - If Fib is used, include swing anchors, retracement interaction level, and extension target references.
 
 ## Hard Stops
 

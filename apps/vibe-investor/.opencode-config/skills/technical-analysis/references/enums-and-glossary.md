@@ -88,10 +88,19 @@ Single source of truth for shared statuses and enum labels used across reference
 - `breakout_displacement`: `clean_displacement`, `stalling`
 - `market_context_impact`: `supportive`, `neutral`, `adverse`
 
+## MA Context Mode
+
+- `ma_mode`: `baseline_stack`, `adaptive_primary`, `hybrid`
+
 ## Imbalance Types And Mitigation
 
 - `imbalance_type`: `FVG`, `VOLUME_IMBALANCE`, `OPENING_GAP`, `IFVG`
 - `mitigation_state`: `unmitigated`, `partially_mitigated`, `fully_mitigated`
+
+## Fibonacci Labels
+
+- `fib_retracement`: `0.236`, `0.382`, `0.5`, `0.618`, `0.706`, `0.786`
+- `fib_extension`: `1.0`, `1.272`, `1.618`, `2.618`
 
 ## Thesis Status
 

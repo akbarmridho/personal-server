@@ -77,6 +77,7 @@ Topic ownership (avoid overlap):
 - Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
 - Levels index -> `references/levels-support-resistance-and-vpvr.md`
 - Levels moving-average dynamics -> `references/levels-moving-average-dynamics.md`
+- Levels Fibonacci retracement/extension -> `references/levels-fibonacci-retracement-and-extension.md`
 - Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
 - Liquidity draw and sweep framework -> `references/liquidity-draw-and-sweep.md`
 - Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
@@ -116,6 +117,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - [Market structure and trend](references/market-structure-and-trend.md)
 - [Levels support resistance and VPVR (index)](references/levels-support-resistance-and-vpvr.md)
 - [Levels moving-average dynamics](references/levels-moving-average-dynamics.md)
+- [Levels Fibonacci retracement and extension](references/levels-fibonacci-retracement-and-extension.md)
 - [Volume profile and volume flow](references/volume-profile-and-volume-flow.md)
 - [Liquidity draw and sweep](references/liquidity-draw-and-sweep.md)
 - [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
@@ -140,11 +142,13 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - FVG usage must state type, bounds, CE behavior, and mitigation status.
 - IBH/IBL is a structural acceptance tool, not a standalone signal.
 - Map levels HTF-first then refine lower timeframe; keep level map minimal and actionable.
+- When Fib is used, report explicit swing anchors and treat retracement/extension as confluence, not standalone permission.
 - Treat charting as market map only; execution still requires setup, invalidation, and risk criteria.
 - Use volume-profile context (POC/VAH/VAL/HVN/LVN) as decision support; prefer completed prior-session profiles for session references.
 - Include liquidity draw map: current draw, opposing draw, sweep event, sweep outcome, and path state.
 - Prefer level-to-level execution: entry near mapped zone, target next zone, explicit RR before action.
 - For breakout setups, include base-quality and market-context filter notes before final action.
+- Use `hybrid` MA mode by default: baseline stack (21/50/100/200) plus one adaptive MA when measurable respect exists.
 - MA posture should be reported in levels context as dynamic support/resistance.
 - Declare framework lens: `UNIFIED`, `CLASSICAL_TA`, `WYCKOFF`, `SMC_ICT_LIGHT`.
 - If alternate lens is requested, include agreement/disagreement vs `UNIFIED` conclusion.
