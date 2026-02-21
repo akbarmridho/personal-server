@@ -58,15 +58,25 @@ Use this structure for every technical analysis output.
 
 ### D. Chart Build And Read
 - Generated charts:
-  - `work/{SYMBOL}_ib_overlay.png`
+  - Core required charts:
   - `work/{SYMBOL}_daily_structure.png`
   - `work/{SYMBOL}_intraday_ibh_ibl.png`
-  - `work/{SYMBOL}_detail.png` (optional)
-  - `work/{SYMBOL}_volume_context.png` (optional)
+  - `work/{SYMBOL}_ib_overlay.png`
+  - `work/{SYMBOL}_structure_events.png`
+  - `work/{SYMBOL}_liquidity_map.png`
+  - `work/{SYMBOL}_trade_plan.png`
+  - Conditional required charts:
+  - `work/{SYMBOL}_vpvr_profile.png` (when volume-profile context is used)
+  - `work/{SYMBOL}_imbalance_fvg.png` (when FVG/IFVG or imbalance context is used)
+  - Optional:
+  - `work/{SYMBOL}_detail.png`
 - Chart observations:
   - What was seen on chart first
   - Which lines/zones were respected, broken, reclaimed, or deviated
   - IB overlay interpretation (period, first_n_bars, accepted/deviation/inside)
+  - Structure-event interpretation (CHOCH/BOS markers and confirmation status)
+  - Liquidity-map interpretation (current draw/opposing draw, sweep and path)
+  - Trade-plan chart alignment (entry/invalidation/target path consistency)
 
 ### E. Setup Qualification
 - Selected setup: S1 / S2 / S3 / S4 / S5 / S6 / NO_VALID_SETUP
@@ -158,7 +168,7 @@ Use this structure for every technical analysis output.
 | E5 | volume | vol ratio | ... |
 | E6 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
 | E7 | prior_session_poc | intraday session profile | ... |
-| E8 | chart | work/{SYMBOL}_*.png | ... |
+| E8 | chart | core + conditional work/{SYMBOL}_*.png | ... |
 | E9 | liquidity | draw target + sweep evidence | ... |
 
 ### J. Monitoring Triggers

@@ -22,6 +22,24 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 - Multi-lens optionality: alternate lens can be requested and compared against `UNIFIED`.
 - Iterative lifecycle: supports `INITIAL`, `UPDATE`, `THESIS_REVIEW`, `POSTMORTEM`.
 
+## Chart Artifact Contract
+
+- Core required charts (every run):
+  - `work/{SYMBOL}_daily_structure.png`
+  - `work/{SYMBOL}_intraday_ibh_ibl.png`
+  - `work/{SYMBOL}_ib_overlay.png`
+  - `work/{SYMBOL}_structure_events.png`
+  - `work/{SYMBOL}_liquidity_map.png`
+  - `work/{SYMBOL}_trade_plan.png`
+- Conditional required charts (when module is used):
+  - `work/{SYMBOL}_vpvr_profile.png` for volume-profile context.
+  - `work/{SYMBOL}_imbalance_fvg.png` for FVG/IFVG or imbalance context.
+- Optional deep-dive chart:
+  - `work/{SYMBOL}_detail.png`
+- Workflow expectation:
+  - Build charts first, read charts second, then run numeric cross-check before action.
+  - If chart-read and numeric checks conflict, resolve conflict explicitly with evidence.
+
 ## Mode Prompts
 
 ### 1) INITIAL (first thesis)
@@ -30,7 +48,7 @@ This guide explains both how to run the skill and what conceptual frameworks it 
 Run technical-analysis mode INITIAL for BBCA.
 Intent: ENTRY.
 Lens: UNIFIED.
-Build full report with workflow trace, evidence ledger, and chart artifacts.
+Build full report with workflow trace, evidence ledger, and full core chart artifacts.
 ```
 
 ### 2) UPDATE (periodic refresh)
@@ -41,6 +59,7 @@ Intent: HOLD.
 Lens: UNIFIED.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Return full report plus Delta Log (what changed, what stayed, and why action changed/stayed).
+Include all core chart artifacts and conditional charts if used.
 ```
 
 ### 3) THESIS_REVIEW (thesis health check)
@@ -93,6 +112,7 @@ Lens: UNIFIED.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Emphasize anchored + fixed range + prior-session POCs.
 Include POC/VAH/VAL, HVN/LVN reaction notes, and value-area acceptance state.
+Require `work/{SYMBOL}_vpvr_profile.png`.
 ```
 
 ### 8) Liquidity Draw Map Focus
@@ -104,6 +124,7 @@ Lens: UNIFIED.
 Previous analysis reference: work/BBCA_report_2026-02-14.md.
 Return current draw, opposing draw, sweep event/outcome, and liquidity path state.
 Use HTF sweep context and LTF trigger evidence if available.
+Require `work/{SYMBOL}_liquidity_map.png`.
 ```
 
 ### 9) Horizontal S/R Heuristics Pass
@@ -154,5 +175,5 @@ Do not use MA alone as trade trigger.
 ## Notes
 
 - For `UPDATE`, `THESIS_REVIEW`, and `POSTMORTEM`, provide previous analysis reference.
-- Ask for chart artifacts explicitly when needed, including `work/{SYMBOL}_ib_overlay.png`.
+- Include all core chart artifacts by default; request module-specific conditional charts when relevant.
 - If no valid setup exists, expected action is `WAIT` with re-entry conditions.

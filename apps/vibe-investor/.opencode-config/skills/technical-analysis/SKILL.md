@@ -57,7 +57,7 @@ Use this flow by default, but adapt depth to context. The process is structured,
 1. `DATA_PREP` - Fetch, parse, validate data and build base features.
 2. `PREV_CONTEXT` - For non-initial mode, extract prior thesis, action, invalidators, and evidence anchors.
 3. `LEVEL_DRAFT` - Draft key levels/zones from daily structure and liquidity map.
-4. `CHART_BUILD` - Generate chart outputs with lines/zones/labels (daily + intraday).
+4. `CHART_BUILD` - Generate chart outputs with lines/zones/labels (daily + intraday), including core artifacts and conditional module artifacts.
 5. `CHART_READ` - Read the generated charts first; write chart observations before final decision.
 6. `CROSS_CHECK` - Cross-check chart observations with numeric evidence (volume ratios, closes, retests).
 7. `DELTA_ASSESS` - For non-initial mode, classify what changed vs previous analysis.
@@ -67,6 +67,7 @@ Use this flow by default, but adapt depth to context. The process is structured,
 Hard requirements:
 
 - Do not skip `CHART_BUILD` and `CHART_READ`.
+- Core chart artifacts are mandatory for every run; conditional chart artifacts are mandatory when their module is active.
 - If data dependency fails, stop and report missing dependency.
 - If no valid setup, output `WAIT` with conditions for re-entry review.
 - Resolve contradictions explicitly: if chart-read and numeric checks differ, state which side is trusted and why.
@@ -154,8 +155,19 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - If alternate lens is requested, include agreement/disagreement vs `UNIFIED` conclusion.
 - When `SMC_ICT_LIGHT` is active, report used SMC modules and evidence for each used module.
 - Every actionable output must include explicit invalidation and stop-loss.
-- Always include generated chart artifacts in output (`work/{SYMBOL}_*.png`) and reference them in evidence.
-- Include IB overlay chart artifact in analysis output: `work/{SYMBOL}_ib_overlay.png`.
+- Always include generated chart artifacts in output (`work/{SYMBOL}_*.png`) and reference each artifact in evidence.
+- Core chart artifacts (required every run):
+  - `work/{SYMBOL}_daily_structure.png`
+  - `work/{SYMBOL}_intraday_ibh_ibl.png`
+  - `work/{SYMBOL}_ib_overlay.png`
+  - `work/{SYMBOL}_structure_events.png`
+  - `work/{SYMBOL}_liquidity_map.png`
+  - `work/{SYMBOL}_trade_plan.png`
+- Conditional chart artifacts (required when module is active):
+  - `work/{SYMBOL}_vpvr_profile.png` when volume-profile context is used.
+  - `work/{SYMBOL}_imbalance_fvg.png` when FVG/IFVG or imbalance context is used.
+- Optional deep-dive artifact:
+  - `work/{SYMBOL}_detail.png`
 - In no-resistance conditions (new highs with no overhead supply), avoid fixed top calls; manage by structure until invalidated.
 
 ## Python Libraries
