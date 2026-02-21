@@ -46,7 +46,7 @@ export XDG_CACHE_HOME="$OPENCODE_HOME_BASE/cache"
 export XDG_STATE_HOME="$OPENCODE_HOME_BASE/state"
 
 echo "Starting OpenCode Web Interface..."
-echo "   Config: $ROOT_DIR/opencode.json"
+echo "   Config: $ROOT_DIR/opencode-config.json"
 echo "   CWD: $WORK_DIR"
 echo "   Data: $XDG_DATA_HOME/opencode/"
 echo "   Config Home: $XDG_CONFIG_HOME/opencode/"

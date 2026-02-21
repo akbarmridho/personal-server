@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@opencode-ai/plugin": "1.2.6",
+    "@opencode-ai/plugin": "1.2.10",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "ai": "^5.0.115",
     "mime-types": "^3.0.1"

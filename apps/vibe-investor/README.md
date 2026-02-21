@@ -9,7 +9,7 @@ Single agent with on-demand skills, built on the Stock Market 2.0 framework — 
 ```
 apps/vibe-investor/
 ├── .env                          # Keys, paths (see .env.example)
-├── opencode.json                 # Agent config (single vibe-investor agent)
+├── opencode-config.json                 # Agent config (single vibe-investor agent)
 ├── bin/
 │   ├── cli.sh                    # CLI entrypoint
 │   └── web.sh                    # Web entrypoint
@@ -121,7 +121,7 @@ The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK
 
 ### Config Placeholders
 
-`opencode.json` supports:
+`opencode-config.json` supports:
 
 - `{env:VAR_NAME}` — Environment variable substitution
 - `{file:path/to/file}` — File content with EJS template processing
@@ -142,7 +142,7 @@ Vibe-investor uses a separate `XDG_DATA_HOME` so its sessions don't mix with you
 
 ## How It Works
 
-1. Bash script loads `.env` and calls TypeScript resolver to process `opencode.json`
+1. Bash script loads `.env` and calls TypeScript resolver to process `opencode-config.json`
 2. Resolver expands `{env:...}` and `{file:...}` placeholders with EJS
 3. Bash exports resolved config, sets `XDG_DATA_HOME`, and `exec`s opencode
 4. OpenCode loads custom tools from `.opencode/tools/` and skills from `.opencode/skills/`

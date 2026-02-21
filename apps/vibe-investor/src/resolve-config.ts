@@ -19,7 +19,7 @@ if (!process.env.OPENROUTER_API_KEY) {
 }
 
 // Resolve config and output to stdout
-const configPath = resolve(ROOT_DIR, "opencode.json");
+const configPath = resolve(ROOT_DIR, "opencode-config.json");
 const resolvedConfig = resolveConfig(configPath, ROOT_DIR);
 
 // Output JSON to stdout (bash will capture this)
