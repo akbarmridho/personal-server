@@ -69,3 +69,7 @@ MoS interpretation:
 - Investigate major divergence between methods.
 - Favor conservative assumptions over promotional guidance.
 - Flag valuation barriers: negative equity, persistent losses, manipulation signals, pre-revenue dependence.
+
+## Implementation Note
+
+Enforcement: agent workflow during Phase 2 step 2 (see SKILL.md). Method selection is agent judgment based on business characteristics. MoS calculation and per-method IV computation are deterministic. Cross-validation (2-3 methods minimum) is required. Verdict values (`UNDERVALUED`/`FAIR`/`OVERVALUED`) must match `enums-and-glossary.md`.

@@ -66,3 +66,7 @@ Hard constraints:
 - <1.8: distress zone
 
 Use industry-appropriate variants for non-manufacturing contexts.
+
+## Implementation Note
+
+Enforcement: agent workflow during Phase 2 step 4 (see SKILL.md). Value trap detection and manipulation signal checks use deterministic financial data. IDX 2.0 risk score (0-12) is agent judgment across four dimensions. Altman Z-Score is deterministic. Risk check results (`PASS`/`WARNING`/`FAIL`) must match `enums-and-glossary.md`.

@@ -82,3 +82,7 @@ Important interpretation warning:
 - Strategic transition quality
 - Catalyst credibility for rerating
 - Whether market imagination has room or story is already consensus
+
+## Implementation Note
+
+Enforcement: agent workflow during Phase 2 step 3 (see SKILL.md). Business model and moat assessment are agent judgment. Ownership/governance checks use `get-stock-governance` data. Moat values (`WIDE`/`NARROW`/`NONE`) and lifecycle stages must match `enums-and-glossary.md`.

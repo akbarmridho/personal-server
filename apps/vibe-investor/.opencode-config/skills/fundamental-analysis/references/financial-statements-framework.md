@@ -57,3 +57,7 @@
 - Cash Flow to Debt = OCF / Total Debt
 - FCF = OCF - CapEx
 - DER = Total Debt / Total Equity
+
+## Implementation Note
+
+Enforcement: agent workflow during Phase 2 step 1 (see SKILL.md). All ratio computations are deterministic from `get-stock-financials` data. Trend analysis requires minimum 3-year view. Health status values (`HEALTHY`/`WARNING`/`DANGER`) and trend labels (`Improving`/`Stable`/`Weakening`) must match `enums-and-glossary.md`.

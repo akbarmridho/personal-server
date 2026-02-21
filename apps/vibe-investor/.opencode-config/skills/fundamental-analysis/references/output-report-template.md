@@ -49,3 +49,7 @@ Consensus fair-value range: {Rp X - Rp Y}
 ## Caveat
 
 Fundamental conclusion should explicitly state that timing and execution can still be affected by non-fundamental market factors.
+
+## Implementation Note
+
+Enforcement: agent workflow during Phase 3 (see SKILL.md). This template is the contract for the final output. Every section must be filled when producing a full fundamental analysis. All verdict, status, and label values must match `enums-and-glossary.md`.
