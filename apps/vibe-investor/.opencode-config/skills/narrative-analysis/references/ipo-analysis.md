@@ -63,3 +63,7 @@ Common in smaller, unknown IPOs:
 - **Lock-up period**: Pre-IPO shareholders typically locked for ~8 months
 - **Lock-up expiry**: Often triggers massive selling pressure — key date to track
 - **Use of proceeds**: Monitor if company executes promises (buy land, build factory) or just pays off debt
+
+## Implementation Note
+
+Enforcement: agent workflow when analyzing IPO or recently-listed stocks (see SKILL.md mechanism routing). Underwriter track record assessment uses historical data. Manipulation pattern identification is agent judgment based on price/volume behavior. Lock-up expiry dates are deterministic from prospectus.

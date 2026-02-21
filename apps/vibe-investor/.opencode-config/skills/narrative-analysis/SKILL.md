@@ -10,51 +10,61 @@ Use this file as the entrypoint. Do not load all references by default.
 1. Classify user intent (new story scan, catalyst check, priced-in check, failure audit, or report drafting).
 2. Load only relevant reference files.
 3. Pull MCP data in parallel when running a full analysis.
-4. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
+4. Execute sequential analysis phases.
+5. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
 
-## Data Sources
+## Reference Index And Topic Ownership
 
-- `search-documents`, `list-documents`, `get-document`: filings, research, news, rumors.
-- `search-twitter`: social narrative spread and momentum.
-- `get-stock-fundamental`: valuation context and market-cap framing.
-- `get-stock-governance`: owner behavior, control quality, insider signals.
-- `get-sectors`, `get-companies`: thematic and peer mapping.
+| File | Topics |
+|------|--------|
+| [enums-and-glossary.md](references/enums-and-glossary.md) | Shared verdicts, scores, labels, narrative types, premium bands |
+| [narrative-core-framework.md](references/narrative-core-framework.md) | Business reality check, story type classification, owner character, catalyst calendar/proximity, strength scoring (0-15), priced-in detection, failure triggers, failure risk score (0-3), price-vs-narrative health |
+| [narrative-premium-and-hype.md](references/narrative-premium-and-hype.md) | Base value vs narrative premium, certainty curve, haluasi premium bands, hype lifecycle (accumulation → pompom → frying → cuci piring), influencer red flags |
+| [output-report-template.md](references/output-report-template.md) | Final report structure and section contract |
+| [rights-issue-purpose-and-signal-map.md](references/rights-issue-purpose-and-signal-map.md) | Rights issue purposes, pricing signals, Indonesia-specific red flags |
+| [backdoor-listing-screening.md](references/backdoor-listing-screening.md) | Shell screening criteria, pre-signals, TFF/WTFF late-cycle dynamics, post-injection reality check |
+| [ipo-analysis.md](references/ipo-analysis.md) | Why traditional analysis fails for IPOs, underwriter role, manipulation patterns, lock-up dynamics |
+| This file (SKILL.md) | Workflow, data sources, operating rules, deterministic-vs-judgment boundary |
 
-## Reference Index (Modular)
+## Data Sources And Fail-Fast
 
-### Core frameworks
+| Source | Used for | If unavailable |
+|--------|----------|----------------|
+| `search-documents`, `list-documents`, `get-document` | Filings, research, news, rumors | Stop |
+| `search-twitter` | Social narrative spread and momentum | Degrade: skip social layer, note gap |
+| `get-stock-fundamental` | Valuation context and market-cap framing | Degrade: skip valuation framing, note gap |
+| `get-stock-governance` | Owner behavior, control quality, insider signals | Degrade: skip ownership layer, note gap |
 
-- [Workflow and operating sequence](references/workflow-and-operating-sequence.md)
-Use for end-to-end execution order.
+Stop: if fetch fails, stop the task and report dependency failure.
+Degrade: proceed with explicit note of what was skipped.
 
-- [Narrative identification framework](references/narrative-identification-framework.md)
-Use to classify story type, business excitement, owner character, and ownership map.
+Document/news retrieval is the hard dependency — narrative analysis without source material is guessing.
 
-- [Catalyst mapping framework](references/catalyst-mapping-framework.md)
-Use for catalyst calendar, timing proximity, and corporate-action mechanics.
+## Operating Rules
 
-- [Narrative strength and priced-in tests](references/narrative-strength-and-priced-in-tests.md)
-Use for scoring and consensus/late-stage detection.
+- Narrative is a pricing regime, not a fundamental verdict. A strong narrative on a weak business is still a valid analytical finding.
+- Always separate base value from narrative premium when assessing price.
+- Prefer explicit catalyst timelines and invalidation triggers over vague narrative opinions.
+- If a story is consensus and fully priced, say so — do not manufacture upside.
+- Late-cycle and exit-liquidity risk must be flagged when detected, even if the narrative is still "intact."
+- All verdict and label values must match `enums-and-glossary.md`.
 
-- [Narrative failure and risk scoring](references/narrative-failure-and-risk-scoring.md)
-Use to map thesis breakers and binary-dependency risk.
+## Deterministic vs Agent-Judgment Boundary
 
-- [Output report template](references/output-report-template.md)
-Use when writing final structured narrative outputs.
+| Check | Type | How |
+|-------|------|-----|
+| Catalyst proximity (date-based) | Deterministic | Calendar dates from filings/announcements |
+| Narrative strength score (0-15) | Structured judgment | Agent scores 5 factors using rubric from `narrative-core-framework.md` |
+| Failure risk score (0-3) | Structured judgment | Agent scores using framework from `narrative-core-framework.md` |
+| Narrative type classification | Agent judgment | Classify from source material and context |
+| Owner character assessment | Agent judgment | Synthesize governance data, fundraising history, minority treatment |
+| Priced-in determination | Agent judgment | Evaluate price action, social saturation, consensus coverage |
+| Haluasi premium band | Agent judgment | Assess scarcity, simplicity, forced-buyer dynamics |
+| Business reality check | Mixed | Some checks deterministic (Altman Z, revenue trend), viability assessment is judgment |
 
-### Specialized deep references
+## Sector And Mechanism Routing
 
-- [Narrative valuation framework](references/narrative-valuation-framework.md)
-- [Haluasi and rerating premium](references/haluasi-and-rerating-premium.md)
-- [Hype lifecycle pompom to cuci piring](references/hype-lifecycle-pompom-to-cuci-piring.md)
-- [Rights issue purpose and signal map](references/rights-issue-purpose-and-signal-map.md)
-- [Backdoor listing screening](references/backdoor-listing-screening.md)
-- [WTFF backdoor cycle](references/wtff-backdoor-cycle.md)
-- [IPO analysis](references/ipo-analysis.md)
-
-## Sector And Corporate-Action Routing
-
-Use this quick routing when narrative quality depends on mechanism-level details.
+Use this routing when narrative quality depends on mechanism-level details.
 
 1. Map the thesis to a concrete mechanism (rights issue, backdoor cycle, rerating premium, hype phase).
 2. Load only the matching specialized references.
@@ -62,13 +72,43 @@ Use this quick routing when narrative quality depends on mechanism-level details
 
 Routing defaults:
 
-- Rights issue mechanics: [rights-issue-purpose-and-signal-map](references/rights-issue-purpose-and-signal-map.md)
-- Backdoor quality and cycle risk: [backdoor-listing-screening](references/backdoor-listing-screening.md), [wtff-backdoor-cycle](references/wtff-backdoor-cycle.md)
-- Premium and priced-in framing: [narrative-valuation-framework](references/narrative-valuation-framework.md), [haluasi-and-rerating-premium](references/haluasi-and-rerating-premium.md)
-- Hype phase mapping: [hype-lifecycle-pompom-to-cuci-piring](references/hype-lifecycle-pompom-to-cuci-piring.md)
+- Rights issue mechanics: `rights-issue-purpose-and-signal-map.md`
+- Backdoor quality and cycle risk: `backdoor-listing-screening.md`
+- Premium and priced-in framing: `narrative-premium-and-hype.md`
+- IPO analysis: `ipo-analysis.md`
+
+## Workflow
+
+### Phase 1: Parallel Data Collection
+
+Run in parallel:
+
+- `search-documents` for symbol and key themes
+- `search-twitter` for current social spread
+- `get-stock-fundamental` for valuation framing
+- `get-stock-governance` for owner and control context
+
+### Phase 2: Sequential Analysis
+
+1. Narrative identification (from `narrative-core-framework.md`).
+2. Catalyst mapping (from `narrative-core-framework.md`).
+3. Narrative strength scoring (from `narrative-core-framework.md`).
+4. Failure-mode assessment (from `narrative-core-framework.md`).
+5. Haluasi / narrative-premium assessment if relevant (load `narrative-premium-and-hype.md`).
+
+### Phase 3: Verdict
+
+Produce output per `output-report-template.md`:
+
+- Verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`
+- Key story in 1-2 sentences
+- Catalyst timeline
+- Primary failure trigger
+- Confidence level
 
 ## Execution Defaults
 
-- For full analysis: run `search-documents`, `search-twitter`, `get-stock-fundamental`, and `get-stock-governance` in parallel.
-- Use hard failure logic: if core data retrieval fails, fail the analysis instead of guessing.
-- Prefer explicit catalyst timelines and invalidation triggers over vague narrative opinions.
+- For full analysis, fetch all data sources in parallel.
+- Use fail-fast behavior: if document/news retrieval fails, stop and report the missing dependency.
+- Load specialized references only when the mechanism is thesis-critical, not by default.
+- All output verdicts and labels must use values from `enums-and-glossary.md`.

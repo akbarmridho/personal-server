@@ -38,3 +38,7 @@ Sometimes the market reacts positively even when the exercise price is above the
 | Proceeds allocated to “working capital” with vague breakdown | Hard to audit impact; can become cash extraction |
 | Rights issue used repeatedly | Chronic funding dependence; thesis becomes dilution-prone |
 | Complex convert/mandatory terms (“wajib konversi”) | Shifts payoff asymmetry to insiders |
+
+## Implementation Note
+
+Enforcement: agent workflow when narrative involves rights issue mechanics (see SKILL.md mechanism routing). Purpose classification uses filing disclosures. Red flag detection is a checklist against disclosure terms. Pricing signal interpretation is agent judgment.
