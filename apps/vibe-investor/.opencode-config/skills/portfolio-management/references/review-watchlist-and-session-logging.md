@@ -1,4 +1,8 @@
-# Portfolio Review, Watchlist, And Session Logging
+# Review, Watchlist, And Session Logging
+
+## Objective
+
+Define review cadence, watchlist management process, and session log structure for consistent portfolio operations.
 
 ## Review Cadence
 
@@ -27,37 +31,37 @@
 
 ## Portfolio Health Red Flag
 
-If portfolio is flat/red while IHSG prints new highs, strategy likely has structural misalignment and needs overhaul.
+If portfolio is flat/red while IHSG prints new highs, strategy likely has structural misalignment and needs overhaul. (Flag PM-W08)
 
 ## Leader Breadth Risk Monitor
 
 Track a small leader basket (from your active/watchlist universe) and count fresh invalidations.
 
-- If multiple leaders break structure/stop in the same review window, treat this as regime deterioration.
+- If multiple leaders break structure/stop in the same review window, treat this as regime deterioration. (Flag PM-W09)
 - When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
 - Write the signal and resulting action to `memory/sessions/{YYYY-MM-DD}.md`.
 
 ## Watchlist Management
 
+Watchlist statuses use enums from `enums-and-glossary.md`.
+
 | Status | Criteria | Action |
 |--------|----------|--------|
-| Watching | Thesis is interesting but not actionable yet | Monitor catalyst/flow/price trigger |
-| Ready | Trigger conditions are close | Prepare plan and alerts |
-| Active | Triggered and position is open | Execute and monitor |
-| Removed | Thesis broken or better option available | Document removal reason |
+| WATCHING | Thesis interesting but not actionable yet | Monitor catalyst/flow/price trigger |
+| READY | Trigger conditions are close | Prepare plan and alerts |
+| ACTIVE | Triggered and position is open | Execute and monitor |
+| REMOVED | Thesis broken or better option available | Document removal reason |
 
 Write to: `memory/notes/watchlist.md`
 
 ```markdown
 ## Watchlist
 
-| Symbol | Status | Thesis | Trigger | Added |
-|--------|--------|--------|---------|-------|
-| BBCA | Ready | Rate cut beneficiary | Break above 10,000 with volume | 2025-01-15 |
-| ADRO | Watching | Coal cycle + restructuring | Foreign accumulation signal | 2025-01-20 |
+| Symbol | Status | Thesis | Trigger | Added | Leader |
+|--------|--------|--------|---------|-------|--------|
+| BBCA | READY | Rate cut beneficiary | Break above 10,000 with volume | 2025-01-15 | Yes |
+| ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | 2025-01-20 | No |
 ```
-
-Prefer to include a `Leader` marker for names used in breadth monitoring.
 
 ## Session Log Template
 
@@ -92,8 +96,6 @@ Write to: `memory/sessions/{YYYY-MM-DD}.md`
 - {next checks and actions}
 ```
 
-## Profit Realization Discipline
+## Implementation Note
 
-- After significant gains (>50%), realize part in cash.
-- Do not endlessly roll gains without withdrawals.
-- Controlled realization improves sustainability and decision quality.
+Enforcement: agent workflow during Weekly Review and daily checks (see SKILL.md). Review cadence items are the checklist for each workflow. Watchlist status transitions are agent-managed based on trigger conditions. Session logs are written at the end of every review session. Health flags PM-W08 and PM-W09 are agent-judgment flags detected during review.

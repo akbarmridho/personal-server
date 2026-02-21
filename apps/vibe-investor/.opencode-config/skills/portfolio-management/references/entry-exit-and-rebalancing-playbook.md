@@ -1,51 +1,13 @@
 # Entry, Exit, And Rebalancing Playbook
 
-## Winning Series (Weekly-Monthly Discipline)
+## Objective
 
-This framework translates weekly-monthly operating rules into explicit decision behavior.
+Translate weekly-monthly operating rules into explicit entry, exit, and rebalance decision behavior.
 
-## Market Regime Gate (Before New Long Exposure)
-
-Only deploy full-size new longs when market regime is supportive.
-
-Evidence sources:
-
-- `fetch-ohlcv` on market proxy and current leaders/watchlist names.
-- `memory/notes/watchlist.md` and `memory/notes/portfolio.md` for active symbol universe.
-
-Operational gate:
-
-- **Pass**: market proxy structure is constructive and most leaders are not in fresh breakdown mode.
-- **Fail**: broad structure is weak and leader breakdowns are clustering.
-
-Actions:
-
-- Gate pass: normal sizing allowed by risk and liquidity rules.
-- Gate fail: no aggressive new long exposure; use smaller pilot size or stay in cash.
-
-### 1) Buy Discount, Not Chase
+## Entry Discipline
 
 - Prefer entries during drawdowns when weakness is temporary and long-term thesis remains valid.
 - Avoid discount entries when decline is driven by permanent impairment (business model break, governance failure, terminal dilution).
-
-### 2) Set Timeframe First
-
-Shorter timeframes create more noise and psychological pressure.
-
-| Timeframe | Typical risk profile | How to use |
-|---|---|---|
-| Short (intraday/daily) | Highest noise | Not the default operating mode |
-| Medium (quarterly to 1-3 years) | Lower noise | Best for weekly-monthly tracking |
-| Long (>3 years) | Lowest noise | Best when conviction is strongest |
-
-Before entry, write minimum holding expectation and review cadence.
-
-### 3) Patience Failure Modes
-
-| Where patience breaks | What it looks like | Counter-rule |
-|---|---|---|
-| Position building in thin liquidity | Cannot get size without pushing price | Reduce size, stage entries, or skip |
-| Fast markups | Selling too early after quick gains | Use staged profit-taking and thesis invalidation |
 
 ## Entry Strategies
 
@@ -53,18 +15,16 @@ Before entry, write minimum holding expectation and review cadence.
 
 - Best for core/stable stocks.
 - Fixed amount at regular intervals.
-- Reduces timing risk.
 
 ### Lump Sum
 
 - Best for value stocks with confirmed momentum.
 - Full position at once.
-- Maximizes upside if timing is correct.
 
 ### Scaling Down (Averaging Down)
 
 | Current Position Size | Trigger |
-|----------------------|---------|
+|-----------------------|---------|
 | < 20% of portfolio | Every 10% price drop |
 | > 20% of portfolio | Wait for 30% drop |
 
@@ -94,6 +54,8 @@ Pyramid discipline:
 | 90-100% of IV | Sell 30-50% |
 | 100-120% of IV | Sell remaining |
 
+After significant gains (>50%), realize part in cash. Do not endlessly roll gains without withdrawals.
+
 ### Early Exit (Before IV)
 
 Acceptable when:
@@ -111,19 +73,13 @@ Acceptable when:
 | Governance violation | Market-wide correction |
 | Better opportunity requires capital | Short-term noise without thesis break |
 
-## Cut Loss Execution Discipline
+### Cut Loss Execution Discipline
 
 - Cut loss is operating cost, not personal failure.
 - No thesis, no hold.
 - Do not widen stop after entry unless thesis quality objectively improves.
 - Do not average down after thesis break.
 - Let winners run while structure and thesis remain intact.
-
-Behavioral guardrails:
-
-- Avoid quick take-profit on winners while deeply holding losers.
-- Require pre-trade invalidation and max-loss definition.
-- Post-exit review should evaluate process quality, not ego recovery.
 
 ## Rebalancing Protocol
 
@@ -139,3 +95,7 @@ Behavioral guardrails:
 - If thesis breaks, replace the name; do not mechanically top up losers.
 - Prefer replacement with lower correlation to current core holdings and acceptable liquidity.
 - Include transaction cost/slippage; skip tiny rebalance trades with no material risk impact.
+
+## Implementation Note
+
+Enforcement: agent workflow during New Position Entry, Position Exit, and Rebalance Check workflows (see SKILL.md). Entry strategies are agent-selected based on stock category and conviction. Exit decisions involve agent judgment for cut-loss vs hold (permanent impairment assessment). Rebalancing drift triggers are deterministic (weight deviation >20%); event triggers require agent judgment.

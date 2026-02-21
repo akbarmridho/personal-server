@@ -1,25 +1,21 @@
 # Position Sizing And Diversification
 
+## Objective
+
+Size positions using risk-first math, enforce diversification constraints, and prevent hidden concentration.
+
 ## Diversification By Capital Size
 
 | Capital Range | Max Stocks | Allocation |
-|--------------|------------|-----------|
+|---------------|------------|------------|
 | < Rp 100M | 5 | 2 core + 3 value |
 | Rp 100M - 1B | 10 | 4 core + 6 value |
 | > Rp 1B | 15 | 6 core + 9 value |
 
-## Stock Categories
-
-| Category | Profile | Purpose |
-|----------|---------|---------|
-| Core | Large-cap blue chip, stable, mature | Wealth preservation, dividends |
-| Value | Mid-cap, consistent growth, moderate risk | Portfolio growth, accumulation |
-| Growth | High upside, high volatility, higher risk | Alpha generation (limited allocation) |
-
 ## The 50:30:10 Rule
 
 | Rule | Constraint | Rationale |
-|------|-----------|-----------|
+|------|------------|-----------|
 | 50% Minimum | >=50% of portfolio in stocks with MoS >30% | Keeps most capital in undervalued positions |
 | 30% Maximum | No single stock >30% of portfolio | Prevents attachment and concentration |
 | 10% Maximum | Speculative/high-risk stocks <=10% total | Contains downside from risky bets |
@@ -29,7 +25,6 @@
 
 Diversification quality is driven by co-movement, not ticker count.
 
-- Prioritize lower correlation of daily returns.
 - Same-theme IDX names can move together during stress, even across subsectors.
 - Treat correlation as a sizing modifier, not a hard include/exclude filter.
 
@@ -42,29 +37,35 @@ Sizing adjustments:
 
 ## Liquidity-Based Sizing (Exit First)
 
-Weekly-monthly positions must assume exits can be required in days.
+Weekly-monthly positions must assume exits can be required in days. Size for the exit you might need, not the entry you want.
 
-Use this rulebook directly:
+ADTV sizing anchor:
 
-- [Liquidity three-board rule](liquidity-three-board-rule.md)
+| Position size vs ADTV | Liquidity risk |
+|------------------------|----------------|
+| ≤ 1% of ADTV | Low |
+| 1-5% of ADTV | Medium (needs staged exits) |
+| > 5% of ADTV | High (assume slippage + long exit time) |
 
-Practical guardrail: if size is too large relative to liquidity, prefer smaller size, staged exits, or skip.
+If size is too large relative to liquidity, prefer smaller size, staged exits, or skip.
 
 ## 1% Risk Rule (Per Trade)
-
-For tactical entries:
 
 ```text
 Position Size = (Portfolio x 1%) / (Entry Price - Stop Loss)
 ```
 
 - Max portfolio heat: 5-6% total open risk.
-- Conviction scaling guide: high conviction 1.5%, low conviction 0.5%.
+- Conviction scaling: high conviction 1.5%, low conviction 0.5%.
 
 ## Hard-Loss Fallback (When Invalidation Is Ambiguous)
 
-Primary stop should come from thesis/structure invalidation. If no clean invalidation level exists, enforce a hard-loss cap for tactical trades.
+Primary stop should come from thesis/structure invalidation. If no clean invalidation level exists, enforce a hard-loss cap.
 
 - Default fallback cap: 7-8% from entry.
-- If volatility/liquidity is unusually high, reduce position size instead of widening risk blindly.
+- If volatility/liquidity is unusually high, reduce position size instead of widening risk.
 - Never let fallback cap override a tighter, higher-quality technical invalidation.
+
+## Implementation Note
+
+Enforcement: agent workflow during New Position Entry and Weekly Review workflows (see SKILL.md). Deterministic checks: position weight vs 30% cap, portfolio heat sum, correlation from `fetch-ohlcv`, ADTV from tool data, 50:30:10 compliance from memory state. Triggers health flags PM-W01 through PM-W07 when breached.
