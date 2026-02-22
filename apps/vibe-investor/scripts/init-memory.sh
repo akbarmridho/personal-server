@@ -49,7 +49,7 @@ for f in \
   notes/theses_archived.md \
   templates/symbol_note_template.md \
   analysis/INDEX.md \
-  scripts/portfolio_calc.py
+  scripts/portfolio_ops.py
 do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
   dst="$OPENCODE_CWD/memory/$f"

@@ -31,7 +31,7 @@ workdir/
 │   │   ├── theses_archived.md    # Archived/closed thesis registry
 │   │   └── watchlist.md          # Stocks under observation
 │   ├── scripts/                  # Persistent utility scripts for memory workflows
-│   │   └── portfolio_calc.py     # Compute derived metrics from inputs
+│   │   └── portfolio_ops.py      # Deterministic portfolio checks and derived metrics
 │   ├── symbols/                  # Per-symbol notes
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
 │   ├── templates/                # Templates (not active notes)

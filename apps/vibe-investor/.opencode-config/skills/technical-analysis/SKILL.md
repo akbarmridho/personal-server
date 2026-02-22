@@ -28,6 +28,15 @@ Mode requirements:
 - `THESIS_REVIEW`: focus on thesis status and invalidation triggers.
 - `POSTMORTEM`: include what failed, what was missed, and rule improvements.
 
+## Concepts And School Of Thought
+
+- Use a structure-first market map: state/regime, key levels, liquidity draws, and participation context are the core decision inputs.
+- Treat `UNIFIED` as default lens, with `CLASSICAL_TA`, `WYCKOFF`, and `SMC_ICT_LIGHT` as optional overlays for disagreement testing.
+- Run chart-first workflow (build charts, read charts, then numeric cross-check) and resolve conflicts explicitly with evidence.
+- Execute level-to-level logic only: entry near decision zone, invalidation beyond structure, and target at the next mapped zone.
+- Apply breakout quality, imbalance context, and liquidity sweep outcomes as confluence filters, never as standalone permission.
+- Keep risk-first discipline: no invalidation/stop means no action, and no valid setup defaults to `WAIT`.
+
 ## Required Data And Fail-Fast
 
 Use `fetch-ohlcv` as the only chart-data source.

@@ -13,6 +13,15 @@ Use this file as the entrypoint. Do not load all references by default.
 4. Execute sequential analysis phases.
 5. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
 
+## Concepts And School Of Thought
+
+- Classify the narrative regime first (theme, turnaround, corporate action, policy, index agenda, or hype) before discussing upside.
+- Map catalysts by event, date, and probability, then assess whether upside is still open or already priced in.
+- Score narrative strength (0-15) and failure risk (0-3) as structured judgment, not free-form opinion.
+- Decompose price into base value plus narrative premium, then explicitly state late-cycle and mean-reversion risk.
+- Route mechanism-heavy cases through dedicated frameworks (rights issue, backdoor, IPO, hype lifecycle) before final verdict.
+- Treat narrative as a pricing framework, not a moral/business-quality verdict; without complete source coverage, downgrade confidence.
+
 ## Reference Index And Topic Ownership
 
 | File | Topics |

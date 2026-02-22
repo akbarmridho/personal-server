@@ -115,6 +115,98 @@
       }
     }
   },
+  "command": {
+    "ta-initial": {
+      "description": "Technical INITIAL (arg1=symbol, arg2=intent)",
+      "agent": "vibe-investor",
+      "template": "Run technical-analysis mode INITIAL for $1.\nIntent: $2.\nLens: UNIFIED.\nBuild full report with workflow trace, evidence ledger, and all core chart artifacts."
+    },
+    "ta-update": {
+      "description": "Technical UPDATE (arg1=symbol, arg2=intent, arg3=previous_report_path)",
+      "agent": "vibe-investor",
+      "template": "Run technical-analysis mode UPDATE for $1.\nIntent: $2.\nLens: UNIFIED.\nPrevious analysis reference: $3.\nReturn full report plus Delta Log (what changed, what stayed, and why action changed/stayed). Include all core chart artifacts."
+    },
+    "ta-thesis": {
+      "description": "Technical THESIS_REVIEW (arg1=symbol, arg2=previous_report_path)",
+      "agent": "vibe-investor",
+      "template": "Run technical-analysis mode THESIS_REVIEW for $1.\nIntent: HOLD.\nPrevious analysis reference: $2.\nFocus on thesis status (intact/improving/degrading/invalidated), invalidators, and monitoring triggers."
+    },
+    "ta-postmortem": {
+      "description": "Technical POSTMORTEM (arg1=symbol, arg2=previous_report_path)",
+      "agent": "vibe-investor",
+      "template": "Run technical-analysis mode POSTMORTEM for $1.\nIntent: EXIT.\nPrevious analysis reference: $2.\nExplain what failed, what was missed, and what rule updates should be applied next time."
+    },
+    "ta-lens": {
+      "description": "Technical alternate lens (arg1=symbol, arg2=lens, arg3=intent, arg4=previous_report_path)",
+      "agent": "vibe-investor",
+      "template": "Run technical-analysis mode UPDATE for $1.\nIntent: $3.\nUse requested lens $2 and include UNIFIED comparison.\nPrevious analysis reference: $4.\nReturn Lens Compare table with agreement/disagreement and evidence references."
+    },
+    "pm-daily": {
+      "description": "Portfolio daily quick check",
+      "agent": "vibe-investor",
+      "template": "Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py daily-check --memory-root memory\nThen run portfolio-management: daily check.\nCheck stop loss levels and triggered invalidations, scan news/filings for held positions, and update P&L in memory/notes/portfolio.md."
+    },
+    "pm-weekly": {
+      "description": "Portfolio weekly review",
+      "agent": "vibe-investor",
+      "template": "Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py weekly-review --memory-root memory\nThen run portfolio-management: weekly review.\nReview all open positions, sizing compliance, correlation, heat, watchlist updates, and write session log to memory/sessions/{DATE}.md."
+    },
+    "pm-entry": {
+      "description": "Portfolio new position entry (arg1=symbol)",
+      "agent": "vibe-investor",
+      "template": "Run portfolio-management: new position entry for $1.\nCheck regime gate, validate sizing (50:30:10, heat, correlation, ADTV), write trading plan, and update memory files."
+    },
+    "pm-add": {
+      "description": "Portfolio add to position (arg1=symbol, arg2=extra_context)",
+      "agent": "vibe-investor",
+      "template": "Run portfolio-management: add to $1 position.\nContext: $2.\nValidate pyramid discipline and ensure aggregate risk remains within portfolio heat limits. Update trading plan and portfolio memory."
+    },
+    "pm-exit": {
+      "description": "Portfolio exit (arg1=symbol, arg2=reason)",
+      "agent": "vibe-investor",
+      "template": "Run portfolio-management: exit $1.\nReason: $2.\nApply exit framework, update symbol note, portfolio realized P&L, and session log."
+    },
+    "pm-rebalance": {
+      "description": "Portfolio rebalance check",
+      "agent": "vibe-investor",
+      "template": "Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py rebalance-check --memory-root memory\nThen run portfolio-management: rebalance check.\nCheck drift triggers, event triggers, replacement correlation, and skip tiny trades with no material risk impact."
+    },
+    "pm-watchlist": {
+      "description": "Portfolio watchlist update (pass natural instructions as arguments)",
+      "agent": "vibe-investor",
+      "template": "Run portfolio-management: update watchlist.\nInstructions:\n$ARGUMENTS\nApply status transitions and document reasons."
+    },
+    "pm-validate": {
+      "description": "Standalone sizing validation (arg1=symbol, arg2=entry, arg3=stop, arg4=capital)",
+      "agent": "vibe-investor",
+      "template": "Run deterministic sizing first:\npython memory/scripts/portfolio_ops.py validate-sizing --memory-root memory --symbol $1 --entry $2 --stop $3 --capital $4\nThen run portfolio-management: validate sizing for $1.\nEntry: $2.\nStop: $3.\nCapital: $4.\nCompute size via risk rule and check 50:30:10, concentration, ADTV, correlation, and health flags."
+    },
+    "pm-sync": {
+      "description": "Sync canonical portfolio input + recompute derived metrics (arguments = snapshot or table)",
+      "agent": "vibe-investor",
+      "template": "Update portfolio memory from this input:\n$ARGUMENTS\nRules:\n1) Write canonical input to memory/notes/portfolio_inputs/{DATE}.json with schema as_of, cash, positions[].\n2) Compute derived values programmatically (do not trust manual derived numbers).\n3) Update memory/notes/portfolio.md with source file, requested input table, and computed summary."
+    },
+    "fund": {
+      "description": "Full fundamental analysis (arg1=symbol)",
+      "agent": "vibe-investor",
+      "template": "Run fundamental-analysis for $1.\nDo full analysis with fail-fast dependencies, minimum 2-3 valuation methods, and report verdict UNDERVALUED/FAIR/OVERVALUED with confidence and invalidation triggers."
+    },
+    "narrative": {
+      "description": "Full narrative analysis (arg1=symbol)",
+      "agent": "vibe-investor",
+      "template": "Run narrative-analysis for $1.\nProduce narrative verdict STRONG/MODERATE/WEAK/BROKEN with score, catalyst timeline, priced-in assessment, failure trigger, and confidence."
+    },
+    "triage": {
+      "description": "Fast 4-lens triage (arg1=symbol)",
+      "agent": "vibe-investor",
+      "template": "Run a fast 4-lens triage for $1: technical, fundamental, narrative, and portfolio fit.\nReturn concise actionable decision with invalidation and next checkpoints."
+    },
+    "weekly-intel": {
+      "description": "Weekly intelligence: news, analysis, rumour, watchlist impact (arg=optional focus/theme/symbol)",
+      "agent": "vibe-investor",
+      "template": "Build a weekly intelligence dump for the last 7 calendar days.\nFocus request: $ARGUMENTS\n\nUse these as base context:\n- memory/notes/watchlist.md\n- memory/notes/theses_active.md\n- memory/MEMORY.md\n\nData sources to use:\n1) Stock documents (`list-documents` / `search-documents` / `get-document`) for official and analysis docs.\n2) Social rumour scan (`search-twitter`) for market chatter.\n3) Exa internet search (`web_search_exa` / `crawling_exa`) for broader market/theme news.\n\nWorkflow:\n- Build symbol universe from current watchlist (`WATCHING`, `READY`, `ACTIVE`) plus any explicit symbols in $ARGUMENTS.\n- Gather last-7-day items per symbol/theme.\n- Include macro/theme events even when symbol-specific tagging is weak.\n- Produce timeline-style summary of what happened, what changed, and what might have been missed.\n- Explicitly flag high-priority items that require action/check tomorrow.\n- Propose watchlist/thesis updates with evidence.\n\nOutput contract:\n- Section A: Key events this week (ranked by impact)\n- Section B: Per-symbol digest (news + analysis + rumour)\n- Section C: Potentially missed items\n- Section D: Next-week watchpoints and triggers\n- Section E: Sources\n\nPersistence:\n- Save report to: memory/analysis/market/IDX/{TODAY}/weekly_dump.md\n- Append concise action bullets to: memory/sessions/{TODAY}.md"
+    }
+  },
   "mcp": {
     "stock-mcp": {
       "type": "remote",

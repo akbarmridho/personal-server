@@ -13,6 +13,15 @@ Use this file as the entrypoint. Do not load all references by default.
 4. Execute sequential analysis phases.
 5. Return a structured verdict with confidence and invalidation conditions.
 
+## Concepts And School Of Thought
+
+- Start with earnings quality, solvency, and cash conversion; accounting profit without cash confirmation is treated as low quality.
+- Build valuation through 2-3 methods (EPS/ROE-PBV/DCF/DDM/NAV as relevant), then trust the overlap range instead of a single-model point estimate.
+- Evaluate company quality via moat durability, governance behavior, ownership alignment, and management capital-allocation discipline.
+- Route assumptions through sector mechanics when thesis-critical (banking, commodities, property, consumer, gold, and others) to avoid cross-sector misreads.
+- Treat value-trap and manipulation diagnostics as hard risk filters, not optional commentary.
+- Use conservative assumptions and downside-first framing, because IDX timing can still be dominated by flow and narrative even when fundamentals look strong.
+
 ## Reference Index And Topic Ownership
 
 | File | Topics |

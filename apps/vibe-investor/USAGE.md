@@ -1,213 +1,102 @@
-# Technical Analysis Skill Usage
+# Vibe Investor Usage (Command-First)
 
-This guide explains both how to run the skill and what conceptual frameworks it covers.
+Single source of truth for day-to-day usage is the `command` section in:
 
-## Concepts Covered
+- `opencode-config.json`
 
-- `UNIFIED` baseline: market state, structure, levels, volume, liquidity, and risk integrated in one decision flow.
-- `CLASSICAL_TA`: horizontal support/resistance, role flips, time-based levels, and round-number confluence.
-- `WYCKOFF`: balance/imbalance context with accumulation/markup/distribution/markdown mapping.
-- `VOLUME_PROFILE`: POC/VAH/VAL/HVN/LVN behavior and prior-session profile context.
-- `LIQUIDITY`: draw-to-liquidity map, sweep outcome, and external/internal path framing.
-- `SMC_ICT_LIGHT`: BOS/CHOCH/CHOCH+, EQH/EQL, OB/Breaker, FVG/IFVG, Premium/Discount.
-- `LEVEL_TO_LEVEL`: entry near mapped zone, invalidation beyond structure, next-zone target path.
-- `IBH_IBL`: Initial Balance acceptance/deviation logic and stepped overlay chart.
-- `BREAKOUT_FILTERS`: MA posture, base-quality checks, and market-context filter before breakout action.
+Use commands in OpenCode TUI with `/command-name`.
 
-## Schools Of Thought In This Skill
+## Core Principle
 
-- Structure-first: price behavior is interpreted through structure and acceptance, not isolated candles.
-- Chart-first, evidence-backed: generate/read charts before final call and attach evidence refs.
-- Risk-first execution: no action without invalidation, stop-loss, and sizing logic.
-- Multi-lens optionality: alternate lens can be requested and compared against `UNIFIED`.
-- Iterative lifecycle: supports `INITIAL`, `UPDATE`, `THESIS_REVIEW`, `POSTMORTEM`.
+- Do not use old standalone usage playbooks.
+- Trigger workflows via commands.
+- Keep memory updates inside the workflow run.
 
-## Deterministic Context Script
+## How Vibe Investor Thinks (Concepts + School Of Thought)
 
-- Input source:
-  - Use the exact `output_path` from `fetch-ohlcv`.
-  - Input JSON must contain `daily[]`, `intraday[]`, and `corp_actions[]`.
-- Script location:
-  - `scripts/build_ta_context.py` (relative to `.opencode-config/skills/technical-analysis/SKILL.md`)
-- Output:
-  - `work/{SYMBOL}_ta_context.json` (or custom `--output` path)
-- Available modules for `--modules`:
-  - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity
-  - `vpvr`: adds `poc/vah/val/hvn/lvn`
-  - `imbalance`: adds FVG zones with CE
-  - `breakout`: adds breakout trigger/follow-through snapshot
-  - `smc`: adds EQH/EQL and premium-discount context
-  - `all`: shorthand for `core,vpvr,imbalance,breakout,smc`
-- Example run:
-  - `python scripts/build_ta_context.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance,breakout,smc`
+- Market model: IDX is treated as Stock Market 2.0 where price can be driven by flow, narrative, technical structure, and fundamentals, not fundamentals alone.
+- Decision style: risk-first and evidence-first; no actionable call without clear invalidation and downside control.
+- Process style: fail-fast on missing dependencies, deterministic checks where possible, judgment only where needed.
+- Technical lens: structure-first, chart-first, then numeric cross-check; if no valid setup, prefer `WAIT`.
+- Fundamental lens: cash quality and conservative assumptions are prioritized over accounting optics or promotional assumptions.
+- Narrative lens: narrative is treated as a pricing regime; catalyst timeline, priced-in state, and failure triggers must be explicit.
+- Portfolio lens: capital preservation and process discipline dominate; sizing, heat, concentration, correlation, and liquidity constraints are enforced before conviction.
+- Operating model: memory files are the operating surface (portfolio, watchlist, symbol plans, sessions), and command workflows should update them during execution.
 
-## Chart Artifact Contract
+## Command Catalog
 
-- Input source:
-  - Use the exact `output_path` used by `fetch-ohlcv` as script input.
-  - That JSON must contain `daily[]`, `intraday[]`, and `corp_actions[]`.
-- Script location:
-  - `scripts/generate_ta_charts.py` (relative to `.opencode-config/skills/technical-analysis/SKILL.md`)
-- Available modules for `--modules`:
-  - `core`: baseline required artifacts (`daily_structure`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
-  - `vpvr`: adds `vpvr_profile`
-  - `imbalance`: adds `imbalance_fvg`
-  - `detail`: adds optional deep-dive detail chart
-  - `all`: shorthand for `core,vpvr,imbalance,detail`
-- Example run:
-  - `python scripts/generate_ta_charts.py --input {FETCH_OHLCV_OUTPUT_PATH} --symbol {SYMBOL} --outdir work --modules core,vpvr,imbalance`
-- Core required charts (every run):
-  - `work/{SYMBOL}_daily_structure.png`
-  - `work/{SYMBOL}_intraday_structure.png`
-  - `work/{SYMBOL}_ib_overlay.png`
-  - `work/{SYMBOL}_structure_events.png`
-  - `work/{SYMBOL}_trade_plan.png`
-- Conditional required charts (when module is used):
-  - `work/{SYMBOL}_vpvr_profile.png` for volume-profile context.
-  - `work/{SYMBOL}_imbalance_fvg.png` for FVG/IFVG or imbalance context.
-- Optional deep-dive chart:
-  - `work/{SYMBOL}_detail.png`
-- Evidence output (every run):
-  - `work/{SYMBOL}_chart_evidence.json` (includes `liquidity_draws` and other deterministic chart-read support fields)
-- Workflow expectation:
-  - Run deterministic context script first (`build_ta_context.py`), then build charts (`generate_ta_charts.py`).
-  - Build charts first, read charts second, then run numeric cross-check before action.
-  - If chart-read and numeric checks conflict, resolve conflict explicitly with evidence.
+## Technical
 
-## Mode Prompts
+- `/ta-initial {SYMBOL} {INTENT}`
+  - Example: `/ta-initial BBCA ENTRY`
+- `/ta-update {SYMBOL} {INTENT} {PREVIOUS_REPORT_PATH}`
+  - Example: `/ta-update BBCA HOLD work/BBCA_report_2026-02-14.md`
+- `/ta-thesis {SYMBOL} {PREVIOUS_REPORT_PATH}`
+  - Example: `/ta-thesis BBCA work/BBCA_report_2026-02-14.md`
+- `/ta-postmortem {SYMBOL} {PREVIOUS_REPORT_PATH}`
+  - Example: `/ta-postmortem BBCA work/BBCA_report_2026-02-14.md`
+- `/ta-lens {SYMBOL} {LENS} {INTENT} {PREVIOUS_REPORT_PATH}`
+  - Example: `/ta-lens BBCA SMC_ICT_LIGHT HOLD work/BBCA_report_2026-02-14.md`
 
-### 1) INITIAL (first thesis)
+## Portfolio Management
 
-```text
-Run technical-analysis mode INITIAL for BBCA.
-Intent: ENTRY.
-Lens: UNIFIED.
-Build full report with workflow trace, evidence ledger, and full core chart artifacts.
-```
+- `/pm-daily`
+- `/pm-weekly`
+- `/pm-entry {SYMBOL}`
+  - Example: `/pm-entry BBCA`
+- `/pm-add {SYMBOL} {CONTEXT}`
+  - Example: `/pm-add BBCA tranche-1 green, add-on plan check`
+- `/pm-exit {SYMBOL} {REASON}`
+  - Example: `/pm-exit BBCA thesis invalidated governance risk`
+- `/pm-rebalance`
+- `/pm-watchlist {INSTRUCTIONS}`
+  - Example: `/pm-watchlist Add TLKM WATCHING; move BBCA READY to ACTIVE`
+- `/pm-validate {SYMBOL} {ENTRY} {STOP} {CAPITAL}`
+  - Example: `/pm-validate ADRO 2500 2300 500000000`
+- `/pm-sync {PORTFOLIO_INPUT}`
+  - Example: `/pm-sync as_of=2026-02-22 cash=120000000 positions=[...]`
 
-### 2) UPDATE (periodic refresh)
+## Fundamental / Narrative / Triage
 
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Return full report plus Delta Log (what changed, what stayed, and why action changed/stayed).
-Include all core chart artifacts and conditional charts if used.
-```
+- `/fund {SYMBOL}`
+  - Example: `/fund BBCA`
+- `/narrative {SYMBOL}`
+  - Example: `/narrative BBCA`
+- `/triage {SYMBOL}`
+  - Example: `/triage BBCA`
+- `/weekly-intel {OPTIONAL_FOCUS}`
+  - Example: `/weekly-intel danantara project`
 
-### 3) THESIS_REVIEW (thesis health check)
+## Recommended Daily/Weekly Flows
 
-```text
-Run technical-analysis mode THESIS_REVIEW for BBCA.
-Intent: HOLD.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Focus on thesis status (intact/improving/degrading/invalidated), invalidators, and monitoring triggers.
-```
+## Daily Desk
 
-### 4) POSTMORTEM (after invalidation/exit)
+1. `/pm-daily`
+2. `/ta-update {SYMBOL} HOLD {PREVIOUS_REPORT_PATH}` for names near key levels
+3. `/pm-watchlist ...` if statuses change
 
-```text
-Run technical-analysis mode POSTMORTEM for BBCA.
-Intent: EXIT.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Explain what failed, what was missed, and what rule updates should be applied next time.
-```
+## Weekly Review
 
-## Lens And Concept Prompts
+1. `/pm-weekly`
+2. `/triage {SYMBOL}` for each top holding/watchlist leader
+3. `/weekly-intel {OPTIONAL_FOCUS}` to catch missed news/rumour/theme shifts
+4. `/pm-rebalance` if drift/events appear
 
-### 5) Alternate Lens Compare
+## New Position Workflow
 
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Use requested lens SMC_ICT_LIGHT and also include UNIFIED comparison.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Return Lens Compare table with agreement/disagreement and evidence refs.
-```
+1. `/fund {SYMBOL}`
+2. `/narrative {SYMBOL}`
+3. `/ta-initial {SYMBOL} ENTRY`
+4. `/pm-entry {SYMBOL}`
 
-### 6) SMC Deep Check
+## Post-Trade Learning
 
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: SMC_ICT_LIGHT.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Include SMC modules: structure weighting, OB/Breaker state, FVG/IFVG state, EQH/EQL sweep result, Premium/Discount zone.
-Keep action risk-first with explicit invalidation and stop-loss.
-```
-
-### 7) Volume Profile Focus
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Emphasize anchored + fixed range + prior-session POCs.
-Include POC/VAH/VAL, HVN/LVN reaction notes, and value-area acceptance state.
-Require `work/{SYMBOL}_vpvr_profile.png`.
-```
-
-### 8) Liquidity Draw Map Focus
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Return current draw, opposing draw, sweep event/outcome, and liquidity path state.
-Use HTF sweep context and LTF trigger evidence if available.
-Require `work/{SYMBOL}_structure_events.png` and `work/{SYMBOL}_chart_evidence.json`.
-```
-
-### 9) Horizontal S/R Heuristics Pass
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Apply HTF-first mapping then refine LTF zones.
-Include monthly/weekly/daily open, round-number confluence, and breakout displacement quality.
-Keep levels minimal and actionable.
-```
-
-### 10) Level-To-Level Execution Plan
-
-```text
-Run technical-analysis mode INITIAL for BBCA.
-Intent: ENTRY.
-Lens: UNIFIED.
-Build plan with entry zone, invalidation, next-zone target, and expected RR.
-If no clear next-zone path exists, return WAIT with required conditions.
-```
-
-### 11) Breakout Quality Filter Pass
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: ENTRY.
-Lens: UNIFIED.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-If setup is breakout, include breakout quality filters: base quality and market context impact.
-Report MA posture separately under levels context.
-Downgrade conviction if filters are weak.
-```
-
-### 12) Dynamic S/R MA Context
-
-```text
-Run technical-analysis mode UPDATE for BBCA.
-Intent: HOLD.
-Lens: CLASSICAL_TA.
-Previous analysis reference: work/BBCA_report_2026-02-14.md.
-Report MA posture as dynamic support/resistance (21EMA, 50SMA, 100SMA, 200SMA) together with horizontal levels.
-Do not use MA alone as trade trigger.
-```
+1. `/pm-exit {SYMBOL} {REASON}`
+2. `/ta-postmortem {SYMBOL} {PREVIOUS_REPORT_PATH}`
 
 ## Notes
 
-- For `UPDATE`, `THESIS_REVIEW`, and `POSTMORTEM`, provide previous analysis reference.
-- Include all core chart artifacts by default; request module-specific conditional charts when relevant.
-- If no valid setup exists, expected action is `WAIT` with re-entry conditions.
+- Symbols should be 4-letter uppercase (`BBCA`, `TLKM`, `ADRO`).
+- Non-initial TA commands require a previous report path.
+- Portfolio workflows are expected to write memory files during execution.
+- If required MCP/tool dependency fails, workflow should fail fast.

@@ -12,6 +12,15 @@ Use this file as the entrypoint. Do not load every reference by default.
 3. Execute with tools and memory updates.
 4. If the request spans multiple areas, load multiple references deliberately.
 
+## Concepts And School Of Thought
+
+- Treat portfolio management as a risk operating system: capital preservation first, return second.
+- Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, and correlation clustering).
+- Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
+- Apply regime gate before new longs; if breadth/market structure weakens, reduce aggression and protect cash.
+- Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
+- Use memory files as the system of record; decisions are only complete when portfolio/watchlist/symbol/session states are updated.
+
 ## Reference Index And Topic Ownership
 
 | File | Topics |
@@ -131,4 +140,4 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
 - Check regime gate before any new long exposure.
-- Flag any portfolio health warnings from `enums-and-glossary.md` (PM-W01 through PM-W10) when detected during any workflow.
+- Flag any portfolio health warnings from `enums-and-glossary.md` (PM-W01 through PM-W07) when detected during any workflow.
