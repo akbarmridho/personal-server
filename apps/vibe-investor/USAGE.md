@@ -64,8 +64,6 @@ Use commands in OpenCode TUI with `/command-name`.
   - Example: `/narrative BBCA`
 - `/triage {SYMBOL}`
   - Example: `/triage BBCA`
-- `/weekly-intel {OPTIONAL_FOCUS}`
-  - Example: `/weekly-intel danantara project`
 - `/weekly-narrative-digest`
 - `/weekly-narrative-sync`
 
