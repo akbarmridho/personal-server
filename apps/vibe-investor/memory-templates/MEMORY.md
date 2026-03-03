@@ -13,5 +13,4 @@ Last updated:
 ## Active Risks
 
 ## Pointers
-- Memory index: `INDEX.md`
-- Analysis index: `analysis/INDEX.md`
+- Thesis index: `notes/thesis.md`

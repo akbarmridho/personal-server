@@ -20,24 +20,20 @@ Your workspace has persistent memory and temporary work directories.
 workdir/
 ├── memory/                       # Persistent memory
 │   ├── MEMORY.md                 # Global curated memory (load at session start)
-│   ├── INDEX.md                  # Entry point for memory navigation
 │   ├── notes/                    # Operational notes
 │   │   ├── portfolio.md          # Portfolio note (inputs + derived summary)
 │   │   ├── portfolio_inputs/     # Canonical portfolio snapshots
 │   │   │   └── {DATE}.json       # Minimal inputs only (cash + positions)
-│   │   ├── actions/              # Dated market-hours execution checklists
-│   │   │   └── {DATE}.md
-│   │   ├── theses_active.md      # Active + watching thesis registry
-│   │   ├── theses_archived.md    # Archived/closed thesis registry
+│   │   ├── thesis.md             # Thesis index (active + inactive)
 │   │   └── watchlist.md          # Stocks under observation
 │   ├── scripts/                  # Persistent utility scripts for memory workflows
 │   │   └── portfolio_ops.py      # Deterministic portfolio checks and derived metrics
 │   ├── symbols/                  # Per-symbol notes
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
-│   ├── templates/                # Templates (not active notes)
-│   │   └── symbol_note_template.md
+│   ├── theses/
+│   │   └── {THESIS_ID}/
+│   │       └── thesis.md         # Per-thesis state + timeline updates
 │   ├── analysis/
-│   │   ├── INDEX.md
 │   │   ├── symbols/{SYMBOL}/{DATE}/
 │   │   │   ├── technical.md
 │   │   │   ├── fundamental.md
@@ -45,7 +41,7 @@ workdir/
 │   │   │   ├── synthesis.md
 │   │   │   ├── sources.md
 │   │   │   └── *.png
-│   │   ├── market/{MARKET}/{DATE}/
+│   │   ├── market/{DATE}/
 │   │   └── themes/{THEME}/{DATE}/
 │   └── sessions/
 │       └── {DATE}.md             # Daily session logs
@@ -53,7 +49,7 @@ workdir/
 └── work/                         # Temporary scratch (cleared often)
 ```
 
-Read `memory/MEMORY.md` and `memory/INDEX.md` at session start to pick up context from past work. During analysis, put temporary artifacts in `work/` (data pulls, one-off scripts, intermediate charts) because this folder is disposable and frequently cleared. Only promote durable outputs (decision notes + key charts) into `memory/`.
+Read `memory/MEMORY.md` at session start to pick up context from past work. During analysis, put temporary artifacts in `work/` (data pulls, one-off scripts, intermediate charts) because this folder is disposable and frequently cleared. Only promote durable outputs (decision notes + key charts) into `memory/`.
 
 Portfolio memory rules:
 
@@ -62,9 +58,12 @@ Portfolio memory rules:
 - Do not store raw broker/API payloads unless the user explicitly asks for raw payload archival.
 - Compute derived values (market value, P/L, weights, concentration) programmatically from the input snapshot; do not treat manually typed derived numbers as source of truth.
 - In `memory/notes/portfolio.md`, record the input source path and the requested input table; add derived summaries only when needed and clearly mark them as computed.
-- Store market-hours execution checklists in `memory/notes/actions/{DATE}.md` (do not use a single rolling action file).
-- Keep theses split by lifecycle: active/watch in `memory/notes/theses_active.md`, closed/invalidated in `memory/notes/theses_archived.md`.
-- Keep only real symbols in `memory/symbols/`; store templates in `memory/templates/`.
+- Store market-hours execution checklists and action bullets in `memory/sessions/{DATE}.md`.
+- Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`, each linking to per-thesis files.
+- Store each thesis in `memory/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
+- Use `memory/analysis/themes/{THEME}/{DATE}/` for dated research snapshots and evidence artifacts.
+- Thesis files must link to relevant theme-analysis files; do not duplicate theme-analysis content inside thesis files.
+- Keep only real symbols in `memory/symbols/`.
 
 By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For portfolio-management workflows, memory file updates are part of execution and should be written during the workflow.
 

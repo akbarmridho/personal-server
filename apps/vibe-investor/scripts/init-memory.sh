@@ -28,10 +28,9 @@ echo ""
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
 mkdir -p "$OPENCODE_CWD/memory/notes/portfolio_inputs"
-mkdir -p "$OPENCODE_CWD/memory/notes/actions"
 mkdir -p "$OPENCODE_CWD/memory/scripts"
 mkdir -p "$OPENCODE_CWD/memory/symbols"
-mkdir -p "$OPENCODE_CWD/memory/templates"
+mkdir -p "$OPENCODE_CWD/memory/theses"
 mkdir -p "$OPENCODE_CWD/memory/analysis/symbols"
 mkdir -p "$OPENCODE_CWD/memory/analysis/market"
 mkdir -p "$OPENCODE_CWD/memory/analysis/themes"
@@ -42,13 +41,9 @@ mkdir -p "$OPENCODE_CWD/work"
 echo "Copying memory templates..."
 for f in \
   MEMORY.md \
-  INDEX.md \
   notes/portfolio.md \
   notes/watchlist.md \
-  notes/theses_active.md \
-  notes/theses_archived.md \
-  templates/symbol_note_template.md \
-  analysis/INDEX.md \
+  notes/thesis.md \
   scripts/portfolio_ops.py
 do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
@@ -71,19 +66,15 @@ echo "Structure:"
 echo "  $OPENCODE_CWD/"
 echo "  ├── memory/"
 echo "  │   ├── MEMORY.md"
-echo "  │   ├── INDEX.md"
 echo "  │   ├── notes/"
 echo "  │   │   ├── portfolio.md"
 echo "  │   │   ├── portfolio_inputs/"
-echo "  │   │   ├── actions/"
-echo "  │   │   ├── theses_active.md"
-echo "  │   │   ├── theses_archived.md"
+echo "  │   │   ├── thesis.md"
 echo "  │   │   └── watchlist.md"
 echo "  │   ├── scripts/"
 echo "  │   ├── symbols/"
-echo "  │   ├── templates/"
+echo "  │   ├── theses/"
 echo "  │   ├── analysis/"
-echo "  │   │   ├── INDEX.md"
 echo "  │   │   ├── symbols/"
 echo "  │   │   ├── market/"
 echo "  │   │   └── themes/"
