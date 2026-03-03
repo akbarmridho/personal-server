@@ -4,6 +4,7 @@ import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { SAMUEL_MORNING_BRIEF_CRAWL_CRON } from "../schedule.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -19,8 +20,7 @@ export const samuelMorningBriefCrawl = inngest.createFunction(
     id: "samuel-morning-brief-crawl",
     concurrency: 1,
   },
-  // daily at 09:05 from monday to friday
-  { cron: "TZ=Asia/Jakarta 5 9 * * 1-5" },
+  { cron: SAMUEL_MORNING_BRIEF_CRAWL_CRON },
   async ({ step }) => {
     const toScrapeDates = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(keystoneKey)) as Keystone | null;

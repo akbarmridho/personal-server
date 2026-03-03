@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { ALGORESEARCH_CRAWL_CRON } from "../schedule.js";
 import type { ArticleInfo } from "./types.js";
 
 const TARGET_URL =
@@ -14,8 +15,7 @@ export const algoResearchCrawl = inngest.createFunction(
     id: "algoresearch-crawl",
     concurrency: 1,
   },
-  // daily at 20.00 from monday to friday
-  { cron: "TZ=Asia/Jakarta 0 20 * * 1-5" },
+  { cron: ALGORESEARCH_CRAWL_CRON },
   async ({ step }) => {
     const { keystone, toScrape } = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(lastCrawlDate)) as {

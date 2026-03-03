@@ -1,4 +1,5 @@
 import { inngest } from "../../infrastructure/inngest.js";
+import { YOUTUBE_CHANNEL_CRAWL_INIT_CRON } from "../schedule.js";
 
 export interface YoutubeChannel {
   channelName: string;
@@ -53,8 +54,7 @@ export const youtubeChannelCrawlInit = inngest.createFunction(
     id: "youtube-channel-crawl-init",
     concurrency: 1,
   },
-  // daily at 20.00
-  { cron: "TZ=Asia/Jakarta 00 20 * * *" },
+  { cron: YOUTUBE_CHANNEL_CRAWL_INIT_CRON },
   async ({ step }) => {
     await step.sendEvent(
       "publish-crawl",

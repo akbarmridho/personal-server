@@ -2,6 +2,7 @@ import axios from "axios";
 import normalizeUrl from "normalize-url";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { KISI_MONTHLY_RESEARCH_CRAWL_CRON } from "../schedule.js";
 
 const researchLastCrawlID = "data-modules.kisi.research-last-id";
 
@@ -48,8 +49,7 @@ export const kisiMonthlyResearchCrawl = inngest.createFunction(
     id: "kisi-montly-research-crawl",
     concurrency: 1,
   },
-  // daily at 19.30
-  { cron: "TZ=Asia/Jakarta 30 19 * * *" },
+  { cron: KISI_MONTHLY_RESEARCH_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(researchLastCrawlID)) as {

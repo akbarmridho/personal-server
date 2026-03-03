@@ -3,6 +3,7 @@ import * as cheerio from "cheerio";
 import normalizeUrl from "normalize-url";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { SAMUEL_COMPANY_REPORTS_CRAWL_CRON } from "../schedule.js";
 
 const TARGET_URL =
   "https://samuel.co.id/category-research-reports/company-reports-ssi/";
@@ -14,8 +15,7 @@ export const samuelCompanyReportsCrawl = inngest.createFunction(
     id: "samuel-company-report-crawl",
     concurrency: 1,
   },
-  // daily at 20.15
-  { cron: "TZ=Asia/Jakarta 15 20 * * *" },
+  { cron: SAMUEL_COMPANY_REPORTS_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(lastCrawlURLs)) as string[] | null;

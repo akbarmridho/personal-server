@@ -2,6 +2,11 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import {
+  KIWOOM_DAILY_NEWS_CRAWL_CRON,
+  KIWOOM_EQUITY_REPORT_CRAWL_CRON,
+  KIWOOM_INTERNATIONAL_NEWS_CRAWL_CRON,
+} from "../schedule.js";
 import { getDailyNews, getInternationalNews, getMarketReports } from "./api.js";
 
 dayjs.extend(customParseFormat);
@@ -19,8 +24,7 @@ export const kiwoomDailyNewsCrawl = inngest.createFunction(
     id: "kiwoom-daily-news-crawl",
     concurrency: 1,
   },
-  // daily at 09:10
-  { cron: "TZ=Asia/Jakarta 10 09 * * *" },
+  { cron: KIWOOM_DAILY_NEWS_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(newsKeystone)) as Keystone | null;
@@ -79,8 +83,7 @@ export const kiwoomInternationalNewsCrawl = inngest.createFunction(
     id: "kiwoom-international-news-crawl",
     concurrency: 1,
   },
-  // daily at 09:10 from monday to friday
-  { cron: "TZ=Asia/Jakarta 15 9 * * 1-5" },
+  { cron: KIWOOM_INTERNATIONAL_NEWS_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(
@@ -143,8 +146,7 @@ export const kiwoomEquityReportCrawl = inngest.createFunction(
     id: "kiwoom-equity-report-crawl",
     concurrency: 1,
   },
-  // daily at 19:45 from monday to friday
-  { cron: "TZ=Asia/Jakarta 45 19 * * 1-5" },
+  { cron: KIWOOM_EQUITY_REPORT_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(

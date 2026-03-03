@@ -3,6 +3,7 @@ import z from "zod";
 import { KV } from "../../infrastructure/db/kv.js";
 import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { PROFILES_UPDATE_COMPANIES_CRON } from "../schedule.js";
 import { normalizeSector } from "./sector.js";
 
 export interface CompanyMeta {
@@ -52,8 +53,7 @@ export async function fetchRawCompanies(): Promise<CompanyMeta[]> {
 
 export const updateCompanies = inngest.createFunction(
   { id: "profiles/update-companies" },
-  // run every friday 16.00
-  { cron: "TZ=Asia/Jakarta 0 16 * * 5" },
+  { cron: PROFILES_UPDATE_COMPANIES_CRON },
   async ({ step }) => {
     const companies = await step.run(
       "fetch-companies",

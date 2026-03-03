@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 import { inngest } from "../../infrastructure/inngest.js";
 import { knowledgeService } from "../../infrastructure/knowledge-service.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
+import { GROUNDED_NEWS_RUMOUR_SCRAPE_CRON } from "../schedule.js";
 import { tagMetadata } from "../utils/tagging.js";
 import { defaultGroundedNewsQueries } from "./web-prompt.js";
 import { searchGroundedNews } from "./web-search.js";
@@ -35,8 +36,7 @@ export const groundedNewsRumourScrape = inngest.createFunction(
     id: "grounded-news-rumour-scrape",
     concurrency: 1,
   },
-  // Tuesday – Thursday – Saturday @ 21:15 WIB
-  { cron: "TZ=Asia/Jakarta 15 21 * * 2,4,6" },
+  { cron: GROUNDED_NEWS_RUMOUR_SCRAPE_CRON },
   async ({ step }) => {
     const scraped = await step.run("scrape", async () => {
       return await searchGroundedNews({

@@ -9,6 +9,10 @@ import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { stockProxyUrl } from "../../stock/proxy-url.js";
 import { logger } from "../../utils/logger.js";
+import {
+  PHINTRACO_COMPANY_UPDATE_CRAWL_CRON,
+  PHINTRACO_COMPANY_UPDATE_CRAWL_DUMMY_CRON,
+} from "../schedule.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -54,8 +58,7 @@ export const phintracoCompanyUpdateCrawl = inngest.createFunction(
     id: "phintraco-company-update-crawl",
     concurrency: 1,
   },
-  // daily at 21.00 from monday to friday
-  { cron: "TZ=Asia/Jakarta 0 21 * * 1-5" },
+  { cron: PHINTRACO_COMPANY_UPDATE_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const keystoneData = (await KV.get(keystoneKey)) as Keystone | null;
@@ -142,8 +145,7 @@ export const phintracoCompanyUpdateCrawlDummy = inngest.createFunction(
     id: "phintraco-company-update-crawl",
     concurrency: 1,
   },
-  // every date 1
-  { cron: "TZ=Asia/Jakarta 0 0 1 * *" },
+  { cron: PHINTRACO_COMPANY_UPDATE_CRAWL_DUMMY_CRON },
   async ({ step }) => {
     await step.run("print", () => {
       logger.info("hello!");

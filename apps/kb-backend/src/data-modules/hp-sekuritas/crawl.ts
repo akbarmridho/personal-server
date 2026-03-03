@@ -3,6 +3,10 @@ import normalizeUrl from "normalize-url";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { logger } from "../../utils/logger.js";
+import {
+  HP_MARKET_UPDATE_CRAWL_CRON,
+  HP_STOCK_UPDATE_CRAWL_CRON,
+} from "../schedule.js";
 
 const stockLastCrawlID = "data-modules.hp.stock-last-crawl-id";
 const marketLastCrawlID = "data-modules.hp.market-last-crawl-id";
@@ -111,8 +115,7 @@ export const hpStockUpdateCrawl = inngest.createFunction(
     id: "hp-stock-update-crawl",
     concurrency: 1,
   },
-  // daily at 20.00
-  { cron: "TZ=Asia/Jakarta 0 20 * * *" },
+  { cron: HP_STOCK_UPDATE_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(stockLastCrawlID)) as {
@@ -185,8 +188,7 @@ export const hpMarketUpdateCrawl = inngest.createFunction(
     id: "hp-market-update-crawl",
     concurrency: 1,
   },
-  // daily at 20.35 from monday to friday
-  { cron: "TZ=Asia/Jakarta 35 20 * * 1-5" },
+  { cron: HP_MARKET_UPDATE_CRAWL_CRON },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(marketLastCrawlID)) as {

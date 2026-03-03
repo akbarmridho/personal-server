@@ -4,6 +4,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { logger } from "../../utils/logger.js";
+import { SNIPS_CRAWL_CRON } from "../schedule.js";
 
 const TARGET_URL = "https://snips.stockbit.com/snips-terbaru/";
 const BASE_URL = "https://snips.stockbit.com/";
@@ -15,8 +16,7 @@ export const snipsCrawl = inngest.createFunction(
     id: "snips-crawl",
     concurrency: 1,
   },
-  // daily at 20.30 from monday to friday
-  { cron: "TZ=Asia/Jakarta 30 20 * * 1-5" },
+  { cron: SNIPS_CRAWL_CRON },
   async ({ step }) => {
     const { toScrape, latestCrawlDate } = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(lastCrawlDateKey)) as {

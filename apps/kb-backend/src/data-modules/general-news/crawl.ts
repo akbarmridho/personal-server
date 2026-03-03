@@ -9,6 +9,7 @@ import { env } from "../../infrastructure/env.js";
 import { inngest } from "../../infrastructure/inngest.js";
 import { telegramSession } from "../../infrastructure/telegram.js";
 import { logger } from "../../utils/logger.js";
+import { GENERAL_NEWS_KG_CRAWL_CRON } from "../schedule.js";
 import { queueGeneralNewsProxyItems } from "./proxy-queue.js";
 import { isProxyRequiredUrl } from "./scrapers/index.js";
 
@@ -55,8 +56,7 @@ export const generalNewsKGCrawl = inngest.createFunction(
     id: "general-news-kg-crawl",
     concurrency: 1,
   },
-  // daily at 09:05
-  { cron: "TZ=Asia/Jakarta 55 8 * * *" },
+  { cron: GENERAL_NEWS_KG_CRAWL_CRON },
   async ({ step }) => {
     const messages = await step.run("fetch-messages", async () => {
       const latestCrawl = (await KV.get(keystoneKey)) as Keystone | null;
