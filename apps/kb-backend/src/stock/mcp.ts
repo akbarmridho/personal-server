@@ -1,8 +1,8 @@
 import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
+import { searchTwitter } from "../data-modules/llm-grounding/twitter-search.js";
 import { supportedSubsectors } from "../data-modules/profiles/sector.js";
-import { searchTwitter } from "../data-modules/twitter/search.js";
 import { env } from "../infrastructure/env.js";
 import { knowledgeService } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";

@@ -40,7 +40,8 @@ import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
 import { stockbitFilingCrawl } from "../data-modules/stockbit-filing/crawl.js";
 import { stockbitAnnouncementIngest } from "../data-modules/stockbit-filing/ingest.js";
-import { twitterRumourScrape } from "../data-modules/twitter/scrape.js";
+import { groundedNewsRumourScrape } from "../data-modules/llm-grounding/web-scrape.js";
+import { twitterRumourScrape } from "../data-modules/llm-grounding/twitter-scrape.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
 import { youtubeChannelIngest } from "../data-modules/youtube/ingest.js";
@@ -127,6 +128,7 @@ export const inngestFunctions: InngestFunction.Like[] = [
   kiwoomDailyNewsIngest,
   kiwoomInternationalNewsIngest,
   kiwoomEquityReportIngest,
+  groundedNewsRumourScrape,
   twitterRumourScrape,
   documentManualIngest,
   pdfManualIngest,

@@ -6,13 +6,13 @@ import { inngest } from "../../infrastructure/inngest.js";
 import { knowledgeService } from "../../infrastructure/knowledge-service.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
-import { defaultTwitterDigestQueries } from "./prompt.js";
-import { searchTwitter } from "./search.js";
+import { defaultGroundedNewsQueries } from "./web-prompt.js";
+import { searchGroundedNews } from "./web-search.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const namespace = "26e942fd-dc82-435f-bf9a-71038322fec4";
+const namespace = "d2a62ff2-33fe-4f21-8dcf-0f32c31dabfe";
 
 function buildReportTitle(content: string, fallbackDate: string): string {
   const headingMatch = content.match(/^\s*#\s+(.+)$/m);
@@ -24,42 +24,40 @@ function buildReportTitle(content: string, fallbackDate: string): string {
     /\*\*Date Range\*\*:\s*(\d{4}-\d{2}-\d{2}(?:\s+to\s+\d{4}-\d{2}-\d{2})?)/i,
   );
   if (dateRangeMatch?.[1]) {
-    return `Twitter Market Discussion (${dateRangeMatch[1].trim()})`;
+    return `Grounded Market Report (${dateRangeMatch[1].trim()})`;
   }
 
-  return `Twitter Market Discussion (${fallbackDate})`;
+  return `Grounded Market Report (${fallbackDate})`;
 }
 
-export const twitterRumourScrape = inngest.createFunction(
+export const groundedNewsRumourScrape = inngest.createFunction(
   {
-    id: "twitter-rumour-scrape",
+    id: "grounded-news-rumour-scrape",
     concurrency: 1,
   },
-  // Tuesday – Thursday – Saturday @ 21:30 WIB
-  { cron: "TZ=Asia/Jakarta 30 21 * * 2,4,6" },
+  // Tuesday – Thursday – Saturday @ 21:15 WIB
+  { cron: "TZ=Asia/Jakarta 15 21 * * 2,4,6" },
   async ({ step }) => {
-    const data = await step.run("scrape", async () => {
-      const { result } = await searchTwitter({
+    const scraped = await step.run("scrape", async () => {
+      return await searchGroundedNews({
         daysOld: 4,
-        queries: defaultTwitterDigestQueries,
+        queries: defaultGroundedNewsQueries,
       });
-
-      return result;
     });
 
     const payload = await step.run("process", async () => {
       const documentDate = dayjs().tz("Asia/Jakarta").format("YYYY-MM-DD");
-      const reportTitle = buildReportTitle(data, documentDate);
+      const reportTitle = buildReportTitle(scraped.result, documentDate);
       const [symbols] = await extractSymbolFromTexts([
-        `${reportTitle}\n${data}`,
+        `${reportTitle}\n${scraped.result}`,
       ]);
 
       const [taggedReport] = await tagMetadata([
         {
           date: documentDate,
-          content: data,
+          content: scraped.result,
           title: reportTitle,
-          urls: [],
+          urls: scraped.urls,
           subindustries: [],
           subsectors: [],
           symbols: symbols ?? [],
@@ -69,13 +67,13 @@ export const twitterRumourScrape = inngest.createFunction(
 
       return [
         {
-          id: uuidv5(`twitter-scoped-search-${documentDate}`, namespace),
+          id: uuidv5(`web-grounding-${documentDate}`, namespace),
           type: "rumour" as const,
           title: taggedReport.title,
           content: taggedReport.content,
           document_date: taggedReport.date,
           source: {
-            name: "twitter-scoped-search",
+            name: "web-grounding",
           },
           urls: taggedReport.urls,
           symbols: taggedReport.symbols,

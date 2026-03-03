@@ -93,8 +93,9 @@ Inngest-powered pipelines for ingesting investment documents from multiple sourc
    - **Features**: Incremental crawl with state management, configurable concurrency
 
 4. **Social Media & Newsletters**
-   - **Twitter/X** (`twitter/`)
+   - **Twitter/X** (`llm-grounding/`)
      - Rumour scraping: `data/twitter-rumour-scrape`
+     - Web-grounded market report scraping: `data/grounded-news-rumour-scrape`
    - **Snips Newsletter** (`snips-newsletter/`)
      - Newsletter scraping: `data/snips-scrape`
      - Part ingestion: `data/snips-part`
@@ -250,10 +251,8 @@ Available only through Stock MCP Server:
    - `list-skills` - List all available modular knowledge
    - `get-skill` - Retrieve specific skill (broker info, calculation methods, etc.)
 
-3. **Twitter Search** (`src/stock/twitter-search.ts`)
+3. **Social + Grounded Search** (`src/data-modules/llm-grounding/`)
    - `search-twitter` - Search X/Twitter for Indonesian stock discussions
-   - Supports multiple queries, date ranges, trusted accounts prioritization
-   - Extracts insights from posts and images (charts, screeners, flow data)
 
 ### Data Sources
 

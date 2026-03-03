@@ -11,7 +11,7 @@ import { logger } from "../../utils/logger.js";
 import {
   buildTwitterSearchSystemPrompt,
   buildTwitterSearchUserPrompt,
-} from "./prompt.js";
+} from "./twitter-prompt.js";
 
 export interface TwitterSearchParams {
   queries: string[];
