@@ -34,7 +34,7 @@ export const getVideosFromChannel = async (
     const mediaGroup = entry["media:group"];
 
     return {
-      title: entry.title,
+      title: entry.title || "",
       // The XML structure for link is <link rel="alternate" href="..." />
       url: entry.link?.href || "",
       published: entry.published,
@@ -42,8 +42,16 @@ export const getVideosFromChannel = async (
     };
   });
 
+  const requiredTitleToken = channel.titleMustInclude?.trim().toLowerCase();
+
   // filter empty url and url shorts
-  return videos.filter((e) => !!e.url && !e.url.includes("shorts"));
+  return videos.filter(
+    (e) =>
+      !!e.url &&
+      !e.url.includes("shorts") &&
+      (!requiredTitleToken ||
+        e.title.toLowerCase().includes(requiredTitleToken)),
+  );
 };
 
 const IngestionDecisionSchema = z.object({

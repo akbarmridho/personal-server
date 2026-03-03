@@ -4,6 +4,7 @@ export interface YoutubeChannel {
   channelName: string;
   channelRSS: string;
   channelUrl: string;
+  titleMustInclude?: string;
 }
 
 export const youtubeChannels: YoutubeChannel[] = [
@@ -40,9 +41,10 @@ export const youtubeChannels: YoutubeChannel[] = [
   {
     channelName: "Creative Trader",
     channelUrl: "https://www.youtube.com/@creative.trader",
-    // only the Udah Boleh Buka Mata (UBBM) playlist. rest is only noise
+    // only include videos with #UBBM in title. rest is only noise
     channelRSS:
-      "https://www.youtube.com/feeds/videos.xml?playlist_id=PLROBAxCpvpr_ZHA4vYA1_tkXXWLxWDeC9",
+      "https://www.youtube.com/feeds/videos.xml?channel_id=UCU33A23NL8G3Hj-Jjb2dwfQ",
+    titleMustInclude: "#UBBM",
   },
 ];
 
