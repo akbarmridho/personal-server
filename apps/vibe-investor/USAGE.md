@@ -66,6 +66,8 @@ Use commands in OpenCode TUI with `/command-name`.
   - Example: `/triage BBCA`
 - `/weekly-intel {OPTIONAL_FOCUS}`
   - Example: `/weekly-intel danantara project`
+- `/weekly-narrative-digest`
+- `/weekly-narrative-sync`
 
 ## Recommended Daily/Weekly Flows
 
@@ -79,8 +81,9 @@ Use commands in OpenCode TUI with `/command-name`.
 
 1. `/pm-weekly`
 2. `/triage {SYMBOL}` for each top holding/watchlist leader
-3. `/weekly-intel {OPTIONAL_FOCUS}` to catch missed news/rumour/theme shifts
-4. `/pm-rebalance` if drift/events appear
+3. `/weekly-narrative-digest` for weekly reading continuity
+4. `/weekly-narrative-sync` to apply evidence-backed memory updates
+5. `/pm-rebalance` if drift/events appear
 
 ## New Position Workflow
 
