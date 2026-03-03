@@ -55,8 +55,8 @@ export const generalNewsKGCrawl = inngest.createFunction(
     id: "general-news-kg-crawl",
     concurrency: 1,
   },
-  // daily at 09:05 from monday to friday
-  { cron: "TZ=Asia/Jakarta 55 8 * * 1-5" },
+  // daily at 09:05
+  { cron: "TZ=Asia/Jakarta 55 8 * * *" },
   async ({ step }) => {
     const messages = await step.run("fetch-messages", async () => {
       const latestCrawl = (await KV.get(keystoneKey)) as Keystone | null;

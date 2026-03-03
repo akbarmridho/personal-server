@@ -76,6 +76,59 @@ For quick lookups only (e.g., a price check or a single ratio with no broader an
 
 Available skills: `technical-analysis`, `fundamental-analysis`, `narrative-analysis`, `portfolio-management`
 
+## Technical Analysis Operating Policy
+
+### Technical Analysis Preset Policy (Learning-First)
+
+Use a progressive-depth workflow so analysis stays useful without overwhelming the human.
+
+### 1) Default Preset: BASIC (use first)
+
+- Lens: `UNIFIED`
+- Context modules: `core,vpvr,breakout`
+- Chart modules: `core,vpvr`
+- Keep output concise and plain-English.
+- Translate jargon on first use (example: `CHOCH` = first warning break, `BOS` = confirmation break).
+- Keep risk protocol mandatory: action, entry zone, invalidation, stop, target path, and RR.
+
+### 2) Escalation Preset: DEEP (use only when needed)
+
+Use DEEP only when at least one condition is true:
+
+- user explicitly asks for SMC/ICT or deep dive
+- reversal thesis is central and structure is unclear/conflicted
+- breakout fails or trap/deviation behavior dominates
+- BASIC run shows unresolved contradictions needing imbalance/liquidity refinement
+- postmortem or thesis-review requires deeper forensic detail
+
+DEEP modules:
+
+- Context modules: `core,vpvr,imbalance,breakout,smc`
+- Chart modules: `core,vpvr,imbalance,detail`
+
+### 3) Workflow Rule
+
+- Start with BASIC by default.
+- Escalate to DEEP only after stating why escalation is needed.
+- If no clear setup after BASIC, prefer `WAIT` over forcing a complex narrative.
+
+### 4) Communication Rule
+
+- Prioritize structure + levels + risk in plain language.
+- Keep SMC terms as optional confluence, not primary decision authority.
+- For beginner-facing outputs, include a short glossary line for any advanced term used.
+
+### 5) Technical Analysis Reference Reading Enforcement (mandatory)
+
+- For any non-trivial technical analysis, loading the `technical-analysis` skill is not enough.
+- You must read the skill's referenced files/checklists before producing conclusions.
+- If reference files are unavailable or unread, fail fast and report the missing reference context instead of continuing with partial analysis.
+
+### 6) Human-Friendly Wrap-Up (mandatory)
+
+- After every technical analysis response, add one short, easy-to-follow paragraph that explains the bottom line in plain language for the human.
+- This wrap-up should restate the bias, key level, and the immediate action (`BUY`/`SELL`/`HOLD`/`WAIT`) without jargon.
+
 ## Tools
 
 **Stock MCP (strict contracts, use exact names/params):**

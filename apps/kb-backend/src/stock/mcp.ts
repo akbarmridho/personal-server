@@ -2,6 +2,7 @@ import { FastMCP } from "fastmcp";
 import yaml from "js-yaml";
 import z from "zod";
 import { supportedSubsectors } from "../data-modules/profiles/sector.js";
+import { searchTwitter } from "../data-modules/twitter/search.js";
 import { env } from "../infrastructure/env.js";
 import { knowledgeService } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";
@@ -11,7 +12,6 @@ import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockProfileReport } from "./endpoints/stock/profile.js";
 import { getFiling, listFilings } from "./stockbit/filing.js";
-import { searchTwitter } from "./twitter-search.js";
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -549,7 +549,7 @@ Returns structured results including:
 - Relevant tweets with full content, author, date, and URL
 - Stock tickers mentioned
 - Key insights extracted from posts and images (charts, screeners, flow data)
-- Summary synthesis per query
+- Cohesive synthesis across all requested queries
 
 Best for:
 - Finding discussions about specific stocks/tickers (e.g., "BBRI", "ANTM")
@@ -560,7 +560,7 @@ Best for:
 Results prioritize trusted Indonesian stock market accounts but include other relevant sources.`,
     parameters: z.object({
       queries: z.array(z.string()).describe(
-        `Search queries to find on Twitter. Each query is processed separately.
+        `Search queries to find on Twitter. All queries are synthesized into one consolidated report.
 
 Examples:
 - Stock ticker: "BBRI", "$ANTM", "BRIS saham"
@@ -576,12 +576,6 @@ Use Indonesian keywords for better results on local market topics.`,
         .optional()
         .describe(
           "Number of days to search back. Default is 14 days. Use shorter (3-7) for recent news, longer (30-60) for historical research.",
-        ),
-      prioritizeGoldenHandles: z
-        .boolean()
-        .optional()
-        .describe(
-          "Whether to prioritize results from trusted Indonesian stock market accounts. Default is true. Set to false for broader search.",
         ),
     }),
     execute: async (args) => {

@@ -48,8 +48,8 @@ export const kisiMonthlyResearchCrawl = inngest.createFunction(
     id: "kisi-montly-research-crawl",
     concurrency: 1,
   },
-  // daily at 19.30 from monday to friday
-  { cron: "TZ=Asia/Jakarta 30 19 * * 1-5" },
+  // daily at 19.30
+  { cron: "TZ=Asia/Jakarta 30 19 * * *" },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(researchLastCrawlID)) as {

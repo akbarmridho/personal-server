@@ -19,8 +19,8 @@ export const kiwoomDailyNewsCrawl = inngest.createFunction(
     id: "kiwoom-daily-news-crawl",
     concurrency: 1,
   },
-  // daily at 09:10 from monday to friday
-  { cron: "TZ=Asia/Jakarta 10 09 * * 1-5" },
+  // daily at 09:10
+  { cron: "TZ=Asia/Jakarta 10 09 * * *" },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(newsKeystone)) as Keystone | null;

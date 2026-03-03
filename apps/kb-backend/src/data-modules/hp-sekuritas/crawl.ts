@@ -111,8 +111,8 @@ export const hpStockUpdateCrawl = inngest.createFunction(
     id: "hp-stock-update-crawl",
     concurrency: 1,
   },
-  // daily at 20.00 from monday to friday
-  { cron: "TZ=Asia/Jakarta 0 20 * * 1-5" },
+  // daily at 20.00
+  { cron: "TZ=Asia/Jakarta 0 20 * * *" },
   async ({ step }) => {
     const toScrape = await step.run("crawl", async () => {
       const latestCrawl = (await KV.get(stockLastCrawlID)) as {
