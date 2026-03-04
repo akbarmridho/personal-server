@@ -14,7 +14,6 @@ Client-side Node.js service used to route outbound requests through the machine 
 - Supports HTTP proxying and HTTPS `CONNECT` tunneling.
 - No custom request/header/body mutation in app code.
 - Startup golden-article capture task with 2-hour state gate via `state.json` key `goldenArticleLastSuccessAt`.
-- Startup general-news proxy queue flush trigger with 1-hour state gate via `state.json` key `generalNewsProxyQueueFlushLastSuccessAt`.
 - Startup Stockbit request-header capture task that posts captured headers to kb-backend.
 
 ## Non-Goals (for now)
@@ -34,10 +33,9 @@ Client-side Node.js service used to route outbound requests through the machine 
 
 - `src/index.ts` - Proxy server entrypoint.
 - `src/golden-article/intercept.ts` - Startup one-off capture + Inngest dispatch.
-- `src/general-news/proxy-queue-flush.ts` - Startup one-off Inngest trigger to flush deferred general-news proxy queue.
 - `src/stockbit/intercept.ts` - Startup Stockbit request-header capture + dispatch to kb-backend.
 - `src/browser/context.ts` - Shared Playwright CDP attach setup for all browser automations.
-- `src/infrastructure/state.ts` - Persist/read `state.json` for interval gating keys (`goldenArticleLastSuccessAt`, `generalNewsProxyQueueFlushLastSuccessAt`).
+- `src/infrastructure/state.ts` - Persist/read `state.json` for interval gating key (`goldenArticleLastSuccessAt`).
 - `src/utils/logger.ts` - Shared structured logger.
 
 ## Scripts

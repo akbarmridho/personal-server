@@ -10,8 +10,6 @@ import { inngest } from "../../infrastructure/inngest.js";
 import { telegramSession } from "../../infrastructure/telegram.js";
 import { logger } from "../../utils/logger.js";
 import { GENERAL_NEWS_KG_CRAWL_CRON } from "../schedule.js";
-import { queueGeneralNewsProxyItems } from "./proxy-queue.js";
-import { isProxyRequiredUrl } from "./scrapers/index.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -23,8 +21,6 @@ const HOSTNAME_BLACKLIST = [
   "youtu.be",
   "m.youtube.com",
   "bit.ly",
-  "bloomberg.com", // a hassle to scrape so skip
-  "bloombergtechnoz.com", // a hassle to scrape
 ];
 
 const getURLsFromText = (text: string): string[] => {
@@ -181,25 +177,23 @@ export const generalNewsKGCrawl = inngest.createFunction(
         return messages.flatMap((message) => {
           const urls = getURLsFromText(message.message);
 
-          // Filter out blacklisted hostnames
-          const filteredUrls = urls.filter((url) => {
-            try {
-              const hostname = new URL(url).hostname.toLowerCase();
-              return !HOSTNAME_BLACKLIST.some((blacklisted) =>
-                hostname.includes(blacklisted),
-              );
-            } catch {
-              // Invalid URL, skip it
-              return false;
-            }
-          });
-
-          return filteredUrls.map((e) => {
-            return {
-              url: e,
-              message: message,
-            };
-          });
+          return urls
+            .filter((url) => {
+              try {
+                const hostname = new URL(url).hostname.toLowerCase();
+                return !HOSTNAME_BLACKLIST.some((blacklisted) =>
+                  hostname.includes(blacklisted),
+                );
+              } catch {
+                return false;
+              }
+            })
+            .map((e) => {
+              return {
+                url: e,
+                message: message,
+              };
+            });
         });
       });
 
@@ -214,28 +208,10 @@ export const generalNewsKGCrawl = inngest.createFunction(
           };
         });
 
-        const directEvents = mapped.filter(
-          (item) => !isProxyRequiredUrl(item.url),
-        );
-        const proxyQueueEvents = mapped.filter((item) =>
-          isProxyRequiredUrl(item.url),
-        );
-
-        if (proxyQueueEvents.length > 0) {
-          await step.run("queue-proxy-ingest", async () => {
-            const queuedCount =
-              await queueGeneralNewsProxyItems(proxyQueueEvents);
-            return {
-              queuedNow: proxyQueueEvents.length,
-              queuedTotal: queuedCount,
-            };
-          });
-        }
-
-        if (directEvents.length > 0) {
+        if (mapped.length > 0) {
           await step.sendEvent(
             "queue-ingest",
-            directEvents.map((message) => {
+            mapped.map((message) => {
               return {
                 name: "data/general-news",
                 data: message,

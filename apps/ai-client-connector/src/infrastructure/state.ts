@@ -5,7 +5,6 @@ import { env } from "./env.js";
 
 type AppState = {
   goldenArticleLastSuccessAt?: string;
-  generalNewsProxyQueueFlushLastSuccessAt?: string;
 };
 
 export async function getGoldenArticleLastSuccessAt(): Promise<
@@ -23,24 +22,6 @@ export async function setGoldenArticleLastSuccessAt(
   await writeState({
     ...state,
     goldenArticleLastSuccessAt: value,
-  });
-}
-
-export async function getGeneralNewsProxyQueueFlushLastSuccessAt(): Promise<
-  string | undefined
-> {
-  const state = await readState();
-  return state.generalNewsProxyQueueFlushLastSuccessAt;
-}
-
-export async function setGeneralNewsProxyQueueFlushLastSuccessAt(
-  value: string,
-): Promise<void> {
-  const state = await readState();
-
-  await writeState({
-    ...state,
-    generalNewsProxyQueueFlushLastSuccessAt: value,
   });
 }
 

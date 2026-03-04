@@ -11,7 +11,7 @@ import {
 import { logger } from "../../utils/logger.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
-import { isSupportedUrl, scrapeArticle } from "./scrapers/index.js";
+import { scrapeGeneralNews } from "./scrapers/index.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -32,16 +32,10 @@ export const generalNewsIngest = inngest.createFunction(
   async ({ event, step }) => {
     const { url, referenceDate } = event.data;
 
-    // Validate URL is supported
-    if (!isSupportedUrl(url)) {
-      logger.warn({ url }, "URL not supported by any scraper");
-      throw new Error(`URL not supported: ${url}`);
-    }
-
     // Step 1: Scrape article
     const scraped = await step.run("scrape", async () => {
       logger.info({ url }, "Scraping article");
-      return await scrapeArticle(url);
+      return await scrapeGeneralNews(url);
     });
 
     // Step 2: Prepare payload

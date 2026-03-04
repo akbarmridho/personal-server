@@ -4,7 +4,6 @@ import { algoResearchCrawl } from "../data-modules/algoresearch/crawl.js";
 import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
 import { algoresearchScrape } from "../data-modules/algoresearch/scrape.js";
 import { generalNewsKGCrawl } from "../data-modules/general-news/crawl.js";
-import { generalNewsProxyQueueFlush } from "../data-modules/general-news/flush-proxy-queue.js";
 import { generalNewsIngest } from "../data-modules/general-news/ingest.js";
 import { goldenArticleCrawl } from "../data-modules/golden-article/crawl.js";
 import { goldenArticleIngest } from "../data-modules/golden-article/ingest.js";
@@ -26,6 +25,8 @@ import {
   kiwoomInternationalNewsIngest,
 } from "../data-modules/kiwoom-sekuritas/ingest-news.js";
 import { kiwoomEquityReportIngest } from "../data-modules/kiwoom-sekuritas/ingest-report.js";
+import { twitterRumourScrape } from "../data-modules/llm-grounding/twitter-scrape.js";
+import { groundedNewsRumourScrape } from "../data-modules/llm-grounding/web-scrape.js";
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { pdfManualIngest } from "../data-modules/manual/pdf-ingest.js";
 import { phintracoCompanyUpdateCrawlDummy } from "../data-modules/phintraco/crawl-company.js";
@@ -40,8 +41,6 @@ import { snipsIngestPart } from "../data-modules/snips-newsletter/ingest.js";
 import { snipsScrape } from "../data-modules/snips-newsletter/scrape.js";
 import { stockbitFilingCrawl } from "../data-modules/stockbit-filing/crawl.js";
 import { stockbitAnnouncementIngest } from "../data-modules/stockbit-filing/ingest.js";
-import { groundedNewsRumourScrape } from "../data-modules/llm-grounding/web-scrape.js";
-import { twitterRumourScrape } from "../data-modules/llm-grounding/twitter-scrape.js";
 import { youtubeChannelCrawl } from "../data-modules/youtube/crawl.js";
 import { youtubeChannelCrawlInit } from "../data-modules/youtube/cron.js";
 import { youtubeChannelIngest } from "../data-modules/youtube/ingest.js";
@@ -146,5 +145,4 @@ export const inngestFunctions: InngestFunction.Like[] = [
   phintracoCompanyUpdateIngest,
   generalNewsIngest,
   generalNewsKGCrawl,
-  generalNewsProxyQueueFlush,
 ];

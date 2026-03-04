@@ -7,11 +7,6 @@ export interface ScraperResult {
 
 export interface Scraper {
   /**
-   * Whether this scraper requires outbound HTTP proxy to work.
-   */
-  requiresProxy?: boolean;
-
-  /**
    * Scrape a single article from URL
    */
   scrapeArticle: (url: string) => Promise<ScraperResult>;
