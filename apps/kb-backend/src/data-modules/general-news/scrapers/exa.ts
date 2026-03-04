@@ -39,6 +39,7 @@ function parseExaSummary(
 export async function scrapeArticleViaExa(url: string): Promise<ScraperResult> {
   const exa = new Exa(env.EXA_API_KEY);
   const result = await exa.getContents([url], {
+    livecrawlTimeout: 30000,
     summary: {
       query: EXA_SUMMARY_QUERY,
       schema: EXA_SUMMARY_SCHEMA,
