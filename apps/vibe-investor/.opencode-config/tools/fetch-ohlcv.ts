@@ -4,7 +4,7 @@ import { tool } from "@opencode-ai/plugin";
 
 export default tool({
   description:
-    "Fetch unified chart data for Indonesian stocks and save to file. The output includes: 3 years daily OHLCV, 7 calendar days intraday OHLCV (resampled to 60-minute bars, partial bar kept), and corporate action events.",
+    "Fetch unified chart data for Indonesian stocks and save to file. The output includes: 3 years daily OHLCV, 7 calendar days intraday OHLCV (resampled to 60-minute bars, partial bar kept), and optional corporate action events.",
   args: {
     symbol: tool.schema
       .string()

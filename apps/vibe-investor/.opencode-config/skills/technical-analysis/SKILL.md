@@ -9,7 +9,7 @@ This skill is for swing and longer-horizon investing (days to months), not intra
 
 - Primary thesis: `daily[]`
 - Tactical acceptance timing: `intraday[]` 60m (last 7 days)
-- Context events: `corp_actions[]`
+- Context events: optional `corp_actions[]` (ignore when unavailable)
 - Do not rescale daily candles into weekly candles.
 
 ## Analysis Modes (Human Workflow)
@@ -50,7 +50,8 @@ Use `fetch-ohlcv` as the only chart-data source.
 - `symbol`: 4 uppercase letters, example `BBCA`
 - `output_path`: JSON file under `work/`
 - JSON object required (never CSV)
-- Required arrays: `daily[]`, `intraday[]`, `corp_actions[]`
+- Required arrays: `daily[]`, `intraday[]`
+- Optional array: `corp_actions[]`
 
 If any required array is missing or empty, stop analysis and return dependency failure.
 If `fetch-ohlcv` errors, stop analysis. Do not retry with alternate sources.
@@ -114,7 +115,7 @@ python scripts/generate_ta_charts.py \
 ```
 
 - Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
-- Input JSON contract at that path: required arrays `daily[]`, `intraday[]`, `corp_actions[]`.
+- Input JSON contract at that path: required arrays `daily[]`, `intraday[]`; optional `corp_actions[]`.
 - Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
 - Time-window mode: `--range-mode auto|fixed` (`auto` selects a focused daily window from recent structure/imbalance context; intraday uses full available candles).
 - Available modules for `--modules`:

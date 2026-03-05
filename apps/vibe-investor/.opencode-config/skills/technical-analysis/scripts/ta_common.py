@@ -16,7 +16,7 @@ import pandas as pd
 # Constants
 # ---------------------------------------------------------------------------
 
-REQUIRED_ARRAYS = ("daily", "intraday", "corp_actions")
+REQUIRED_ARRAYS = ("daily", "intraday")
 REQUIRED_PRICE_COLS = ("datetime", "open", "high", "low", "close", "volume")
 
 
@@ -55,7 +55,13 @@ def load_ohlcv(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     daily = _prep(pd.DataFrame(raw["daily"]), "daily")
     intraday = _prep(pd.DataFrame(raw["intraday"]), "intraday")
 
-    corp = pd.DataFrame(raw["corp_actions"])
+    raw_corp = raw.get("corp_actions", [])
+    if raw_corp is None:
+        raw_corp = []
+    if not isinstance(raw_corp, list):
+        raise ValueError("corp_actions must be an array when provided")
+
+    corp = pd.DataFrame(raw_corp)
     if "datetime" in corp.columns:
         corp["datetime"] = pd.to_datetime(corp["datetime"], errors="coerce")
     elif "timestamp" in corp.columns:

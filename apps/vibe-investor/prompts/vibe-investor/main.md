@@ -157,7 +157,7 @@ DEEP modules:
 
 - `daily`: 3 years daily candles
 - `intraday`: last 7 calendar days candles resampled to 60-minute bars (partial bar kept)
-- `corp_actions`: corporate action events
+- `corp_actions`: optional corporate action events (can be missing/empty, ignore when unavailable)
 
 Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_json`, `json.load`, etc.).
 
