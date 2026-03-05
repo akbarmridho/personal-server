@@ -137,7 +137,7 @@ Topic ownership (avoid overlap):
 - Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
 - Setups, breakouts, quality filters, and reversal playbooks -> `references/setups-and-breakouts.md`
 - Level-to-level execution workflow -> `references/level-to-level-execution.md`
-- SMC modules (OB/Breaker/FVG/IFVG/EQH-EQL/Premium-Discount) -> `references/smart-money-concepts-light.md`
+- SMC modules (OB/Breaker/FVG/IFVG/EQH-EQL/Premium-Discount) -> `references/smart-money-concepts.md`
 - Risk/positioning/decision -> `references/execution-and-risk-protocol.md`
 - Checklists and red flags -> `references/checklists-and-red-flags.md`
 - Analysis lifecycle and framework modes -> `references/analysis-lifecycle-and-frameworks.md`
@@ -174,7 +174,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
 - [Setups and breakouts](references/setups-and-breakouts.md)
 - [Level to level execution](references/level-to-level-execution.md)
-- [Smart money concepts light](references/smart-money-concepts-light.md)
+- [Smart money concepts](references/smart-money-concepts.md)
 - [Execution and risk protocol](references/execution-and-risk-protocol.md)
 - [Checklists and red flags](references/checklists-and-red-flags.md)
 - [Analysis lifecycle and frameworks](references/analysis-lifecycle-and-frameworks.md)

@@ -1,4 +1,4 @@
-# Smart Money Concepts Light
+# Smart Money Concepts
 
 ## Objective
 
