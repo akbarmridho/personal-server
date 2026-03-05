@@ -75,6 +75,12 @@ For quick lookups only (e.g., a price check or a single ratio with no broader an
 
 Available skills: `technical-analysis`, `fundamental-analysis`, `narrative-analysis`, `portfolio-management`
 
+Skill and reference preflight (mandatory):
+
+1. Determine the user's current objective and active workflow/mode first (for example: technical `INITIAL`/`UPDATE`, or portfolio `weekly review`).
+2. Resolve an explicit reference-file list from the selected skill(s) for that workflow/mode.
+3. Read the resolved reference files before running tools and before writing conclusions.
+
 ## Technical Analysis Operating Policy
 
 ### Technical Analysis Preset Policy (Learning-First)

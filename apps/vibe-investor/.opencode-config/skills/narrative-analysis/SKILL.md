@@ -8,10 +8,11 @@ description: Narrative and catalyst analysis for IDX stocks, including story cla
 Use this file as the entrypoint. Do not load all references by default.
 
 1. Classify user intent (new story scan, catalyst check, priced-in check, failure audit, or report drafting).
-2. Load only relevant reference files.
-3. Pull MCP data in parallel when running a full analysis.
-4. Execute sequential analysis phases.
-5. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
+2. Resolve an explicit reference-file list for the selected workflow.
+3. Read the selected reference files before running the analysis.
+4. Pull MCP data in parallel when running a full analysis.
+5. Execute sequential analysis phases.
+6. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
 
 ## Concepts And School Of Thought
 

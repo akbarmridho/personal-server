@@ -8,9 +8,10 @@ description: Trading desk and portfolio operations for IDX equities, including p
 Use this file as the entrypoint. Do not load every reference by default.
 
 1. Classify the request by workflow type (see Common Workflows below).
-2. Load only the relevant reference files.
-3. Execute with tools and memory updates.
-4. If the request spans multiple areas, load multiple references deliberately.
+2. Resolve an explicit reference-file list for the selected workflow.
+3. Read the selected reference files before running the workflow.
+4. Execute with tools and memory updates.
+5. If the request spans multiple areas, resolve and read multiple reference sets deliberately.
 
 ## Concepts And School Of Thought
 

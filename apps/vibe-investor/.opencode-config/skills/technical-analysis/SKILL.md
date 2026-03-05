@@ -28,6 +28,12 @@ Mode requirements:
 - `THESIS_REVIEW`: focus on thesis status and invalidation triggers.
 - `POSTMORTEM`: include what failed, what was missed, and rule improvements.
 
+Execution preflight (mandatory):
+
+1. Determine the user's current technical objective and active mode (`INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`) before analysis.
+2. Resolve an explicit reference-file list for the active mode and requested lens/modules.
+3. Read the resolved reference files before starting `DATA_PREP`.
+
 ## Concepts And School Of Thought
 
 - Use a structure-first market map: state/regime, key levels, liquidity draws, and participation context are the core decision inputs.

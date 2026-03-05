@@ -8,10 +8,11 @@ description: Fundamental analysis for IDX stocks, including financial health che
 Use this file as the entrypoint. Do not load all references by default.
 
 1. Classify the request (full fundamental review, valuation-only, risk check, or sector deep-dive).
-2. Load only the relevant references.
-3. Collect required MCP data in parallel.
-4. Execute sequential analysis phases.
-5. Return a structured verdict with confidence and invalidation conditions.
+2. Resolve an explicit reference-file list for the selected workflow.
+3. Read the selected reference files before running the analysis.
+4. Collect required MCP data in parallel.
+5. Execute sequential analysis phases.
+6. Return a structured verdict with confidence and invalidation conditions.
 
 ## Concepts And School Of Thought
 
