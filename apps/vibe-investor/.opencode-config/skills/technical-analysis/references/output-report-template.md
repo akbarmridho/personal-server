@@ -59,7 +59,8 @@ Use this structure for every technical analysis output.
 ### D. Chart Build And Read
 - Generated charts:
   - Core required charts:
-- `work/{SYMBOL}_daily_structure.png`
+- `work/{SYMBOL}_daily_structure_sr.png`
+- `work/{SYMBOL}_daily_structure_fib.png`
 - `work/{SYMBOL}_intraday_structure.png`
 - `work/{SYMBOL}_ib_overlay.png`
 - `work/{SYMBOL}_structure_events.png`

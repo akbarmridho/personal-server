@@ -41,6 +41,10 @@ MAX_DISPLAY_SR_LINES = 5
 MAX_DISPLAY_FIB_LINES = 3
 MAX_TRADE_TARGETS = 3
 MIN_ACCEPTABLE_RR = 1.2
+DAILY_SR_LINE_COLORS = ["#1f77b4", "#2ca02c", "#ff7f0e", "#d62728", "#17becf"]
+DAILY_FIB_LINE_COLORS = ["#8e44ad", "#c2185b", "#6a1b9a", "#ec407a", "#7b1fa2"]
+DAILY_SR_LINE_WIDTH = 2.6
+DAILY_FIB_LINE_WIDTH = 2.4
 
 
 def _width_config() -> dict[str, float]:
@@ -326,16 +330,23 @@ def plot_daily_structure(
     path: Path,
     symbol: str,
     lookback: int,
+    include_sr: bool = True,
+    include_fib: bool = True,
+    title_suffix: str | None = None,
 ) -> None:
     x = prepare_daily_window(df_daily, lookback)
     last_close = float(x["close"].iloc[-1])
-    hlines = select_nearest_levels(
+    sr_lines = select_nearest_levels(
         [z["zone_mid"] for z in zones], ref_price=last_close, max_n=MAX_DISPLAY_SR_LINES,
     )
-    fib_lines = select_nearest_levels(
+    fib_lines_all = select_nearest_levels(
         derive_recent_fib_lines(x), ref_price=last_close, max_n=MAX_DISPLAY_FIB_LINES,
     )
+    hlines = sr_lines if include_sr else []
+    fib_lines = fib_lines_all if include_fib else []
     merged_hlines = hlines + fib_lines
+    sr_colors = [DAILY_SR_LINE_COLORS[i % len(DAILY_SR_LINE_COLORS)] for i in range(len(hlines))]
+    fib_colors = [DAILY_FIB_LINE_COLORS[i % len(DAILY_FIB_LINE_COLORS)] for i in range(len(fib_lines))]
     sh = x["swing_high"].copy()
     sl = x["swing_low"].copy()
     apds = []
@@ -353,35 +364,50 @@ def plot_daily_structure(
         to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
         hlines=dict(
             hlines=merged_hlines,
-            colors=(["#1f77b4"] * len(hlines)) + (["#8e44ad"] * len(fib_lines)),
-            linewidths=([1.6] * len(hlines)) + ([1.5] * len(fib_lines)),
+            colors=sr_colors + fib_colors,
+            linewidths=([DAILY_SR_LINE_WIDTH] * len(hlines)) + ([DAILY_FIB_LINE_WIDTH] * len(fib_lines)),
         ) if merged_hlines else None,
         marketcolor_overrides=anomaly_overrides(x),
-        title=f"{symbol} Daily Structure",
+        title=(
+            f"{symbol} Daily Structure ({title_suffix})"
+            if title_suffix
+            else f"{symbol} Daily Structure"
+        ),
         figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
         update_width_config=_width_config(), returnfig=True,
     )
     ax = axes[0]
     zone_preview = ", ".join(f"{v:.0f}" for v in hlines) if hlines else "-"
     fib_preview = ", ".join(f"{v:.0f}" for v in fib_lines) if fib_lines else "-"
-    ax.legend(
-        handles=[
-            Line2D([], [], color="#f39c12", linewidth=2.0, label="EMA21"),
-            Line2D([], [], color="#3498db", linewidth=2.0, label="SMA50"),
-            Line2D([], [], color="#2ecc71", linewidth=2.0, label="SMA100"),
-            Line2D([], [], color="#9b59b6", linewidth=2.0, label="SMA200"),
-            Line2D([], [], color="#1f77b4", linewidth=2.0, label="S/R zones"),
-            Line2D([], [], color="#8e44ad", linewidth=2.0, label="Fib levels"),
-            Line2D([], [], marker="^", linestyle="None", markerfacecolor="#2ca02c",
-                   markeredgecolor="#2ca02c", markersize=7, label="Swing low"),
-            Line2D([], [], marker="v", linestyle="None", markerfacecolor="#d62728",
-                   markeredgecolor="#d62728", markersize=7, label="Swing high"),
-        ],
-        loc="upper left", fontsize=8, ncol=2, framealpha=0.9,
-    )
+    legend_handles = [
+        Line2D([], [], color="#f39c12", linewidth=2.0, label="EMA21"),
+        Line2D([], [], color="#3498db", linewidth=2.0, label="SMA50"),
+        Line2D([], [], color="#2ecc71", linewidth=2.0, label="SMA100"),
+        Line2D([], [], color="#9b59b6", linewidth=2.0, label="SMA200"),
+    ]
+    if hlines:
+        legend_handles.append(
+            Line2D([], [], color=DAILY_SR_LINE_COLORS[0], linewidth=DAILY_SR_LINE_WIDTH, label="S/R zones (multi-color)")
+        )
+    if fib_lines:
+        legend_handles.append(
+            Line2D([], [], color=DAILY_FIB_LINE_COLORS[0], linewidth=DAILY_FIB_LINE_WIDTH, label="Fib levels (multi-color)")
+        )
+    legend_handles.extend([
+        Line2D([], [], marker="^", linestyle="None", markerfacecolor="#2ca02c",
+               markeredgecolor="#2ca02c", markersize=7, label="Swing low"),
+        Line2D([], [], marker="v", linestyle="None", markerfacecolor="#d62728",
+               markeredgecolor="#d62728", markersize=7, label="Swing high"),
+    ])
+    ax.legend(handles=legend_handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.9)
+    summary_lines: list[str] = []
+    if include_sr:
+        summary_lines.append(f"S/R zones shown ({len(hlines)}): {zone_preview}")
+    if include_fib:
+        summary_lines.append(f"Fib levels shown ({len(fib_lines)}): {fib_preview}")
     ax.text(
         1.02, 1.15,
-        f"S/R zones shown ({len(hlines)}): {zone_preview}\nFib levels shown ({len(fib_lines)}): {fib_preview}",
+        "\n".join(summary_lines) if summary_lines else "No horizontal levels selected",
         transform=ax.transAxes, ha="right", va="top", fontsize=8,
         bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
     )
@@ -690,6 +716,7 @@ def plot_trade_plan(
     targets = [float(v) for v in (plan.get("targets") or []) if v is not None]
     rr_by_target = [float(v) for v in (plan.get("rr_by_target") or []) if v is not None]
     action = str(plan.get("action", "WAIT"))
+    mode = "ACTION" if action in {"BUY", "SELL", "EXIT"} else "SCENARIO_MAP"
     side = str(plan.get("setup_side", "neutral")).lower()
     reason = str(plan.get("reason", ""))
     target_palette = ["#2ca02c", "#009688", "#1b5e20"]
@@ -698,12 +725,12 @@ def plot_trade_plan(
 
     fig, axes = mpf.plot(
         to_mpf(x), type="candle", volume=True, style=_base_style(),
-        title=f"{symbol} Trade Plan ({action})",
+        title=f"{symbol} Trade Plan [{mode}] ({action})",
         figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
         update_width_config=_width_config(), returnfig=True,
     )
     ax = axes[0]
-    line_style = "--" if action == "WAIT" else "-"
+    line_style = "--" if mode == "SCENARIO_MAP" else "-"
     handles: list[Line2D] = []
     if entry is not None:
         y = float(entry)
@@ -719,28 +746,23 @@ def plot_trade_plan(
         c = target_palette[min(i, len(target_palette) - 1)]
         ax.axhline(float(target), color=c, linewidth=2.0, linestyle=line_style)
         ax.text(len(x) - 1, float(target), f" T{i + 1}", fontsize=8, color=c, fontweight="bold")
-        rr_text = f" (RR {rr_by_target[i]:.2f})" if i < len(rr_by_target) else ""
-        handles.append(Line2D([], [], color=c, linewidth=2.0, label=f"Target {i + 1}{rr_text}"))
+        handles.append(Line2D([], [], color=c, linewidth=2.0, label=f"Target {i + 1}"))
 
     if handles:
         ax.legend(handles=handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.9)
 
-    rr1 = plan.get("rr")
-    rr1_str = "n/a" if rr1 is None else f"{float(rr1):.2f}"
-    best_rr = plan.get("best_rr")
-    best_rr_str = "n/a" if best_rr is None else f"{float(best_rr):.2f}"
-    txt = (
-        f"side={side} | action={action}\n"
-        f"entry={entry} | stop={stop}\n"
-        f"targets={targets[:MAX_TRADE_TARGETS]}\n"
-        f"rr_t1={rr1_str} | rr_best={best_rr_str} | rr_min={plan.get('min_rr_required')}\n"
-        f"note={reason}"
-    )
+    orientation_note = "neutral map"
+    if side == "short":
+        orientation_note = "short map: stop above entry, targets below"
+    elif side == "long":
+        orientation_note = "long map: stop below entry, targets above"
+
+    txt = f"{mode} | {side.upper()} | {action}\n{orientation_note}"
     ax.text(
-        1.02, 1.15, txt, transform=ax.transAxes, ha="right", va="top", fontsize=9,
+        1.01, 1.06, txt, transform=ax.transAxes, ha="right", va="top", fontsize=8,
         bbox={
-            "facecolor": "#fff4e5" if action == "WAIT" else "white",
-            "alpha": 0.86, "edgecolor": "#d0d0d0",
+            "facecolor": "#fff4e5" if mode == "SCENARIO_MAP" else "white",
+            "alpha": 0.82, "edgecolor": "#d0d0d0",
         },
     )
     fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
@@ -1037,9 +1059,19 @@ def main() -> None:
 
     generated: dict[str, str] = {}
 
-    p_daily = outdir / f"{symbol}_daily_structure.png"
-    plot_daily_structure(daily, zones, p_daily, symbol, daily_lookback)
-    generated["daily_structure"] = str(p_daily)
+    p_daily_sr = outdir / f"{symbol}_daily_structure_sr.png"
+    plot_daily_structure(
+        daily, zones, p_daily_sr, symbol, daily_lookback,
+        include_sr=True, include_fib=False, title_suffix="S/R + MA",
+    )
+    generated["daily_structure_sr"] = str(p_daily_sr)
+
+    p_daily_fib = outdir / f"{symbol}_daily_structure_fib.png"
+    plot_daily_structure(
+        daily, zones, p_daily_fib, symbol, daily_lookback,
+        include_sr=False, include_fib=True, title_suffix="Fib + MA",
+    )
+    generated["daily_structure_fib"] = str(p_daily_fib)
 
     p_intraday = outdir / f"{symbol}_intraday_structure.png"
     plot_intraday_structure(intraday, ib, zones, p_intraday, symbol, intraday_lookback)

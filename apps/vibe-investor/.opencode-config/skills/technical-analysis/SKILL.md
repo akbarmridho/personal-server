@@ -119,7 +119,7 @@ python scripts/generate_ta_charts.py \
 - Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
 - Time-window mode: `--range-mode auto|fixed` (`auto` selects a focused daily window from recent structure/imbalance context; intraday uses full available candles).
 - Available modules for `--modules`:
-  - `core`: required baseline artifacts (`daily_structure`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
+  - `core`: required baseline artifacts (`daily_structure_sr`, `daily_structure_fib`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
   - `vpvr`: adds `vpvr_profile` chart
   - `imbalance`: adds `imbalance_fvg` chart
   - `detail`: adds optional detail chart
@@ -213,7 +213,8 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Every actionable output must include explicit invalidation and stop-loss.
 - Always include generated chart artifacts in output (`work/{SYMBOL}_*.png`) and reference each artifact in evidence.
 - Core chart artifacts (required every run):
-  - `work/{SYMBOL}_daily_structure.png`
+  - `work/{SYMBOL}_daily_structure_sr.png`
+  - `work/{SYMBOL}_daily_structure_fib.png`
   - `work/{SYMBOL}_intraday_structure.png`
   - `work/{SYMBOL}_ib_overlay.png`
   - `work/{SYMBOL}_structure_events.png`
