@@ -26,6 +26,9 @@ workdir/
 │   │   │   └── {DATE}.json       # Minimal inputs only (cash + positions)
 │   │   ├── thesis.md             # Thesis index (active + inactive)
 │   │   └── watchlist.md          # Stocks under observation
+│   ├── runs/
+│   │   └── {DATE}/
+│   │       └── {TIME}_{WORKFLOW}.json  # Successful top-level workflow logs
 │   ├── scripts/                  # Persistent utility scripts for memory workflows
 │   │   └── portfolio_ops.py      # Deterministic portfolio checks and derived metrics
 │   ├── symbols/                  # Per-symbol notes
@@ -55,17 +58,21 @@ Portfolio memory rules:
 
 - For portfolio updates, store canonical inputs in `memory/notes/portfolio_inputs/{DATE}.json`.
 - Default schema is minimal: `as_of`, `cash`, and `positions[]` with `symbol`, `lots`, `avg`, `last`.
+- `memory/notes/portfolio_inputs/*.json` is the temporary source of truth for current holdings until external portfolio automation exists.
 - Do not store raw broker/API payloads unless the user explicitly asks for raw payload archival.
 - Compute derived values (market value, P/L, weights, concentration) programmatically from the input snapshot; do not treat manually typed derived numbers as source of truth.
 - In `memory/notes/portfolio.md`, record the input source path and the requested input table; add derived summaries only when needed and clearly mark them as computed.
 - Store market-hours execution checklists and action bullets in `memory/sessions/{DATE}.md`.
+- Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
+- Run log schema is strict: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.
+- Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
 - Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`, each linking to per-thesis files.
 - Store each thesis in `memory/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
 - Use `memory/analysis/themes/{THEME}/{DATE}/` for dated research snapshots and evidence artifacts.
 - Thesis files must link to relevant theme-analysis files; do not duplicate theme-analysis content inside thesis files.
 - Keep only real symbols in `memory/symbols/`.
 
-By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For portfolio-management workflows, memory file updates are part of execution and should be written during the workflow.
+By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check` and `digest-sync`, memory file updates are part of execution and should be written during the workflow.
 
 ## Skills
 
@@ -77,9 +84,40 @@ Available skills: `technical-analysis`, `fundamental-analysis`, `narrative-analy
 
 Skill and reference preflight (mandatory):
 
-1. Determine the user's current objective and active workflow/mode first (for example: technical `INITIAL`/`UPDATE`, or portfolio `weekly review`).
+1. Determine the user's current objective and active workflow/mode first (for example: technical `INITIAL`/`UPDATE`, `desk-check`, `news-digest`, or `digest-sync`).
 2. Resolve an explicit reference-file list from the selected skill(s) for that workflow/mode.
 3. Read the resolved reference files before running tools and before writing conclusions.
+
+## Default Workflows
+
+Primary user-facing workflows:
+
+- `desk-check`: the main operator routine for holdings review, watchlist trigger review, portfolio discipline, and top-down market context.
+- `news-digest`: the reading-oriented workflow that gathers high-signal news/documents since the last successful digest run.
+- `digest-sync`: the sync workflow that updates thesis/watchlist/session memory from the latest digest.
+
+Command-surface rule:
+
+- `pm-*` commands do not exist.
+- Portfolio-management runs as an internal subsystem inside `desk-check`, not as a separate user-facing command surface.
+
+`desk-check` defaults:
+
+- Coverage universe: holdings from the latest `memory/notes/portfolio_inputs/*.json`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
+- Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day.
+- Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
+- If the latest portfolio snapshot is stale relative to today, warn clearly in output and in the session log, but continue using the latest snapshot.
+
+`news-digest` defaults:
+
+- Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days.
+- Save digest to `memory/analysis/market/{TODAY}/news_digest.md`.
+- Do not update thesis, watchlist, portfolio, or session memory files during digest generation.
+
+`digest-sync` defaults:
+
+- Always consume the latest `memory/analysis/market/*/news_digest.md`.
+- If evidence is ambiguous, record `Needs Verification` in the session and do not change thesis/watchlist state.
 
 ## Technical Analysis Operating Policy
 

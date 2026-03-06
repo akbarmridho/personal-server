@@ -1,84 +1,19 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "theme": "cursor",
-  "model": "openai/gpt-5.3-codex",
+  "model": "openai/gpt-5.4",
   "small_model": "openai/gpt-5-mini",
-  "enabled_providers": [
-    "openai",
-    "openrouter",
-    "opencode"
-  ],
+  "enabled_providers": ["openai", "opencode"],
   "formatter": false,
   "lsp": false,
-  "provider": {
-    "openrouter": {
-      "options": {
-        "apiKey": "{env:OPENROUTER_API_KEY}"
-      },
-      "models": {
-        "my-kimi-2.5": {
-          "id": "moonshotai/kimi-k2.5",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "options": {
-            "reasoningEffort": "high",
-            "reasoningSummary": "auto"
-          }
-        },
-        "my-gemini-3-pro": {
-          "id": "google/gemini-3-pro-preview",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "options": {
-            "reasoningEffort": "high",
-            "reasoningSummary": "auto"
-          }
-        },
-        "my-gemini-3-flash": {
-          "id": "google/gemini-3-flash-preview",
-          "modalities": {
-            "input": [
-              "text",
-              "image"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "options": {
-            "reasoningEffort": "high",
-            "reasoningSummary": "auto"
-          }
-        }
-      }
-    }
-  },
   "default_agent": "vibe-investor",
-  "instructions": [
-    "{env:OPENCODE_CWD}/memory/MEMORY.md"
-  ],
+  "instructions": ["{env:OPENCODE_CWD}/memory/MEMORY.md"],
   "share": "disabled",
   "autoupdate": false,
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0",
-    "cors": [
-      "*"
-    ]
+    "cors": ["*"]
   },
   "compaction": {
     "auto": true,
@@ -144,60 +79,20 @@
       "agent": "vibe-investor",
       "template": "Run technical-analysis using command input: $ARGUMENTS.\n\nInput contract:\n- First token is symbol.\n- Remaining text is required user intent sentence.\n\nRules:\n- If intent sentence is missing, fail and ask user to provide intent sentence.\n- Always check memory for the latest prior technical analysis for this symbol before deciding mode.\n- If no prior analysis exists in memory, run as INITIAL.\n- If prior analysis exists, run as UPDATE.\n- If intent sentence asks thesis-status check, run as THESIS_REVIEW.\n- If intent sentence asks lesson/mistake review after exit, run as POSTMORTEM.\n\nLens: UNIFIED by default unless explicitly requested otherwise.\nReturn concise actionable output: bias, invalidation, trigger levels, and changes vs prior analysis found in memory."
     },
-    "pm-daily": {
-      "description": "Portfolio daily quick check",
+    "desk-check": {
+      "description": "Main operator routine for holdings, watchlist, market context, and portfolio discipline",
       "agent": "vibe-investor",
-      "template": "Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py daily-check --memory-root memory\nThen run portfolio-management: daily check.\nCheck stop loss levels and triggered invalidations, scan news/filings for held positions, and update P&L in memory/notes/portfolio.md."
+      "template": "Run a full `desk-check` workflow using `portfolio-management`, `technical-analysis`, and `narrative-analysis` as internal subsystems.\n\nContinuity and run log:\n1) Read the latest successful run log matching `memory/runs/*/*_desk-check.json`.\n2) If it exists, use `window_from` = day after that run's `window_to` and `window_to` = today.\n3) If it does not exist, use last 1 calendar day.\n4) Write exactly one success log at the end to `memory/runs/{TODAY}/{HHMMSS}_desk-check.json`.\n5) Success log schema must include only: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.\n\nPortfolio source of truth:\n1) Use the latest `memory/notes/portfolio_inputs/*.json` snapshot as canonical holdings input.\n2) If no snapshot exists, fail fast.\n3) If snapshot `as_of` is older than today, warn clearly in the output and in `memory/sessions/{TODAY}.md`, but continue with that snapshot.\n\nCoverage universe:\n- All current holdings from the snapshot\n- Watchlist symbols with status `READY`\n- Watchlist symbols marked as leader names\n\nExecution order:\n1) Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py desk-check --memory-root memory\n2) Run portfolio-management internally for holdings review, trading-plan checks, sizing/heat flags, and memory updates.\n3) Run technical-analysis in `THESIS_REVIEW` mode for the covered symbols.\n4) Run lightweight narrative/news delta checks for the same symbols using the resolved window.\n5) Run top-down market review covering IHSG structure/regime, macro/news tone, and leader breadth deterioration.\n6) Update only the needed memory files: `memory/notes/portfolio.md`, `memory/notes/watchlist.md`, `memory/symbols/{SYMBOL}.md`, `memory/theses/{THESIS_ID}/thesis.md`, `memory/notes/thesis.md`, and `memory/sessions/{TODAY}.md`.\n\nWrite policy:\n- Full sync is allowed only for evidence-backed changes.\n- If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow.\n- Do not write the success log on partial failure."
     },
-    "pm-weekly": {
-      "description": "Portfolio weekly review",
+    "news-digest": {
+      "description": "Reading-oriented digest from full memory scope plus all new high-signal documents",
       "agent": "vibe-investor",
-      "template": "Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py weekly-review --memory-root memory\nThen run portfolio-management: weekly review.\nReview all open positions, sizing compliance, correlation, heat, watchlist updates, and write session log to memory/sessions/{DATE}.md."
+      "template": "Run `narrative-analysis` first, then generate a reading-oriented market digest.\n\nContinuity and run log:\n1) Read the latest successful run log matching `memory/runs/*/*_news-digest.json`.\n2) If it exists, use `window_from` = day after that run's `window_to` and `window_to` = today.\n3) If it does not exist, use last 7 calendar days.\n4) Write exactly one success log at the end to `memory/runs/{TODAY}/{HHMMSS}_news-digest.json`.\n5) Success log schema must include only: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.\n\nMandatory memory context:\n- memory/MEMORY.md\n- memory/notes/thesis.md\n- memory/notes/watchlist.md\n- memory/theses/**/thesis.md\n- memory/symbols/**\n- latest prior digest file if found\n\nData collection requirements (must be complete):\n1) Read ALL knowledge-base documents in window via paginated `list-documents` using `date_from`, `date_to`, `page`, `limit`, and `types: [\"news\", \"analysis\", \"rumours\"]` until no more results.\n2) Read relevant documents with `get-document`.\n3) Use `web_search_exa` / `crawling_exa` only when it adds material continuity.\n\nDigest requirements:\n- No strict output format.\n- Cover thesis, watchlist, related tickers, market regime, macro context, and narrative shifts.\n- Include interesting reading recommendations with accessible URLs only using this format: `https://ai.akbarmr.dev/document/{documentId}`.\n- Prioritize high-signal and thesis-impacting items.\n\nPersistence:\n- Save digest to: `memory/analysis/market/{TODAY}/news_digest.md`.\n- This command is read-first; do not update thesis, watchlist, portfolio, or session memory files.\n- Do not write the success log on partial failure."
     },
-    "pm-entry": {
-      "description": "Portfolio new position entry (arg1=symbol)",
+    "digest-sync": {
+      "description": "Sync thesis/watchlist/session memory from the latest news digest",
       "agent": "vibe-investor",
-      "template": "Run portfolio-management: new position entry for $1.\nCheck regime gate, validate sizing (50:30:10, heat, correlation, ADTV), write trading plan, and update memory files."
-    },
-    "pm-add": {
-      "description": "Portfolio add to position (arg1=symbol, arg2=extra_context)",
-      "agent": "vibe-investor",
-      "template": "Run portfolio-management: add to $1 position.\nContext: $2.\nValidate pyramid discipline and ensure aggregate risk remains within portfolio heat limits. Update trading plan and portfolio memory."
-    },
-    "pm-exit": {
-      "description": "Portfolio exit (arg1=symbol, arg2=reason)",
-      "agent": "vibe-investor",
-      "template": "Run portfolio-management: exit $1.\nReason: $2.\nApply exit framework, update symbol note, portfolio realized P&L, and session log."
-    },
-    "pm-rebalance": {
-      "description": "Portfolio rebalance check",
-      "agent": "vibe-investor",
-      "template": "Run deterministic baseline first:\npython memory/scripts/portfolio_ops.py rebalance-check --memory-root memory\nThen run portfolio-management: rebalance check.\nCheck drift triggers, event triggers, replacement correlation, and skip tiny trades with no material risk impact."
-    },
-    "pm-watchlist": {
-      "description": "Portfolio watchlist update (pass natural instructions as arguments)",
-      "agent": "vibe-investor",
-      "template": "Run portfolio-management: update watchlist.\nInstructions:\n$ARGUMENTS\nApply status transitions and document reasons."
-    },
-    "pm-validate": {
-      "description": "Standalone sizing validation (arg1=symbol, arg2=entry, arg3=stop, arg4=capital)",
-      "agent": "vibe-investor",
-      "template": "Run deterministic sizing first:\npython memory/scripts/portfolio_ops.py validate-sizing --memory-root memory --symbol $1 --entry $2 --stop $3 --capital $4\nThen run portfolio-management: validate sizing for $1.\nEntry: $2.\nStop: $3.\nCapital: $4.\nCompute size via risk rule and check 50:30:10, concentration, ADTV, correlation, and health flags."
-    },
-    "pm-sync": {
-      "description": "Sync canonical portfolio input + recompute derived metrics (arguments = snapshot or table)",
-      "agent": "vibe-investor",
-      "template": "Update portfolio memory from this input:\n$ARGUMENTS\nRules:\n1) Write canonical input to memory/notes/portfolio_inputs/{DATE}.json with schema as_of, cash, positions[].\n2) Compute derived values programmatically (do not trust manual derived numbers).\n3) Update memory/notes/portfolio.md with source file, requested input table, and computed summary."
-    },
-    "weekly-narrative-digest": {
-      "description": "Weekly narrative digest from full memory scope + all new docs",
-      "agent": "vibe-investor",
-      "template": "Run `narrative-analysis` skill first, then generate a weekly narrative digest for reading.\n\nContinuity and time window:\n1) Read previous digest for continuity from the latest file matching `memory/analysis/market/*/weekly_digest.md`.\n2) If previous digest exists, use window from day after that digest date until today.\n3) If no previous digest exists, use last 7 calendar days.\n\nMandatory memory context (full scope):\n- memory/MEMORY.md\n- memory/notes/thesis.md\n- memory/notes/watchlist.md\n- memory/theses/**/thesis.md\n- memory/symbols/**\n- previous weekly digest file (if found)\n\nData collection requirements (must be complete):\n1) Read ALL knowledge-base documents in window via paginated `list-documents` using `date_from`, `date_to`, `page`, `limit`, and `types: [\"news\", \"analysis\", \"rumours\"]` until no more results.\n2) Read relevant documents with `get-document`.\n3) Use `web_search_exa` / `crawling_exa` only when it adds material continuity.\n\nDigest requirements:\n- No strict output format.\n- Cover thesis, watchlist, related tickers, and narrative shifts.\n- Include interesting reading recommendations with accessible URLs only using this format: `https://ai.akbarmr.dev/document/{documentId}`.\n- Prioritize high-signal and thesis-impacting items.\n\nPersistence:\n- Save digest to: `memory/analysis/market/{TODAY}/weekly_digest.md`\n- This command is read-first; do not update thesis/watchlist/session memory files."
-    },
-    "weekly-narrative-sync": {
-      "description": "Sync thesis/watchlist/session memory from latest weekly narrative digest",
-      "agent": "vibe-investor",
-      "template": "Run `narrative-analysis` skill first, then update memory based on weekly narrative digest.\n\nInput resolution:\n1) Always use latest `memory/analysis/market/*/weekly_digest.md`.\n2) Stop and report if digest is missing.\n\nSync scope:\n- Update `memory/theses/{THESIS_ID}/thesis.md` with dated timeline entries for evidence-backed changes.\n- Update `memory/notes/thesis.md` status/last-update rows only when thesis state changes.\n- Update `memory/notes/watchlist.md` only for explicit status/trigger changes.\n- Append concise action checklist to `memory/sessions/{TODAY}.md`.\n\nRules:\n- Do not invent facts beyond digest evidence.\n- If evidence is ambiguous, record `Needs Verification` in session and do not change thesis/watchlist state.\n- Link each update to digest path and supporting document URLs.\n\nOutput:\n- Return concise summary of changed files and key updates."
+      "template": "Run `narrative-analysis` first, then sync memory from the latest digest artifact.\n\nInput resolution:\n1) Always use latest `memory/analysis/market/*/news_digest.md`.\n2) Stop and report if digest is missing.\n3) Read the latest successful `news-digest` run log so the sync can inherit `window_from` and `window_to`.\n\nSync scope:\n- Update `memory/theses/{THESIS_ID}/thesis.md` with dated timeline entries for evidence-backed changes.\n- Update `memory/notes/thesis.md` status rows only when thesis state changes.\n- Update `memory/notes/watchlist.md` only for explicit status or trigger changes.\n- Append concise action checklist to `memory/sessions/{TODAY}.md`.\n\nRules:\n- Do not invent facts beyond digest evidence.\n- If evidence is ambiguous, record `Needs Verification` in the session and do not change thesis/watchlist state.\n- Link each update to the digest path and supporting document URLs.\n- Write exactly one success log at the end to `memory/runs/{TODAY}/{HHMMSS}_digest-sync.json` with only: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.\n- Do not write the success log on partial failure.\n\nOutput:\n- Return concise summary of changed files and key updates."
     }
   },
   "mcp": {

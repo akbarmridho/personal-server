@@ -5,6 +5,7 @@ Last updated:
 ## Latest Input Snapshot
 - as_of:
 - Source file: `notes/portfolio_inputs/YYYY-MM-DD.json`
+- Canonical source: latest JSON snapshot in `notes/portfolio_inputs/`
 
 ## Requested Input Table
 | Symbol | Lots | Avg | Last |

@@ -7,6 +7,8 @@ Last updated:
 ## Portfolio State
 - Latest canonical input:
 - Portfolio note:
+- Latest desk-check run:
+- Latest news digest:
 
 ## Key Decisions
 
@@ -14,3 +16,4 @@ Last updated:
 
 ## Pointers
 - Thesis index: `notes/thesis.md`
+- Run logs: `runs/`

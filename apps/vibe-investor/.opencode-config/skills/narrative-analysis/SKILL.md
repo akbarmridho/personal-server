@@ -7,12 +7,18 @@ description: Narrative and catalyst analysis for IDX stocks, including story cla
 
 Use this file as the entrypoint. Do not load all references by default.
 
-1. Classify user intent (new story scan, catalyst check, priced-in check, failure audit, or report drafting).
+1. Classify user intent (desk-check delta scan, new story scan, catalyst check, priced-in check, failure audit, or digest drafting).
 2. Resolve an explicit reference-file list for the selected workflow.
 3. Read the selected reference files before running the analysis.
 4. Pull MCP data in parallel when running a full analysis.
 5. Execute sequential analysis phases.
 6. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
+
+Workflow routing defaults:
+
+- `desk-check`: run a lightweight delta scan focused on new evidence since the last successful `desk-check` window for holdings, `READY` watchlist names, and leaders.
+- `news-digest`: run a broader reading-oriented market and symbol digest using the latest successful `news-digest` window.
+- `digest-sync`: use the latest digest artifact as the source document and update memory only for evidence-backed changes.
 
 ## Concepts And School Of Thought
 
@@ -118,6 +124,8 @@ Produce output per `output-report-template.md`:
 ## Execution Defaults
 
 - For full analysis, fetch all data sources in parallel.
+- For `desk-check`, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
+- For `news-digest`, include market regime, macro context, and reading recommendations in addition to symbol updates.
 - Use fail-fast behavior: if document/news retrieval fails, stop and report the missing dependency.
 - Load specialized references only when the mechanism is thesis-critical, not by default.
 - All output verdicts and labels must use values from `enums-and-glossary.md`.

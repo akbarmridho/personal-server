@@ -28,6 +28,7 @@ echo ""
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
 mkdir -p "$OPENCODE_CWD/memory/notes/portfolio_inputs"
+mkdir -p "$OPENCODE_CWD/memory/runs"
 mkdir -p "$OPENCODE_CWD/memory/scripts"
 mkdir -p "$OPENCODE_CWD/memory/symbols"
 mkdir -p "$OPENCODE_CWD/memory/theses"
@@ -44,6 +45,7 @@ for f in \
   notes/portfolio.md \
   notes/watchlist.md \
   notes/thesis.md \
+  runs/README.md \
   scripts/portfolio_ops.py
 do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
@@ -71,6 +73,7 @@ echo "  │   │   ├── portfolio.md"
 echo "  │   │   ├── portfolio_inputs/"
 echo "  │   │   ├── thesis.md"
 echo "  │   │   └── watchlist.md"
+echo "  │   ├── runs/"
 echo "  │   ├── scripts/"
 echo "  │   ├── symbols/"
 echo "  │   ├── theses/"

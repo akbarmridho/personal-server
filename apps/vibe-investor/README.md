@@ -40,16 +40,34 @@ $OPENCODE_CWD/
 ├── memory/                       # Persistent memory
 │   ├── MEMORY.md                 # Global curated memory
 │   ├── notes/
-│   │   ├── portfolio.md          # Open/closed positions, P&L
+│   │   ├── portfolio.md          # Portfolio summary from latest snapshot
+│   │   ├── portfolio_inputs/     # Manual JSON portfolio snapshots
+│   │   ├── thesis.md             # Thesis index
 │   │   └── watchlist.md          # Stocks under observation
+│   ├── runs/                     # Successful workflow run logs
 │   ├── symbols/
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
 │   ├── analysis/
-│   │   └── {SYMBOL}/{DATE}/      # Analysis outputs + charts
+│   │   ├── symbols/{SYMBOL}/{DATE}/
+│   │   └── market/{DATE}/        # Digest outputs
+│   ├── theses/
 │   └── sessions/
-│       └── {DATE}.md             # Session logs
+│       └── {DATE}.md             # Desk-check and sync session logs
 └── work/                         # Temporary scratch (delete anytime)
 ```
+
+## Primary Workflows
+
+- `/desk-check`
+  - Main operator routine for holdings, `READY` watchlist names, leaders, and top-down market context (`IHSG + macro + leaders`).
+- `/news-digest`
+  - Reading-oriented digest from new documents and memory continuity.
+- `/digest-sync`
+  - Applies evidence-backed digest updates to thesis/watchlist/session memory.
+- `/ta {SYMBOL} {INTENT}`
+  - Manual technical deep dive when one symbol needs closer review.
+
+Portfolio snapshots are manual for now. Keep the latest canonical input in `memory/notes/portfolio_inputs/{DATE}.json`. `desk-check` reads the latest snapshot, fails fast if none exists, and warns if it is stale.
 
 ## Quick Setup
 
@@ -94,10 +112,11 @@ Skills are loaded as tool results and are protected from session compaction — 
 Filesystem-based memory using markdown files.
 
 - **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
-- **`memory/notes/`** — Portfolio positions, watchlist
+- **`memory/notes/`** — Portfolio summary, manual portfolio snapshots, thesis index, watchlist
+- **`memory/runs/`** — One JSON log per successful top-level workflow run
 - **`memory/symbols/`** — Per-symbol trading plans, theses, key levels
 - **`memory/analysis/`** — Dated analysis outputs organized by symbol
-- **`memory/sessions/`** — Daily session logs
+- **`memory/sessions/`** — Desk-check and sync session logs
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 
 ## Custom Tools

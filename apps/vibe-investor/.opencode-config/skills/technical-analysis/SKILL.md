@@ -28,6 +28,12 @@ Mode requirements:
 - `THESIS_REVIEW`: focus on thesis status and invalidation triggers.
 - `POSTMORTEM`: include what failed, what was missed, and rule improvements.
 
+`desk-check` default:
+
+- When technical analysis is invoked inside `desk-check`, default to `THESIS_REVIEW`.
+- Scope is review-first: thesis status, invalidation level, action bias, and what changed since the prior saved view.
+- Keep the output concise unless the chart is materially conflicted.
+
 Execution preflight (mandatory):
 
 1. Determine the user's current technical objective and active mode (`INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`) before analysis.
@@ -193,6 +199,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Parse JSON directly. Never use CSV readers.
 - Declare `Mode` at top of output: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`.
 - For non-initial mode, require previous analysis reference (path/date) and prior thesis snapshot.
+- Inside `desk-check`, prefer `THESIS_REVIEW` over `UPDATE` unless the user explicitly requests a broader refresh.
 - Daily drives thesis. Intraday refines timing and acceptance only.
 - Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
 - Reversal calls must follow BOS/CHOCH confirmation contract in market-structure reference.

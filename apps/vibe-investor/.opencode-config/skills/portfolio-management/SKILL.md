@@ -1,17 +1,23 @@
 ---
 name: portfolio-management
-description: Trading desk and portfolio operations for IDX equities, including position sizing, entry/exit playbooks, trading plans, watchlist process, and session review routines.
+description: Internal trading-desk and portfolio operations subsystem for IDX equities, including desk-check reviews, position sizing, trading plans, watchlist process, and session routines.
 ---
 
 ## How To Use This Skill
 
 Use this file as the entrypoint. Do not load every reference by default.
 
-1. Classify the request by workflow type (see Common Workflows below).
+1. Classify the request by internal workflow type (see Common Workflows below).
 2. Resolve an explicit reference-file list for the selected workflow.
 3. Read the selected reference files before running the workflow.
 4. Execute with tools and memory updates.
 5. If the request spans multiple areas, resolve and read multiple reference sets deliberately.
+
+Command-surface rule:
+
+- Do not assume dedicated `pm-*` commands exist.
+- This skill is normally invoked as an internal subsystem from `desk-check`.
+- Use the latest `memory/notes/portfolio_inputs/*.json` snapshot as the temporary source of truth for holdings until external portfolio automation exists.
 
 ## Concepts And School Of Thought
 
@@ -53,6 +59,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 | `memory/notes/watchlist.md` | Status-driven symbols registry and trigger conditions |
 | `memory/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
 | `memory/sessions/{DATE}.md` | Session logs and next actions |
+| `memory/runs/{DATE}/{TIME}_desk-check.json` | Successful desk-check continuity log written by the parent workflow |
 | `memory/analysis/symbols/{SYMBOL}/{DATE}/` | Supporting analysis artifacts |
 
 ## Operating Rules
@@ -102,17 +109,20 @@ Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/notes/watch
 
 Checklist: regime gate checked, sizing validated, liquidity cleared, plan written with all required fields, memory files updated.
 
-### Weekly Review
+### Desk Check Review
 
 1. Load `review-watchlist-and-session-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
-3. Fetch current prices via `get-stock-keystats` for all held positions (parallel).
-4. For each position: check thesis status, stop levels, sizing compliance.
-5. Check portfolio-level: heat, correlation, 50:30:10, sector limits.
-6. Update watchlist statuses.
-7. Write session log to `memory/sessions/{DATE}.md`.
+3. Read the latest successful `memory/runs/*/*_desk-check.json` if it exists to understand review continuity.
+4. Use the latest `memory/notes/portfolio_inputs/*.json` snapshot as holdings input. If missing, stop. If stale, warn and continue.
+5. Fetch current prices via `get-stock-keystats` for all held positions (parallel).
+6. For each position: check thesis status, stop levels, sizing compliance.
+7. Check portfolio-level: heat, correlation, 50:30:10, sector limits.
+8. Extend coverage to watchlist symbols in `READY` plus leader names from `memory/notes/watchlist.md`.
+9. Update watchlist statuses.
+10. Write session log to `memory/sessions/{DATE}.md`.
 
-Checklist: all positions reviewed, sizing compliance checked, correlation checked, heat calculated, watchlist updated, session logged.
+Checklist: all holdings reviewed, sizing compliance checked, correlation checked, heat calculated, watchlist updated, session logged, stale snapshot warning recorded when applicable.
 
 ### Position Exit
 
@@ -137,6 +147,7 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 
 ## Execution Defaults
 
+- For `desk-check`, treat this skill as an internal subsystem and coordinate with `technical-analysis` and `narrative-analysis`.
 - Run required data fetches in parallel when the task is a full portfolio or position review.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.

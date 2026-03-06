@@ -2,9 +2,8 @@
 
 """Deterministic portfolio operations for Vibe Investor memory workflows.
 
-This script focuses on high-ROI deterministic checks used by portfolio commands:
-- daily-check
-- weekly-review
+This script focuses on high-ROI deterministic checks used by routine workflows:
+- desk-check
 - validate-sizing
 - rebalance-check
 
@@ -69,6 +68,18 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _parse_iso_date(value: object) -> date | None:
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(raw[:10])
+    except ValueError:
+        return None
+
+
 def _latest_snapshot_path(memory_root: Path) -> Path:
     inputs_dir = memory_root / "notes" / "portfolio_inputs"
     if not inputs_dir.exists():
@@ -114,6 +125,31 @@ def _extract_correlations(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
             continue
         out.append({"a": a, "b": b, "value": val})
     return out
+
+
+def describe_snapshot_freshness(snapshot: dict[str, Any], today: date | None = None) -> dict[str, Any]:
+    today = today or date.today()
+    snapshot_date = _parse_iso_date(snapshot.get("as_of"))
+    if snapshot_date is None:
+        return {
+            "snapshot_as_of": snapshot.get("as_of"),
+            "is_stale": True,
+            "age_days": None,
+            "warning": "Snapshot `as_of` is missing or invalid.",
+        }
+
+    age_days = (today - snapshot_date).days
+    is_stale = age_days > 0
+    warning = None
+    if is_stale:
+        warning = f"Portfolio snapshot is stale by {age_days} day(s)."
+
+    return {
+        "snapshot_as_of": snapshot_date.isoformat(),
+        "is_stale": is_stale,
+        "age_days": age_days,
+        "warning": warning,
+    }
 
 
 def compute_portfolio(snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -340,6 +376,7 @@ def render_portfolio_note(
     report: dict[str, Any],
     flags: list[dict[str, Any]],
     stop_hits: list[dict[str, Any]],
+    freshness: dict[str, Any],
 ) -> str:
     lines: list[str] = []
     lines.append("# Portfolio")
@@ -349,6 +386,8 @@ def render_portfolio_note(
     lines.append("## Latest Input Snapshot")
     lines.append(f"- as_of: {snapshot.get('as_of', '')}")
     lines.append(f"- Source file: `{_relative(snapshot_path, memory_root)}`")
+    if freshness["warning"]:
+        lines.append(f"- Freshness warning: {freshness['warning']}")
     lines.append("")
     lines.append("## Requested Input Table")
     lines.append("| Symbol | Lots | Avg | Last |")
@@ -390,19 +429,29 @@ def render_portfolio_note(
     return "\n".join(lines)
 
 
-def render_weekly_session(
+def render_desk_check_session(
     snapshot: dict[str, Any],
     report: dict[str, Any],
     flags: list[dict[str, Any]],
     stop_hits: list[dict[str, Any]],
+    freshness: dict[str, Any],
+    session_date: str,
 ) -> str:
-    session_date = str(snapshot.get("as_of") or date.today().isoformat())
     lines: list[str] = []
     lines.append(f"# Session: {session_date}")
     lines.append("")
+    lines.append("## Workflow")
+    lines.append("- Workflow: desk-check")
+    lines.append(f"- Portfolio snapshot as_of: {snapshot.get('as_of', '')}")
+    if freshness["warning"]:
+        lines.append(f"- Snapshot warning: {freshness['warning']}")
+    else:
+        lines.append("- Snapshot warning: none")
+    lines.append("")
     lines.append("## Market Context")
     lines.append("- IHSG: n/a (fill if market data available in this run)")
-    lines.append("- Key news: n/a (fill if news scan is included in this run)")
+    lines.append("- Macro/news tone: n/a (fill if top-down scan is included in this run)")
+    lines.append("- Leader breadth: n/a (fill if leader review is included in this run)")
     lines.append("")
     lines.append("## Portfolio Health")
     lines.append(f"- Total equity: {report['total_equity']:.2f}")
@@ -429,66 +478,44 @@ def render_weekly_session(
     lines.append("## Next Actions")
     lines.append("- Review flags and adjust sizing/heat where needed.")
     lines.append("- Update watchlist status transitions if trigger state changed.")
+    lines.append("- Record thesis or invalidation changes only when evidence is explicit.")
     return "\n".join(lines)
 
 
-def run_daily_check(args: argparse.Namespace) -> dict[str, Any]:
+def run_desk_check(args: argparse.Namespace) -> dict[str, Any]:
     memory_root = Path(args.memory_root).expanduser().resolve()
     snapshot_path = _resolve_snapshot_path(memory_root, args.snapshot)
     snapshot = _read_json(snapshot_path)
     report = compute_portfolio(snapshot)
     flags = compute_pm_flags(report)
     stop_hits = detect_stop_triggers(report)
+    freshness = describe_snapshot_freshness(snapshot)
     result = {
-        "mode": "daily-check",
+        "mode": "desk-check",
         "snapshot_path": str(snapshot_path),
         "report": report,
         "flags": flags,
         "stop_triggers": stop_hits,
+        "snapshot_freshness": freshness,
     }
 
     if not args.no_write_portfolio_note:
         note_path = Path(args.write_portfolio_note).expanduser()
         if not note_path.is_absolute():
             note_path = (memory_root / note_path).resolve()
-        note = render_portfolio_note(memory_root, snapshot_path, snapshot, report, flags, stop_hits)
-        note_path.parent.mkdir(parents=True, exist_ok=True)
-        note_path.write_text(note + "\n", encoding="utf-8")
-        result["portfolio_note_path"] = str(note_path)
-
-    if args.output:
-        _write_json(Path(args.output).expanduser().resolve(), result)
-    return result
-
-
-def run_weekly_review(args: argparse.Namespace) -> dict[str, Any]:
-    memory_root = Path(args.memory_root).expanduser().resolve()
-    snapshot_path = _resolve_snapshot_path(memory_root, args.snapshot)
-    snapshot = _read_json(snapshot_path)
-    report = compute_portfolio(snapshot)
-    flags = compute_pm_flags(report)
-    stop_hits = detect_stop_triggers(report)
-    result = {
-        "mode": "weekly-review",
-        "snapshot_path": str(snapshot_path),
-        "report": report,
-        "flags": flags,
-        "stop_triggers": stop_hits,
-    }
-
-    if not args.no_write_portfolio_note:
-        note_path = Path(args.write_portfolio_note).expanduser()
-        if not note_path.is_absolute():
-            note_path = (memory_root / note_path).resolve()
-        note = render_portfolio_note(memory_root, snapshot_path, snapshot, report, flags, stop_hits)
+        note = render_portfolio_note(
+            memory_root, snapshot_path, snapshot, report, flags, stop_hits, freshness
+        )
         note_path.parent.mkdir(parents=True, exist_ok=True)
         note_path.write_text(note + "\n", encoding="utf-8")
         result["portfolio_note_path"] = str(note_path)
 
     if not args.no_write_session:
-        session_date = str(args.session_date or snapshot.get("as_of") or date.today().isoformat())
+        session_date = str(args.session_date or date.today().isoformat())
         session_path = (memory_root / "sessions" / f"{session_date}.md").resolve()
-        session_text = render_weekly_session(snapshot, report, flags, stop_hits)
+        session_text = render_desk_check_session(
+            snapshot, report, flags, stop_hits, freshness, session_date
+        )
         session_path.parent.mkdir(parents=True, exist_ok=True)
         session_path.write_text(session_text + "\n", encoding="utf-8")
         result["session_path"] = str(session_path)
@@ -649,31 +676,21 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Deterministic portfolio operations")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    daily = subparsers.add_parser("daily-check", help="Run deterministic daily portfolio checks")
-    daily.add_argument("--memory-root", default="memory", help="Memory root directory")
-    daily.add_argument("--snapshot", help="Explicit snapshot path (defaults to latest)")
-    daily.add_argument(
+    desk_check = subparsers.add_parser(
+        "desk-check", help="Run deterministic desk-check portfolio baseline"
+    )
+    desk_check.add_argument("--memory-root", default="memory", help="Memory root directory")
+    desk_check.add_argument("--snapshot", help="Explicit snapshot path (defaults to latest)")
+    desk_check.add_argument("--session-date", help="Session date YYYY-MM-DD (defaults to today)")
+    desk_check.add_argument(
         "--write-portfolio-note",
         default="notes/portfolio.md",
         help="Portfolio note path relative to memory root",
     )
-    daily.add_argument("--no-write-portfolio-note", action="store_true")
-    daily.add_argument("--output", help="Optional JSON output path")
-    daily.set_defaults(func=run_daily_check)
-
-    weekly = subparsers.add_parser("weekly-review", help="Run deterministic weekly review")
-    weekly.add_argument("--memory-root", default="memory", help="Memory root directory")
-    weekly.add_argument("--snapshot", help="Explicit snapshot path (defaults to latest)")
-    weekly.add_argument("--session-date", help="Session date YYYY-MM-DD (defaults to as_of/today)")
-    weekly.add_argument(
-        "--write-portfolio-note",
-        default="notes/portfolio.md",
-        help="Portfolio note path relative to memory root",
-    )
-    weekly.add_argument("--no-write-portfolio-note", action="store_true")
-    weekly.add_argument("--no-write-session", action="store_true")
-    weekly.add_argument("--output", help="Optional JSON output path")
-    weekly.set_defaults(func=run_weekly_review)
+    desk_check.add_argument("--no-write-portfolio-note", action="store_true")
+    desk_check.add_argument("--no-write-session", action="store_true")
+    desk_check.add_argument("--output", help="Optional JSON output path")
+    desk_check.set_defaults(func=run_desk_check)
 
     validate = subparsers.add_parser("validate-sizing", help="Validate sizing for a candidate trade")
     validate.add_argument("--memory-root", default="memory", help="Memory root directory")
