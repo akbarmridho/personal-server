@@ -57,7 +57,8 @@ Portfolio memory rules:
 - Portfolio checks remain part of the `portfolio-management` skill and use deterministic repo-owned scripts, not memory scripts.
 - Store market-hours execution checklists and action bullets in `memory/sessions/{DATE}.md`.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
-- Run log schema is strict: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.
+- Run logs always include: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `artifacts`.
+- Add `session_path` only for workflows that write `memory/sessions/{DATE}.md`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
 - Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`, each linking to per-thesis files.
 - Store each thesis in `memory/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
@@ -100,85 +101,56 @@ Skill and reference preflight (mandatory):
 Primary user-facing workflows:
 
 - `desk-check`: the main operator routine for holdings review, watchlist trigger review, portfolio discipline, and top-down market context.
-- `news-digest`: the reading-oriented workflow that gathers high-signal news/documents since the last successful digest run.
+- `news-digest`: the digest workflow that gathers high-signal news/documents since the last successful digest run and writes a retained digest artifact.
 - `digest-sync`: the sync workflow that updates thesis/watchlist/session memory from the latest digest.
 
-Command-surface rule:
+Workflow ownership:
 
-- `pm-*` commands do not exist.
-- Portfolio-management runs as an internal subsystem inside `desk-check`, not as a separate user-facing command surface.
+- This section is the authoritative workflow contract.
+- Command templates only invoke these workflows; they must not redefine continuity, artifact paths, mutation scope, run-log schema, or execution order.
+- Explicit user instructions may narrow scope or change emphasis only when they do not weaken mandatory coverage, evidence requirements, continuity, or write rules.
+- Valid overrides include narrower symbol focus, a tighter date window, output emphasis, or a requested lens. Invalid overrides are ignored if they conflict with the workflow contract.
 
 `desk-check` defaults:
 
 - Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
-- Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day.
+- Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
 - Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
 - If portfolio data is missing or malformed, fail fast.
 - Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
+- Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
+- Run order: `portfolio-management` for holdings and discipline checks first, then delegated symbol reviews using `technical-analysis` and `narrative-analysis`, then a delegated top-down market review, then parent synthesis.
+- Subagents may use `work/` only for temporary files. Retained desk-check artifacts must be saved to memory paths.
+- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TODAY}/` and must include at least `technical.md` and `narrative.md` when those lenses are run.
+- Market artifacts belong under `memory/analysis/market/{TODAY}/`.
+- Evidence-backed memory updates may touch only `memory/notes/watchlist.md`, `memory/symbols/{SYMBOL}.md`, `memory/theses/{THESIS_ID}/thesis.md`, `memory/notes/thesis.md`, and `memory/sessions/{TODAY}.md`.
+- If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.
+- Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
+- `desk-check` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, and `artifacts`.
 
 `news-digest` defaults:
 
-- Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days.
-- Save digest to `memory/analysis/market/{TODAY}/news_digest.md`.
-- Do not update thesis, watchlist, portfolio, or session memory files during digest generation.
+- Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
+- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/theses/**/thesis.md`, `memory/symbols/**`, and the latest prior digest if found.
+- Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
+- Write the digest artifact to `memory/analysis/market/{TODAY}/news_digest.md`.
+- Leave thesis, watchlist, portfolio, and session memory unchanged during digest generation.
+- Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_news-digest.json` after the digest artifact is saved.
+- `news-digest` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 `digest-sync` defaults:
 
 - Always consume the latest `memory/analysis/market/*/news_digest.md`.
+- Stop and report if the digest artifact is missing.
+- Read the latest successful `news-digest` run log and inherit its `window_from` and `window_to`.
+- Update `memory/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes.
+- Update `memory/notes/thesis.md` only when thesis state changes.
+- Update `memory/notes/watchlist.md` only for explicit status or trigger changes.
+- Append concise action items to `memory/sessions/{TODAY}.md`.
 - If evidence is ambiguous, record `Needs Verification` in the session and do not change thesis/watchlist state.
-
-## Technical Analysis Operating Policy
-
-### Technical Analysis Preset Policy (Learning-First)
-
-Use a progressive-depth workflow so analysis stays useful without overwhelming the human.
-
-### 1) Default Preset: BASIC (use first)
-
-- Lens: `UNIFIED`
-- Context modules: `core,vpvr,breakout`
-- Chart modules: `core,vpvr`
-- Keep output concise and plain-English.
-- Translate jargon on first use (example: `CHOCH` = first warning break, `BOS` = confirmation break).
-- Keep risk protocol mandatory: action, entry zone, invalidation, stop, target path, and RR.
-
-### 2) Escalation Preset: DEEP (use only when needed)
-
-Use DEEP only when at least one condition is true:
-
-- user explicitly asks for SMC/ICT or deep dive
-- reversal thesis is central and structure is unclear/conflicted
-- breakout fails or trap/deviation behavior dominates
-- BASIC run shows unresolved contradictions needing imbalance/liquidity refinement
-- postmortem or thesis-review requires deeper forensic detail
-
-DEEP modules:
-
-- Context modules: `core,vpvr,imbalance,breakout,smc`
-- Chart modules: `core,vpvr,imbalance,detail`
-
-### 3) Workflow Rule
-
-- Start with BASIC by default.
-- Escalate to DEEP only after stating why escalation is needed.
-- If no clear setup after BASIC, prefer `WAIT` over forcing a complex narrative.
-
-### 4) Communication Rule
-
-- Prioritize structure + levels + risk in plain language.
-- Keep SMC terms as optional confluence, not primary decision authority.
-- For beginner-facing outputs, include a short glossary line for any advanced term used.
-
-### 5) Technical Analysis Reference Reading Enforcement (mandatory)
-
-- For any non-trivial technical analysis, loading the `technical-analysis` skill is not enough.
-- You must read the skill's referenced files/checklists before producing conclusions.
-- If reference files are unavailable or unread, fail fast and report the missing reference context instead of continuing with partial analysis.
-
-### 6) Human-Friendly Wrap-Up (mandatory)
-
-- After every technical analysis response, add one short, easy-to-follow paragraph that explains the bottom line in plain language for the human.
-- This wrap-up should restate the bias, key level, and the immediate action (`BUY`/`SELL`/`HOLD`/`WAIT`) without jargon.
+- Link memory changes to the digest path and supporting document URLs.
+- Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_digest-sync.json` after memory updates succeed.
+- `digest-sync` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, and `artifacts`.
 
 ## Tools
 

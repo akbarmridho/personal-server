@@ -13,10 +13,8 @@ Use this file as the entrypoint. Do not load every reference by default.
 4. Execute with tools and memory updates.
 5. If the request spans multiple areas, resolve and read multiple reference sets deliberately.
 
-Command-surface rule:
+Tool source of truth:
 
-- Do not assume dedicated `pm-*` commands exist.
-- This skill is normally invoked as an internal subsystem from `desk-check`.
 - Use `portfolio_state` as the source of truth for current holdings.
 - Use `portfolio_trade_history` and `portfolio_symbol_trade_journey` for trade-history review.
 
@@ -39,6 +37,11 @@ Command-surface rule:
 | [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/symbols/{SYMBOL}.md` |
 | [review-watchlist-and-session-logging.md](references/review-watchlist-and-session-logging.md) | Daily/weekly/monthly review cadence, watchlist management, session log templates |
 | This file (SKILL.md) | Market regime gate, capital preservation principles, operating rules |
+
+Reference boundary:
+
+- References provide doctrine, checklists, and templates only.
+- Workflow execution, write targets, and mutation rules are owned by this skill and the active workflow contract.
 
 ## Data Sources And Fail-Fast
 
@@ -108,7 +111,7 @@ Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/notes/watch
 3. Validate sizing against portfolio constraints (50:30:10, correlation, heat, ADTV liquidity).
 4. Load `trading-plan-template.md`, fill all required fields.
 5. Write plan to `memory/symbols/{SYMBOL}.md`.
-6. Update `memory/notes/portfolio.md` and `memory/notes/watchlist.md`.
+6. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
 
 Checklist: regime gate checked, sizing validated, liquidity cleared, plan written with all required fields, memory files updated.
 
@@ -116,34 +119,30 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 
 1. Load `review-watchlist-and-session-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
-3. Read the latest successful `memory/runs/*/*_desk-check.json` if it exists to understand review continuity.
-4. Call `portfolio_state` for holdings input. If missing or malformed, stop.
-5. Run the bundled deterministic checks script:
+3. Call `portfolio_state` for holdings input. If missing or malformed, stop.
+4. Run the bundled deterministic checks script:
 
 ```bash
 python "$OPENCODE_CONFIG_DIR/skills/portfolio-management/scripts/portfolio_checks.py" --symbols-root memory/symbols
 ```
 
-6. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
-7. For each position: check thesis status, stop levels, sizing compliance.
-8. Check portfolio-level: concentration, sizing flags, and stop-trigger candidates from the deterministic checks output.
-9. Extend coverage to watchlist symbols in `READY` plus leader names from `memory/notes/watchlist.md`.
-10. In delegated symbol reviews, save retained artifacts under `memory/analysis/symbols/{SYMBOL}/{DATE}/`.
-11. Save top-down market artifacts under `memory/analysis/market/{DATE}/`.
-12. Update watchlist statuses.
-13. Write session log to `memory/sessions/{DATE}.md`.
+5. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
+6. For each position: check thesis status, stop levels, sizing compliance.
+7. Check portfolio-level: concentration, sizing flags, and stop-trigger candidates from the deterministic checks output.
+8. Extend coverage to watchlist symbols required by the active workflow contract.
+9. Return portfolio findings, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, deterministic checks run, sizing compliance checked, watchlist updated, session logged.
+Checklist: all holdings reviewed, deterministic checks run, sizing compliance checked, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.
 2. Load `entry-exit-and-rebalancing-playbook.md` for exit framework.
 3. Execute exit, update `memory/symbols/{SYMBOL}.md` with close details.
-4. Update `memory/notes/portfolio.md` with realized P&L.
+4. Update `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
 5. Post-exit: evaluate process quality, not outcome.
 
-Checklist: exit reason documented, memory files updated, P&L recorded, process review noted.
+Checklist: exit reason documented, symbol/watchlist memory updated where needed, process review noted.
 
 ### Rebalance Check
 
@@ -158,7 +157,7 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 
 ## Execution Defaults
 
-- For `desk-check`, treat this skill as an internal subsystem and coordinate with `technical-analysis` and `narrative-analysis`.
+- When used inside `desk-check`, coordinate findings with `technical-analysis` and `narrative-analysis`.
 - Run required data fetches in parallel when the task is a full portfolio or position review.
 - Use bundled deterministic scripts for repeatable portfolio math; do not rely on workspace memory scripts.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.

@@ -60,6 +60,7 @@ $OPENCODE_CWD/
   - Main operator routine for holdings, `READY` watchlist names, leaders, and top-down market context (`IHSG + macro + leaders`).
 - `/news-digest`
   - Reading-oriented digest from new documents and memory continuity.
+  - Writes a retained digest artifact plus its run log.
 - `/digest-sync`
   - Applies evidence-backed digest updates to thesis/watchlist/session memory.
 - `/ta {SYMBOL} {INTENT}`

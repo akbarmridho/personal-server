@@ -11,7 +11,7 @@ Define review cadence, watchlist management process, and session log structure f
 - Check stop loss levels and triggered invalidations.
 - Scan news/filings for held positions.
 - Check flow changes on key positions.
-- Update P&L in `memory/notes/portfolio.md`.
+- Review current P&L and exposure from the portfolio tools.
 
 ### Weekly
 
@@ -19,7 +19,7 @@ Define review cadence, watchlist management process, and session log structure f
 - Check sizing compliance against 50:30:10 constraints.
 - Check rolling correlation changes among top holdings.
 - Update watchlist and trigger status.
-- Log weekly P&L and portfolio heat.
+- Record weekly portfolio heat and action items in the session log.
 
 ### Monthly
 
@@ -27,7 +27,7 @@ Define review cadence, watchlist management process, and session log structure f
 - Sector allocation and concentration check.
 - Rebalance check: cadence, drift, thesis validity.
 - Strategy quality review: what worked and what failed.
-- Update `memory/MEMORY.md` with durable lessons.
+- Capture durable lessons in long-term memory.
 
 ## Portfolio Health Red Flag
 
@@ -39,7 +39,7 @@ Track a small leader basket (from your active/watchlist universe) and count fres
 
 - If multiple leaders break structure/stop in the same review window, treat this as regime deterioration. (Flag PM-W09)
 - When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
-- Write the signal and resulting action to `memory/sessions/{YYYY-MM-DD}.md`.
+- Record the signal and resulting action in the session log.
 
 ## Watchlist Management
 
@@ -52,8 +52,6 @@ Watchlist statuses use enums from `enums-and-glossary.md`.
 | ACTIVE | Triggered and position is open | Execute and monitor |
 | REMOVED | Thesis broken or better option available | Document removal reason |
 
-Write to: `memory/notes/watchlist.md`
-
 ```markdown
 ## Watchlist
 
@@ -64,8 +62,6 @@ Write to: `memory/notes/watchlist.md`
 ```
 
 ## Session Log Template
-
-Write to: `memory/sessions/{YYYY-MM-DD}.md`
 
 ```markdown
 # Session: {YYYY-MM-DD}
@@ -95,7 +91,3 @@ Write to: `memory/sessions/{YYYY-MM-DD}.md`
 ## Tomorrow's Plan
 - {next checks and actions}
 ```
-
-## Implementation Note
-
-Enforcement: agent workflow during Weekly Review and daily checks (see SKILL.md). Review cadence items are the checklist for each workflow. Watchlist status transitions are agent-managed based on trigger conditions. Session logs are written at the end of every review session. Health flags PM-W08 and PM-W09 are agent-judgment flags detected during review.

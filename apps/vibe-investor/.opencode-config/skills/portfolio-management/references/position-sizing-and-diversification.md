@@ -65,7 +65,3 @@ Primary stop should come from thesis/structure invalidation. If no clean invalid
 - Default fallback cap: 7-8% from entry.
 - If volatility/liquidity is unusually high, reduce position size instead of widening risk.
 - Never let fallback cap override a tighter, higher-quality technical invalidation.
-
-## Implementation Note
-
-Enforcement: agent workflow during New Position Entry and Weekly Review workflows (see SKILL.md). Deterministic checks: position weight vs 30% cap, portfolio heat sum, correlation from `fetch-ohlcv`, ADTV from tool data, 50:30:10 compliance from memory state. Triggers health flags PM-W01 through PM-W07 when breached.

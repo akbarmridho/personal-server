@@ -2,7 +2,7 @@
 
 ## Objective
 
-Define the required structure for per-symbol trading plans written to `memory/symbols/{SYMBOL}.md`. Every position must have a written plan before entry.
+Define the required structure for per-symbol trading plans. Every position must have a written plan before entry.
 
 ## Template
 
@@ -63,7 +63,3 @@ Tier Alignment fields come from multiple sources:
 - Narrative, Conviction: agent judgment synthesizing all inputs.
 
 If a contributing skill is not active, the agent fills the field with its best available assessment and notes the source limitation.
-
-## Implementation Note
-
-Enforcement: agent workflow during New Position Entry (see SKILL.md). The agent loads this template, fills all required fields, and writes to `memory/symbols/{SYMBOL}.md`. Enum values in the template must match `enums-and-glossary.md`.

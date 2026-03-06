@@ -83,7 +83,3 @@ Five factors scored 0-3 each:
 - `Moderate`: re-rating is explainable, softer mean reversion
 - `High`: narrative dominates numbers, -30% to -50% drawdown on break
 - `Extreme`: pure imagination + crowding, -50% to -80% tail risk
-
-## Implementation Note
-
-Enforcement: agent uses these values when filling the output report template. All verdict, score, and label fields in the report must use values from this file. Reference files use these labels but do not redefine them.

@@ -124,7 +124,3 @@ def decision_with_position(has_position, setup_id, red_flag_severity):
         return "HOLD"
     return "HOLD"
 ```
-
-## Implementation Note
-
-Enforcement: agent workflow during `SETUP_RISK` and `DECISION` phases (see SKILL.md preferred workflow). The `build_trade_plan` function is reference logic for constructing the risk section of the output report. Actual position sizing is computed by the portfolio-management skill using its own rules and the entry/stop from this plan.

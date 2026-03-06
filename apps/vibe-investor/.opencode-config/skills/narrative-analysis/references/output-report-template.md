@@ -38,7 +38,3 @@ Use this structure for narrative outputs.
 - Premium band: {Moderate / High / Extreme}
 - Downside if break: {estimated drawdown range}
 ```
-
-## Implementation Note
-
-Enforcement: agent workflow during Phase 3 (see SKILL.md). This template is the contract for the final output. Every section must be filled when producing a full narrative analysis. All verdict, score, and label values must match `enums-and-glossary.md`.

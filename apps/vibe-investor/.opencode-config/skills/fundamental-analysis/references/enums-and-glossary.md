@@ -61,7 +61,3 @@ Interpretation:
 - `Growth`: expanding demand, prefer emerging leaders
 - `Maturity`: stable demand, efficiency and cash-return focus
 - `Decline`: structural contraction, avoid long-duration thesis
-
-## Implementation Note
-
-Enforcement: agent uses these values when filling the output report template. All verdict, status, and label fields in the report must use values from this file. Reference files use these labels but do not redefine them.

@@ -432,13 +432,78 @@ function parseCaptureTimestampFromPath(filePath: string): string {
   const fileName = path.basename(filePath, ".json");
   const stamp = fileName.split("_")[0];
   const parentDate = path.basename(path.dirname(filePath));
-  const candidate = `${parentDate}T${stamp.slice(0, 2)}:${stamp.slice(2, 4)}:${stamp.slice(4, 6)}`;
-  const parsed = new Date(candidate);
-  if (!Number.isNaN(parsed.getTime()) && /^\d{6}$/.test(stamp)) {
-    return parsed.toISOString();
+  const directoryDate = parseDirectoryDate(parentDate);
+
+  if (directoryDate && /^\d{6}$/.test(stamp)) {
+    return buildUtcTimestamp(
+      directoryDate.year,
+      directoryDate.month,
+      directoryDate.day,
+      Number.parseInt(stamp.slice(0, 2), 10),
+      Number.parseInt(stamp.slice(2, 4), 10),
+      Number.parseInt(stamp.slice(4, 6), 10),
+    );
   }
 
-  return new Date().toISOString();
+  if (directoryDate) {
+    const pageMatch = fileName.match(/page-(\d+)/i);
+    if (pageMatch) {
+      const pageNumber = Number.parseInt(pageMatch[1], 10);
+      const secondOffset =
+        Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber - 1 : 0;
+      return buildUtcTimestamp(
+        directoryDate.year,
+        directoryDate.month,
+        directoryDate.day,
+        0,
+        0,
+        secondOffset,
+      );
+    }
+
+    return buildUtcTimestamp(
+      directoryDate.year,
+      directoryDate.month,
+      directoryDate.day,
+      0,
+      0,
+      0,
+    );
+  }
+
+  const hashedSeconds =
+    Number.parseInt(
+      createHash("sha256").update(filePath).digest("hex").slice(0, 8),
+      16,
+    ) % 86_400;
+  return buildUtcTimestamp(2000, 1, 1, 0, 0, hashedSeconds);
+}
+
+function parseDirectoryDate(
+  value: string,
+): { year: number; month: number; day: number } | null {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    year: Number.parseInt(match[1], 10),
+    month: Number.parseInt(match[2], 10),
+    day: Number.parseInt(match[3], 10),
+  };
+}
+
+function buildUtcTimestamp(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+): string {
+  return new Date(Date.UTC(year, month - 1, day, hour, minute, second))
+    .toISOString();
 }
 
 function ensureObject(value: unknown, message: string): JsonObject {

@@ -44,6 +44,11 @@ Use this file as the entrypoint. Do not load all references by default.
 | [indonesia-gold-playbook.md](references/indonesia-gold-playbook.md) | Gold value chain, mining vs trading model, reserves/resources, production/cash cost data, refinery capacity |
 | This file (SKILL.md) | Workflow, data sources, operating rules, deterministic-vs-judgment boundary |
 
+Reference boundary:
+
+- References provide doctrine, sector/mechanism checks, and templates only.
+- Workflow execution and output requirements are owned by this skill.
+
 ## Data Sources And Fail-Fast
 
 | Source | Used for | If unavailable |

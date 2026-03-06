@@ -99,7 +99,3 @@ Treat this as a **cycle-positioning map**:
 
 - early-phase: focus on ownership/SID contraction (cleaning),
 - late-phase: focus on "who is buying" + whether SID is expanding.
-
-## Implementation Note
-
-Enforcement: agent workflow during Phase 2 step 5 when haluasi/premium assessment is relevant, and when narrative involves hype/speculative dynamics (see SKILL.md). Base value vs narrative premium decomposition, premium band assessment, and hype phase identification are agent judgment. Priced-in tests and failure triggers are structured checklists. Premium band labels must match `enums-and-glossary.md`.

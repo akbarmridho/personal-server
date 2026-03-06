@@ -61,7 +61,3 @@ After the transaction:
 - Long-run outcome still depends on the injected business quality and governance.
 
 Common failure mode: narrative is strong, but the injected assets do not translate into sustainable cash flows (or minority terms are unfavorable).
-
-## Implementation Note
-
-Enforcement: agent workflow when narrative type involves corporate action / backdoor listing (see SKILL.md sector and mechanism routing). Shell screening criteria are heuristic, not hard filters. Late-cycle positioning uses the TFF/WTFF framing as a cycle-awareness overlay, not a trading signal.

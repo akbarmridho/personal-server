@@ -95,7 +95,3 @@ Acceptable when:
 - If thesis breaks, replace the name; do not mechanically top up losers.
 - Prefer replacement with lower correlation to current core holdings and acceptable liquidity.
 - Include transaction cost/slippage; skip tiny rebalance trades with no material risk impact.
-
-## Implementation Note
-
-Enforcement: agent workflow during New Position Entry, Position Exit, and Rebalance Check workflows (see SKILL.md). Entry strategies are agent-selected based on stock category and conviction. Exit decisions involve agent judgment for cut-loss vs hold (permanent impairment assessment). Rebalancing drift triggers are deterministic (weight deviation >20%); event triggers require agent judgment.

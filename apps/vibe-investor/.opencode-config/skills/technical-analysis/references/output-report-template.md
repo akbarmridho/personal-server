@@ -59,17 +59,17 @@ Use this structure for every technical analysis output.
 ### D. Chart Build And Read
 - Generated charts:
   - Core required charts:
-- `work/{SYMBOL}_daily_structure_sr.png`
-- `work/{SYMBOL}_daily_structure_fib.png`
-- `work/{SYMBOL}_intraday_structure.png`
-- `work/{SYMBOL}_ib_overlay.png`
-- `work/{SYMBOL}_structure_events.png`
-- `work/{SYMBOL}_trade_plan.png`
+  - `daily_structure_sr`
+  - `daily_structure_fib`
+  - `intraday_structure`
+  - `ib_overlay`
+  - `structure_events`
+  - `trade_plan`
   - Conditional required charts:
-  - `work/{SYMBOL}_vpvr_profile.png` (when volume-profile context is used)
-  - `work/{SYMBOL}_imbalance_fvg.png` (when FVG/IFVG or imbalance context is used)
+  - `vpvr_profile` (when volume-profile context is used)
+  - `imbalance_fvg` (when FVG/IFVG or imbalance context is used)
   - Optional:
-  - `work/{SYMBOL}_detail.png`
+  - `detail`
 - Chart observations:
   - What was seen on chart first
   - Which lines/zones were respected, broken, reclaimed, or deviated
@@ -168,7 +168,7 @@ Use this structure for every technical analysis output.
 | E5 | volume | vol ratio | ... |
 | E6 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
 | E7 | prior_session_poc | intraday session profile | ... |
-| E8 | chart | core + conditional work/{SYMBOL}_*.png | ... |
+| E8 | chart | core + conditional chart artifacts | ... |
 | E9 | liquidity | draw target + sweep evidence | ... |
 
 ### J. Monitoring Triggers

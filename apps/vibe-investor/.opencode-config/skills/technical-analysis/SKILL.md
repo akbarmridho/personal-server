@@ -35,11 +35,52 @@ Mode requirements:
 - Keep the output concise unless the chart is materially conflicted.
 - In `desk-check`, final retained outputs must be written under `memory/analysis/symbols/{SYMBOL}/{TODAY}/`, not left in `work/`.
 
+## Preset Policy
+
+Use a progressive-depth workflow so analysis stays useful without overwhelming the human.
+
+### BASIC
+
+- Start with `BASIC` by default.
+- Lens: `UNIFIED`
+- Context modules: `core,vpvr,breakout`
+- Chart modules: `core,vpvr`
+- Keep output concise and plain-English.
+- Keep risk protocol mandatory: action, entry zone, invalidation, stop, target path, and RR.
+
+### DEEP
+
+Escalate to `DEEP` only when at least one condition is true:
+
+- user explicitly asks for SMC/ICT or deep dive
+- reversal thesis is central and structure is unclear/conflicted
+- breakout fails or trap/deviation behavior dominates
+- BASIC run shows unresolved contradictions needing imbalance/liquidity refinement
+- postmortem or thesis-review requires deeper forensic detail
+
+`DEEP` modules:
+
+- Context modules: `core,vpvr,imbalance,breakout,smc`
+- Chart modules: `core,vpvr,imbalance,detail`
+
+Workflow rule:
+
+- Escalate to `DEEP` only after stating why escalation is needed.
+- If no clear setup after `BASIC`, prefer `WAIT` over forcing a complex narrative.
+
+Communication rule:
+
+- Prioritize structure + levels + risk in plain language.
+- Keep SMC terms as optional confluence, not primary decision authority.
+- Translate jargon on first use when it materially affects the decision.
+- For beginner-facing outputs, include a short glossary line for any advanced term used.
+
 Execution preflight (mandatory):
 
 1. Determine the user's current technical objective and active mode (`INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`) before analysis.
 2. Resolve an explicit reference-file list for the active mode and requested lens/modules.
 3. Read the resolved reference files before starting `DATA_PREP`.
+4. If the required references are unavailable or unread, stop and report the missing reference context instead of continuing with partial analysis.
 
 ## Concepts And School Of Thought
 
@@ -167,6 +208,13 @@ Topic ownership (avoid overlap):
 - Shared enums and glossary -> `references/enums-and-glossary.md`
 - Output formatting contract -> `references/output-report-template.md`
 
+Template boundary:
+
+- `references/output-report-template.md` defines report structure only.
+- Artifact retention path and runtime storage location are owned by this skill and the active workflow contract.
+- Other references provide analysis doctrine and checklists only.
+- Execution order, runtime storage, and persistence rules are owned by this skill and the active workflow contract.
+
 ## Reasoning Trace And Proof Contract
 
 The output must include final decision plus concise, auditable reasoning.
@@ -211,6 +259,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - For non-initial mode, require previous analysis reference (path/date) and prior thesis snapshot.
 - Inside `desk-check`, prefer `THESIS_REVIEW` over `UPDATE` unless the user explicitly requests a broader refresh.
 - Inside `desk-check`, save final markdown and retained chart/context artifacts to `memory/analysis/symbols/{SYMBOL}/{TODAY}/`.
+- After every technical analysis response, add one short plain-language wrap-up that restates the bias, key level, and immediate action (`BUY`/`SELL`/`HOLD`/`WAIT`) without jargon.
 - Daily drives thesis. Intraday refines timing and acceptance only.
 - Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
 - Reversal calls must follow BOS/CHOCH confirmation contract in market-structure reference.

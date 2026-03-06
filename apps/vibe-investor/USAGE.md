@@ -12,7 +12,8 @@ Use commands in OpenCode TUI with `/command-name`.
 - `/news-digest`
   - Reading-oriented market and thesis digest.
   - Gathers new high-signal documents since the last successful digest run.
-  - Does not update thesis, watchlist, or session memory by itself.
+  - Writes a retained digest artifact and its run log.
+  - Leaves thesis, watchlist, and session memory unchanged.
 
 - `/digest-sync`
   - Applies the latest digest into memory.
@@ -79,9 +80,16 @@ What it covers:
 - thesis-relevant developments
 - reading recommendations
 
-What it does not do:
+What it writes:
 
-- it does not directly change thesis, watchlist, or session memory
+- `memory/analysis/market/{TODAY}/news_digest.md`
+- `memory/runs/{TODAY}/{HHMMSS}_news-digest.json`
+
+What stays unchanged:
+
+- thesis memory
+- watchlist memory
+- session memory
 
 ## `/digest-sync`
 

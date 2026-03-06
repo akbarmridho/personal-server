@@ -7,24 +7,12 @@ description: Narrative and catalyst analysis for IDX stocks, including story cla
 
 Use this file as the entrypoint. Do not load all references by default.
 
-1. Classify user intent (desk-check delta scan, new story scan, catalyst check, priced-in check, failure audit, or digest drafting).
+1. Classify narrative-analysis intent (desk-check narrative pass, new story scan, catalyst check, priced-in check, failure audit, or digest drafting).
 2. Resolve an explicit reference-file list for the selected workflow.
 3. Read the selected reference files before running the analysis.
 4. Pull MCP data in parallel when running a full analysis.
 5. Execute sequential analysis phases.
 6. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
-
-Workflow routing defaults:
-
-- `desk-check`: run a lightweight delta scan focused on new evidence since the last successful `desk-check` window for holdings, `READY` watchlist names, and leaders.
-- `news-digest`: run a broader reading-oriented market and symbol digest using the latest successful `news-digest` window.
-- `digest-sync`: use the latest digest artifact as the source document and update memory only for evidence-backed changes.
-
-Desk-check persistence:
-
-- For symbol-level desk-check narrative review, save the retained output to `memory/analysis/symbols/{SYMBOL}/{TODAY}/narrative.md`.
-- For top-down desk-check market review, save the retained output under `memory/analysis/market/{TODAY}/`.
-- Do not leave final desk-check narrative outputs only in `work/`.
 
 ## Concepts And School Of Thought
 
@@ -47,6 +35,11 @@ Desk-check persistence:
 | [backdoor-listing-screening.md](references/backdoor-listing-screening.md) | Shell screening criteria, pre-signals, TFF/WTFF late-cycle dynamics, post-injection reality check |
 | [ipo-analysis.md](references/ipo-analysis.md) | Why traditional analysis fails for IPOs, underwriter role, manipulation patterns, lock-up dynamics |
 | This file (SKILL.md) | Workflow, data sources, operating rules, deterministic-vs-judgment boundary |
+
+Reference boundary:
+
+- References provide doctrine, rubrics, and templates only.
+- Workflow execution, persistence, and mutation rules are owned by this skill and the active workflow contract.
 
 ## Data Sources And Fail-Fast
 
