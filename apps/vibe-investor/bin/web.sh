@@ -15,7 +15,7 @@ RESOLVED_CONFIG=$(pnpm tsx src/resolve-config.ts) || {
 
 # Load environment variables from .env
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | grep -E 'OPENROUTER_API_KEY|OPENCODE_CWD|OPENCODE_PORT|OPENCODE_HOSTNAME|OPENCODE_DATA_HOME|EXA_API_KEY' | xargs)
+  export $(grep -v '^#' .env | grep -E 'OPENROUTER_API_KEY|OPENCODE_CWD|OPENCODE_PORT|OPENCODE_HOSTNAME|OPENCODE_DATA_HOME|AI_CONNECTOR_DATA_ROOT|EXA_API_KEY' | xargs)
 fi
 
 # Validate required variables

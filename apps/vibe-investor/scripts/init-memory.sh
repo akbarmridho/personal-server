@@ -27,12 +27,7 @@ echo ""
 # Create directory structure
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
-mkdir -p "$OPENCODE_CWD/memory/notes/portfolio_inputs"
-mkdir -p "$OPENCODE_CWD/memory/imports/stockbit"
-mkdir -p "$OPENCODE_CWD/memory/portfolio/trade_events"
-mkdir -p "$OPENCODE_CWD/memory/portfolio/derived"
 mkdir -p "$OPENCODE_CWD/memory/runs"
-mkdir -p "$OPENCODE_CWD/memory/scripts"
 mkdir -p "$OPENCODE_CWD/memory/symbols"
 mkdir -p "$OPENCODE_CWD/memory/theses"
 mkdir -p "$OPENCODE_CWD/memory/analysis/symbols"
@@ -45,15 +40,9 @@ mkdir -p "$OPENCODE_CWD/work"
 echo "Copying memory templates..."
 for f in \
   MEMORY.md \
-  notes/portfolio.md \
   notes/watchlist.md \
   notes/thesis.md \
-  imports/stockbit/README.md \
-  portfolio/README.md \
-  portfolio/sync_state.json \
-  runs/README.md \
-  scripts/portfolio_ops.py \
-  scripts/stockbit_portfolio_sync.py
+  runs/README.md
 do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
   dst="$OPENCODE_CWD/memory/$f"
@@ -76,17 +65,9 @@ echo "  $OPENCODE_CWD/"
 echo "  ├── memory/"
 echo "  │   ├── MEMORY.md"
 echo "  │   ├── notes/"
-echo "  │   │   ├── portfolio.md"
-echo "  │   │   ├── portfolio_inputs/"
 echo "  │   │   ├── thesis.md"
 echo "  │   │   └── watchlist.md"
-echo "  │   ├── imports/"
-echo "  │   │   └── stockbit/"
-echo "  │   ├── portfolio/"
-echo "  │   │   ├── trade_events/"
-echo "  │   │   └── derived/"
 echo "  │   ├── runs/"
-echo "  │   ├── scripts/"
 echo "  │   ├── symbols/"
 echo "  │   ├── theses/"
 echo "  │   ├── analysis/"

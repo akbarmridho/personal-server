@@ -8,7 +8,8 @@ Client-side services for routing requests through your local IP, plus startup br
 - HTTPS tunneling via `CONNECT`
 - Startup golden-article capture task (runs at most once every 2 hours via `state.json` key `goldenArticleLastSuccessAt`)
 - Startup Stockbit request-header capture task (runs every startup and sends captured headers to kb-backend)
-- Startup Stockbit portfolio/history raw capture task (writes raw JSON artifacts under `OPENCODE_DATA_HOME`)
+- Startup Stockbit portfolio/history capture task
+- Connector-owned Stockbit normalization into `AI_CONNECTOR_DATA_ROOT`
 
 ## Planned next scope
 
@@ -52,7 +53,7 @@ Required:
 
 Optional:
 
-- `OPENCODE_DATA_HOME` (recommended, used as the base path for raw Stockbit captures and connector state)
+- `AI_CONNECTOR_DATA_ROOT` (required, used as the base path for raw and normalized Stockbit data)
 - `PLAYWRIGHT_CDP_URL` (default `http://127.0.0.1:9222`)
 - `PLAYWRIGHT_BROWSER_PATH`
 - `PLAYWRIGHT_USER_DATA_DIR`
@@ -67,15 +68,28 @@ On app startup, connector will:
 3. If CDP is unreachable: close Brave, relaunch with remote debugging, then connect
 4. Run golden-article interception task
 5. Run stockbit header interception task
-6. Run Stockbit portfolio/history raw capture task
+6. Run Stockbit portfolio/history capture and normalization task
 
-## Stockbit Raw Capture Output
+## Stockbit Portfolio Data Output
 
-When `OPENCODE_DATA_HOME` is set, raw Stockbit captures are written under:
+When `AI_CONNECTOR_DATA_ROOT` is set, Stockbit data is written under:
 
 ```text
-{OPENCODE_DATA_HOME}/data/ai-client-connector/stockbit/
-├── portfolio/YYYY-MM-DD/HHMMSS.json
-├── history/YYYY-MM-DD/HHMMSS_page-N.json
-└── manifests/YYYY-MM-DD/HHMMSS.json
+{AI_CONNECTOR_DATA_ROOT}/stockbit/
+├── raw/
+│   ├── portfolio/YYYY-MM-DD/HHMMSS.json
+│   ├── history/YYYY-MM-DD/HHMMSS_page-N.json
+│   └── history-backfill/YYYY-MM-DD/page-XXX.json
+└── normalized/
+    ├── latest_portfolio.json
+    ├── trades.jsonl
+    ├── latest_snapshot.json
+    └── backfill_state.json
 ```
+
+Manual history backfill:
+
+1. Intercept multiple Stockbit history responses manually.
+2. Save them under `raw/history-backfill/YYYY-MM-DD/`.
+3. Restart the connector or rerun the capture task.
+4. Connector ingests all valid backfill files into `normalized/trades.jsonl` with deterministic dedupe.

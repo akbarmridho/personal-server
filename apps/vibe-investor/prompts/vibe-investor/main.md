@@ -21,23 +21,11 @@ workdir/
 ├── memory/                       # Persistent memory
 │   ├── MEMORY.md                 # Global curated memory (load at session start)
 │   ├── notes/                    # Operational notes
-│   │   ├── portfolio.md          # Portfolio note (inputs + derived summary)
-│   │   ├── portfolio_inputs/     # Canonical portfolio snapshots
-│   │   │   └── {DATE}.json       # Minimal inputs only (cash + positions)
 │   │   ├── thesis.md             # Thesis index (active + inactive)
 │   │   └── watchlist.md          # Stocks under observation
 │   ├── runs/
 │   │   └── {DATE}/
 │   │       └── {TIME}_{WORKFLOW}.json  # Successful top-level workflow logs
-│   ├── imports/
-│   │   └── stockbit/            # Raw imported Stockbit captures for audit/replay
-│   ├── portfolio/
-│   │   ├── trade_events/        # Append-only normalized trade ledger shards
-│   │   ├── derived/             # Machine-readable computed portfolio outputs
-│   │   └── sync_state.json      # Portfolio import/sync metadata
-│   ├── scripts/                  # Persistent utility scripts for memory workflows
-│   │   ├── portfolio_ops.py      # Deterministic portfolio checks and derived metrics
-│   │   └── stockbit_portfolio_sync.py # Raw Stockbit import -> normalized portfolio sync
 │   ├── symbols/                  # Per-symbol notes
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
 │   ├── theses/
@@ -63,17 +51,10 @@ Read `memory/MEMORY.md` at session start to pick up context from past work. Duri
 
 Portfolio memory rules:
 
-- For portfolio updates, store canonical inputs in `memory/notes/portfolio_inputs/{DATE}.json`.
-- Default schema is minimal: `as_of`, `cash`, and `positions[]` with `symbol`, `lots`, `avg`, `last`.
-- `memory/notes/portfolio_inputs/*.json` is the temporary source of truth for current holdings until external portfolio automation exists.
-- Store raw imported Stockbit captures under `memory/imports/stockbit/`. These are audit/replay inputs, not primary read targets for the LLM.
-- Store append-only normalized trade events under `memory/portfolio/trade_events/{YYYY-MM}.jsonl`.
-- Store computed portfolio machine outputs under `memory/portfolio/derived/latest.json`.
-- Store portfolio import metadata under `memory/portfolio/sync_state.json`.
-- Do not store raw broker/API payloads unless the user explicitly asks for raw payload archival.
-- Compute derived values (market value, P/L, weights, concentration) programmatically from the input snapshot; do not treat manually typed derived numbers as source of truth.
-- In `memory/notes/portfolio.md`, record the input source path and the requested input table; add derived summaries only when needed and clearly mark them as computed.
-- Portfolio tracking automations should read normalized snapshots and derived outputs first. Read raw imports only when debugging ingestion or replaying a sync.
+- Portfolio raw and normalized machine data live outside workspace memory under `AI_CONNECTOR_DATA_ROOT`.
+- Use custom tools to access portfolio state and trade history; do not treat raw broker/API payloads as normal reading targets.
+- Do not create generated portfolio summary files in memory. Present current portfolio state in chat when needed.
+- Portfolio checks remain part of the `portfolio-management` skill and use deterministic repo-owned scripts, not memory scripts.
 - Store market-hours execution checklists and action bullets in `memory/sessions/{DATE}.md`.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Run log schema is strict: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.
@@ -85,6 +66,20 @@ Portfolio memory rules:
 - Keep only real symbols in `memory/symbols/`.
 
 By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check` and `digest-sync`, memory file updates are part of execution and should be written during the workflow.
+
+`desk-check` persistence contract:
+
+- Use subagents for independent scopes to preserve context window.
+- Parent agent owns orchestration, final synthesis, memory updates to notes/thesis/session files, and the final success run log.
+- Subagents may use `work/` for temporary files only.
+- Final `desk-check` artifacts must be written under durable memory paths before subagents return.
+- Per-symbol outputs go to `memory/analysis/symbols/{SYMBOL}/{TODAY}/`.
+- Required per-symbol desk-check files:
+  - `technical.md`
+  - `narrative.md`
+  - important retained chart/evidence artifacts (`*.png`, context/evidence JSON if needed)
+- Top-down market outputs go to `memory/analysis/market/{TODAY}/`.
+- Parent success run log `artifacts` should reference the actual memory paths produced in the run, not scratch files under `work/`.
 
 ## Skills
 
@@ -115,10 +110,11 @@ Command-surface rule:
 
 `desk-check` defaults:
 
-- Coverage universe: holdings from the latest `memory/notes/portfolio_inputs/*.json`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
+- Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
 - Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day.
 - Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
-- If the latest portfolio snapshot is stale relative to today, warn clearly in output and in the session log, but continue using the latest snapshot.
+- If portfolio data is missing or malformed, fail fast.
+- Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
 
 `news-digest` defaults:
 
@@ -210,6 +206,12 @@ DEEP modules:
 - `corp_actions`: optional corporate action events (can be missing/empty, ignore when unavailable)
 
 Treat this as JSON only, never as CSV/text table. Use JSON parsing (`pd.read_json`, `json.load`, etc.).
+
+**Portfolio tools (read-only):**
+
+- `portfolio_state({ include_positions?, include_weights? })`
+- `portfolio_trade_history({ symbol?, date_from?, date_to?, commands?, limit? })`
+- `portfolio_symbol_trade_journey({ symbol, date_from?, date_to? })`
 
 **Large document extraction:** `deep-doc-extract` — analyze one or more large document sources (`sources`) against a specific `goal`. Use for heavy, case-by-case documents (e.g., laporan keuangan, public expose, keterbukaan informasi), especially when files are long and manual reading would be inefficient. Deep here mean **large context window** and **large context files**, not **intelligence**. This tool use cost efficient multimodal model to perform specific information extraction from a set of sources. So, be extra careful and specific when specifying your goal.
 

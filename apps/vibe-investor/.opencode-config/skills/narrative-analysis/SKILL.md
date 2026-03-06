@@ -20,6 +20,12 @@ Workflow routing defaults:
 - `news-digest`: run a broader reading-oriented market and symbol digest using the latest successful `news-digest` window.
 - `digest-sync`: use the latest digest artifact as the source document and update memory only for evidence-backed changes.
 
+Desk-check persistence:
+
+- For symbol-level desk-check narrative review, save the retained output to `memory/analysis/symbols/{SYMBOL}/{TODAY}/narrative.md`.
+- For top-down desk-check market review, save the retained output under `memory/analysis/market/{TODAY}/`.
+- Do not leave final desk-check narrative outputs only in `work/`.
+
 ## Concepts And School Of Thought
 
 - Classify the narrative regime first (theme, turnaround, corporate action, policy, index agenda, or hype) before discussing upside.
@@ -125,6 +131,7 @@ Produce output per `output-report-template.md`:
 
 - For full analysis, fetch all data sources in parallel.
 - For `desk-check`, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
+- For `desk-check`, write retained narrative outputs to the appropriate `memory/analysis/...` path before returning to the parent agent.
 - For `news-digest`, include market regime, macro context, and reading recommendations in addition to symbol updates.
 - Use fail-fast behavior: if document/news retrieval fails, stop and report the missing dependency.
 - Load specialized references only when the mechanism is thesis-critical, not by default.

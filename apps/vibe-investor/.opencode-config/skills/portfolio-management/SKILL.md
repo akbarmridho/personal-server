@@ -17,7 +17,8 @@ Command-surface rule:
 
 - Do not assume dedicated `pm-*` commands exist.
 - This skill is normally invoked as an internal subsystem from `desk-check`.
-- Use the latest `memory/notes/portfolio_inputs/*.json` snapshot as the temporary source of truth for holdings until external portfolio automation exists.
+- Use `portfolio_state` as the source of truth for current holdings.
+- Use `portfolio_trade_history` and `portfolio_symbol_trade_journey` for trade-history review.
 
 ## Concepts And School Of Thought
 
@@ -43,6 +44,9 @@ Command-surface rule:
 
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
+| `portfolio_state` | Current holdings, cash, equity, unrealized state | Stop |
+| `portfolio_trade_history` | Recent actions, realized history slices | Stop |
+| `portfolio_symbol_trade_journey` | Symbol-level lifecycle review and postmortem context | Stop |
 | `get-stock-keystats` | Current price, key stats for P&L and sizing | Stop |
 | `get-stock-financials` | Dividend checks, fundamental monitoring | Stop |
 | `fetch-ohlcv` | Rolling return/correlation, rebalance diagnostics | Stop |
@@ -55,7 +59,6 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 | File | Purpose |
 |------|---------|
-| `memory/notes/portfolio.md` | Open and closed positions, P&L tracking |
 | `memory/notes/watchlist.md` | Status-driven symbols registry and trigger conditions |
 | `memory/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
 | `memory/sessions/{DATE}.md` | Session logs and next actions |
@@ -114,15 +117,23 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 1. Load `review-watchlist-and-session-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
 3. Read the latest successful `memory/runs/*/*_desk-check.json` if it exists to understand review continuity.
-4. Use the latest `memory/notes/portfolio_inputs/*.json` snapshot as holdings input. If missing, stop. If stale, warn and continue.
-5. Fetch current prices via `get-stock-keystats` for all held positions (parallel).
-6. For each position: check thesis status, stop levels, sizing compliance.
-7. Check portfolio-level: heat, correlation, 50:30:10, sector limits.
-8. Extend coverage to watchlist symbols in `READY` plus leader names from `memory/notes/watchlist.md`.
-9. Update watchlist statuses.
-10. Write session log to `memory/sessions/{DATE}.md`.
+4. Call `portfolio_state` for holdings input. If missing or malformed, stop.
+5. Run the bundled deterministic checks script:
 
-Checklist: all holdings reviewed, sizing compliance checked, correlation checked, heat calculated, watchlist updated, session logged, stale snapshot warning recorded when applicable.
+```bash
+python "$OPENCODE_CONFIG_DIR/skills/portfolio-management/scripts/portfolio_checks.py" --symbols-root memory/symbols
+```
+
+6. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
+7. For each position: check thesis status, stop levels, sizing compliance.
+8. Check portfolio-level: concentration, sizing flags, and stop-trigger candidates from the deterministic checks output.
+9. Extend coverage to watchlist symbols in `READY` plus leader names from `memory/notes/watchlist.md`.
+10. In delegated symbol reviews, save retained artifacts under `memory/analysis/symbols/{SYMBOL}/{DATE}/`.
+11. Save top-down market artifacts under `memory/analysis/market/{DATE}/`.
+12. Update watchlist statuses.
+13. Write session log to `memory/sessions/{DATE}.md`.
+
+Checklist: all holdings reviewed, deterministic checks run, sizing compliance checked, watchlist updated, session logged.
 
 ### Position Exit
 
@@ -149,6 +160,7 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 
 - For `desk-check`, treat this skill as an internal subsystem and coordinate with `technical-analysis` and `narrative-analysis`.
 - Run required data fetches in parallel when the task is a full portfolio or position review.
+- Use bundled deterministic scripts for repeatable portfolio math; do not rely on workspace memory scripts.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
 - Check regime gate before any new long exposure.

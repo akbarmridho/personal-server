@@ -40,15 +40,8 @@ $OPENCODE_CWD/
 ├── memory/                       # Persistent memory
 │   ├── MEMORY.md                 # Global curated memory
 │   ├── notes/
-│   │   ├── portfolio.md          # Portfolio summary from latest snapshot
-│   │   ├── portfolio_inputs/     # Manual JSON portfolio snapshots
 │   │   ├── thesis.md             # Thesis index
 │   │   └── watchlist.md          # Stocks under observation
-│   ├── imports/                  # Raw imported broker/API captures
-│   │   └── stockbit/
-│   ├── portfolio/                # Normalized trade ledger + derived outputs
-│   │   ├── trade_events/
-│   │   └── derived/
 │   ├── runs/                     # Successful workflow run logs
 │   ├── symbols/
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
@@ -72,14 +65,16 @@ $OPENCODE_CWD/
 - `/ta {SYMBOL} {INTENT}`
   - Manual technical deep dive when one symbol needs closer review.
 
-Portfolio snapshots are manual for now. Keep the latest canonical input in `memory/notes/portfolio_inputs/{DATE}.json`. `desk-check` reads the latest snapshot, fails fast if none exists, and warns if it is stale.
+Portfolio state and trade history come from connector-owned normalized files under `AI_CONNECTOR_DATA_ROOT`, exposed to the agent through custom tools.
 
-For automated portfolio ingestion, keep raw Stockbit captures separate from the canonical workspace files:
+Connector-owned data root:
 
-- raw imports: `memory/imports/stockbit/`
-- normalized ledger: `memory/portfolio/trade_events/`
-- computed machine summary: `memory/portfolio/derived/latest.json`
-- deterministic sync script: `memory/scripts/stockbit_portfolio_sync.py`
+- `AI_CONNECTOR_DATA_ROOT=/Users/akbar.maulana.ridho/vibe-investing-data/client-connector-data`
+
+Normalized files used by `vibe-investor`:
+
+- `stockbit/normalized/latest_portfolio.json`
+- `stockbit/normalized/trades.jsonl`
 
 ## Quick Setup
 
@@ -94,7 +89,8 @@ pnpm install
 cp .env.example .env
 # Edit .env:
 #   OPENROUTER_API_KEY=your_key
-#   OPENCODE_CWD=/path/to/workspace
+#   OPENCODE_CWD=/path/to/vibe-investing-data/opencode-run
+#   AI_CONNECTOR_DATA_ROOT=/path/to/vibe-investing-data/client-connector-data
 
 # 3. Initialize workspace memory
 ./scripts/init-memory.sh
@@ -124,10 +120,7 @@ Skills are loaded as tool results and are protected from session compaction — 
 Filesystem-based memory using markdown files.
 
 - **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
-- **`memory/notes/`** — Portfolio summary, manual portfolio snapshots, thesis index, watchlist
-- **`memory/imports/stockbit/`** — Raw imported Stockbit payloads for audit/replay
-- **`memory/portfolio/trade_events/`** — Append-only normalized trade ledger
-- **`memory/portfolio/derived/`** — Machine-readable portfolio outputs
+- **`memory/notes/`** — Thesis index and watchlist
 - **`memory/runs/`** — One JSON log per successful top-level workflow run
 - **`memory/symbols/`** — Per-symbol trading plans, theses, key levels
 - **`memory/analysis/`** — Dated analysis outputs organized by symbol
@@ -149,6 +142,18 @@ One-off extraction for PDFs/images without embeddings. Pass only:
 
 The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK.
 
+### portfolio_state
+
+Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`.
+
+### portfolio_trade_history
+
+Reads normalized trade events from `AI_CONNECTOR_DATA_ROOT` with optional symbol/date/command filters.
+
+### portfolio_symbol_trade_journey
+
+Reconstructs one symbol's normalized trade lifecycle from the connector-owned trade ledger.
+
 ## Configuration
 
 ### Config Placeholders
@@ -164,6 +169,7 @@ The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK
 |----------|----------|-------------|
 | `OPENROUTER_API_KEY` | Yes | OpenRouter API key |
 | `OPENCODE_CWD` | Yes | Workspace directory (memory, work files) |
+| `AI_CONNECTOR_DATA_ROOT` | No | Connector-owned data root (default: sibling `client-connector-data` next to `OPENCODE_CWD`) |
 | `OPENCODE_DATA_HOME` | No | Session storage (default: `~/.local/share/vibe-investor`) |
 | `OPENCODE_PORT` | No | Web UI port (default: 4096) |
 | `OPENCODE_HOSTNAME` | No | Web UI hostname (default: 0.0.0.0) |
