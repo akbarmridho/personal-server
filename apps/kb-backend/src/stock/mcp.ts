@@ -185,7 +185,7 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-stock-profile",
     description:
-      "Returns an enriched company profile for a stock symbol. Uses Stockbit profile as baseline and grounded web research for updates. If not cached, execution may take a while while research completes.",
+      "Returns an enriched company profile for a stock symbol. Uses Stockbit profile as baseline and grounded web research for updates. Execution may take a while while research completes.",
     parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
       const symbol = normalizeAndValidateSymbol(args.symbol);
@@ -285,7 +285,7 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-stock-governance",
     description:
-      "Returns governance data for a specific stock symbol including management, executives, ownership structure, and insider activity.",
+      "Returns governance data for a specific stock symbol including management, major shareholders, holders above 1%, beneficial owners, and insider activity.",
     parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
       const symbol = normalizeAndValidateSymbol(args.symbol);

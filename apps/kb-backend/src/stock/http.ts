@@ -149,7 +149,7 @@ export const setupStockRoutes = () =>
           tags: ["Stock Fundamentals"],
           summary: "Get enriched stock company profile",
           description:
-            "Returns an enriched markdown company profile from Stockbit baseline data + grounded web research. Uses KV cache when available; cache miss may take longer while research completes.",
+            "Returns an enriched markdown company profile from Stockbit baseline data + grounded web research. Execution may take a while while research completes.",
         },
       },
     )
@@ -271,7 +271,7 @@ export const setupStockRoutes = () =>
           tags: ["Stock Fundamentals"],
           summary: "Get stock ownership structure",
           description:
-            "Returns major shareholders and ownership distribution including institutional and insider holdings",
+            "Returns major shareholders, holders above 1%, beneficial owners, shareholder trend data, and insider holdings",
         },
       },
     )

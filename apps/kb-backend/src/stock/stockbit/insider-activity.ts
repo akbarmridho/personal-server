@@ -1,5 +1,3 @@
-import dayjs from "dayjs";
-import { KV } from "../../infrastructure/db/kv.js";
 import type { BaseStockbitResponse } from "./auth.js";
 import { stockbitGetJson } from "./client.js";
 
@@ -104,42 +102,33 @@ export const getInsiderActivity = async (input: {
   symbol: string;
   maxPage: number;
 }) => {
-  const rawData = await KV.getOrSet(
-    `stockbit.insider.${input.symbol}`,
-    async () => {
-      const movements: any[] = [];
+  const movements: any[] = [];
 
-      let page = 1;
-      const maxPage = input.maxPage ? input.maxPage : 5;
+  let page = 1;
+  const maxPage = input.maxPage ? input.maxPage : 5;
 
-      while (true) {
-        const data = await stockbitGetJson<BaseStockbitResponse<{
-          is_more: boolean;
-          movement: any[];
-        }>>(
-          `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.symbol}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
-        );
+  while (true) {
+    const data = await stockbitGetJson<BaseStockbitResponse<{
+      is_more: boolean;
+      movement: any[];
+    }>>(
+      `https://exodus.stockbit.com/insider/company/majorholder?symbols=${input.symbol}&page=${page}&limit=20&action_type=ACTION_TYPE_UNSPECIFIED&source_type=SOURCE_TYPE_UNSPECIFIED`,
+    );
 
-        movements.push(...data.data.movement);
+    movements.push(...data.data.movement);
 
-        if (!data.data.is_more) {
-          break;
-        }
+    if (!data.data.is_more) {
+      break;
+    }
 
-        page++;
+    page++;
 
-        if (page > maxPage) {
-          break; // prevent from fetching too much page
-        }
-      }
+    if (page > maxPage) {
+      break; // prevent from fetching too much page
+    }
+  }
 
-      return movements;
-    },
-    dayjs().add(3, "hour").toDate(),
-    true,
-  );
-
-  const data = transformInsiderData(rawData as any);
+  const data = transformInsiderData(movements);
 
   return data;
 };

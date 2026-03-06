@@ -1,21 +1,13 @@
-import dayjs from "dayjs";
-import { KV } from "../../infrastructure/db/kv.js";
-import type { JsonObject, JsonValue } from "../../infrastructure/db/types.js";
+import type { JsonObject } from "../../infrastructure/db/types.js";
 import { removeKeysRecursive } from "../utils.js";
 import { stockbitGetJson } from "./client.js";
 
-export const getStockProfile = async (symbol: string) => {
-  const rawData = await KV.getOrSet(
-    `stockbit.profile.${symbol}`,
-    async () => {
-      const data = await stockbitGetJson(
-        `https://exodus.stockbit.com/emitten/${symbol}/profile`,
-      );
+const removeIdsFromArray = (value: unknown) =>
+  Array.isArray(value) ? removeKeysRecursive(value, ["id"]) : [];
 
-      return data as JsonValue;
-    },
-    dayjs().add(1, "week").toDate(),
-    true,
+export const getStockProfile = async (symbol: string) => {
+  const rawData = await stockbitGetJson<JsonObject>(
+    `https://exodus.stockbit.com/emitten/${symbol}/profile`,
   );
 
   const data = (rawData as JsonObject).data as Record<string, any>;
@@ -33,11 +25,21 @@ export const getStockProfile = async (symbol: string) => {
   return {
     background: data.background,
     key_executive: transformKeyExecutive(data.key_executive),
-    shareholder_director_commissioner: removeKeysRecursive(
+    shareholder_director_commissioner: removeIdsFromArray(
       data.shareholder_director_commissioner,
-      ["id"],
     ),
-    shareholder: removeKeysRecursive(data.shareholder, ["id"]),
+    shareholder: removeIdsFromArray(data.shareholder),
+    shareholder_one_percent: data.shareholder_one_percent
+      ? {
+          shareholder: removeIdsFromArray(data.shareholder_one_percent.shareholder),
+          last_updated: data.shareholder_one_percent.last_updated,
+        }
+      : undefined,
+    beneficiary: Array.isArray(data.beneficiary)
+      ? data.beneficiary
+          .map((item) => item?.name)
+          .filter((name): name is string => Boolean(name))
+      : [],
     subsidiary: data.subsidiary,
     shareholder_numbers: data.shareholder_numbers,
   };

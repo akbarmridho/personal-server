@@ -1,6 +1,3 @@
-import dayjs from "dayjs";
-import { KV } from "../../infrastructure/db/kv.js";
-import type { JsonValue } from "../../infrastructure/db/types.js";
 import { stockbitGetJson } from "./client.js";
 
 export interface Keystats {
@@ -37,17 +34,8 @@ export interface Keystats {
 }
 
 export const getKeystats = async (symbol: string) => {
-  const rawData = await KV.getOrSet(
-    `stockbit.keystats.${symbol}`,
-    async () => {
-      const data = await stockbitGetJson(
-        `https://exodus.stockbit.com/keystats/ratio/v1/${symbol}?year_limit=10`,
-      );
-
-      return data as JsonValue;
-    },
-    dayjs().add(3, "hour").toDate(),
-    true,
+  const rawData = await stockbitGetJson<any>(
+    `https://exodus.stockbit.com/keystats/ratio/v1/${symbol}?year_limit=10`,
   );
 
   const data = rawData as any;

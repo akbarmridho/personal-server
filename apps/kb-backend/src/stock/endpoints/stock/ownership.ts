@@ -12,6 +12,8 @@ export const getStockOwnership = async (rawSymbol: string) => {
 
   return {
     major_shareholders: companyProfile.shareholder,
+    shareholders_above_one_percent: companyProfile.shareholder_one_percent,
+    beneficial_owners: companyProfile.beneficiary,
     shareholder_numbers: companyProfile.shareholder_numbers,
     insiders,
   };

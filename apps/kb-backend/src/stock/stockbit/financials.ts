@@ -1,7 +1,4 @@
 import * as cheerio from "cheerio";
-import dayjs from "dayjs";
-import { KV } from "../../infrastructure/db/kv.js";
-import type { JsonValue } from "../../infrastructure/db/types.js";
 import { formatHtml, htmlToMarkdown } from "../../utils/html.js";
 import type { BaseStockbitResponse } from "./auth.js";
 import { stockbitGetJson } from "./client.js";
@@ -199,17 +196,10 @@ export const getFinancials = async (input: {
   reportType: "income-statement" | "balance-sheet" | "cash-flow";
   statementType: "quarterly" | "annually" | "ttm";
 }) => {
-  const rawData = await KV.getOrSet(
-    `stockbit.financials.${input.reportType}.${input.statementType}.${input.symbol}`,
-    async () => {
-      const data = await stockbitGetJson(
-        `https://exodus.stockbit.com/findata-view/company/financial?symbol=${input.symbol}&data_type=1&report_type=${mapper.reportType[input.reportType]}&statement_type=${mapper.statementType[input.statementType]}`,
-      );
-
-      return sanitizeJson(data) as JsonValue;
-    },
-    dayjs().add(3, "hour").toDate(),
-    true,
+  const rawData = sanitizeJson(
+    await stockbitGetJson(
+      `https://exodus.stockbit.com/findata-view/company/financial?symbol=${input.symbol}&data_type=1&report_type=${mapper.reportType[input.reportType]}&statement_type=${mapper.statementType[input.statementType]}`,
+    ),
   );
 
   const data = rawData as any as BaseStockbitResponse<{
