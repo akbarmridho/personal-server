@@ -123,9 +123,7 @@ Produce output per `output-report-template.md`:
 ## Execution Defaults
 
 - For full analysis, fetch all data sources in parallel.
-- For `desk-check`, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
-- For `desk-check`, write retained narrative outputs to the appropriate `memory/analysis/...` path before returning to the parent agent.
-- For `news-digest`, include market regime, macro context, and reading recommendations in addition to symbol updates.
+- When invoked by a parent workflow, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting. Write retained outputs to the path specified by the active workflow.
 - Use fail-fast behavior: if document/news retrieval fails, stop and report the missing dependency.
 - Load specialized references only when the mechanism is thesis-critical, not by default.
 - All output verdicts and labels must use values from `enums-and-glossary.md`.

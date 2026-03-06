@@ -10,7 +10,6 @@ This skill is for swing and longer-horizon investing (days to months), not intra
 - Primary thesis: `daily[]`
 - Tactical acceptance timing: `intraday[]` 60m (last 7 days)
 - Context events: optional `corp_actions[]` (ignore when unavailable)
-- Do not rescale daily candles into weekly candles.
 
 ## Analysis Modes (Human Workflow)
 
@@ -27,13 +26,6 @@ Mode requirements:
 - `UPDATE`: include previous-analysis context and mandatory delta section.
 - `THESIS_REVIEW`: focus on thesis status and invalidation triggers.
 - `POSTMORTEM`: include what failed, what was missed, and rule improvements.
-
-`desk-check` default:
-
-- When technical analysis is invoked inside `desk-check`, default to `THESIS_REVIEW`.
-- Scope is review-first: thesis status, invalidation level, action bias, and what changed since the prior saved view.
-- Keep the output concise unless the chart is materially conflicted.
-- In `desk-check`, final retained outputs must be written under `memory/analysis/symbols/{SYMBOL}/{TODAY}/`, not left in `work/`.
 
 ## Preset Policy
 
@@ -102,14 +94,9 @@ Use `fetch-ohlcv` as the only chart-data source.
 - Optional array: `corp_actions[]`
 
 If any required array is missing or empty, stop analysis and return dependency failure.
-If `fetch-ohlcv` errors, stop analysis. Do not retry with alternate sources.
+If `fetch-ohlcv` errors, stop analysis.
 
-Desk-check persistence override:
-
-- `fetch-ohlcv` raw JSON may still be written under `work/`.
-- For `desk-check`, all retained technical outputs must be written under `memory/analysis/symbols/{SYMBOL}/{TODAY}/`.
-- Use the technical memory path as the `--outdir` for deterministic context/chart generation when the artifact should be kept.
-- Evidence references in desk-check reports should point to the retained memory artifact paths.
+When the active workflow specifies a retained output directory (e.g., `memory/analysis/symbols/{SYMBOL}/{TODAY}/`), override `--outdir` for deterministic context/chart generation to write artifacts there. Raw `fetch-ohlcv` JSON may still go to `work/`.
 
 Expected fields:
 
@@ -149,7 +136,7 @@ python scripts/build_ta_context.py \
 
 - Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
 - Output contract: `work/{SYMBOL}_ta_context.json` (or `--output` path) with deterministic fields for regime, levels, MA posture, IB state, structure events, and liquidity.
-- In `desk-check`, override `--outdir` to `memory/analysis/symbols/{SYMBOL}/{TODAY}/` for retained context output.
+- When the active workflow requires retained output, override `--outdir` to the workflow's artifact path.
 - Available modules for `--modules`:
   - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity, divergence, price-volume summary, distribution days, informed money, red flags, Wyckoff context, spring detection, trendline sweep detection
   - `vpvr`: adds `poc/vah/val/hvn/lvn` context
@@ -173,7 +160,7 @@ python scripts/generate_ta_charts.py \
 - Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
 - Input JSON contract at that path: required arrays `daily[]`, `intraday[]`; optional `corp_actions[]`.
 - Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
-- In `desk-check`, override `--outdir` to `memory/analysis/symbols/{SYMBOL}/{TODAY}/` for retained chart artifacts.
+- When the active workflow requires retained output, override `--outdir` to the workflow's artifact path.
 - Time-window mode: `--range-mode auto|fixed` (`auto` selects a focused daily window from recent structure/imbalance context; intraday uses full available candles).
 - Available modules for `--modules`:
   - `core`: required baseline artifacts (`daily_structure_sr`, `daily_structure_fib`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
@@ -257,8 +244,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Parse JSON directly. Never use CSV readers.
 - Declare `Mode` at top of output: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`.
 - For non-initial mode, require previous analysis reference (path/date) and prior thesis snapshot.
-- Inside `desk-check`, prefer `THESIS_REVIEW` over `UPDATE` unless the user explicitly requests a broader refresh.
-- Inside `desk-check`, save final markdown and retained chart/context artifacts to `memory/analysis/symbols/{SYMBOL}/{TODAY}/`.
+- When invoked by a parent workflow, use the mode and output paths specified by that workflow.
 - After every technical analysis response, add one short plain-language wrap-up that restates the bias, key level, and immediate action (`BUY`/`SELL`/`HOLD`/`WAIT`) without jargon.
 - Daily drives thesis. Intraday refines timing and acceptance only.
 - Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
@@ -280,7 +266,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Every actionable output must include explicit invalidation and stop-loss.
 - Always include generated chart artifacts in output and reference each artifact in evidence.
 - For standalone/manual runs, `work/{SYMBOL}_*.png` is acceptable.
-- For `desk-check`, retained artifacts must use `memory/analysis/symbols/{SYMBOL}/{TODAY}/{SYMBOL}_*.png`.
+- When the active workflow specifies a retained artifact path, use that path instead of `work/`.
 - Core chart artifacts (required every run):
   - `work/{SYMBOL}_daily_structure_sr.png`
   - `work/{SYMBOL}_daily_structure_fib.png`

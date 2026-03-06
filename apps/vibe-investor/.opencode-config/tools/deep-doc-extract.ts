@@ -267,17 +267,7 @@ export default tool({
 
 Your job: examine the attached source files and extract ONLY what was requested.
 
-When to use you:
-- Large, manual-heavy documents (laporan keuangan, public expose, keterbukaan informasi, long filings)
-- Extracting specific information or summaries from PDFs/images/diagrams
-- When analyzed/extracted data is needed, not literal raw file contents
-
-When NOT to use you:
-- Source code or plain text files needing exact contents (use Read)
-- Files that need literal copy for editing
-- Simple file reading where no interpretation is needed
-
-How you work:
+Rules:
 1. Receive a goal describing what to extract
 2. Read and analyze the attached files deeply
 3. Return ONLY the relevant extracted information

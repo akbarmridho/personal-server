@@ -50,10 +50,10 @@ Required:
 - `AI_CLIENT_CONNECTOR_PUBLIC_PROXY_URL`
 - `GOLDEN_ARTICLE_URL`
 - `INNGEST_URL`
+- `AI_CONNECTOR_DATA_ROOT` (base path for raw and normalized Stockbit data)
 
 Optional:
 
-- `AI_CONNECTOR_DATA_ROOT` (required, used as the base path for raw and normalized Stockbit data)
 - `PLAYWRIGHT_CDP_URL` (default `http://127.0.0.1:9222`)
 - `PLAYWRIGHT_BROWSER_PATH`
 - `PLAYWRIGHT_USER_DATA_DIR`

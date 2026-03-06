@@ -77,22 +77,22 @@
     "ta": {
       "description": "Technical analysis (arg1=symbol, remaining args=user intent sentence)",
       "agent": "vibe-investor",
-      "template": "Run technical-analysis using command input: $ARGUMENTS.\n\nInput contract:\n- First token is symbol.\n- Remaining text is required user intent sentence.\n\nRules:\n- If intent sentence is missing, fail and ask user to provide intent sentence.\n- Always check memory for the latest prior technical analysis for this symbol before deciding mode.\n- If no prior analysis exists in memory, run as INITIAL.\n- If prior analysis exists, run as UPDATE.\n- If intent sentence asks thesis-status check, run as THESIS_REVIEW.\n- If intent sentence asks lesson/mistake review after exit, run as POSTMORTEM.\n\nLens: UNIFIED by default unless explicitly requested otherwise.\nReturn concise actionable output: bias, invalidation, trigger levels, and changes vs prior analysis found in memory."
+      "template": "Run `technical-analysis` for the symbol and intent from command input: $ARGUMENTS.\n\nFirst token is symbol. Remaining text is required user intent sentence. If intent sentence is missing, fail and ask user to provide it."
     },
     "desk-check": {
       "description": "Main operator routine for holdings, watchlist, market context, and portfolio discipline",
       "agent": "vibe-investor",
-      "template": "Run the shared `desk-check` workflow defined in the base prompt.\n\nCommand input: $ARGUMENTS\n\nUse `portfolio-management`, `technical-analysis`, and `narrative-analysis` as internal subsystems. Apply explicit operator instructions from command input as workflow-scoped overrides only when they are compatible with the shared workflow contract. Valid overrides can narrow symbol scope, tighten the review window, or change emphasis/output focus, but they must not weaken mandatory coverage, evidence requirements, continuity, or success run-log rules.\n\nReturn a concise operator summary after the workflow completes."
+      "template": "Run the `desk-check` workflow. Command input: $ARGUMENTS"
     },
     "news-digest": {
       "description": "Reading-oriented digest from full memory scope plus all new high-signal documents",
       "agent": "vibe-investor",
-      "template": "Run the shared `news-digest` workflow defined in the base prompt.\n\nCommand input: $ARGUMENTS\n\nUse `narrative-analysis` for digest synthesis. Apply explicit operator instructions from command input as workflow-scoped overrides only when they are compatible with the shared workflow contract. Valid overrides can narrow the symbol set, tighten the digest window, or request emphasis on specific themes, but they must not weaken required memory context, document-collection completeness, artifact persistence, or success run-log rules.\n\nReturn a concise summary of the digest themes after the workflow completes."
+      "template": "Run the `news-digest` workflow. Command input: $ARGUMENTS"
     },
     "digest-sync": {
       "description": "Sync thesis/watchlist/session memory from the latest news digest",
       "agent": "vibe-investor",
-      "template": "Run the shared `digest-sync` workflow defined in the base prompt.\n\nCommand input: $ARGUMENTS\n\nUse `narrative-analysis` to interpret the latest digest artifact. Apply explicit operator instructions from command input as workflow-scoped overrides only when they are compatible with the shared workflow contract. Valid overrides can narrow symbol focus or request emphasis on certain thesis/watchlist areas, but they must not weaken input resolution, evidence rules, mutation scope, or success run-log rules.\n\nReturn a concise summary of changed files and key updates after the workflow completes."
+      "template": "Run the `digest-sync` workflow. Command input: $ARGUMENTS"
     }
   },
   "mcp": {

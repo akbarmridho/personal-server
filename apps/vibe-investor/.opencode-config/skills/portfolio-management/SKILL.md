@@ -126,11 +126,11 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 python "$OPENCODE_CONFIG_DIR/skills/portfolio-management/scripts/portfolio_checks.py" --symbols-root memory/symbols
 ```
 
-5. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
-6. For each position: check thesis status, stop levels, sizing compliance.
-7. Check portfolio-level: concentration, sizing flags, and stop-trigger candidates from the deterministic checks output.
-8. Extend coverage to watchlist symbols required by the active workflow contract.
-9. Return portfolio findings, watchlist changes, and any required follow-up actions to the parent workflow.
+1. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
+2. For each position: check thesis status, stop levels, sizing compliance.
+3. Check portfolio-level: concentration, sizing flags, and stop-trigger candidates from the deterministic checks output.
+4. Extend coverage to watchlist symbols required by the active workflow contract.
+5. Return portfolio findings, watchlist changes, and any required follow-up actions to the parent workflow.
 
 Checklist: all holdings reviewed, deterministic checks run, sizing compliance checked, portfolio findings returned to the parent workflow.
 
@@ -157,10 +157,10 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 
 ## Execution Defaults
 
-- When used inside `desk-check`, coordinate findings with `technical-analysis` and `narrative-analysis`.
+- When invoked by a parent workflow, coordinate findings with other active skills and return structured results.
 - Run required data fetches in parallel when the task is a full portfolio or position review.
-- Use bundled deterministic scripts for repeatable portfolio math; do not rely on workspace memory scripts.
+- Use bundled deterministic scripts for repeatable portfolio math.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
 - Check regime gate before any new long exposure.
-- Flag any portfolio health warnings from `enums-and-glossary.md` (PM-W01 through PM-W07) when detected during any workflow.
+- Flag any portfolio health warnings from `enums-and-glossary.md` (PM-W01 through PM-W10) when detected during any workflow.

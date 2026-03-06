@@ -2,147 +2,64 @@
 
 Use commands in OpenCode TUI with `/command-name`.
 
-## Main Commands
+## Commands
 
 - `/desk-check`
-  - Main operating routine.
-  - Reviews current holdings, `READY` watchlist names, leader names, and top-down market context.
-  - Uses tool-backed portfolio state plus portfolio-management, technical-analysis, and narrative-analysis internally.
+  - Main operating routine for holdings, `READY` watchlist names, leaders, and market context.
+  - Uses `portfolio-management`, `technical-analysis`, and `narrative-analysis` internally.
+  - Writes retained analysis artifacts, session updates, and a success run log.
 
 - `/news-digest`
-  - Reading-oriented market and thesis digest.
-  - Gathers new high-signal documents since the last successful digest run.
-  - Writes a retained digest artifact and its run log.
-  - Leaves thesis, watchlist, and session memory unchanged.
+  - Builds a reading-oriented digest from new high-signal documents since the last successful digest.
+  - Writes `memory/analysis/market/{TODAY}/news_digest.md` and its success run log.
 
 - `/digest-sync`
-  - Applies the latest digest into memory.
-  - Updates thesis, watchlist, and session files only when the digest contains evidence-backed changes.
+  - Applies the latest digest to thesis, watchlist, and session memory when changes are evidence-backed.
 
 - `/ta {SYMBOL} {INTENT_IN_SENTENCE}`
-  - Manual single-symbol technical workflow.
-  - Use when one ticker needs focused review outside the broader routine.
+  - Focused technical review for one symbol.
+  - Example: `/ta BBCA thesis still intact after recent pullback?`
 
-Examples:
+## Workflow Notes
 
-- `/ta BBCA entry on breakout above 9800, invalidate below 9500`
-- `/ta TLKM thesis still intact after recent pullback?`
-- `/ta ADRO exited, do postmortem and extract mistakes`
+`/desk-check`
 
-## Default Operating Flow
+- Coverage: holdings from `portfolio_state`, watchlist names in `READY`, leaders, and top-down market context
+- Continuity: uses the latest successful `desk-check` run log
+- Main outputs: retained symbol and market artifacts, session updates, success run log
 
-Regular workflow:
+`/news-digest`
 
-1. Run `/desk-check`
-2. Review invalidations, flags, trigger changes, and follow-up actions
-3. Run `/ta ...` only when one symbol needs deeper technical work
+- Coverage: new high-signal documents, market regime, macro context, thesis-relevant developments
+- Main outputs: digest artifact and success run log
 
-Research workflow:
+`/digest-sync`
 
-1. Run `/news-digest`
-2. Read the digest
-3. Run `/digest-sync`
-4. Run `/ta ...` only for symbols that need deeper chart review after the digest
+- Input: latest digest artifact
+- Main outputs: evidence-backed thesis, watchlist, and session updates
+- If evidence is ambiguous, records `Needs Verification`
 
-## `/desk-check`
+`/ta`
 
-What it covers:
+- Modes auto-select from context: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, `POSTMORTEM`
+- Default lens: `UNIFIED`
 
-- current holdings from connector-owned portfolio data
-- watchlist names in `READY`
-- watchlist names marked as leaders
-- IHSG structure/regime
-- macro/news tone
-- leader breadth deterioration
+## Data Sources
 
-What it does:
+- Current holdings come from `portfolio_state`
+- Trade history comes from `portfolio_trade_history`
+- Symbol lifecycle review comes from `portfolio_symbol_trade_journey`
 
-- reads the latest successful `desk-check` run log for continuity
-- uses current portfolio state from the portfolio tool
-- runs deterministic portfolio checks through the `portfolio-management` skill
-- runs technical review in `THESIS_REVIEW` mode
-- runs lightweight narrative delta scan
-- updates only the required memory files
+## Portfolio Backfill
 
-What to expect:
+- Manual Stockbit history backfill files belong under `AI_CONNECTOR_DATA_ROOT/stockbit/raw/history-backfill/YYYY-MM-DD/`
+- Use stable names such as `page-001.json`, `page-002.json`
+- Restart the connector or rerun the capture task after adding files
+- Connector derives deterministic `captured_at` values from the directory date plus the `page-XXX.json` number
 
-- concise actionable output
-- warnings on thesis breaks, stop-risk, sizing/concentration issues, and top-down weakness
-- updated session log and run log when successful
+## Rules
 
-## `/news-digest`
-
-What it covers:
-
-- new high-signal documents since the last successful digest
-- market regime
-- macro context
-- thesis-relevant developments
-- reading recommendations
-
-What it writes:
-
-- `memory/analysis/market/{TODAY}/news_digest.md`
-- `memory/runs/{TODAY}/{HHMMSS}_news-digest.json`
-
-What stays unchanged:
-
-- thesis memory
-- watchlist memory
-- session memory
-
-## `/digest-sync`
-
-What it does:
-
-- reads the latest digest artifact
-- updates thesis/watchlist/session memory only for evidence-backed changes
-- records `Needs Verification` when evidence is ambiguous
-
-Use it after:
-
-- reading the latest digest
-- deciding the digest should be reflected in memory
-
-## `/ta`
-
-`/ta` auto-selects mode:
-
-- no prior saved analysis: `INITIAL`
-- prior saved analysis exists: `UPDATE`
-- thesis-status intent: `THESIS_REVIEW`
-- lesson/mistake review after exit: `POSTMORTEM`
-
-Default lens:
-
-- `UNIFIED`
-
-Use `/ta` for:
-
-- initial chart thesis
-- explicit thesis validation
-- refresh on one specific symbol
-- post-exit review and learning
-
-## Portfolio And Trade Data
-
-Portfolio state is not stored as generated workspace memory files.
-
-Normal usage expectation:
-
-- current holdings come from `portfolio_state`
-- trade history comes from `portfolio_trade_history`
-- symbol trade lifecycle review comes from `portfolio_symbol_trade_journey`
-
-Implications:
-
-- `/desk-check` fails fast if current normalized portfolio data is missing
-- trade review and postmortem rely on normalized trade history, not manually maintained portfolio notes
-
-## Practical Rules
-
-- Use uppercase 4-letter symbols such as `BBCA`, `TLKM`, `ADRO`.
-- Prefer `/desk-check` as the default routine instead of ad hoc portfolio review.
-- Use `/news-digest` and `/digest-sync` as a pair.
-- Use `/ta` only when one symbol needs deeper manual attention.
-- All workflows fail fast on required dependency failures.
+- Use uppercase 4-letter symbols such as `BBCA`, `TLKM`, `ADRO`
+- Prefer `/desk-check` as the default portfolio routine
+- Use `/news-digest` and `/digest-sync` together when digest findings should update memory
+- All workflows fail fast on required dependency failures
