@@ -9,6 +9,9 @@ const appRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
+const opencodeDataHome = process.env.OPENCODE_DATA_HOME
+  ? path.resolve(process.env.OPENCODE_DATA_HOME)
+  : path.resolve(appRoot, ".opencode-home");
 
 export const env = createEnv({
   server: {
@@ -33,6 +36,7 @@ export const env = createEnv({
     PLAYWRIGHT_BROWSER_PATH: z.string().optional(),
     PLAYWRIGHT_USER_DATA_DIR: z.string().optional(),
     PLAYWRIGHT_PROFILE_DIR: z.string().optional(),
+    OPENCODE_DATA_HOME: z.string().prefault(opencodeDataHome),
 
     STATE_FILE_PATH: z.string().prefault(path.resolve(appRoot, "state.json")),
   },

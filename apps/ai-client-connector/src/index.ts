@@ -6,6 +6,7 @@ import {
 import { runGoldenArticleTaskAtStartup } from "./golden-article/intercept.js";
 import { env } from "./infrastructure/env.js";
 import { runStockbitTaskAtStartup } from "./stockbit/intercept.js";
+import { runStockbitPortfolioCaptureTaskAtStartup } from "./stockbit/portfolio-capture.js";
 import { logger } from "./utils/logger.js";
 
 const host = env.AI_CLIENT_CONNECTOR_HOST;
@@ -27,6 +28,7 @@ await ensureAutomationBrowserReady().catch((error) => {
 
 void runGoldenArticleTaskAtStartup();
 void runStockbitTaskAtStartup();
+void runStockbitPortfolioCaptureTaskAtStartup();
 
 const shutdown = async () => {
   logger.info("Shutdown signal received, closing proxy server");

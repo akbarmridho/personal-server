@@ -44,6 +44,11 @@ $OPENCODE_CWD/
 │   │   ├── portfolio_inputs/     # Manual JSON portfolio snapshots
 │   │   ├── thesis.md             # Thesis index
 │   │   └── watchlist.md          # Stocks under observation
+│   ├── imports/                  # Raw imported broker/API captures
+│   │   └── stockbit/
+│   ├── portfolio/                # Normalized trade ledger + derived outputs
+│   │   ├── trade_events/
+│   │   └── derived/
 │   ├── runs/                     # Successful workflow run logs
 │   ├── symbols/
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
@@ -68,6 +73,13 @@ $OPENCODE_CWD/
   - Manual technical deep dive when one symbol needs closer review.
 
 Portfolio snapshots are manual for now. Keep the latest canonical input in `memory/notes/portfolio_inputs/{DATE}.json`. `desk-check` reads the latest snapshot, fails fast if none exists, and warns if it is stale.
+
+For automated portfolio ingestion, keep raw Stockbit captures separate from the canonical workspace files:
+
+- raw imports: `memory/imports/stockbit/`
+- normalized ledger: `memory/portfolio/trade_events/`
+- computed machine summary: `memory/portfolio/derived/latest.json`
+- deterministic sync script: `memory/scripts/stockbit_portfolio_sync.py`
 
 ## Quick Setup
 
@@ -113,6 +125,9 @@ Filesystem-based memory using markdown files.
 
 - **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
 - **`memory/notes/`** — Portfolio summary, manual portfolio snapshots, thesis index, watchlist
+- **`memory/imports/stockbit/`** — Raw imported Stockbit payloads for audit/replay
+- **`memory/portfolio/trade_events/`** — Append-only normalized trade ledger
+- **`memory/portfolio/derived/`** — Machine-readable portfolio outputs
 - **`memory/runs/`** — One JSON log per successful top-level workflow run
 - **`memory/symbols/`** — Per-symbol trading plans, theses, key levels
 - **`memory/analysis/`** — Dated analysis outputs organized by symbol

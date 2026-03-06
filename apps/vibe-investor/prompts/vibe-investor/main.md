@@ -29,8 +29,15 @@ workdir/
 │   ├── runs/
 │   │   └── {DATE}/
 │   │       └── {TIME}_{WORKFLOW}.json  # Successful top-level workflow logs
+│   ├── imports/
+│   │   └── stockbit/            # Raw imported Stockbit captures for audit/replay
+│   ├── portfolio/
+│   │   ├── trade_events/        # Append-only normalized trade ledger shards
+│   │   ├── derived/             # Machine-readable computed portfolio outputs
+│   │   └── sync_state.json      # Portfolio import/sync metadata
 │   ├── scripts/                  # Persistent utility scripts for memory workflows
-│   │   └── portfolio_ops.py      # Deterministic portfolio checks and derived metrics
+│   │   ├── portfolio_ops.py      # Deterministic portfolio checks and derived metrics
+│   │   └── stockbit_portfolio_sync.py # Raw Stockbit import -> normalized portfolio sync
 │   ├── symbols/                  # Per-symbol notes
 │   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
 │   ├── theses/
@@ -59,9 +66,14 @@ Portfolio memory rules:
 - For portfolio updates, store canonical inputs in `memory/notes/portfolio_inputs/{DATE}.json`.
 - Default schema is minimal: `as_of`, `cash`, and `positions[]` with `symbol`, `lots`, `avg`, `last`.
 - `memory/notes/portfolio_inputs/*.json` is the temporary source of truth for current holdings until external portfolio automation exists.
+- Store raw imported Stockbit captures under `memory/imports/stockbit/`. These are audit/replay inputs, not primary read targets for the LLM.
+- Store append-only normalized trade events under `memory/portfolio/trade_events/{YYYY-MM}.jsonl`.
+- Store computed portfolio machine outputs under `memory/portfolio/derived/latest.json`.
+- Store portfolio import metadata under `memory/portfolio/sync_state.json`.
 - Do not store raw broker/API payloads unless the user explicitly asks for raw payload archival.
 - Compute derived values (market value, P/L, weights, concentration) programmatically from the input snapshot; do not treat manually typed derived numbers as source of truth.
 - In `memory/notes/portfolio.md`, record the input source path and the requested input table; add derived summaries only when needed and clearly mark them as computed.
+- Portfolio tracking automations should read normalized snapshots and derived outputs first. Read raw imports only when debugging ingestion or replaying a sync.
 - Store market-hours execution checklists and action bullets in `memory/sessions/{DATE}.md`.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Run log schema is strict: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, `artifacts`.
