@@ -143,11 +143,11 @@ The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK
 
 ### portfolio_state
 
-Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`, with optional compact summary fields such as concentration and recent actions.
+Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`, with optional compact summary fields such as concentration and a recent-actions preview.
 
 ### portfolio_trade_history
 
-Reads normalized trade history from `AI_CONNECTOR_DATA_ROOT` as raw events or aggregate analytics, depending on `view`.
+Reads normalized trade history from `AI_CONNECTOR_DATA_ROOT` as raw events or realized analytics, depending on `view`.
 
 ### portfolio_symbol_trade_journey
 

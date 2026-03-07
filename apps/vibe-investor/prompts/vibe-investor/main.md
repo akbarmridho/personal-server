@@ -141,7 +141,7 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 **Portfolio tools** (read-only): `portfolio_state`, `portfolio_trade_history`, `portfolio_symbol_trade_journey`. Data comes from connector-owned normalized files under `AI_CONNECTOR_DATA_ROOT`.
 
 - `portfolio_state`: latest portfolio snapshot with optional positions, weights, and compact summary fields such as concentration and recent actions.
-- `portfolio_trade_history`: trade ledger access with filters and `view` modes. Use `view: "events"` for raw rows, `view: "recent_actions"` for compact latest actions, and `view: "realized_stats"` for aggregate realized analytics with optional `group_by`.
+- `portfolio_trade_history`: trade ledger access with filters and `view` modes. Use `view: "events"` for raw rows and recent ledger slices, and `view: "realized_stats"` for aggregate realized analytics with optional `group_by`.
 - `portfolio_symbol_trade_journey`: one-symbol deep context combining normalized trade lifecycle, realized summary, latest action, and current holding state from the latest snapshot.
 
 **Social:** `search-twitter` — IDX stock discussions, sentiment, rumour tracking.

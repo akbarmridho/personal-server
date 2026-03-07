@@ -356,9 +356,7 @@ export const trade_history = tool({
     view: tool.schema
       .string()
       .default("events")
-      .describe(
-        "Output mode: events, recent_actions, or realized_stats.",
-      ),
+      .describe("Output mode: events or realized_stats."),
     symbol: tool.schema
       .string()
       .optional()
@@ -399,8 +397,8 @@ export const trade_history = tool({
     );
 
     const view = args.view.trim().toLowerCase();
-    if (!["events", "recent_actions", "realized_stats"].includes(view)) {
-      throw new Error("view must be one of: events, recent_actions, realized_stats");
+    if (!["events", "realized_stats"].includes(view)) {
+      throw new Error("view must be one of: events, realized_stats");
     }
 
     if (view === "realized_stats") {

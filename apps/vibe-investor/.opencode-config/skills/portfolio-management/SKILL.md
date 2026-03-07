@@ -16,7 +16,7 @@ Use this file as the entrypoint. Do not load every reference by default.
 Tool source of truth:
 
 - Use `portfolio_state` as the source of truth for current holdings, cash, equity, and compact portfolio summary fields such as concentration and recent actions.
-- Use `portfolio_trade_history` for raw trade rows, recent-actions view, and realized analytics depending on `view`.
+- Use `portfolio_trade_history` for raw trade rows and realized analytics depending on `view`.
 - Use `portfolio_symbol_trade_journey` for symbol-level lifecycle review, current-position context, and postmortem setup.
 - If a one-off calculation is still needed after using the portfolio tools, create and run a temporary script under `work/` and treat it as disposable scratch, not as a permanent skill script.
 
@@ -50,7 +50,7 @@ Reference boundary:
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
 | `portfolio_state` | Current holdings, cash, equity, unrealized state, concentration summary, recent actions | Stop |
-| `portfolio_trade_history` | Raw trade rows, recent-actions view, realized history slices and aggregates | Stop |
+| `portfolio_trade_history` | Raw trade rows, realized history slices, and aggregate realized analytics | Stop |
 | `portfolio_symbol_trade_journey` | Symbol-level lifecycle review, current-position context, and postmortem setup | Stop |
 | `get-stock-financials` | Dividend checks, fundamental monitoring | Stop |
 | `fetch-ohlcv` | Rolling return/correlation, rebalance diagnostics | Stop |
@@ -121,7 +121,7 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 1. Load `review-watchlist-and-review-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
 3. Call `portfolio_state` for holdings input and compact summary. If missing or malformed, stop.
-4. Use `portfolio_trade_history` with `view: "recent_actions"` when recent operator behavior matters for the review window.
+4. Use `portfolio_trade_history` with `view: "events"` plus a tight `limit` when recent operator behavior matters for the review window.
 5. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
 6. For each position: check thesis status, stop levels, invalidation quality, and sizing compliance from `portfolio_state`, symbol memory, and trade-history context.
 7. Check portfolio-level: concentration, sizing flags, and recent action context from the tool outputs.
