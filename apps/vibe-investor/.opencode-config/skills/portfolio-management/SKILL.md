@@ -15,8 +15,10 @@ Use this file as the entrypoint. Do not load every reference by default.
 
 Tool source of truth:
 
-- Use `portfolio_state` as the source of truth for current holdings.
-- Use `portfolio_trade_history` and `portfolio_symbol_trade_journey` for trade-history review.
+- Use `portfolio_state` as the source of truth for current holdings, cash, equity, and compact portfolio summary fields such as concentration and recent actions.
+- Use `portfolio_trade_history` for raw trade rows, recent-actions view, and realized analytics depending on `view`.
+- Use `portfolio_symbol_trade_journey` for symbol-level lifecycle review, current-position context, and postmortem setup.
+- If a one-off calculation is still needed after using the portfolio tools, create and run a temporary script under `work/` and treat it as disposable scratch, not as a permanent skill script.
 
 ## Concepts And School Of Thought
 
@@ -47,10 +49,9 @@ Reference boundary:
 
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
-| `portfolio_state` | Current holdings, cash, equity, unrealized state | Stop |
-| `portfolio_trade_history` | Recent actions, realized history slices | Stop |
-| `portfolio_symbol_trade_journey` | Symbol-level lifecycle review and postmortem context | Stop |
-| `get-stock-keystats` | Current price, key stats for P&L and sizing | Stop |
+| `portfolio_state` | Current holdings, cash, equity, unrealized state, concentration summary, recent actions | Stop |
+| `portfolio_trade_history` | Raw trade rows, recent-actions view, realized history slices and aggregates | Stop |
+| `portfolio_symbol_trade_journey` | Symbol-level lifecycle review, current-position context, and postmortem setup | Stop |
 | `get-stock-financials` | Dividend checks, fundamental monitoring | Stop |
 | `fetch-ohlcv` | Rolling return/correlation, rebalance diagnostics | Stop |
 | `search-documents`, `list-documents` | Filings/news monitoring for open positions | Stop |
@@ -119,20 +120,15 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 
 1. Load `review-watchlist-and-review-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
-3. Call `portfolio_state` for holdings input. If missing or malformed, stop.
-4. Run the bundled deterministic checks script:
+3. Call `portfolio_state` for holdings input and compact summary. If missing or malformed, stop.
+4. Use `portfolio_trade_history` with `view: "recent_actions"` when recent operator behavior matters for the review window.
+5. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
+6. For each position: check thesis status, stop levels, invalidation quality, and sizing compliance from `portfolio_state`, symbol memory, and trade-history context.
+7. Check portfolio-level: concentration, sizing flags, and recent action context from the tool outputs.
+8. Extend coverage to watchlist symbols required by the active workflow contract.
+9. Return portfolio findings, watchlist changes, and any required follow-up actions to the parent workflow.
 
-```bash
-python "$OPENCODE_CONFIG_DIR/skills/portfolio-management/scripts/portfolio_checks.py" --symbols-root memory/state/symbols
-```
-
-1. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
-2. For each position: check thesis status, stop levels, sizing compliance.
-3. Check portfolio-level: concentration, sizing flags, and stop-trigger candidates from the deterministic checks output.
-4. Extend coverage to watchlist symbols required by the active workflow contract.
-5. Return portfolio findings, watchlist changes, and any required follow-up actions to the parent workflow.
-
-Checklist: all holdings reviewed, deterministic checks run, sizing compliance checked, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, sizing compliance checked, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
@@ -159,7 +155,7 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 
 - When invoked by a parent workflow, coordinate findings with other active skills and return structured results.
 - Run required data fetches in parallel when the task is a full portfolio or position review.
-- Use bundled deterministic scripts for repeatable portfolio math.
+- Prefer portfolio tools first. Use temporary scripts in `work/` only for one-off calculations that the current tool surface does not provide.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
 - Check regime gate before any new long exposure.

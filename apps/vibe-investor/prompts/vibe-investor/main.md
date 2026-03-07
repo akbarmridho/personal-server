@@ -45,7 +45,8 @@ Read `memory/MEMORY.md` at session start to pick up context from past work. Duri
 Portfolio memory rules:
 
 - Portfolio raw and normalized machine data live outside workspace memory under `AI_CONNECTOR_DATA_ROOT`. Access via custom portfolio tools only.
-- Portfolio checks remain part of the `portfolio-management` skill and use deterministic repo-owned scripts.
+- Portfolio checks remain part of the `portfolio-management` skill and rely on portfolio tools plus durable memory state.
+- If a one-off portfolio calculation is needed and the portfolio tools do not already provide it, create and run a temporary script under `work/` instead of adding a permanent script surface.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
 - Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`, each linking to per-thesis files.
@@ -94,7 +95,7 @@ Workflow ownership:
 - Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
 - Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
 - Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
-- Run order: `portfolio-management` for holdings and discipline checks first, then delegated symbol reviews using `technical-analysis` and `narrative-analysis`, then a delegated top-down market review, then parent synthesis.
+- Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis` and `narrative-analysis`, then a delegated top-down market review, then parent synthesis.
 - Technical analysis defaults to `THESIS_REVIEW` mode inside `desk-check` unless the user explicitly requests a broader refresh.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TODAY}/` and must include at least `technical.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON if needed).
@@ -139,6 +140,10 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 
 **Portfolio tools** (read-only): `portfolio_state`, `portfolio_trade_history`, `portfolio_symbol_trade_journey`. Data comes from connector-owned normalized files under `AI_CONNECTOR_DATA_ROOT`.
 
+- `portfolio_state`: latest portfolio snapshot with optional positions, weights, and compact summary fields such as concentration and recent actions.
+- `portfolio_trade_history`: trade ledger access with filters and `view` modes. Use `view: "events"` for raw rows, `view: "recent_actions"` for compact latest actions, and `view: "realized_stats"` for aggregate realized analytics with optional `group_by`.
+- `portfolio_symbol_trade_journey`: one-symbol deep context combining normalized trade lifecycle, realized summary, latest action, and current holding state from the latest snapshot.
+
 **Social:** `search-twitter` — IDX stock discussions, sentiment, rumour tracking.
 
 **Internet:** `web_search_exa` and `crawling_exa`.
@@ -149,9 +154,7 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 
 Parameter casing (mixed conventions across tools):
 
-- camelCase: `reportType`, `statementType`, `documentId`, `daysOld`, `prioritizeGoldenHandles`, `filing_id` exception: `get-filing` uses `filing_id`
-- snake_case: `report_type`, `last_stream_id`, `date_from`, `date_to`, `source_names`, `pure_sector`
-- Symbols: uppercase 4-letter (e.g., `BBCA`, `TLKM`). `.JK` accepted but prefer plain symbol.
+- Symbols: uppercase 4-letter (e.g., `BBCA`, `TLKM`).
 
 When to use which stock MCP tool:
 
@@ -165,7 +168,9 @@ When to use which stock MCP tool:
 - `search-documents`: semantic retrieval from internal knowledge base.
 - `get-document`: fetch full payload for a selected document id.
 - `get-document-sources`: discover valid `source_names` before filtering by source.
-- `search-twitter`: social sentiment/discussion checks, not official disclosure truth source.
+- `web_search_exa`: external news/source discovery when internal documents do not fully cover the event or external confirmation is needed.
+- `crawling_exa`: fetch the body of selected external pages after discovery when the article/page content materially affects the call.
+- `search-twitter`: social sentiment/discussion checks, secondary to filings, internal documents, and Exa web sources for factual news confirmation.
 
 Reliable call patterns:
 
@@ -176,6 +181,9 @@ Reliable call patterns:
   - If source filtering needed, call `get-document-sources({})` first
   - Then call `list-documents` or `search-documents` with structured filters
   - Then `get-document({ documentId })` for full content
+- External web workflow:
+  - Start `web_search_exa` for external news/source discovery
+  - Then use `crawling_exa` on selected result URLs when page-level evidence matters
 - Financial deep dive:
   - Start `get-stock-keystats({ symbol })`
   - Add targeted `get-stock-financials` calls (by statement/report mode)
@@ -188,6 +196,12 @@ For `search-documents` and `list-documents`:
 - If source filtering needed, call `get-document-sources({})` first to discover valid `source_names`.
 - If the user asks about a specific symbol, set `symbols: ["XXXX"]` rather than repeating symbol text in `query`.
 - If the user gives a time period, map it to `date_from` and `date_to` explicitly.
+
+For `web_search_exa` and `crawling_exa`:
+
+- Use them for external news coverage, confirmation, and source-page evidence.
+- Prefer them over `search-twitter` when the question is about what actually happened or what a news source reported.
+- Use `crawling_exa` only after a specific result/page is identified as relevant.
 
 Execution discipline:
 

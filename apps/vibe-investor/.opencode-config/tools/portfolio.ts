@@ -52,14 +52,9 @@ export function getConnectorDataRoot(contextDirectory: string): string {
   if (process.env.AI_CONNECTOR_DATA_ROOT) {
     return path.resolve(process.env.AI_CONNECTOR_DATA_ROOT);
   }
-  if (process.env.OPENCODE_CWD) {
-    return path.resolve(
-      process.env.OPENCODE_CWD,
-      "..",
-      "client-connector-data",
-    );
-  }
-  return path.resolve(contextDirectory, "..", "client-connector-data");
+  throw new Error(
+    `AI_CONNECTOR_DATA_ROOT is required to read connector-owned portfolio data (tool cwd: ${contextDirectory})`,
+  );
 }
 
 export function getStockbitNormalizedRoot(contextDirectory: string): string {
@@ -115,6 +110,18 @@ export function withPortfolioWeights(
   }));
 }
 
+export function findPortfolioPosition(
+  snapshot: PortfolioSnapshot,
+  symbol: string,
+): (PortfolioPosition & { weight: number }) | null {
+  const normalizedSymbol = symbol.trim().toUpperCase();
+  return (
+    withPortfolioWeights(snapshot).find(
+      (position) => position.symbol === normalizedSymbol,
+    ) ?? null
+  );
+}
+
 export function filterTradeEvents(
   events: TradeEvent[],
   filters: {
@@ -153,6 +160,91 @@ export function sortTradeEventsDesc(events: TradeEvent[]): TradeEvent[] {
       `${a.date}|${a.time}|${a.event_id}`,
     ),
   );
+}
+
+export function summarizeRealizedStats(events: TradeEvent[]) {
+  const realizedEvents = events.filter(
+    (event) =>
+      event.command === "SELL" && Number.isFinite(toNumber(event.realized_amount)),
+  );
+
+  const realizedGain = realizedEvents.reduce((sum, event) => {
+    const value = toNumber(event.realized_amount);
+    return value > 0 ? sum + value : sum;
+  }, 0);
+  const realizedLoss = realizedEvents.reduce((sum, event) => {
+    const value = toNumber(event.realized_amount);
+    return value < 0 ? sum + Math.abs(value) : sum;
+  }, 0);
+  const winCount = realizedEvents.filter(
+    (event) => toNumber(event.realized_amount) > 0,
+  ).length;
+  const lossCount = realizedEvents.filter(
+    (event) => toNumber(event.realized_amount) < 0,
+  ).length;
+
+  return {
+    realized_event_count: realizedEvents.length,
+    realized_gain: realizedGain,
+    realized_loss: realizedLoss,
+    net_realized: realizedGain - realizedLoss,
+    win_count: winCount,
+    loss_count: lossCount,
+    average_win: winCount > 0 ? realizedGain / winCount : 0,
+    average_loss: lossCount > 0 ? realizedLoss / lossCount : 0,
+  };
+}
+
+export function groupRealizedStats(
+  events: TradeEvent[],
+  groupBy: "symbol" | "month",
+) {
+  const buckets = new Map<string, TradeEvent[]>();
+  for (const event of events) {
+    if (event.command !== "SELL") {
+      continue;
+    }
+    const key = groupBy === "symbol" ? event.symbol : event.date.slice(0, 7);
+    const bucket = buckets.get(key);
+    if (bucket) {
+      bucket.push(event);
+    } else {
+      buckets.set(key, [event]);
+    }
+  }
+
+  return [...buckets.entries()]
+    .map(([key, bucket]) => ({
+      key,
+      ...summarizeRealizedStats(bucket),
+    }))
+    .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+export function summarizePortfolioState(
+  snapshot: PortfolioSnapshot,
+  recentActions: TradeEvent[],
+) {
+  const positions = withPortfolioWeights(snapshot).sort(
+    (a, b) => b.weight - a.weight,
+  );
+  const topPositions = positions.slice(0, 5).map((position) => ({
+    symbol: position.symbol,
+    weight: position.weight,
+    market_value: position.market_value,
+    unrealized_pnl: position.unrealized_pnl,
+    unrealized_gain: position.unrealized_gain,
+  }));
+
+  return {
+    position_count: positions.length,
+    cash_ratio:
+      snapshot.equity > 0
+        ? toNumber(snapshot.cash) / toNumber(snapshot.equity)
+        : 0,
+    top_positions: topPositions,
+    recent_actions: recentActions,
+  };
 }
 
 export function buildTradeJourney(symbol: string, events: TradeEvent[]) {
@@ -201,7 +293,7 @@ function toNumber(value: unknown): number {
 
 export const state = tool({
   description:
-    "Read the latest normalized Stockbit portfolio snapshot from connector-owned storage.",
+    "Read the latest normalized Stockbit portfolio snapshot plus compact portfolio summary from connector-owned storage.",
   args: {
     include_positions: tool.schema
       .boolean()
@@ -211,10 +303,26 @@ export const state = tool({
       .boolean()
       .default(true)
       .describe("Whether to include deterministic position weights."),
+    include_summary: tool.schema
+      .boolean()
+      .default(true)
+      .describe("Whether to include compact portfolio summary fields."),
+    recent_actions_limit: tool.schema
+      .number()
+      .int()
+      .min(1)
+      .max(50)
+      .default(5)
+      .describe("How many recent actions to include in the summary."),
   },
   async execute(args, context) {
     const snapshot = await readLatestPortfolio(context.directory);
     const positions = withPortfolioWeights(snapshot);
+    const events = await readTradeEvents(context.directory);
+    const recentActions = sortTradeEventsDesc(events).slice(
+      0,
+      args.recent_actions_limit,
+    );
     const payload: Record<string, unknown> = {
       source_root: getStockbitNormalizedRoot(context.directory),
       as_of: snapshot.as_of,
@@ -233,14 +341,24 @@ export const state = tool({
         : positions.map(({ weight: _weight, ...position }) => position);
     }
 
+    if (args.include_summary) {
+      payload.summary = summarizePortfolioState(snapshot, recentActions);
+    }
+
     return JSON.stringify(payload, null, 2);
   },
 });
 
 export const trade_history = tool({
   description:
-    "Read normalized Stockbit trade history from connector-owned storage with optional filters.",
+    "Read normalized Stockbit trade history from connector-owned storage as raw events or aggregate analytics.",
   args: {
+    view: tool.schema
+      .string()
+      .default("events")
+      .describe(
+        "Output mode: events, recent_actions, or realized_stats.",
+      ),
     symbol: tool.schema
       .string()
       .optional()
@@ -263,7 +381,11 @@ export const trade_history = tool({
       .min(1)
       .max(1000)
       .default(100)
-      .describe("Maximum number of events to return."),
+      .describe("Maximum number of events or grouped rows to return."),
+    group_by: tool.schema
+      .string()
+      .default("none")
+      .describe("Grouping for realized_stats view: none, symbol, or month."),
   },
   async execute(args, context) {
     const events = await readTradeEvents(context.directory);
@@ -274,13 +396,51 @@ export const trade_history = tool({
         date_to: args.date_to,
         commands: args.commands,
       }),
-    ).slice(0, args.limit);
+    );
+
+    const view = args.view.trim().toLowerCase();
+    if (!["events", "recent_actions", "realized_stats"].includes(view)) {
+      throw new Error("view must be one of: events, recent_actions, realized_stats");
+    }
+
+    if (view === "realized_stats") {
+      const groupBy = args.group_by.trim().toLowerCase();
+      if (!["none", "symbol", "month"].includes(groupBy)) {
+        throw new Error("group_by must be one of: none, symbol, month");
+      }
+
+      const stats =
+        groupBy === "none"
+          ? summarizeRealizedStats(filtered)
+          : groupRealizedStats(filtered, groupBy as "symbol" | "month").slice(
+              0,
+              args.limit,
+            );
+
+      return JSON.stringify(
+        {
+          source_root: getStockbitNormalizedRoot(context.directory),
+          view,
+          symbol: args.symbol?.trim().toUpperCase() || null,
+          date_from: args.date_from ?? null,
+          date_to: args.date_to ?? null,
+          commands: args.commands ?? null,
+          group_by: groupBy,
+          stats,
+        },
+        null,
+        2,
+      );
+    }
+
+    const sliced = filtered.slice(0, args.limit);
 
     return JSON.stringify(
       {
         source_root: getStockbitNormalizedRoot(context.directory),
-        count: filtered.length,
-        events: filtered,
+        view,
+        count: sliced.length,
+        events: sliced,
       },
       null,
       2,
@@ -290,7 +450,7 @@ export const trade_history = tool({
 
 export const symbol_trade_journey = tool({
   description:
-    "Reconstruct one symbol's normalized trade journey from connector-owned trade history.",
+    "Reconstruct one symbol's normalized trade journey with current-position context from connector-owned portfolio data.",
   args: {
     symbol: tool.schema.string().describe("Required stock symbol, e.g. MEDC."),
     date_from: tool.schema
@@ -308,6 +468,7 @@ export const symbol_trade_journey = tool({
       throw new Error("symbol is required");
     }
 
+    const snapshot = await readLatestPortfolio(context.directory);
     const events = await readTradeEvents(context.directory);
     const filtered = filterTradeEvents(events, {
       symbol,
@@ -315,11 +476,29 @@ export const symbol_trade_journey = tool({
       date_to: args.date_to,
     });
     const journey = buildTradeJourney(symbol, filtered);
+    const currentPosition = findPortfolioPosition(snapshot, symbol);
+    const latestAction = sortTradeEventsDesc(filtered)[0] ?? null;
+    const realizedSummary = summarizeRealizedStats(filtered);
 
     return JSON.stringify(
       {
         source_root: getStockbitNormalizedRoot(context.directory),
         ...journey,
+        as_of: snapshot.as_of,
+        captured_at: snapshot.captured_at,
+        current_position: currentPosition,
+        latest_action: latestAction,
+        realized_summary: realizedSummary,
+        total_pnl:
+          toNumber(journey.realized_pnl) +
+          toNumber(currentPosition?.unrealized_pnl),
+        status:
+          currentPosition && toNumber(currentPosition.shares) > 0
+            ? "OPEN"
+            : journey.event_count > 0
+              ? "CLOSED"
+              : "NO_HISTORY",
+        trade_journey_status: journey.status,
       },
       null,
       2,

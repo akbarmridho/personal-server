@@ -143,15 +143,15 @@ The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK
 
 ### portfolio_state
 
-Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`.
+Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`, with optional compact summary fields such as concentration and recent actions.
 
 ### portfolio_trade_history
 
-Reads normalized trade events from `AI_CONNECTOR_DATA_ROOT` with optional symbol/date/command filters.
+Reads normalized trade history from `AI_CONNECTOR_DATA_ROOT` as raw events or aggregate analytics, depending on `view`.
 
 ### portfolio_symbol_trade_journey
 
-Reconstructs one symbol's normalized trade lifecycle from the connector-owned trade ledger.
+Reconstructs one symbol's normalized trade lifecycle and merges it with current holding context from the latest portfolio snapshot.
 
 ## Configuration
 
@@ -168,7 +168,7 @@ Reconstructs one symbol's normalized trade lifecycle from the connector-owned tr
 |----------|----------|-------------|
 | `OPENROUTER_API_KEY` | Yes | OpenRouter API key |
 | `OPENCODE_CWD` | Yes | Workspace directory (memory, work files) |
-| `AI_CONNECTOR_DATA_ROOT` | No | Connector-owned data root (default: sibling `client-connector-data` next to `OPENCODE_CWD`) |
+| `AI_CONNECTOR_DATA_ROOT` | Yes | Connector-owned data root for normalized portfolio and trade data |
 | `OPENCODE_DATA_HOME` | No | Session storage (default: `~/.local/share/vibe-investor`) |
 | `OPENCODE_PORT` | No | Web UI port (default: 4096) |
 | `OPENCODE_HOSTNAME` | No | Web UI hostname (default: 0.0.0.0) |

@@ -43,16 +43,24 @@ Reference boundary:
 
 ## Data Sources And Fail-Fast
 
+Hard dependencies:
+
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
-| `search-documents`, `list-documents`, `get-document` | Filings, research, news, rumors | Stop |
-| `search-twitter` | Social narrative spread and momentum | Stop |
+| `search-documents`, `list-documents`, `get-document` | Filings, research, news, rumors from internal knowledge sources | Stop |
+| `web_search_exa`, `crawling_exa` | External news coverage, source discovery, and page-level confirmation | Stop |
 | `get-stock-keystats` | Valuation context and market-cap framing | Stop |
 | `get-stock-governance` | Owner behavior, control quality, insider signals | Stop |
 
-Stop: if fetch fails, stop the task and report dependency failure.
+Conditional source:
 
-All listed sources are hard dependencies — narrative analysis without complete source material is guessing.
+| Source | Used for | If unavailable |
+|--------|----------|----------------|
+| `search-twitter` | Social narrative spread, rumor propagation, and saturation checks when social behavior is thesis-critical | Stop only when that social check is required for the call |
+
+Stop: if a hard-dependency fetch fails, stop the task and report dependency failure. If a conditional social check is required and fails, stop and report that missing dependency.
+
+Narrative analysis requires complete source material. Internal documents and Exa web coverage anchor the factual event set; social checks are additive when spread and crowd behavior matter.
 
 ## Operating Rules
 
@@ -98,9 +106,14 @@ Routing defaults:
 Run in parallel:
 
 - `search-documents` for symbol and key themes
-- `search-twitter` for current social spread
+- `web_search_exa` for external news/source discovery
 - `get-stock-keystats` for valuation framing
 - `get-stock-governance` for owner and control context
+
+Add when relevant:
+
+- `crawling_exa` for selected external pages that materially affect the narrative call
+- `search-twitter` for current social spread, rumor transmission, and saturation checks
 
 ### Phase 2: Sequential Analysis
 
@@ -122,8 +135,10 @@ Produce output per `output-report-template.md`:
 
 ## Execution Defaults
 
-- For full analysis, fetch all data sources in parallel.
+- For full analysis, fetch hard dependencies in parallel.
+- Prefer internal documents and Exa web sources for factual event confirmation and article-level evidence.
+- Use `search-twitter` only when social spread, rumor propagation, or saturation is material to the thesis.
 - When invoked by a parent workflow, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting. Write retained outputs to the path specified by the active workflow.
-- Use fail-fast behavior: if document/news retrieval fails, stop and report the missing dependency.
+- Use fail-fast behavior: if a required dependency retrieval fails, stop and report the missing dependency.
 - Load specialized references only when the mechanism is thesis-critical, not by default.
 - All output verdicts and labels must use values from `enums-and-glossary.md`.
