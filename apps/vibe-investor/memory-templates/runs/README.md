@@ -15,8 +15,4 @@ Fields used by every workflow:
 - `symbols`
 - `artifacts`
 
-Additional field for workflows that write `memory/sessions/{DATE}.md`:
-
-- `session_path`
-
 Only write a run log after the full workflow succeeds.

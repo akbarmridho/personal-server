@@ -2,6 +2,18 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { tool } from "@opencode-ai/plugin";
 
+type ChartPayload = {
+  daily?: Array<{ date?: string; is_partial?: boolean }>;
+  intraday?: Array<{ is_partial?: boolean }>;
+  corp_actions?: unknown[];
+};
+
+type ChartResponse = {
+  success: boolean;
+  error?: string;
+  data?: ChartPayload;
+};
+
 export default tool({
   description:
     "Fetch unified chart data for Indonesian stocks and save to file. The output includes: 3 years daily OHLCV, 7 calendar days intraday OHLCV (resampled to 60-minute bars, partial bar kept), and optional corporate action events.",
@@ -47,10 +59,15 @@ export default tool({
         );
       }
 
-      const data = await response.json();
+      const raw = (await response.json()) as unknown;
+      const data = raw as ChartResponse;
 
       if (!data.success) {
         throw new Error(`API returned error: ${data.error || "Unknown error"}`);
+      }
+
+      if (!data.data) {
+        throw new Error("API returned success without chart payload");
       }
 
       // Ensure directory exists
@@ -64,11 +81,7 @@ export default tool({
         "utf-8",
       );
 
-      const payload = data.data as {
-        daily?: Array<{ date?: string; is_partial?: boolean }>;
-        intraday?: Array<{ is_partial?: boolean }>;
-        corp_actions?: unknown[];
-      };
+      const payload = data.data;
 
       const dailyPoints = Array.isArray(payload.daily)
         ? payload.daily.length

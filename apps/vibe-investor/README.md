@@ -43,14 +43,12 @@ $OPENCODE_CWD/
 │   │   ├── thesis.md             # Thesis index
 │   │   └── watchlist.md          # Stocks under observation
 │   ├── runs/                     # Successful workflow run logs
-│   ├── symbols/
-│   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
+│   ├── state/
+│   │   ├── symbols/{SYMBOL}.md   # Trading plan, thesis, key levels
+│   │   └── theses/{THESIS_ID}/thesis.md
 │   ├── analysis/
 │   │   ├── symbols/{SYMBOL}/{DATE}/
-│   │   └── market/{DATE}/        # Digest outputs
-│   ├── theses/
-│   └── sessions/
-│       └── {DATE}.md             # Desk-check and sync session logs
+│   │   └── market/{DATE}/        # desk_check.md, digest_sync.md, news_digest.md, top-down outputs
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
@@ -62,7 +60,7 @@ $OPENCODE_CWD/
   - Reading-oriented digest from new documents and memory continuity.
   - Writes a retained digest artifact plus its run log.
 - `/digest-sync`
-  - Applies evidence-backed digest updates to thesis/watchlist/session memory.
+  - Applies evidence-backed digest updates to thesis/watchlist memory and writes a retained sync summary.
 - `/ta {SYMBOL} {INTENT}`
   - Manual technical deep dive when one symbol needs closer review.
 
@@ -123,9 +121,9 @@ Filesystem-based memory using markdown files.
 - **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
 - **`memory/notes/`** — Thesis index and watchlist
 - **`memory/runs/`** — One JSON log per successful top-level workflow run
-- **`memory/symbols/`** — Per-symbol trading plans, theses, key levels
+- **`memory/state/symbols/`** — Per-symbol trading plans, theses, key levels
+- **`memory/state/theses/`** — Per-thesis durable state and lifecycle updates
 - **`memory/analysis/`** — Dated analysis outputs organized by symbol
-- **`memory/sessions/`** — Desk-check and sync session logs
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 
 ## Custom Tools

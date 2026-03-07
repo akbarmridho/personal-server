@@ -90,7 +90,7 @@
       "template": "Run the `news-digest` workflow. Command input: $ARGUMENTS"
     },
     "digest-sync": {
-      "description": "Sync thesis/watchlist/session memory from the latest news digest",
+      "description": "Sync thesis/watchlist memory from the latest news digest",
       "agent": "vibe-investor",
       "template": "Run the `digest-sync` workflow. Command input: $ARGUMENTS"
     }

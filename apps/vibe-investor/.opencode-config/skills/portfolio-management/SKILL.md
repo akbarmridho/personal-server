@@ -1,6 +1,6 @@
 ---
 name: portfolio-management
-description: Internal trading-desk and portfolio operations subsystem for IDX equities, including desk-check reviews, position sizing, trading plans, watchlist process, and session routines.
+description: Internal trading-desk and portfolio operations subsystem for IDX equities, including desk-check reviews, position sizing, trading plans, watchlist process, and portfolio discipline routines.
 ---
 
 ## How To Use This Skill
@@ -25,7 +25,7 @@ Tool source of truth:
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
 - Apply regime gate before new longs; if breadth/market structure weakens, reduce aggression and protect cash.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
-- Use memory files as the system of record; decisions are only complete when portfolio/watchlist/symbol/session states are updated.
+- Use memory files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated.
 
 ## Reference Index And Topic Ownership
 
@@ -34,8 +34,8 @@ Tool source of truth:
 | [enums-and-glossary.md](references/enums-and-glossary.md) | Shared statuses, labels, portfolio health flags |
 | [position-sizing-and-diversification.md](references/position-sizing-and-diversification.md) | 1% risk rule, portfolio heat, 50:30:10, concentration caps, correlation sizing, liquidity/ADTV sizing, hard-loss fallback |
 | [entry-exit-and-rebalancing-playbook.md](references/entry-exit-and-rebalancing-playbook.md) | Entry strategies (DCA, lump sum, scaling), exit strategies (profit taking, cut loss, early exit), rebalancing protocol |
-| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/symbols/{SYMBOL}.md` |
-| [review-watchlist-and-session-logging.md](references/review-watchlist-and-session-logging.md) | Daily/weekly/monthly review cadence, watchlist management, session log templates |
+| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md` |
+| [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates |
 | This file (SKILL.md) | Market regime gate, capital preservation principles, operating rules |
 
 Reference boundary:
@@ -63,10 +63,10 @@ Stop: if fetch fails, stop the task and report dependency failure.
 | File | Purpose |
 |------|---------|
 | `memory/notes/watchlist.md` | Status-driven symbols registry and trigger conditions |
-| `memory/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
-| `memory/sessions/{DATE}.md` | Session logs and next actions |
+| `memory/state/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
 | `memory/runs/{DATE}/{TIME}_desk-check.json` | Successful desk-check continuity log written by the parent workflow |
 | `memory/analysis/symbols/{SYMBOL}/{DATE}/` | Supporting analysis artifacts |
+| `memory/analysis/market/{DATE}/desk_check.md` | Top-level desk-check summary |
 
 ## Operating Rules
 
@@ -110,20 +110,20 @@ Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/notes/watch
 2. Load `position-sizing-and-diversification.md`.
 3. Validate sizing against portfolio constraints (50:30:10, correlation, heat, ADTV liquidity).
 4. Load `trading-plan-template.md`, fill all required fields.
-5. Write plan to `memory/symbols/{SYMBOL}.md`.
+5. Write plan to `memory/state/symbols/{SYMBOL}.md`.
 6. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
 
 Checklist: regime gate checked, sizing validated, liquidity cleared, plan written with all required fields, memory files updated.
 
 ### Desk Check Review
 
-1. Load `review-watchlist-and-session-logging.md` for cadence checklist.
+1. Load `review-watchlist-and-review-logging.md` for cadence checklist.
 2. Load `position-sizing-and-diversification.md` for constraint checks.
 3. Call `portfolio_state` for holdings input. If missing or malformed, stop.
 4. Run the bundled deterministic checks script:
 
 ```bash
-python "$OPENCODE_CONFIG_DIR/skills/portfolio-management/scripts/portfolio_checks.py" --symbols-root memory/symbols
+python "$OPENCODE_CONFIG_DIR/skills/portfolio-management/scripts/portfolio_checks.py" --symbols-root memory/state/symbols
 ```
 
 1. Fetch current prices via `get-stock-keystats` for all held positions (parallel) when a fresh cross-check is needed.
@@ -138,7 +138,7 @@ Checklist: all holdings reviewed, deterministic checks run, sizing compliance ch
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.
 2. Load `entry-exit-and-rebalancing-playbook.md` for exit framework.
-3. Execute exit, update `memory/symbols/{SYMBOL}.md` with close details.
+3. Execute exit, update `memory/state/symbols/{SYMBOL}.md` with close details.
 4. Update `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
 5. Post-exit: evaluate process quality, not outcome.
 

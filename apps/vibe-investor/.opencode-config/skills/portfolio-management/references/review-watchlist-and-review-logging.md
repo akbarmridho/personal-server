@@ -1,8 +1,8 @@
-# Review, Watchlist, And Session Logging
+# Review, Watchlist, And Review Logging
 
 ## Objective
 
-Define review cadence, watchlist management process, and session log structure for consistent portfolio operations.
+Define review cadence, watchlist management process, and retained review-summary structure for consistent portfolio operations.
 
 ## Review Cadence
 
@@ -19,7 +19,7 @@ Define review cadence, watchlist management process, and session log structure f
 - Check sizing compliance against 50:30:10 constraints.
 - Check rolling correlation changes among top holdings.
 - Update watchlist and trigger status.
-- Record weekly portfolio heat and action items in the session log.
+- Record weekly portfolio heat and action items in the retained review summary.
 
 ### Monthly
 
@@ -39,7 +39,7 @@ Track a small leader basket (from your active/watchlist universe) and count fres
 
 - If multiple leaders break structure/stop in the same review window, treat this as regime deterioration. (Flag PM-W09)
 - When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
-- Record the signal and resulting action in the session log.
+- Record the signal and resulting action in the retained review summary.
 
 ## Watchlist Management
 
@@ -61,10 +61,10 @@ Watchlist statuses use enums from `enums-and-glossary.md`.
 | ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | ASP weakens while volume distribution expands | 2025-01-20 | No | Monitor catalyst window |
 ```
 
-## Session Log Template
+## Review Summary Template
 
 ```markdown
-# Session: {YYYY-MM-DD}
+# Desk Check: {YYYY-MM-DD}
 
 ## Market Context
 - IHSG: {level} ({change%})
@@ -88,6 +88,6 @@ Watchlist statuses use enums from `enums-and-glossary.md`.
 - {insight 1}
 - {insight 2}
 
-## Tomorrow's Plan
+## Next Actions
 - {next checks and actions}
 ```

@@ -10,7 +10,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "playwright": "npx playwright install",
-    "chrome:cdp": "./scripts/launch-chrome-cdp.sh"
+    "chrome": "./scripts/launch-chrome-cdp.sh"
   },
   "engines": {
     "node": ">=24"

@@ -21,11 +21,12 @@ workdir/
 │   ├── runs/
 │   │   └── {DATE}/
 │   │       └── {TIME}_{WORKFLOW}.json  # Successful top-level workflow logs
-│   ├── symbols/                  # Per-symbol notes
-│   │   └── {SYMBOL}.md           # Trading plan, thesis, key levels
-│   ├── theses/
-│   │   └── {THESIS_ID}/
-│   │       └── thesis.md         # Per-thesis state + timeline updates
+│   ├── state/
+│   │   ├── symbols/              # Per-symbol durable state
+│   │   │   └── {SYMBOL}.md       # Trading plan, thesis, key levels
+│   │   └── theses/
+│   │       └── {THESIS_ID}/
+│   │           └── thesis.md     # Per-thesis state + timeline updates
 │   ├── analysis/
 │   │   ├── symbols/{SYMBOL}/{DATE}/
 │   │   │   ├── technical.md
@@ -34,10 +35,7 @@ workdir/
 │   │   │   ├── synthesis.md
 │   │   │   ├── sources.md
 │   │   │   └── *.png
-│   │   ├── market/{DATE}/
-│   │   └── themes/{THEME}/{DATE}/
-│   └── sessions/
-│       └── {DATE}.md             # Daily session logs
+│   │   └── market/{DATE}/         # desk_check.md, digest_sync.md, news_digest.md, top-down outputs
 │
 └── work/                         # Temporary scratch (cleared often)
 ```
@@ -47,16 +45,12 @@ Read `memory/MEMORY.md` at session start to pick up context from past work. Duri
 Portfolio memory rules:
 
 - Portfolio raw and normalized machine data live outside workspace memory under `AI_CONNECTOR_DATA_ROOT`. Access via custom portfolio tools only.
-- Present current portfolio state in chat when needed.
 - Portfolio checks remain part of the `portfolio-management` skill and use deterministic repo-owned scripts.
-- Store market-hours execution checklists and action bullets in `memory/sessions/{DATE}.md`.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
 - Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`, each linking to per-thesis files.
-- Store each thesis in `memory/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
-- Use `memory/analysis/themes/{THEME}/{DATE}/` for dated research snapshots and evidence artifacts.
-- Thesis files must link to relevant theme-analysis files.
-- Keep only real symbols in `memory/symbols/`.
+- Store each thesis in `memory/state/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
+- Keep only real symbols in `memory/state/symbols/`.
 
 By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check` and `digest-sync`, memory file updates are part of execution and should be written during the workflow.
 
@@ -82,7 +76,7 @@ Primary user-facing workflows:
 
 - `desk-check`: the main operator routine for holdings review, watchlist trigger review, portfolio discipline, and top-down market context.
 - `news-digest`: the digest workflow that gathers high-signal news/documents since the last successful digest run and writes a retained digest artifact.
-- `digest-sync`: the sync workflow that updates thesis/watchlist/session memory from the latest digest.
+- `digest-sync`: the sync workflow that updates thesis/watchlist memory from the latest digest and writes a retained sync summary.
 
 Workflow ownership:
 
@@ -104,20 +98,20 @@ Workflow ownership:
 - Technical analysis defaults to `THESIS_REVIEW` mode inside `desk-check` unless the user explicitly requests a broader refresh.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TODAY}/` and must include at least `technical.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON if needed).
-- Market artifacts belong under `memory/analysis/market/{TODAY}/`.
-- Evidence-backed memory updates may touch only `memory/notes/watchlist.md`, `memory/symbols/{SYMBOL}.md`, `memory/theses/{THESIS_ID}/thesis.md`, `memory/notes/thesis.md`, and `memory/sessions/{TODAY}.md`.
+- Market artifacts belong under `memory/analysis/market/{TODAY}/` and must include `desk_check.md`.
+- Evidence-backed memory updates may touch only `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.
 - Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
 - Success run log `artifacts` must reference the actual memory paths produced, not scratch files under `work/`.
-- `desk-check` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, and `artifacts`.
+- `desk-check` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 `news-digest` defaults:
 
 - Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
-- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/theses/**/thesis.md`, `memory/symbols/**`, and the latest prior digest if found.
+- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/state/theses/**/thesis.md`, `memory/state/symbols/**`, and the latest prior digest if found.
 - Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
 - Write the digest artifact to `memory/analysis/market/{TODAY}/news_digest.md`.
-- Leave thesis, watchlist, portfolio, and session memory unchanged during digest generation.
+- Leave thesis and watchlist memory unchanged during digest generation.
 - Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_news-digest.json` after the digest artifact is saved.
 - `news-digest` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
@@ -126,14 +120,14 @@ Workflow ownership:
 - Always consume the latest `memory/analysis/market/*/news_digest.md`.
 - Stop and report if the digest artifact is missing.
 - Read the latest successful `news-digest` run log and inherit its `window_from` and `window_to`.
-- Update `memory/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes.
+- Update `memory/state/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes.
 - Update `memory/notes/thesis.md` only when thesis state changes.
 - Update `memory/notes/watchlist.md` only for explicit status or trigger changes.
-- Append concise action items to `memory/sessions/{TODAY}.md`.
-- If evidence is ambiguous, record `Needs Verification` in the session and do not change thesis/watchlist state.
+- Write a retained sync summary to `memory/analysis/market/{TODAY}/digest_sync.md`.
+- If evidence is ambiguous, record `Needs Verification` in `digest_sync.md` and do not change thesis/watchlist state.
 - Link memory changes to the digest path and supporting document URLs.
 - Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_digest-sync.json` after memory updates succeed.
-- `digest-sync` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, `session_path`, and `artifacts`.
+- `digest-sync` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 ## Tools
 
@@ -218,4 +212,4 @@ Execution discipline:
 - As a **subagent**, execute the delegated scope only and return concise, decision-ready output for the parent agent.
 - In subagent mode, prioritize structured outputs: key findings, supporting evidence, confidence level, and next actions.
 - Subagents may use `work/` for temporary files only. Retained artifacts must be written to the memory paths specified by the parent workflow before returning.
-- Subagents write analysis artifacts to the paths specified by the active workflow contract. They do not write run logs, session files, or thesis/watchlist updates — those are owned by the parent agent.
+- Subagents write analysis artifacts to the paths specified by the active workflow contract. They do not write run logs or thesis/watchlist updates — those are owned by the parent agent.

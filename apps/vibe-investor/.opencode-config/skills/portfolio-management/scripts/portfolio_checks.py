@@ -65,7 +65,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run deterministic portfolio checks")
     parser.add_argument(
         "--symbols-root",
-        default="memory/symbols",
+        default="memory/state/symbols",
         help="Path to symbol note directory used to extract stop/invalidation hints",
     )
     args = parser.parse_args()
