@@ -606,12 +606,31 @@ def plot_structure_events(
             {**e, "_idx": idx, "_close": close, "label": label, "count": count}
         )
 
-    apds = [
-        mpf.make_addplot(up_bos, type="scatter", marker="^", markersize=120, color="#00c853"),
-        mpf.make_addplot(up_choch, type="scatter", marker="^", markersize=115, color="#00acc1"),
-        mpf.make_addplot(down_bos, type="scatter", marker="v", markersize=120, color="#e53935"),
-        mpf.make_addplot(down_choch, type="scatter", marker="v", markersize=115, color="#fb8c00"),
-    ]
+    apds = []
+    if np.isfinite(up_bos).any():
+        apds.append(
+            mpf.make_addplot(
+                up_bos, type="scatter", marker="^", markersize=120, color="#00c853",
+            )
+        )
+    if np.isfinite(up_choch).any():
+        apds.append(
+            mpf.make_addplot(
+                up_choch, type="scatter", marker="^", markersize=115, color="#00acc1",
+            )
+        )
+    if np.isfinite(down_bos).any():
+        apds.append(
+            mpf.make_addplot(
+                down_bos, type="scatter", marker="v", markersize=120, color="#e53935",
+            )
+        )
+    if np.isfinite(down_choch).any():
+        apds.append(
+            mpf.make_addplot(
+                down_choch, type="scatter", marker="v", markersize=115, color="#fb8c00",
+            )
+        )
     fig, axes = mpf.plot(
         to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
         hlines=dict(
