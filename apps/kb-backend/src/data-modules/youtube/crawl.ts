@@ -71,8 +71,8 @@ const decideIngestion = async (
 ): Promise<IngestionDecision> => {
   const result = await pRetry(async () => {
     const { object } = await generateObject({
-      model: openrouter("openai/gpt-5-mini", {
-        models: ["google/gemini-3-flash-preview"],
+      model: openrouter("google/gemini-3-flash-preview", {
+        models: ["google/gemini-3.1-flash-lite-preview"],
       }),
       prompt: `
 You are an Investment Content Gatekeeper for a "Vibe Investing" Knowledge Base (Indonesian Stock Market).

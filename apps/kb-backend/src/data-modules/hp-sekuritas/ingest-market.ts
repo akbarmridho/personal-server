@@ -67,7 +67,7 @@ const extractNews = async (url: string) => {
   const page3Buffer = await extractPage3FromPdf(url);
 
   const response = await generateObject({
-    model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
+    model: openrouter("google/gemini-3.1-flash-lite-preview", {
       models: ["google/gemini-3-flash-preview"],
     }),
     schema: NewsSchema,

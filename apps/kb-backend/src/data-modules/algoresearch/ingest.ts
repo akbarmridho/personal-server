@@ -239,7 +239,7 @@ export const algoresearchIngest = inngest.createFunction(
         let modelOutput = "";
         try {
           const result = await generateText({
-            model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
+            model: openrouter("google/gemini-3.1-flash-lite-preview", {
               models: ["qwen/qwen3-vl-8b-instruct"],
             }),
             messages: [

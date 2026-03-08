@@ -112,7 +112,7 @@ export const stockbitAnnouncementIngest = inngest.createFunction(
       try {
         // Use Vercel AI SDK with OpenRouter - pass PDF URLs directly
         const response = await generateText({
-          model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
+          model: openrouter("google/gemini-3.1-flash-lite-preview", {
             models: ["google/gemini-3-flash-preview"],
           }),
           messages: [

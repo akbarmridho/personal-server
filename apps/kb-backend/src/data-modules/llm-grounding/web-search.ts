@@ -13,7 +13,7 @@ import {
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const WEB_GROUNDED_MODEL = "openai/gpt-5.2:online";
+const WEB_GROUNDED_MODEL = "openai/gpt-5.4:online";
 
 export interface GroundedNewsSearchParams {
   queries: string[];

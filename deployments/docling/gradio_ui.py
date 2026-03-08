@@ -302,7 +302,7 @@ def get_description_params():
                     "Authorization": f"Bearer {orApiKey}",
                 },
                 "params": {
-                    "model": "google/gemini-2.5-flash-lite-preview-09-2025"
+                    "model": "google/gemini-3.1-flash-lite-preview"
                 },
                 "timeout": 180,
                 "concurrency": 10,

@@ -13,8 +13,8 @@ async function extractImageContent(
 ): Promise<string> {
   for (let i = 0; i < retries; i++) {
     const { text } = await generateText({
-      model: openrouter("google/gemini-2.5-flash-lite-preview-09-2025", {
-        models: ["google/gemini-2.5-flash-lite"],
+      model: openrouter("google/gemini-3.1-flash-lite-preview", {
+        models: ["openai/gpt-5-mini"],
       }),
       messages: [
         {
