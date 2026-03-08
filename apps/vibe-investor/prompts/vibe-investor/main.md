@@ -205,6 +205,12 @@ For `search-documents` and `list-documents`:
 
 - Keep `query` short and semantic (theme/concept), not long keyword dumps.
 - Put filters in structured args (`symbols`, `types`, `date_from`, `date_to`, `source_names`, `pure_sector`) instead of embedding filter-like text in `query`.
+- Treat document types as distinct evidence classes:
+  - `news`: reported events, developments, and sourced coverage. Use on its own when you need factual news flow and event timelines.
+  - `analysis`: interpretive or research-style writeups. Use on its own when you need an analyst view, synthesis, or thesis framing.
+  - `rumours`: unverified or soft-signal material, including LLM-generated search grounding from Twitter and the open internet. Even if it summarizes news-like chatter, treat it as `rumours` and handle it as secondary evidence that needs confirmation.
+  - `filing`: incomplete knowledge-base coverage because the filing ingestion pipeline is not active and many items are missing. For company disclosures, reports, and official filing work, use `list-filing` and `get-filing` as the maintained path.
+- Do not merge `news`, `analysis`, and `rumours` into one undifferentiated evidence bucket. Choose the type that matches the evidence you actually want, or combine them deliberately with their different reliability in mind.
 - If source filtering needed, call `get-document-sources({})` first to discover valid `source_names`.
 - If the user asks about a specific symbol, set `symbols: ["XXXX"]` rather than repeating symbol text in `query`.
 - If the user gives a time period, map it to `date_from` and `date_to` explicitly.
