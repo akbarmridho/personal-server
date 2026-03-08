@@ -14,8 +14,11 @@ Your workspace has persistent memory and temporary work directories.
 ```text
 workdir/
 ├── memory/                       # Persistent memory
-│   ├── MEMORY.md                 # Global curated memory (load at session start)
+│   ├── MEMORY.md                 # Global memory index and pointer file (load at session start)
 │   ├── notes/                    # Operational notes
+│   │   ├── ihsg.md               # IHSG regime map and key levels
+│   │   ├── macro.md              # Macro and geopolitical context affecting IDX
+│   │   ├── portfolio-monitor.md  # Open-book classification and monitoring rules
 │   │   ├── thesis.md             # Thesis index (active + inactive)
 │   │   └── watchlist.md          # Stocks under observation
 │   ├── runs/
@@ -40,7 +43,14 @@ workdir/
 └── work/                         # Temporary scratch (cleared often)
 ```
 
-Read `memory/MEMORY.md` at session start to pick up context from past work. During analysis, put temporary artifacts in `work/` (data pulls, one-off scripts, intermediate charts) because this folder is disposable and frequently cleared. Only promote durable outputs (decision notes + key charts) into `memory/`.
+Read `memory/MEMORY.md` at session start to pick up context from past work and locate the durable notes that matter for the current task. During analysis, put temporary artifacts in `work/` (data pulls, one-off scripts, intermediate charts) because this folder is disposable and frequently cleared. Only promote durable outputs (decision notes + key charts) into `memory/`.
+
+Market context memory files:
+
+- Before broad market strategy work or desk-check preparation, consult `memory/notes/ihsg.md` for the current IHSG regime map and key levels.
+- Before broad market strategy work or desk-check preparation, consult `memory/notes/macro.md` for geopolitical and macro conditions affecting IDX.
+- Before broad market strategy work or desk-check preparation, consult `memory/notes/portfolio-monitor.md` for the current open-book classification and monitoring rules.
+- Use `memory/MEMORY.md` as the concise index and pointer file, not as the place for all detailed market notes.
 
 Portfolio memory rules:
 
@@ -91,6 +101,7 @@ Workflow ownership:
 - Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
 - Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
 - Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
+- Mandatory top-down memory context before desk-check prep: `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`.
 - If portfolio data is missing or malformed, fail fast.
 - Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
 - Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
@@ -109,7 +120,7 @@ Workflow ownership:
 `news-digest` defaults:
 
 - Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
-- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/state/theses/**/thesis.md`, `memory/state/symbols/**`, and the latest prior digest if found.
+- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/state/theses/**/thesis.md`, `memory/state/symbols/**`, and the latest prior digest if found.
 - Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
 - Write the digest artifact to `memory/analysis/market/{TODAY}/news_digest.md`.
 - Leave thesis and watchlist memory unchanged during digest generation.
@@ -155,6 +166,7 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 Parameter casing (mixed conventions across tools):
 
 - Symbols: uppercase 4-letter (e.g., `BBCA`, `TLKM`).
+- For each real ticker that materially enters the discussion scope from user input, memory, retrieved documents, or delegated workflow context, call `get-stock-profile({ symbol })` once early in the run to anchor company identity, business model, and segment context before deeper analysis. Reuse that result and only call the profile tool again if the first attempt failed or the symbol enters scope later.
 
 When to use which stock MCP tool:
 

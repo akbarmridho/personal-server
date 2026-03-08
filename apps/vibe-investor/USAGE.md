@@ -26,12 +26,14 @@ Use commands in OpenCode TUI with `/command-name`.
 `/desk-check`
 
 - Coverage: holdings from `portfolio_state`, watchlist names in `READY`, leaders, and top-down market context
+- Prep context: consult `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`
 - Continuity: uses the latest successful `desk-check` run log
 - Main outputs: retained symbol and market artifacts, `desk_check.md`, success run log
 
 `/news-digest`
 
 - Coverage: new high-signal documents, market regime, macro context, thesis-relevant developments
+- Memory context: start from `memory/MEMORY.md` and the dedicated market context notes under `memory/notes/`
 - Main outputs: digest artifact and success run log
 
 `/digest-sync`

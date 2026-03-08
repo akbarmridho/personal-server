@@ -1,4 +1,4 @@
-# Global Memory
+# Global Memory Index
 
 Last updated:
 
@@ -15,5 +15,9 @@ Last updated:
 ## Active Risks
 
 ## Pointers
+- Market context: `notes/ihsg.md`
+- Macro context: `notes/macro.md`
+- Portfolio monitor: `notes/portfolio-monitor.md`
 - Thesis index: `notes/thesis.md`
+- Watchlist: `notes/watchlist.md`
 - Run logs: `runs/`

@@ -38,6 +38,9 @@ mkdir -p "$OPENCODE_CWD/work"
 echo "Copying memory templates..."
 for f in \
   MEMORY.md \
+  notes/ihsg.md \
+  notes/macro.md \
+  notes/portfolio-monitor.md \
   notes/watchlist.md \
   notes/thesis.md \
   runs/README.md
@@ -63,6 +66,9 @@ echo "  $OPENCODE_CWD/"
 echo "  ├── memory/"
 echo "  │   ├── MEMORY.md"
 echo "  │   ├── notes/"
+echo "  │   │   ├── ihsg.md"
+echo "  │   │   ├── macro.md"
+echo "  │   │   ├── portfolio-monitor.md"
 echo "  │   │   ├── thesis.md"
 echo "  │   │   └── watchlist.md"
 echo "  │   ├── runs/"

@@ -38,8 +38,11 @@ apps/vibe-investor/
 ```
 $OPENCODE_CWD/
 ├── memory/                       # Persistent memory
-│   ├── MEMORY.md                 # Global curated memory
+│   ├── MEMORY.md                 # Global memory index and pointer file
 │   ├── notes/
+│   │   ├── ihsg.md               # IHSG regime map and key levels
+│   │   ├── macro.md              # Macro and geopolitical context affecting IDX
+│   │   ├── portfolio-monitor.md  # Open-book classification and monitoring rules
 │   │   ├── thesis.md             # Thesis index
 │   │   └── watchlist.md          # Stocks under observation
 │   ├── runs/                     # Successful workflow run logs
@@ -118,8 +121,11 @@ Skills are loaded as tool results and are protected from session compaction — 
 
 Filesystem-based memory using markdown files.
 
-- **`memory/MEMORY.md`** — Loaded at session start, curated context from past work
-- **`memory/notes/`** — Thesis index and watchlist
+- **`memory/MEMORY.md`** — Loaded at session start as the concise index and pointer file
+- **`memory/notes/ihsg.md`** — Current IHSG regime map and key levels
+- **`memory/notes/macro.md`** — Geopolitical and macro conditions affecting IDX
+- **`memory/notes/portfolio-monitor.md`** — Current open-book classification and monitoring rules
+- **`memory/notes/`** — Thesis index, watchlist, and market context notes
 - **`memory/runs/`** — One JSON log per successful top-level workflow run
 - **`memory/state/symbols/`** — Per-symbol trading plans, theses, key levels
 - **`memory/state/theses/`** — Per-thesis durable state and lifecycle updates
