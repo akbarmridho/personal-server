@@ -22,7 +22,6 @@ type NormalizedPosition = {
 
 type NormalizedPortfolio = {
   as_of: string;
-  captured_at: string;
   cash: number;
   equity: number;
   invested: number;
@@ -34,7 +33,6 @@ type NormalizedPortfolio = {
 
 type NormalizedTradeEvent = {
   event_id: string;
-  captured_at: string;
   command: string;
   symbol: string;
   date: string;
@@ -90,7 +88,7 @@ export async function materializeStockbitNormalizedData(): Promise<MaterializeRe
       latestPortfolioRaw,
     );
     latestPortfolioPath = path.resolve(normalizedRoot, "latest_portfolio.json");
-    await writeJsonFile(latestPortfolioPath, normalizedPortfolio);
+    await writeJsonFileIfChanged(latestPortfolioPath, normalizedPortfolio);
   }
 
   const historyFiles = [
@@ -99,14 +97,13 @@ export async function materializeStockbitNormalizedData(): Promise<MaterializeRe
   ];
   const tradeEvents = await normalizeHistoryEvents(historyFiles);
   const tradesPath = path.resolve(normalizedRoot, "trades.jsonl");
-  await writeJsonlFile(tradesPath, tradeEvents);
+  await writeJsonlFileIfChanged(tradesPath, tradeEvents);
 
   const latestSnapshotPath = path.resolve(
     normalizedRoot,
     "latest_snapshot.json",
   );
-  await writeJsonFile(latestSnapshotPath, {
-    updated_at: new Date().toISOString(),
+  await writeJsonFileIfChanged(latestSnapshotPath, {
     raw_root: rawRoot,
     latest_portfolio_raw: latestPortfolioRaw,
     history_file_count: historyFiles.length,
@@ -121,13 +118,9 @@ export async function materializeStockbitNormalizedData(): Promise<MaterializeRe
     history_backfill_sources: backfillFiles.map((filePath) =>
       path.relative(root, filePath),
     ),
-    latest_history_ingested_at: new Date().toISOString(),
     trade_event_count: tradeEvents.length,
   };
-  if (backfillFiles.length > 0) {
-    backfillState.history_backfill_completed_at = new Date().toISOString();
-  }
-  await writeJsonFile(backfillStatePath, backfillState);
+  await writeJsonFileIfChanged(backfillStatePath, backfillState);
 
   return {
     latestPortfolioPath,
@@ -148,6 +141,27 @@ export async function readLatestPortfolioSnapshot(): Promise<NormalizedPortfolio
   return readJsonObject(portfolioPath) as Promise<NormalizedPortfolio>;
 }
 
+export function extractTradeEventKeysFromHistoryPayload(
+  payload: JsonObject,
+): string[] {
+  const data = payload.data as JsonObject;
+  const historyGroups = data.history as JsonObject[];
+  const eventIds = new Set<string>();
+
+  for (const rawGroup of historyGroups) {
+    const group = rawGroup as JsonObject;
+    const historyList = group.history_list as JsonObject[];
+    for (const rawEvent of historyList) {
+      const normalized = normalizeHistoryEvent(rawEvent as JsonObject);
+      if (normalized) {
+        eventIds.add(normalized.event_id);
+      }
+    }
+  }
+
+  return Array.from(eventIds).sort();
+}
+
 async function readJsonObject(filePath: string): Promise<JsonObject> {
   const raw = await readFile(filePath, "utf8");
   const parsed = JSON.parse(raw) as unknown;
@@ -157,21 +171,41 @@ async function readJsonObject(filePath: string): Promise<JsonObject> {
   return parsed as JsonObject;
 }
 
-async function writeJsonFile(
+async function writeJsonFileIfChanged(
   filePath: string,
   payload: unknown,
 ): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  const body = `${JSON.stringify(payload, null, 2)}\n`;
+  await writeTextFileIfChanged(filePath, body);
 }
 
-async function writeJsonlFile(
+async function writeJsonlFileIfChanged(
   filePath: string,
   rows: unknown[],
 ): Promise<void> {
   await mkdir(path.dirname(filePath), { recursive: true });
   const body = rows.map((row) => JSON.stringify(row)).join("\n");
-  await writeFile(filePath, body ? `${body}\n` : "", "utf8");
+  await writeTextFileIfChanged(filePath, body ? `${body}\n` : "");
+}
+
+async function writeTextFileIfChanged(
+  filePath: string,
+  body: string,
+): Promise<void> {
+  const existing = await readOptionalUtf8(filePath);
+  if (existing === body) {
+    return;
+  }
+  await writeFile(filePath, body, "utf8");
+}
+
+async function readOptionalUtf8(filePath: string): Promise<string | null> {
+  try {
+    return await readFile(filePath, "utf8");
+  } catch {
+    return null;
+  }
 }
 
 async function findLatestJsonFile(directory: string): Promise<string | null> {
@@ -266,7 +300,6 @@ function normalizePortfolioSnapshot(
 
   return {
     as_of: /^\d{4}-\d{2}-\d{2}$/.test(asOf) ? asOf : capturedAt.slice(0, 10),
-    captured_at: capturedAt,
     cash: toNumber(trading.balance),
     equity: toNumber(summary.equity),
     invested: toNumber(amount.invested),
@@ -292,8 +325,6 @@ async function normalizeHistoryEvents(
       data.history,
       `History payload missing \`history\`: ${filePath}`,
     );
-    const capturedAt = parseCaptureTimestampFromPath(filePath);
-
     for (const rawGroup of historyGroups) {
       if (
         !rawGroup ||
@@ -314,15 +345,11 @@ async function normalizeHistoryEvents(
         ) {
           continue;
         }
-        const normalized = normalizeHistoryEvent(
-          rawEvent as JsonObject,
-          capturedAt,
-        );
+        const normalized = normalizeHistoryEvent(rawEvent as JsonObject);
         if (!normalized) {
           continue;
         }
-        const existing = deduped.get(normalized.event_id);
-        if (!existing || normalized.captured_at > existing.captured_at) {
+        if (!deduped.has(normalized.event_id)) {
           deduped.set(normalized.event_id, normalized);
         }
       }
@@ -334,7 +361,6 @@ async function normalizeHistoryEvents(
 
 function normalizeHistoryEvent(
   rawEvent: JsonObject,
-  capturedAt: string,
 ): NormalizedTradeEvent | null {
   const command = toUpperString(rawEvent.command);
   const symbol = toUpperString(rawEvent.symbol);
@@ -348,7 +374,6 @@ function normalizeHistoryEvent(
   }
 
   const normalized: Omit<NormalizedTradeEvent, "event_id"> = {
-    captured_at: capturedAt,
     command,
     symbol,
     date: parseStockbitDate(rawEvent.date),
@@ -502,8 +527,9 @@ function buildUtcTimestamp(
   minute: number,
   second: number,
 ): string {
-  return new Date(Date.UTC(year, month - 1, day, hour, minute, second))
-    .toISOString();
+  return new Date(
+    Date.UTC(year, month - 1, day, hour, minute, second),
+  ).toISOString();
 }
 
 function ensureObject(value: unknown, message: string): JsonObject {

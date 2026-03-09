@@ -92,4 +92,4 @@ Manual history backfill:
 1. Intercept multiple Stockbit history responses manually.
 2. Save them under `raw/history-backfill/YYYY-MM-DD/` using stable names like `page-001.json`, `page-002.json`, and so on.
 3. Restart the connector or rerun the capture task.
-4. Connector derives deterministic `captured_at` timestamps from the `YYYY-MM-DD` directory plus the `page-XXX.json` number, then ingests valid files into `normalized/trades.jsonl` with deterministic dedupe.
+4. Connector ingests valid files into `normalized/trades.jsonl` with deterministic dedupe.

@@ -1,9 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Page, Response as PlaywrightResponse } from "playwright";
 import { openAutomationPage } from "../browser/context.js";
 import { logger } from "../utils/logger.js";
 import {
+  extractTradeEventKeysFromHistoryPayload,
   getStockbitDataRoot,
   materializeStockbitNormalizedData,
 } from "./portfolio-store.js";
@@ -47,17 +48,20 @@ export async function runStockbitPortfolioCaptureTaskAtStartup(): Promise<void> 
   try {
     const portfolioCapture = await capturePortfolioResponse(session.page);
     const historyCapture = await captureHistoryResponse(session.page);
-    const persisted = await persistCapturedResponses(
-      portfolioCapture,
-      historyCapture,
+    const hasTradeUpdates = await historyPayloadDiffersFromLatest(
+      historyCapture.payload,
     );
+    const persisted = hasTradeUpdates
+      ? await persistCapturedResponses(portfolioCapture, historyCapture)
+      : null;
     captureCompleted = true;
     const materialized = await materializeStockbitNormalizedData();
 
     logger.info(
       {
-        portfolioPath: persisted.portfolio.relativePath,
-        historyPath: persisted.history.relativePath,
+        tradeUpdatesDetected: hasTradeUpdates,
+        portfolioPath: persisted?.portfolio.relativePath ?? null,
+        historyPath: persisted?.history.relativePath ?? null,
         latestPortfolioPath: materialized.latestPortfolioPath,
         tradesPath: materialized.tradesPath,
         tradeEventCount: materialized.tradeEventCount,
@@ -229,6 +233,62 @@ function getRawStorageRoot(): string {
   return path.resolve(getStockbitDataRoot(), "raw");
 }
 
+async function historyPayloadDiffersFromLatest(
+  payload: unknown,
+): Promise<boolean> {
+  const latestHistoryPath = await findLatestRawJsonFile(
+    path.resolve(getRawStorageRoot(), "history"),
+  );
+  if (!latestHistoryPath) {
+    return true;
+  }
+
+  const latestPayload = JSON.parse(
+    await readFile(latestHistoryPath, "utf8"),
+  ) as Record<string, unknown>;
+  return (
+    JSON.stringify(extractTradeEventKeysFromHistoryPayload(latestPayload)) !==
+    JSON.stringify(
+      extractTradeEventKeysFromHistoryPayload(
+        payload as Record<string, unknown>,
+      ),
+    )
+  );
+}
+
+async function findLatestRawJsonFile(
+  directory: string,
+): Promise<string | null> {
+  const files = await listJsonFiles(directory);
+  return files.length > 0 ? files[files.length - 1] : null;
+}
+
+async function listJsonFiles(directory: string): Promise<string[]> {
+  try {
+    const directoryStat = await stat(directory);
+    if (!directoryStat.isDirectory()) {
+      return [];
+    }
+  } catch {
+    return [];
+  }
+
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const absolutePath = path.resolve(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await listJsonFiles(absolutePath)));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".json")) {
+      files.push(absolutePath);
+    }
+  }
+
+  files.sort();
+  return files;
+}
 function getHistoryPageNumber(urlRaw: string): number | null {
   try {
     const url = new URL(urlRaw);
