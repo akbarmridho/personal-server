@@ -44,9 +44,8 @@ Use this structure for every technical analysis output.
 - Next liquidity draw
 
 ### C1. Volume Profile Context
-- Profile modes used: anchored / fixed / session
+- Profile modes used: anchored / fixed
 - Active profile anchors (start/end rationale)
-- Prior-session POCs (at least recent references when available)
 - Node reaction notes: HVN acceptance or LVN fast-travel behavior
 
 ### C2. Liquidity Draw Map
@@ -79,7 +78,7 @@ Use this structure for every technical analysis output.
   - Trade-plan chart alignment (entry/invalidation/target path consistency)
 
 ### E. Setup Qualification
-- Selected setup: S1 / S2 / S3 / S4 / S5 / S6 / NO_VALID_SETUP
+- Selected setup: S1 / S2 / S3 / S4 / S5 / NO_VALID_SETUP
 - Trigger condition
 - Invalidation condition
 - Why accepted or rejected
@@ -93,7 +92,7 @@ Use this structure for every technical analysis output.
 - Breakout displacement note: clean displacement / stalling
 
 ### E1. Imbalance Context (if used)
-- Imbalance type: FVG / VOLUME_IMBALANCE / OPENING_GAP / IFVG
+- Imbalance type: FVG / OPENING_GAP / IFVG
 - Zone bounds and CE (50 percent midpoint)
 - Mitigation state: unmitigated / partially_mitigated / fully_mitigated
 - CE behavior: respected / violated
@@ -167,7 +166,7 @@ Use this structure for every technical analysis output.
 | E4 | ib_state | intraday session | ... |
 | E5 | volume | vol ratio | ... |
 | E6 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
-| E7 | prior_session_poc | intraday session profile | ... |
+| E7 | profile_anchor | anchored or fixed profile context | ... |
 | E8 | chart | core + conditional chart artifacts | ... |
 | E9 | liquidity | draw target + sweep evidence | ... |
 

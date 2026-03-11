@@ -7,7 +7,6 @@ Standardize imbalance analysis so FVG-based decisions are evidence-driven, conte
 ## Imbalance Types
 
 - `FVG`: three-candle inefficiency with non-overlap across the impulse segment.
-- `VOLUME_IMBALANCE`: close-open displacement with partial wick overlap.
 - `OPENING_GAP`: full session-to-session void with no overlap.
 
 ## Key FVG Concepts

@@ -874,8 +874,6 @@ def plot_imbalance_fvg(
             color = "#8e44ad"
         elif zone_type == "OPENING_GAP":
             color = "#1f77b4"
-        elif zone_type == "VOLUME_IMBALANCE":
-            color = "#e67e22"
         else:
             color = "#2ca02c" if zone["direction"] == "bullish" else "#d62728"
         s_idx = x[x["datetime"] >= x0].index
@@ -891,9 +889,9 @@ def plot_imbalance_fvg(
         zone_high = float(zone["high"])
         if zone_high <= zone_low:
             continue
-        type_weight = {
-            "IFVG": 1.25, "FVG": 1.15, "VOLUME_IMBALANCE": 1.15, "OPENING_GAP": 0.95,
-        }.get(zone_type, 1.0)
+        type_weight = {"IFVG": 1.25, "FVG": 1.15, "OPENING_GAP": 0.95}.get(
+            zone_type, 1.0
+        )
         recency = (end_idx + 1) / max(len(x), 1)
         score = (zone_high - zone_low) * type_weight * (0.65 + recency)
         candidates.append({
@@ -922,7 +920,7 @@ def plot_imbalance_fvg(
                 colors=str(z["color"]), linewidth=2.0, linestyles="--", zorder=1,
             )
             if rank < 6:
-                short = {"VOLUME_IMBALANCE": "VI", "OPENING_GAP": "GAP"}.get(str(z["type"]), str(z["type"]))
+                short = {"OPENING_GAP": "GAP"}.get(str(z["type"]), str(z["type"]))
                 arrow = "↑" if str(z["direction"]).lower() == "bullish" else "↓"
                 ax.text(
                     float(z["end_idx"]) + 0.6, float(z["ce"]), f"{short}{arrow}",
@@ -937,7 +935,6 @@ def plot_imbalance_fvg(
             Rectangle((0, 0), 1, 1, facecolor="#2ca02c", edgecolor="#2ca02c", alpha=0.35, label="Bullish FVG"),
             Rectangle((0, 0), 1, 1, facecolor="#d62728", edgecolor="#d62728", alpha=0.35, label="Bearish FVG"),
             Rectangle((0, 0), 1, 1, facecolor="#8e44ad", edgecolor="#8e44ad", alpha=0.35, label="IFVG"),
-            Rectangle((0, 0), 1, 1, facecolor="#e67e22", edgecolor="#e67e22", alpha=0.35, label="Volume Imbalance"),
             Rectangle((0, 0), 1, 1, facecolor="#1f77b4", edgecolor="#1f77b4", alpha=0.35, label="Opening Gap"),
         ],
         loc="upper left", fontsize=8, ncol=2, framealpha=0.9,

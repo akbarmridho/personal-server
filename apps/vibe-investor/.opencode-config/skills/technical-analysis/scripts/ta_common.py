@@ -401,7 +401,7 @@ def fvg_bounds(
 def detect_imbalance_zones(
     df: pd.DataFrame, *, dt_key: str = "start"
 ) -> list[dict[str, Any]]:
-    """Detect FVG, OPENING_GAP, and VOLUME_IMBALANCE zones.
+    """Detect FVG and OPENING_GAP zones.
 
     Args:
         dt_key: key name for start/end datetime in output dicts.
@@ -444,44 +444,6 @@ def detect_imbalance_zones(
                     end_key: str(c3["datetime"]),
                 }
             )
-
-        # Volume imbalance
-        if float(c3["close"]) > float(c2["high"]) and float(c3["open"]) < float(
-            c2["high"]
-        ):
-            low = float(max(min(c3["open"], c2["high"]), min(c3["low"], c2["low"])))
-            high = float(c2["high"])
-            if high > low:
-                out.append(
-                    {
-                        "type": "VOLUME_IMBALANCE",
-                        "direction": "bullish",
-                        "low": low,
-                        "high": high,
-                        "ce": float((low + high) / 2.0),
-                        dt_key: str(c2["datetime"]),
-                        end_key: str(c3["datetime"]),
-                    }
-                )
-        elif float(c3["close"]) < float(c2["low"]) and float(c3["open"]) > float(
-            c2["low"]
-        ):
-            low = float(c2["low"])
-            high = float(
-                min(max(c3["open"], c2["low"]), max(c3["high"], c2["high"]))
-            )
-            if high > low:
-                out.append(
-                    {
-                        "type": "VOLUME_IMBALANCE",
-                        "direction": "bearish",
-                        "low": low,
-                        "high": high,
-                        "ce": float((low + high) / 2.0),
-                        dt_key: str(c2["datetime"]),
-                        end_key: str(c3["datetime"]),
-                    }
-                )
 
         # FVG (3-candle)
         if i >= 2:

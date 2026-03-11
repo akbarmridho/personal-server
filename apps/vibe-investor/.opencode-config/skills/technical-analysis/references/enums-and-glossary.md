@@ -50,8 +50,7 @@ Single source of truth for shared statuses and enum labels used across reference
 - `S2` pullback to demand in intact uptrend
 - `S3` sweep and reclaim reversal
 - `S4` range edge rotation
-- `S5` cup-and-handle continuation
-- `S6` Wyckoff spring with reclaim
+- `S5` Wyckoff spring with reclaim
 - `NO_VALID_SETUP`
 
 ## Actions
@@ -94,7 +93,7 @@ Single source of truth for shared statuses and enum labels used across reference
 
 ## Imbalance Types And Mitigation
 
-- `imbalance_type`: `FVG`, `VOLUME_IMBALANCE`, `OPENING_GAP`, `IFVG`
+- `imbalance_type`: `FVG`, `OPENING_GAP`, `IFVG`
 - `mitigation_state`: `unmitigated`, `partially_mitigated`, `fully_mitigated`
 
 ## Fibonacci Labels

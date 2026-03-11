@@ -12,8 +12,7 @@ Select one setup family based on regime, structure status, and acceptance contex
 - `S2` Pullback to demand in intact uptrend.
 - `S3` Sweep and reclaim reversal.
 - `S4` Range edge rotation.
-- `S5` Cup-and-handle continuation (optional, lower priority than structure + volume).
-- `S6` Wyckoff spring from support with reclaim (advanced, requires strict confirmation).
+- `S5` Wyckoff spring from support with reclaim (advanced, requires strict confirmation).
 
 ### Core Selection Rules
 

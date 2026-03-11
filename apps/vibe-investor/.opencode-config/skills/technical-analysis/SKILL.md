@@ -140,7 +140,7 @@ python scripts/build_ta_context.py \
 - Available modules for `--modules`:
   - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity, divergence, price-volume summary, distribution days, informed money, red flags, Wyckoff context, spring detection, trendline sweep detection
   - `vpvr`: adds `poc/vah/val/hvn/lvn` context
-  - `imbalance`: adds imbalance zones (`FVG`, `VOLUME_IMBALANCE`, `OPENING_GAP`, `IFVG`) and CE levels
+  - `imbalance`: adds imbalance zones (`FVG`, `OPENING_GAP`, `IFVG`) and CE levels
   - `breakout`: adds breakout trigger/follow-through snapshot and displacement quality
   - `smc`: adds EQH/EQL, OB/Breaker zones, and premium-discount context
   - `all`: shorthand for `core,vpvr,imbalance,breakout,smc`
@@ -254,7 +254,7 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Map levels HTF-first then refine lower timeframe; keep level map minimal and actionable.
 - When Fib is used, report explicit swing anchors and treat retracement/extension as confluence, not standalone permission.
 - Treat charting as market map only; execution still requires setup, invalidation, and risk criteria.
-- Use volume-profile context (POC/VAH/VAL/HVN/LVN) as decision support; prefer completed prior-session profiles for session references.
+- Use volume-profile context (POC/VAH/VAL/HVN/LVN) as higher-level decision support from anchored and fixed ranges.
 - Include liquidity draw map: current draw, opposing draw, sweep event, sweep outcome, and path state.
 - Prefer level-to-level execution: entry near mapped zone, target next zone, explicit RR before action.
 - For breakout setups, include base-quality and market-context filter notes before final action.

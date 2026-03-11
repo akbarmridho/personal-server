@@ -19,7 +19,7 @@ Enforce a consistent analysis flow without forcing rigid sequencing in every sce
 9. `G9_CONFLICTS` - Any chart vs numeric contradiction is resolved explicitly.
 10. `G10_DELTA` - Non-initial mode includes prior snapshot, delta log, and thesis status.
 11. `G11_SMC` - If lens is `SMC_ICT_LIGHT`, used SMC modules and evidence are explicitly reported.
-12. `G12_VOLUME_PROFILE` - If volume-profile context is used, report POC/VAH/VAL, HVN/LVN, and prior-session POC references.
+12. `G12_VOLUME_PROFILE` - If volume-profile context is used, report POC/VAH/VAL, HVN/LVN, anchors, and value-area acceptance.
 13. `G13_IMBALANCE` - If FVG/IFVG is used, report type, bounds, CE behavior, and mitigation state.
 14. `G14_L2L_PATH` - If action is BUY/EXIT, report next-zone target and expected RR.
 15. `G15_LIQUIDITY_MAP` - Report current draw, opposing draw, sweep event/outcome, and liquidity path state.

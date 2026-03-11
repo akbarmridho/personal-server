@@ -227,31 +227,6 @@ def acceptance_vs_value(
     return "inside_value"
 
 
-def prior_session_profiles(
-    df_intraday: pd.DataFrame, max_sessions: int = 3
-) -> list[dict[str, Any]]:
-    x = df_intraday.copy()
-    x["session"] = x["datetime"].dt.date
-    sessions = sorted(x["session"].unique())
-    if len(sessions) <= 1:
-        return []
-    out = []
-    for s in sessions[-(max_sessions + 1) : -1]:
-        d = x[x["session"] == s]
-        if len(d) == 0:
-            continue
-        prof = profile_from_range(d, bins=30)
-        out.append({"session": str(s), **prof})
-    return out
-
-
-def prior_session_pocs(
-    df_intraday: pd.DataFrame, max_sessions: int = 3
-) -> list[dict[str, Any]]:
-    sessions = prior_session_profiles(df_intraday, max_sessions=max_sessions)
-    return [{"session": s["session"], "poc": s["poc"]} for s in sessions]
-
-
 def vpvr_core(df: pd.DataFrame, bins: int = 40) -> dict[str, Any]:
     return profile_from_range(df, bins=bins)
 
@@ -610,78 +585,21 @@ def base_quality(
     }
 
 
-def detect_cup_and_handle(
-    df: pd.DataFrame,
-    lookback: int = 140,
-    handle_lookback: int = 22,
-    min_cup_depth: float = 0.12,
-    max_handle_depth: float = 0.12,
-    rim_tolerance: float = 0.04,
-) -> dict[str, Any]:
-    x = df.tail(lookback).reset_index(drop=True)
-    if len(x) < 60:
-        return {"detected": False, "reason": "insufficient_bars"}
-
-    hi_idx = int(x["high"].idxmax())
-    left_rim = float(x.loc[hi_idx, "high"])
-    if hi_idx >= len(x) - 20:
-        return {"detected": False, "reason": "left_rim_too_recent"}
-
-    right_window = x.iloc[hi_idx + 20 :]
-    if right_window.empty:
-        return {"detected": False, "reason": "missing_right_window"}
-    right_idx_local = int(right_window["high"].idxmax())
-    right_rim = float(x.loc[right_idx_local, "high"])
-
-    rim_delta = abs(right_rim - left_rim) / max(left_rim, 1e-9)
-    if rim_delta > rim_tolerance:
-        return {"detected": False, "reason": "rim_mismatch"}
-
-    cup_slice = x.iloc[hi_idx : right_idx_local + 1]
-    if len(cup_slice) < 20:
-        return {"detected": False, "reason": "cup_too_short"}
-    cup_low = float(cup_slice["low"].min())
-    cup_depth = (left_rim - cup_low) / max(left_rim, 1e-9)
-    if cup_depth < min_cup_depth:
-        return {"detected": False, "reason": "cup_too_shallow"}
-
-    handle_slice = x.tail(handle_lookback)
-    handle_low = float(handle_slice["low"].min())
-    handle_depth = (right_rim - handle_low) / max(right_rim, 1e-9)
-    if handle_depth > max_handle_depth:
-        return {"detected": False, "reason": "handle_too_deep"}
-
-    last_close = float(x["close"].iloc[-1])
-    breakout_ready = last_close >= right_rim * (1 - rim_tolerance)
-    return {
-        "detected": bool(breakout_ready),
-        "reason": "ok" if breakout_ready else "not_breakout_ready",
-        "left_rim": left_rim,
-        "right_rim": right_rim,
-        "cup_low": cup_low,
-        "cup_depth": float(cup_depth),
-        "handle_depth": float(handle_depth),
-    }
-
-
 def choose_setup(
     regime: str,
     ib_state: str,
     breakout_state: str,
     structure_state: str = "no_signal",
     spring_confirmed: bool = False,
-    cup_handle_confirmed: bool = False,
 ) -> str:
     if structure_state == "choch_plus_bos_confirmed":
         return "S3"
     if structure_state == "choch_only":
         return "NO_VALID_SETUP"
     if spring_confirmed:
-        return "S6"
+        return "S5"
     if regime == "trend_continuation" and breakout_state == "valid_breakout":
         return "S1"
-    if regime == "trend_continuation" and cup_handle_confirmed:
-        return "S5"
     if regime == "trend_continuation" and ib_state in {
         "inside_ib_range",
         "failed_break_below_ibl",
@@ -1067,13 +985,12 @@ def enrich_red_flags(
             and vpvr.get("vah") is not None
             and vpvr.get("val") is not None
         )
-        has_prior_session = len(vpvr.get("prior_session_pocs", [])) > 0
-        if not has_key or not has_prior_session:
+        if not has_key:
             add_flag(
                 flags,
                 "F13_VOLUME_CONFLUENCE_WEAK",
                 "MEDIUM",
-                "volume_profile_context_lacks_confluence_or_prior_session_reference",
+                "volume_profile_context_lacks_core_levels",
             )
 
     if "imbalance" in modules and imbalance is not None:
@@ -1197,7 +1114,6 @@ def main() -> None:
         if bo_snap.get("status") == "valid_breakout"
         else None
     )
-    cup_handle = detect_cup_and_handle(daily)
     spring = detect_wyckoff_spring(daily, events, wyckoff_ctx)
     setup_id = choose_setup(
         regime=regime["regime"],
@@ -1205,7 +1121,6 @@ def main() -> None:
         breakout_state=bo_snap.get("status", "no_breakout"),
         structure_state=structure_state,
         spring_confirmed=bool(spring.get("detected", False)),
-        cup_handle_confirmed=bool(cup_handle.get("detected", False)),
     )
     max_touches = max((z["touches"] for z in levels), default=0)
     red_flags = build_red_flags(
@@ -1267,7 +1182,6 @@ def main() -> None:
         ],
         "setup_selection": {
             "setup_id": setup_id,
-            "cup_handle": cup_handle,
             "spring": spring,
         },
         "divergence": divergence,
@@ -1338,7 +1252,6 @@ def main() -> None:
     if "vpvr" in modules:
         vp = vpvr_core(daily.tail(260))
         anchor_vp = anchored_profile(daily, regime["trend_bias"], max_bars=260)
-        session_profiles = prior_session_profiles(intraday, max_sessions=3)
         result["vpvr"] = {
             **vp,
             "acceptance": acceptance_vs_value(
@@ -1349,10 +1262,8 @@ def main() -> None:
             )
             if vp["vah"] is not None and vp["val"] is not None
             else "inside_value",
-            "profile_modes": ["fixed", "anchored", "session"],
+            "profile_modes": ["fixed", "anchored"],
             "anchored_profile": anchor_vp,
-            "session_profiles": session_profiles,
-            "prior_session_pocs": prior_session_pocs(intraday, max_sessions=3),
         }
 
     if "breakout" in modules:
