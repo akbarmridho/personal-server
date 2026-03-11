@@ -135,10 +135,10 @@ python scripts/build_ta_context.py \
 ```
 
 - Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
-- Output contract: `work/{SYMBOL}_ta_context.json` (or `--output` path) with deterministic fields for regime, levels, MA posture, IB state, structure events, and liquidity.
+- Output contract: `work/{SYMBOL}_ta_context.json` (or `--output` path) with deterministic fields for regime, levels, MA posture, structure events, and liquidity.
 - When the active workflow requires retained output, override `--outdir` to the workflow's artifact path.
 - Available modules for `--modules`:
-  - `core`: regime, levels, MA posture, time/round levels, IB state, structure events, liquidity, divergence, price-volume summary, distribution days, informed money, red flags, Wyckoff context, spring detection, trendline sweep detection
+  - `core`: regime, levels, MA posture, time/round levels, structure events, liquidity, divergence, price-volume summary, distribution days, informed money, red flags, Wyckoff context, spring detection, trendline sweep detection
   - `vpvr`: adds `poc/vah/val/hvn/lvn` context
   - `imbalance`: adds imbalance zones (`FVG`, `OPENING_GAP`, `IFVG`) and CE levels
   - `breakout`: adds breakout trigger/follow-through snapshot and displacement quality
@@ -163,7 +163,7 @@ python scripts/generate_ta_charts.py \
 - When the active workflow requires retained output, override `--outdir` to the workflow's artifact path.
 - Time-window mode: `--range-mode auto|fixed` (`auto` selects a focused daily window from recent structure/imbalance context; intraday uses full available candles).
 - Available modules for `--modules`:
-  - `core`: required baseline artifacts (`daily_structure_sr`, `daily_structure_fib`, `intraday_structure`, `ib_overlay`, `structure_events`, `trade_plan`)
+  - `core`: required baseline artifacts (`daily_structure_sr`, `daily_structure_fib`, `intraday_structure`, `structure_events`, `trade_plan`)
   - `vpvr`: adds `vpvr_profile` chart
   - `imbalance`: adds `imbalance_fvg` chart
   - `detail`: adds optional detail chart
@@ -182,7 +182,7 @@ Hard requirements:
 Topic ownership (avoid overlap):
 
 - Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
-- Levels (horizontal, MA, Fibonacci, time/psychological, VPVR confluence, IB) -> `references/levels.md`
+- Levels (horizontal, MA, Fibonacci, time/psychological, VPVR confluence) -> `references/levels.md`
 - Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
 - Liquidity draw and sweep framework -> `references/liquidity-draw-and-sweep.md`
 - Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
@@ -250,7 +250,6 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
 - Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
 - Reversal calls must follow BOS/CHOCH confirmation contract in market-structure reference.
 - FVG usage must state type, bounds, CE behavior, and mitigation status.
-- IBH/IBL is a structural acceptance tool, not a standalone signal.
 - Map levels HTF-first then refine lower timeframe; keep level map minimal and actionable.
 - When Fib is used, report explicit swing anchors and treat retracement/extension as confluence, not standalone permission.
 - Treat charting as market map only; execution still requires setup, invalidation, and risk criteria.
@@ -271,7 +270,6 @@ Keep trace concise, human-readable, and evidence-backed. Do not make unsupported
   - `work/{SYMBOL}_daily_structure_sr.png`
   - `work/{SYMBOL}_daily_structure_fib.png`
   - `work/{SYMBOL}_intraday_structure.png`
-  - `work/{SYMBOL}_ib_overlay.png`
   - `work/{SYMBOL}_structure_events.png`
   - `work/{SYMBOL}_trade_plan.png`
 - Conditional chart artifacts (required when module is active):

@@ -20,7 +20,6 @@ from ta_common import (
     classify_price_volume,
     classify_regime,
     cluster_levels,
-    compute_period_ib_levels,
     derive_levels,
     detect_imbalance_zones,
     detect_structure_events,
@@ -28,7 +27,6 @@ from ta_common import (
     detect_wyckoff_spring,
     fvg_bounds,
     infer_ifvg_zones,
-    latest_intraday_ib,
     liquidity_draws,
     liquidity_path_after_event,
     mitigation_state,
@@ -167,44 +165,6 @@ def nearest_round_levels(price: float, step: float = 100.0) -> dict[str, float]:
         "round_below": float(base - step),
         "round_at": float(base),
         "round_above": float(base + step),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Period IB state
-# ---------------------------------------------------------------------------
-
-
-def latest_period_ib_state(
-    df_daily: pd.DataFrame, period: str = "M", first_n_bars: int = 2
-) -> dict[str, Any]:
-    x, ibh_line, ibl_line, info = compute_period_ib_levels(
-        df_daily, period=period, first_n_bars=first_n_bars
-    )
-    if len(info) == 0:
-        return {"state": "insufficient_period_bars"}
-    last = x.index[-1]
-    prev = x.index[-2] if len(x) >= 2 else x.index[-1]
-    ibh = float(ibh_line.loc[last])
-    ibl = float(ibl_line.loc[last])
-    c0 = float(x.loc[last, "close"])
-    c1 = float(x.loc[prev, "close"])
-    if c1 > ibh and c0 >= ibh:
-        state = "accepted_above_ibh"
-    elif c1 < ibl and c0 <= ibl:
-        state = "accepted_below_ibl"
-    elif c1 > ibh and c0 < ibh:
-        state = "failed_break_above_ibh"
-    elif c1 < ibl and c0 > ibl:
-        state = "failed_break_below_ibl"
-    else:
-        state = "inside_ib_range"
-    return {
-        "period": period,
-        "first_n_bars": first_n_bars,
-        "ibh": ibh,
-        "ibl": ibl,
-        "state": state,
     }
 
 
@@ -587,7 +547,6 @@ def base_quality(
 
 def choose_setup(
     regime: str,
-    ib_state: str,
     breakout_state: str,
     structure_state: str = "no_signal",
     spring_confirmed: bool = False,
@@ -600,15 +559,9 @@ def choose_setup(
         return "S5"
     if regime == "trend_continuation" and breakout_state == "valid_breakout":
         return "S1"
-    if regime == "trend_continuation" and ib_state in {
-        "inside_ib_range",
-        "failed_break_below_ibl",
-    }:
+    if regime == "trend_continuation":
         return "S2"
-    if regime in {"potential_reversal", "range_rotation"} and ib_state in {
-        "failed_break_above_ibh",
-        "failed_break_below_ibl",
-    }:
+    if regime == "potential_reversal":
         return "S3"
     if regime == "range_rotation":
         return "S4"
@@ -1080,8 +1033,6 @@ def main() -> None:
     prev_close = float(daily.iloc[-2]["close"]) if len(daily) > 1 else None
     posture = ma_posture(last)
     adaptive_ma = choose_adaptive_ma(daily)
-    ib = latest_intraday_ib(intraday)
-    period_ib = latest_period_ib_state(daily, period="M", first_n_bars=2)
     vp_base = vpvr_core(daily.tail(260))
 
     state, state_reason = infer_state(
@@ -1117,7 +1068,6 @@ def main() -> None:
     spring = detect_wyckoff_spring(daily, events, wyckoff_ctx)
     setup_id = choose_setup(
         regime=regime["regime"],
-        ib_state=str(ib.get("state", "inside_ib_range")),
         breakout_state=bo_snap.get("status", "no_breakout"),
         structure_state=structure_state,
         spring_confirmed=bool(spring.get("detected", False)),
@@ -1167,8 +1117,6 @@ def main() -> None:
             "role_reversal_note": role_reversal_note,
             "fib_context": fib_ctx,
         },
-        "ib_state": ib,
-        "period_ib_state": period_ib,
         "structure_events": [
             {
                 "datetime": str(e["datetime"]),

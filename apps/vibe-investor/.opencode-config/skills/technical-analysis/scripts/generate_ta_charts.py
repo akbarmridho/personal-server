@@ -22,13 +22,11 @@ from ta_common import (
     add_swings,
     add_volume_features,
     anomaly_overrides,
-    compute_period_ib,
     derive_levels,
     derive_recent_fib_lines,
     detect_imbalance_zones,
     detect_structure_events,
     infer_ifvg_zones,
-    latest_intraday_ib,
     load_ohlcv,
     select_nearest_levels,
 )
@@ -71,10 +69,6 @@ def parse_args() -> argparse.Namespace:
         "--modules",
         default="core",
         help="Comma-separated modules: core,vpvr,imbalance,detail or all.",
-    )
-    parser.add_argument("--period", default="M", help="IB overlay period, default M.")
-    parser.add_argument(
-        "--first-n-bars", type=int, default=2, help="IB overlay seed bars, default 2."
     )
     parser.add_argument(
         "--daily-lookback", type=int, default=240, help="Daily candles to render."
@@ -416,8 +410,11 @@ def plot_daily_structure(
 
 
 def plot_intraday_structure(
-    df_intraday: pd.DataFrame, ib: dict[str, Any],
-    zones: list[dict[str, Any]], path: Path, symbol: str, lookback: int,
+    df_intraday: pd.DataFrame,
+    zones: list[dict[str, Any]],
+    path: Path,
+    symbol: str,
+    lookback: int,
 ) -> None:
     x = add_intraday_context(df_intraday.tail(lookback))
     last_close = float(x["close"].iloc[-1])
@@ -427,12 +424,13 @@ def plot_intraday_structure(
         mpf.make_addplot(x["EMA20"], color="#5e35b1", width=1.7),
         mpf.make_addplot(x["VWAP"], color="#ff9800", width=1.9),
     ]
-    merged_hlines = [ib["ibh"], ib["ibl"]] + hlines
-    colors = ["#2ca02c", "#d62728"] + ["#1f77b4"] * len(hlines)
-    linewidths = [1.8, 1.8] + [1.5] * len(hlines)
     fig, axes = mpf.plot(
         to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        hlines=dict(hlines=merged_hlines, colors=colors, linewidths=linewidths),
+        hlines=dict(
+            hlines=hlines,
+            colors=["#1f77b4"] * len(hlines),
+            linewidths=[1.5] * len(hlines),
+        ) if hlines else None,
         title=f"{symbol} Intraday Structure",
         figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
         update_width_config=_width_config(), returnfig=True,
@@ -447,116 +445,12 @@ def plot_intraday_structure(
             Line2D([], [], color="#00bcd4", linewidth=2.0, label="EMA9"),
             Line2D([], [], color="#5e35b1", linewidth=2.0, label="EMA20"),
             Line2D([], [], color="#ff9800", linewidth=2.0, label="VWAP"),
-            Line2D([], [], color="#2ca02c", linewidth=2.0, label="IBH"),
-            Line2D([], [], color="#d62728", linewidth=2.0, label="IBL"),
         ] + ([Line2D([], [], color="#1f77b4", linewidth=1.5, label="Daily S/R")] if hlines else []),
         loc="upper left", fontsize=8, ncol=2, framealpha=0.9,
     )
     ax.text(
         1.02, 1.15,
-        f"IBH={ib['ibh']:.2f} | IBL={ib['ibl']:.2f} | State={ib['state']}\n"
         f"VWAP={latest_vwap:.2f} | EMA9={latest_ema9:.2f} | EMA20={latest_ema20:.2f}",
-        transform=ax.transAxes, ha="right", va="top", fontsize=8,
-        bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
-    )
-    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
-    plt.close(fig)
-
-
-def plot_intraday_vwap_momentum(
-    df_intraday: pd.DataFrame,
-    ib: dict[str, Any],
-    path: Path,
-    symbol: str,
-    lookback: int,
-) -> None:
-    x = add_intraday_context(df_intraday.tail(lookback))
-    apds = [
-        mpf.make_addplot(x["EMA9"], color="#00bcd4", width=1.7),
-        mpf.make_addplot(x["EMA20"], color="#5e35b1", width=1.7),
-        mpf.make_addplot(x["VWAP"], color="#ff9800", width=1.9),
-    ]
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        hlines=dict(
-            hlines=[ib["ibh"], ib["ibl"]],
-            colors=["#2ca02c", "#d62728"],
-            linewidths=[1.4, 1.4],
-            alpha=0.6,
-        ),
-        title=f"{symbol} Intraday VWAP Momentum",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
-    ax = axes[0]
-    latest = x.iloc[-1]
-    latest_vwap = float(latest["VWAP"]) if pd.notna(latest["VWAP"]) else float(latest["close"])
-    latest_ema9 = float(latest["EMA9"]) if pd.notna(latest["EMA9"]) else float(latest["close"])
-    latest_ema20 = float(latest["EMA20"]) if pd.notna(latest["EMA20"]) else float(latest["close"])
-    ax.legend(
-        handles=[
-            Line2D([], [], color="#00bcd4", linewidth=2.0, label="EMA9"),
-            Line2D([], [], color="#5e35b1", linewidth=2.0, label="EMA20"),
-            Line2D([], [], color="#ff9800", linewidth=2.0, label="Session VWAP"),
-            Line2D([], [], color="#2ca02c", linewidth=1.6, label="IBH"),
-            Line2D([], [], color="#d62728", linewidth=1.6, label="IBL"),
-        ],
-        loc="upper left", fontsize=8, ncol=2, framealpha=0.9,
-    )
-    ax.text(
-        1.02, 1.15,
-        f"VWAP={latest_vwap:.2f} | EMA9={latest_ema9:.2f} | EMA20={latest_ema20:.2f}\n"
-        "Use EMA9/20 and VWAP alignment for intraday continuation vs fade bias",
-        transform=ax.transAxes, ha="right", va="top", fontsize=8,
-        bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
-    )
-    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
-    plt.close(fig)
-
-
-def plot_ib_overlay(
-    df_daily: pd.DataFrame,
-    ibh_line: pd.Series,
-    ibl_line: pd.Series,
-    path: Path,
-    symbol: str,
-    period: str,
-    first_n: int,
-    lookback: int,
-) -> None:
-    x = df_daily.tail(lookback)
-    start = len(df_daily) - len(x)
-    ibh_slice = pd.Series(ibh_line.iloc[start:].values, index=x.index)
-    ibl_slice = pd.Series(ibl_line.iloc[start:].values, index=x.index)
-    apds = [
-        mpf.make_addplot(ibh_slice, color="#2f6bff", width=2.0),
-        mpf.make_addplot(ibl_slice, color="#ff7f0e", width=2.0),
-    ]
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        title=f"{symbol} Initial Balance Overlay ({period}, {first_n})",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
-    ax = axes[0]
-    latest_ibh = float(ibh_slice.dropna().iloc[-1]) if ibh_slice.notna().any() else None
-    latest_ibl = float(ibl_slice.dropna().iloc[-1]) if ibl_slice.notna().any() else None
-    ax.legend(
-        handles=[
-            Line2D([], [], color="#2f6bff", linewidth=2.0, label="Period IBH"),
-            Line2D([], [], color="#ff7f0e", linewidth=2.0, label="Period IBL"),
-        ],
-        loc="upper left", fontsize=8, framealpha=0.9,
-    )
-    ax.text(
-        1.02, 1.15,
-        (
-            f"IB period={period}, seed bars={first_n}\n"
-            f"Latest IBH={latest_ibh:.2f} | Latest IBL={latest_ibl:.2f}\n"
-            "Close above IBH / below IBL with follow-through = acceptance"
-        )
-        if latest_ibh is not None and latest_ibl is not None
-        else f"IB period={period}, seed bars={first_n}",
         transform=ax.transAxes, ha="right", va="top", fontsize=8,
         bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
     )
@@ -1064,10 +958,6 @@ def main() -> None:
     detail_lookback = min(len(daily), max(90, min(daily_lookback, 150)))
     imbalance_lookback = min(len(daily), max(80, min(daily_lookback, 130)))
 
-    ib = latest_intraday_ib(intraday)
-    ibh_line, ibl_line = compute_period_ib(
-        daily, period=args.period, first_n_bars=args.first_n_bars,
-    )
     last_close = float(daily["close"].iloc[-1])
     draws = nearest_draws(last_close, zones)
     trade_side = infer_trade_side(daily, events)
@@ -1090,15 +980,8 @@ def main() -> None:
     generated["daily_structure_fib"] = str(p_daily_fib)
 
     p_intraday = outdir / f"{symbol}_intraday_structure.png"
-    plot_intraday_structure(intraday, ib, zones, p_intraday, symbol, intraday_lookback)
+    plot_intraday_structure(intraday, zones, p_intraday, symbol, intraday_lookback)
     generated["intraday_structure"] = str(p_intraday)
-
-    p_ib = outdir / f"{symbol}_ib_overlay.png"
-    plot_ib_overlay(
-        daily, ibh_line, ibl_line, p_ib, symbol,
-        args.period, args.first_n_bars, daily_lookback,
-    )
-    generated["ib_overlay"] = str(p_ib)
 
     p_events = outdir / f"{symbol}_structure_events.png"
     plot_structure_events(daily, events, draws, p_events, symbol, daily_lookback)
@@ -1155,7 +1038,6 @@ def main() -> None:
             },
             "corp_actions_rows": int(len(corp)),
         },
-        "ib_state": ib,
         "zones": zones[:12],
         "structure_events": [
             {

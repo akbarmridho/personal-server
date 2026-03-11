@@ -25,7 +25,6 @@ Use this structure for every technical analysis output.
 - Regime: trend_continuation / range_rotation / potential_reversal / no_trade
 - Wyckoff context: accumulation / markup / distribution / markdown / unclear
 - Bias: bullish / bearish / neutral
-- Intraday session state: accepted_above_ibh / accepted_below_ibl / failed_break_above_ibh / failed_break_below_ibl / inside_ib_range
 
 ### C. Key Levels And Liquidity
 - Support zones
@@ -35,7 +34,6 @@ Use this structure for every technical analysis output.
 - Adaptive MA note (if used): selected period + respect evidence
 - POC/HVN/LVN
 - VAH/VAL and value-area acceptance state
-- IBH/IBL values
 - Time-based levels: monthly/weekly/daily open (when relevant)
 - Round-number levels (when relevant)
 - Fibonacci context (when relevant): swing anchors + retracement map (`0.236`/`0.382`/`0.5`/`0.618`/`0.786`)
@@ -61,7 +59,6 @@ Use this structure for every technical analysis output.
   - `daily_structure_sr`
   - `daily_structure_fib`
   - `intraday_structure`
-  - `ib_overlay`
   - `structure_events`
   - `trade_plan`
   - Conditional required charts:
@@ -72,7 +69,6 @@ Use this structure for every technical analysis output.
 - Chart observations:
   - What was seen on chart first
   - Which lines/zones were respected, broken, reclaimed, or deviated
-  - IB overlay interpretation (period, first_n_bars, accepted/deviation/inside)
   - Structure-event interpretation (CHOCH/BOS markers and confirmation status)
   - Liquidity-map interpretation (current draw/opposing draw, sweep and path)
   - Trade-plan chart alignment (entry/invalidation/target path consistency)
@@ -163,12 +159,11 @@ Use this structure for every technical analysis output.
 | E1 | data_range | daily | ... |
 | E2 | swing | daily candle timestamp + level | ... |
 | E3 | level | support/resistance zone | ... |
-| E4 | ib_state | intraday session | ... |
-| E5 | volume | vol ratio | ... |
-| E6 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
-| E7 | profile_anchor | anchored or fixed profile context | ... |
-| E8 | chart | core + conditional chart artifacts | ... |
-| E9 | liquidity | draw target + sweep evidence | ... |
+| E4 | volume | vol ratio | ... |
+| E5 | volume_profile | POC/VAH/VAL/HVN/LVN | ... |
+| E6 | profile_anchor | anchored or fixed profile context | ... |
+| E7 | chart | core + conditional chart artifacts | ... |
+| E8 | liquidity | draw target + sweep evidence | ... |
 
 ### J. Monitoring Triggers
 - Thesis confirmation triggers
