@@ -25,7 +25,7 @@ The current skill already has useful AI-facing qualities:
 
 - one clear entrypoint in `SKILL.md`
 - explicit mode definitions
-- explicit module and lens selection
+- explicit module selection
 - reasonable topic separation across references
 - deterministic scripts for major preprocessing steps
 - output contract separated into its own template reference
@@ -201,7 +201,7 @@ The optional advanced doctrine should still remain present:
 - imbalance
 - SMC
 
-Those modules should stay available for deep or explicit requests, even if they are not always loaded in `BASIC`.
+Those modules should stay available for escalated or explicit requests, even if they are not always loaded in `DEFAULT`.
 
 These files should answer domain questions, not own orchestration.
 
@@ -258,6 +258,21 @@ The recommended end state is:
 - merge `analysis-lifecycle-and-frameworks.md` into `workflow-spine.md`
 - merge `level-to-level-execution.md` into `execution-and-risk-protocol.md`
 
+Detailed merge direction:
+
+- `analysis-lifecycle-and-frameworks.md` should contribute only lifecycle modes, prior-context requirements, thesis-status handling, delta requirements, and non-initial trace requirements
+- remove the formal lens system and lens-compare requirements from the future state instead of carrying them forward
+- move level-to-level path requirement into `execution-and-risk-protocol.md`
+- move liquidity-draw requirement into the workflow spine or liquidity references
+- `level-to-level-execution.md` should contribute its zone-to-zone rules, workflow, trace requirements, and any helper logic worth preserving
+- after merge, both standalone files should disappear from the future skill tree
+
+Reference cleanup required during implementation:
+
+- `setups-and-breakouts.md` must remove always-on divergence language
+- `execution-and-risk-protocol.md` must remove or conditionalize existing Fib and `OTE` sections
+- `enums-and-glossary.md` must be revised for the new mode model, removed lens system, removed default Fib and `OTE`, and Wyckoff segment enums
+
 This produces a compact runtime structure:
 
 - 1 top-level entrypoint
@@ -310,6 +325,11 @@ Own:
 - examples
 - sub-framework nuance
 
+For imbalance specifically:
+
+- `fair-value-gap-and-imbalances.md` should remain the owner of `FVG` and `IFVG`
+- those should be treated as an imbalance overlay path, separate from `SMC/ICT`
+
 For Wyckoff specifically:
 
 - `market-structure-and-trend.md` should continue to own Wyckoff doctrine
@@ -320,6 +340,13 @@ For Wyckoff specifically:
 Owns:
 
 - output structure only
+
+Rewrite direction:
+
+- do not preserve the old template shape and only delete obsolete fields
+- rebuild the template around the runtime spine and the new output contract layers
+- keep baseline sections compact and decision-oriented
+- make overlays appear only when actually used
 
 ### scripts
 
@@ -335,7 +362,7 @@ Own:
 The AI-facing workflow should become:
 
 1. load `SKILL.md`
-2. determine mode, preset, and requested lens
+2. determine mode, preset, and whether overlays are needed
 3. load `workflow-spine.md`
 4. load `policy-contract.md`
 5. load only the topic references required for the current path
@@ -364,20 +391,24 @@ This gives the AI a smaller, more reliable working set.
 
 Wyckoff historical-state requirement should be available in the default path, not only in deep mode.
 
-## Basic And Deep Workflow Separation
+## Default And Escalated Workflow Separation
 
-The current `BASIC` and `DEEP` concept is useful.
+The future contract should move away from `BASIC` and `DEEP` naming.
 
-It should become more explicit in the workflow spine:
+The better runtime model is:
 
-### `BASIC`
+- `DEFAULT`
+- `ESCALATED`
 
-Default path:
+### `DEFAULT`
+
+Normal path:
 
 - state
 - location
 - setup
 - trigger
+- confirmation
 - risk
 - action
 
@@ -387,9 +418,9 @@ Modules:
 - vpvr
 - breakout
 
-### `DEEP`
+### `ESCALATED`
 
-Escalation path only when contradictions or reversal complexity justify it.
+Escalation path only when the LLM judges it necessary or when trigger conditions justify it.
 
 Modules:
 
@@ -400,6 +431,18 @@ Modules:
 - smc
 
 The AI should only escalate after a named reason is recorded.
+
+Timeframe reconciliation in the future workflow should be explicit:
+
+- daily owns thesis direction, setup context, and the main risk map
+- `60m` owns trigger quality, confirmation, follow-through, and tactical timing
+- `60m` may delay or downgrade action, but it should not create a trade against the daily thesis by itself
+
+This naming is preferred because:
+
+- `DEFAULT` clearly means the normal path
+- `ESCALATED` clearly means additional overlays were activated
+- it avoids implying that the second path is simply “more detailed” rather than contextually different
 
 ## Suggested Refactor Steps
 
@@ -663,11 +706,12 @@ For now, the lean default should be:
 
 - `21EMA`
 - `50SMA`
+- `200SMA`
 
-Why this pair:
+Why this baseline:
 
-- enough to capture fast posture and medium trend support
-- much lighter than the full `21/50/100/200` stack
+- enough to capture fast posture, medium structure, and long-term regime context
+- lighter than the full `21/50/100/200` stack
 - more stable than letting the model search arbitrary MA combinations
 
 ### Adaptive MA Rule
@@ -676,7 +720,7 @@ Adaptive MA should be allowed only when all are true:
 
 - the review is focused on a specific symbol, not broad screening
 - the symbol shows repeated measurable respect to a specific nonstandard MA or rhythm
-- the adaptive MA adds useful information beyond `21EMA` and `50SMA`
+- the adaptive MA adds useful information beyond `21EMA`, `50SMA`, and `200SMA`
 - the model can explain why that period matters
 
 Adaptive MA should never replace baseline regime context.
@@ -706,8 +750,9 @@ If this direction is accepted:
 For now:
 
 - keep simple baseline MA context
-- use `21EMA` and `50SMA` as the default pair
-- remove the large default MA stack
+- use `21EMA`, `50SMA`, and `200SMA` as the default baseline
+- keep `100SMA` out of the lean baseline for now
+- remove the broader default MA stack beyond that baseline
 - keep adaptive MA as a tightly gated optional overlay
 
 This preserves both valid ideas without turning MA doctrine into an unconstrained LLM choice.
@@ -777,7 +822,27 @@ If this direction is accepted:
 - make escalation criteria explicit in the workflow spine
 - require the policy contract to record why escalation was triggered
 
+The policy contract should also record whether a run stayed in `DEFAULT` or moved into `ESCALATED`.
+
 This preserves adaptiveness without making `SMC/ICT` part of ordinary baseline analysis.
+
+General escalation rule for the future skill:
+
+- stay in `DEFAULT` unless an unresolved decision-relevant question requires an overlay
+- every escalation should record why the default path was insufficient
+- every overlay should record what question it was helping resolve
+
+Overlay trigger summary:
+
+- adaptive MA only when symbol-specific rhythm materially matters and baseline MA context is insufficient
+- divergence only for exhaustion, reversal suspicion, thesis degradation, or postmortem
+- `SMC/ICT` only when liquidity behavior is central or the default structure-first read remains unresolved
+
+Chart artifact implication:
+
+- keep `daily_structure_sr` as the default daily map
+- remove `daily_structure_fib` from the future baseline artifact set
+- if the live skill is later cleaned up enough, rename `daily_structure_sr` to `daily_structure`
 
 ## Proposed End State
 

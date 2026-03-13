@@ -31,6 +31,17 @@ This means the system should be split into two layers:
 The deterministic layer compresses history into a structured state packet.
 The LLM layer interprets that packet, handles conflict resolution, and chooses an action.
 
+## Required Backtest Contracts
+
+Before implementation, the backtest design should define four explicit contracts:
+
+- a field-level state packet schema, not only prose
+- replay granularity rules for daily and `60m`
+- concrete execution simulator assumptions
+- evaluator baseline bands for what counts as acceptable behavior
+
+These are still open design items and should not remain implicit.
+
 ## Two Evaluation Modes
 
 ### 1. Full Vibe
@@ -70,6 +81,16 @@ Use this mode to answer:
 This mode is not the product.
 It is the measurement baseline.
 
+## Planned Analysis Modes Inside Technical Analysis
+
+Separate from evaluation modes, the refactored technical-analysis system should expose two analysis modes:
+
+- `DEFAULT`
+- `ESCALATED`
+
+`DEFAULT` is the ordinary lean path.
+`ESCALATED` is the path where additional overlays or diagnostics are activated because the LLM judges they are necessary or trigger conditions are met.
+
 ## Recommended Testing Sequence
 
 The cleanest sequence is:
@@ -106,6 +127,18 @@ Key requirement:
 
 - no lookahead leakage
 
+Replay granularity should be split explicitly:
+
+- `daily replay` for thesis quality, state, location, setup, and main risk map
+- `60m replay` for trigger, confirmation, and timing quality once a daily thesis or watch condition exists
+
+Recommended rule:
+
+- do not run `60m` replay as an independent thesis engine
+- use it only inside the daily-owned thesis context
+- if testing only thesis quality, daily replay alone is sufficient
+- if testing timing quality, pair daily replay with `60m` replay inside trigger windows
+
 ### Layer 2. Deterministic Market-State Builder
 
 This layer builds a compact representation of the market at time `t`.
@@ -134,18 +167,50 @@ This layer should be stable, cheap, and reproducible.
 
 The existing technical-analysis scripts already point in this direction.
 
+Artifact direction note:
+
+- retain the daily structure chart built around support, resistance, structure, and MA context
+- do not treat Fib-specific daily chart artifacts as part of the future default state packet or baseline evidence set
+
 Wyckoff historical-state note:
 
 - do not store only `current_wyckoff_context`
 - store a compact phase timeline so the policy can reason about transition, maturity, and recent phase alternation
 - this should support both a machine-readable sequence and a chart artifact with historical phase bands
+- use the contract defined in `wyckoff-historical-state-design.md`
 
 Moving-average state note:
 
 - the state packet should always carry baseline MA context
-- baseline MA should remain lean, for example `21EMA` and `50SMA`
+- baseline MA should remain lean, for example `21EMA`, `50SMA`, and `200SMA`
+- `100SMA` should not be part of the default state packet baseline for now
 - adaptive MA should not be a free-form search over many periods during normal runs
 - adaptive MA should appear only when the system records a justification that the symbol shows repeated respect to a specific rhythm
+
+Timeframe reconciliation note:
+
+- daily should own thesis direction, setup context, and the main risk map
+- `60m` should own trigger quality, follow-through, local acceptance or rejection, and tactical timing
+- the state packet should make this separation explicit so the policy engine does not mix lower-timeframe noise into the thesis layer
+
+State-packet schema requirement:
+
+- this layer should eventually be defined as a concrete field-by-field schema
+- prose lists are not enough for implementation or repeatable backtests
+- `policy-contract.md` should own the runtime schema or point to a dedicated schema appendix
+
+Minimum schema groups should include:
+
+- analysis purpose and depth mode
+- daily thesis state
+- `60m` timing state
+- location and key zones
+- setup candidates
+- trigger and confirmation state
+- risk map
+- overlay states when active
+- red flags
+- prior-thesis snapshot when applicable
 
 ### Layer 3. Policy Engine
 
@@ -176,12 +241,35 @@ For MA handling, the policy engine should treat:
 - baseline MA context as always available
 - adaptive MA as an optional overlay, not a replacement
 - MA context as support for regime and timing, not as a standalone signal source
+- `200SMA` as long-term regime context, especially useful when the broader market is weak
 
 For divergence and SMC/ICT handling, the policy engine should treat:
 
 - divergence as a conditional diagnostic, not a mandatory scan
 - `SMC/ICT` modules as adaptive overlays
 - `SMC/ICT` overlays as available when the LLM judges them necessary or when trigger conditions are met
+
+The policy engine should also output:
+
+- whether the current step stayed in `DEFAULT` mode or moved into `ESCALATED` mode
+- the reason for escalation when escalation occurred
+
+Recommended escalation rule:
+
+- stay in `DEFAULT` unless an unresolved decision-relevant question requires an overlay
+- escalate only when the additional overlay may materially change action, confidence, invalidation, or interpretation quality
+
+Overlay trigger notes:
+
+- adaptive MA should trigger only for symbol-specific rhythm-sensitive setups where the baseline MA context is insufficient
+- divergence should trigger only for exhaustion, reversal suspicion, thesis degradation, or postmortem review
+- `SMC/ICT` should trigger only when liquidity behavior is central or the default read remains structurally ambiguous
+
+For daily and `60m` conflicts, the policy engine should treat:
+
+- daily as the directional authority
+- `60m` as the timing authority
+- unresolved timing conflict as a reason to delay or keep `WAIT`, not as a reason to reverse the daily thesis by itself
 
 ### Layer 4. Execution Simulator
 
@@ -201,6 +289,20 @@ This layer answers:
 
 - what happened after the decision?
 - how did the plan behave?
+
+Execution assumptions should be made concrete before implementation.
+
+At minimum define:
+
+- entry timing assumption, for example same-close, next-open, or next-bar-open
+- stop execution rule
+- target execution rule
+- gap-through-stop handling
+- slippage model
+- whether partial fills or partial exits are simulated
+- stale-setup expiry rule
+
+For IDX-focused testing, these assumptions should be explicit rather than left to interpretation.
 
 ### Layer 5. Evaluator
 
@@ -223,6 +325,105 @@ Decision-process outcomes:
 - number of late exits
 - action stability across adjacent reviews
 - thesis consistency across updates
+- escalation frequency
+- escalation hit rate by scenario
+- whether escalation improved or degraded outcomes
+
+Evaluator baseline requirement:
+
+- metrics alone are not enough
+- the system should eventually define baseline bands for what counts as acceptable or failed behavior
+
+Examples:
+
+- minimum acceptable expectancy
+- maximum acceptable false-positive rate
+- acceptable thesis-consistency band
+- acceptable escalation frequency range
+
+These baseline bands can be refined later, but they should exist before results are treated as pass or fail.
+
+## Initial Threshold Framework
+
+Use three threshold layers:
+
+- `minimum viable`
+- `acceptable`
+- `target`
+
+These are planning bands, not final optimized numbers.
+
+### Minimum Viable
+
+Enough to say the system is not obviously broken.
+
+Examples:
+
+- false-positive rate is not persistently extreme
+- thesis consistency is stable enough to avoid random flip-flopping
+- escalation frequency is not so high that `DEFAULT` becomes meaningless
+- sample size is large enough before interpreting results
+
+### Acceptable
+
+Good enough to continue iteration with confidence.
+
+Examples:
+
+- expectancy is positive on a meaningful sample
+- escalation improves difficult cases more often than it degrades them
+- thesis consistency is solid across `UPDATE` and `THESIS_REVIEW`
+- action quality is better than ablation on the intended scenarios
+
+### Target
+
+The aspirational benchmark after refinement.
+
+Examples:
+
+- regime-specific or setup-specific expectancy targets
+- strong escalation hit-rate by scenario
+- better decision quality without excessive escalation
+- stable action quality across changing market conditions
+
+### Deferred Threshold Work
+
+The following remain deferred until real runs exist:
+
+- exact numeric thresholds by regime
+- exact thresholds by setup family
+- exact thresholds by market condition
+- advanced scenario-specific scorecards
+
+## LLM-Mode Logging Requirement
+
+When backtesting in LLM mode, keep a per-step log that records:
+
+- timestamp or decision point
+- selected action
+- whether analysis stayed in `DEFAULT` or moved to `ESCALATED`
+- escalation reason code
+- escalation reason text
+- which optional overlays or diagnostics were used
+- whether escalation came from explicit request or model judgment
+- short rationale
+
+This is needed so escalation behavior can be audited rather than hidden inside the final answer.
+
+## Open Design Items Before Backtest Implementation
+
+The following should be settled before implementation work starts:
+
+1. concrete state-packet schema
+2. replay granularity split between daily and `60m`
+3. execution simulator assumptions
+4. evaluator baseline bands
+
+The following can stay later-stage:
+
+- full Wyckoff segmentation logic
+- exact Wyckoff confidence weighting
+- advanced threshold tuning by scenario or regime
 
 ## Decision Tree For The Backtest Design
 
@@ -387,7 +588,7 @@ When Wyckoff is included in the state packet, prefer:
 
 When MA context is included in the state packet, prefer:
 
-- baseline `21EMA` and `50SMA` posture
+- baseline `21EMA`, `50SMA`, and `200SMA` posture
 - whether they are acting as support, resistance, or noise
 - optional adaptive MA period only if justified
 - short reason why the adaptive MA is included for this symbol

@@ -19,17 +19,69 @@ The immediate objective is to make it:
 
 Keep the skill focused on chart-based technical analysis.
 
-Default workflow spine:
+Planned analysis modes:
 
-1. state
-2. location
-3. setup family
-4. trigger
-5. confirmation
-6. risk
-7. action
+- `DEFAULT`
+- `ESCALATED`
+
+`DEFAULT` is the normal chart-first path.
+`ESCALATED` is the context-triggered extension path when deeper overlays are needed.
+
+Canonical workflow spine:
+
+1. mode
+2. state
+3. location
+4. setup family
+5. trigger
+6. confirmation
+7. risk
+8. decision
+9. monitoring
+
+The older 7-step summary is only the compressed operational core.
+`mode` and `monitoring` should be treated as explicit wrapper phases in the future contract.
+
+In that spine:
+
+- daily owns thesis direction, setup context, and the main risk map
+- `60m` owns trigger quality, confirmation, follow-through, and tactical timing
 
 The AI should stay adaptive, but the default path should stay lean.
+
+## Mode Meaning
+
+### `DEFAULT`
+
+Use for ordinary technical-analysis work:
+
+- initial thesis build
+- routine update
+- thesis review
+- most continuation and pullback reads
+- normal `WAIT` decisions
+
+It should rely on the lean default backbone only.
+
+### `ESCALATED`
+
+Use when the normal read is not enough.
+
+Typical triggers:
+
+- the user explicitly asks for deeper analysis
+- reversal is central
+- trap, sweep, deviation, or liquidity behavior dominates the interpretation
+- the basic read cannot resolve the chart cleanly
+- postmortem needs deeper structural detail
+- the LLM judges that additional overlays are necessary
+
+`ESCALATED` is not a separate doctrine bundle.
+It is the same system with additional overlays or diagnostics activated.
+
+Trigger rule:
+
+- stay in `DEFAULT` unless an unresolved decision-relevant question requires an overlay
 
 ## What Stays In The Default Backbone
 
@@ -43,12 +95,13 @@ The AI should stay adaptive, but the default path should stay lean.
 - level-to-level execution
 - risk-first discipline
 - daily thesis with `60m` timing refinement
-- lean MA context using `21EMA` and `50SMA`
+- lean MA context using `21EMA`, `50SMA`, and `200SMA`
 
 ## What Stays But Not In The Default Path
 
 - adaptive MA as a symbol-specific overlay
 - divergence as a conditional diagnostic
+- imbalance as a separate context-triggered overlay path
 - `FVG`
 - `IFVG`
 - `OB`
@@ -62,22 +115,28 @@ These remain available inside technical analysis, but only when:
 - the LLM judges they are necessary
 - or clear escalation conditions are met
 
+`FVG` and `IFVG` should be treated under the imbalance overlay path, not silently folded into `SMC/ICT`.
+
 ## What Is Removed For Now
 
 - Fibonacci from the active default system
 - `OTE`
 - first-hour volume reaches 70 percent of average daily volume
-- large default MA stack
+- broad default MA stack beyond the lean baseline
 - mandatory divergence scanning
 
 ## MA Policy
 
 Use two layers:
 
-- baseline MA context: `21EMA` and `50SMA`
+- baseline MA context: `21EMA`, `50SMA`, and `200SMA`
 - adaptive MA: optional overlay only when justified
 
+`100SMA` is not part of the lean baseline for now.
+
 Adaptive MA should not replace baseline regime context.
+
+Use it only when symbol-specific rhythm clearly matters for a rhythm-sensitive setup and the baseline MA context is not enough.
 
 ## Divergence Policy
 
@@ -89,6 +148,8 @@ Use it only for:
 - reversal review
 - thesis degradation
 - postmortem
+
+It is a diagnostic overlay for exhaustion or weakening, not a standard ritual scan.
 
 ## SMC/ICT Policy
 
@@ -104,6 +165,8 @@ It may be invoked when:
 - the basic structure-first read cannot resolve the chart cleanly
 - postmortem or thesis review needs deeper structural detail
 
+Its role is to resolve ambiguity around liquidity behavior, not to decorate an already clear chart.
+
 ## Wyckoff Requirement
 
 Wyckoff should include:
@@ -118,6 +181,42 @@ The target artifact is:
 
 - a chart with historical phase bands
 - a compact phase table
+
+## Chart Artifact Direction
+
+Keep the default daily map simple:
+
+- keep `daily_structure_sr` as the retained daily structure artifact
+- remove `daily_structure_fib` from the future default artifact set
+
+If the live skill is later cleaned up enough, `daily_structure_sr` may be renamed to `daily_structure`.
+
+## Timeframe Reconciliation
+
+Recommended future rule:
+
+- daily owns thesis
+- `60m` owns trigger, confirmation, and tactical timing
+
+Daily should control:
+
+- state
+- location
+- setup family
+- main risk map
+
+`60m` should control:
+
+- trigger quality
+- follow-through
+- reclaim or acceptance
+- tactical timing
+
+If daily and `60m` disagree:
+
+- daily keeps directional authority
+- `60m` may delay, downgrade, or keep the system in `WAIT`
+- `60m` should not create a trade against the daily thesis by itself
 
 ## Planned Skill Structure
 
@@ -135,7 +234,107 @@ Planned consolidation:
 - merge `analysis-lifecycle-and-frameworks.md` into `workflow-spine.md`
 - merge `level-to-level-execution.md` into `execution-and-risk-protocol.md`
 
+Merge scope:
+
+- `analysis-lifecycle-and-frameworks.md` contributes lifecycle modes, prior-context requirements, thesis-status handling, delta requirements, and non-initial trace requirements
+- remove the formal lens system, alternate-lens disagreement rules, and lens-compare requirement from the future state
+- relocate level-to-level path requirement into execution and risk
+- relocate liquidity-draw requirement into the core workflow or liquidity references
+- `level-to-level-execution.md` contributes zone-to-zone execution rules, operational workflow, trace requirements, and any helper logic worth preserving
+- after merge, the standalone `analysis-lifecycle-and-frameworks.md` and `level-to-level-execution.md` files should disappear
+
 Optional advanced references should still remain present.
+
+## Output Contract Direction
+
+Future output should be organized as:
+
+- always required
+- conditional
+- escalated only
+
+Future template shape should be rewritten around the new spine:
+
+1. `Context`
+2. `State And Location`
+3. `Setup And Trigger`
+4. `Risk And Decision`
+5. `Delta And Monitoring` when non-initial
+6. `Conditional Overlays` when used
+7. `Evidence`
+
+Baseline output should stay small and decision-oriented.
+
+Remove from the future default output contract:
+
+- Fib sections
+- `OTE`
+- lens-comparison sections
+- mandatory divergence section in every run
+- `Lens`
+- `SMC_ICT_LIGHT`
+- old MA mode taxonomy such as `baseline_stack`, `adaptive_primary`, or `hybrid`
+- `100SMA` from default MA posture
+- `daily_structure_fib`
+
+Reference cleanup notes:
+
+- `setups-and-breakouts.md` must change its divergence language from always-on scanning to conditional use
+- `execution-and-risk-protocol.md` must remove or conditionalize existing Fib and `OTE` residue
+- `enums-and-glossary.md` must be updated for `DEFAULT` and `ESCALATED`, removed lens terms, removed default Fib and `OTE`, and new Wyckoff segment enums
+
+When analysis moves into `ESCALATED`, record:
+
+- escalation reason code
+- escalation reason text
+- overlays used
+- whether escalation came from explicit request or model judgment
+
+## Checklist And Red-Flag Direction
+
+Future validation should be split into:
+
+- hard mandatory gates
+- conditional gates
+- advisory diagnostics
+
+Hard mandatory gates should focus on:
+
+- valid data
+- clear state
+- meaningful location
+- valid setup
+- explicit invalidation
+- next-zone path for actionable trades
+- proper `WAIT` behavior when no clean path exists
+
+Conditional gates should activate only when the related concept is used, such as:
+
+- divergence
+- `SMC/ICT`
+- imbalance
+- breakout filters
+- adaptive MA
+
+Fib-specific and lens-specific default gates should be removed.
+
+## Final Mode Model
+
+Use two axes:
+
+### Purpose Mode
+
+- `INITIAL`
+- `UPDATE`
+- `THESIS_REVIEW`
+- `POSTMORTEM`
+
+### Depth Mode
+
+- `DEFAULT`
+- `ESCALATED`
+
+The system should use both together rather than forcing one mode system to do both jobs.
 
 ## Planned Implementation Order
 
@@ -146,6 +345,11 @@ Optional advanced references should still remain present.
 5. Keep optional overlays available behind explicit or adaptive escalation
 6. Add Wyckoff historical-state support to the runtime state model
 
+Wyckoff implementation note:
+
+- the contract is defined in `wyckoff-historical-state-design.md`
+- full segmentation logic and exact confidence weighting remain later-stage items
+
 ## Backtesting Direction
 
 Use two evaluation modes:
@@ -153,8 +357,23 @@ Use two evaluation modes:
 - `full vibe`
 - `ablation`
 
+Before implementation, explicitly define:
+
+- the state packet as a concrete schema
+- daily replay versus `60m` replay responsibilities
+- execution simulator assumptions
+- evaluator baseline bands for judging results
+
+Later-stage refinements may still wait:
+
+- full Wyckoff segmentation details
+- exact Wyckoff confidence weighting
+- advanced backtest threshold tuning by scenario or regime
+
 First test technical analysis in isolation with static execution assumptions.
 Portfolio-management integration comes later as a second-stage desk evaluation.
+
+In LLM-mode backtesting, record whether `ESCALATED` mode was invoked on each decision step and why.
 
 ## Current Status
 

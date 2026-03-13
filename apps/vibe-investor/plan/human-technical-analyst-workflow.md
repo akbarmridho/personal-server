@@ -19,6 +19,11 @@ The doctrine in this skill is built around a chart-first, structure-first proces
 
 This is the actual backbone behind the topic references.
 
+Planned runtime interpretation:
+
+- `DEFAULT` mode for the normal lean path
+- `ESCALATED` mode when the chart requires additional overlays or diagnostics
+
 ## Core Mental Model
 
 A real technical analyst usually does not begin with indicators, setup labels, or SMC terms.
@@ -39,7 +44,7 @@ The doctrine in this skill supports that model:
 - state and regime -> `market-structure-and-trend.md`
 - location and decision zones -> `levels.md`, `volume-profile-and-volume-flow.md`, `liquidity-draw-and-sweep.md`
 - setup family and trigger logic -> `setups-and-breakouts.md`
-- risk and action -> `execution-and-risk-protocol.md`, `level-to-level-execution.md`
+- risk and action -> `execution-and-risk-protocol.md`, including level-to-level execution logic in the future state
 
 ## Human Workflow By Phase
 
@@ -99,7 +104,7 @@ Primary mapping order:
 1. Daily horizontal support and resistance zones
 2. Obvious structural swing highs and lows
 3. Value-area references such as `POC`, `VAH`, `VAL`, major `HVN`, major `LVN`
-4. Lean baseline MA context such as `21EMA` and `50SMA`
+4. Lean baseline MA context such as `21EMA`, `50SMA`, and `200SMA`
 5. Time-based opens and round-number levels when materially relevant
 
 Human rule:
@@ -187,6 +192,12 @@ Human rule:
 - a good-looking area is not enough
 - a setup without a trigger is still only a watchlist candidate
 
+Timeframe handoff note:
+
+- daily still owns the thesis
+- `60m` enters here to judge reclaim quality, acceptance, follow-through, and tactical timing
+- `60m` should refine timing, not invent a trade against the daily thesis by itself
+
 ### 7. Use Participation And Auction Evidence As Confirmation
 
 Once a candidate exists, the analyst asks:
@@ -205,6 +216,12 @@ Relevant evidence:
 - `HVN` acceptance vs `LVN` fast-travel logic
 
 This is a confirmation or veto layer, not the origin of the idea.
+
+Timeframe authority note:
+
+- daily keeps directional authority
+- `60m` may confirm, delay, downgrade, or leave the analyst in `WAIT`
+- if daily and `60m` conflict and the timing issue remains unresolved, the analyst should lean toward `WAIT`
 
 ### 8. Use Liquidity Logic To Frame Path
 
@@ -282,6 +299,11 @@ So the AI should be adaptive here, but not unconstrained:
 - basic chart-first analysis first
 - then `SMC/ICT` only if the LLM judges it necessary or the context clearly justifies escalation
 
+In the planned runtime model, this means:
+
+- stay in `DEFAULT` unless the normal read is sufficient
+- move to `ESCALATED` only when extra interpretation is actually needed
+
 Wyckoff should remain in the core contextual layer, but it should be read historically rather than as a one-line snapshot.
 
 Examples of useful historical readings:
@@ -308,6 +330,7 @@ Recommended default interpretation:
 
 - `21EMA` for fast trend posture
 - `50SMA` for medium support and structure context
+- `200SMA` for long-term regime context and major trend damage reference
 
 These should answer:
 
@@ -327,7 +350,7 @@ Adaptive MA should be used only when:
 
 - the stock shows measurable repeated respect
 - the setup depends on that rhythm
-- the adaptive MA adds something the baseline `21EMA` and `50SMA` do not
+- the adaptive MA adds something the baseline `21EMA`, `50SMA`, and `200SMA` do not
 
 Adaptive MA should not replace baseline structure context.
 
@@ -349,9 +372,10 @@ The analyst should ask:
 For now, the lean default should be:
 
 - baseline MA context only
-- `21EMA` + `50SMA`
+- `21EMA` + `50SMA` + `200SMA`
+- no `100SMA` in the default baseline for now
 - no MA crossover logic as a standalone trigger
-- no large MA stack in standard workflow
+- no broad MA stack beyond the lean baseline in standard workflow
 
 If an adaptive MA is used, it should be explicitly justified as a symbol-specific overlay.
 
@@ -407,6 +431,17 @@ A disciplined human analyst usually ends with:
 The last outcome is normal.
 
 The workflow is designed to make `WAIT` acceptable and common.
+
+### 12. Define Monitoring And Next Review Conditions
+
+After the action is chosen, the analyst should still define:
+
+- what confirms the thesis
+- what invalidates the thesis
+- what should trigger the next review
+- when a watchlist setup becomes stale
+
+This keeps the workflow aligned with the canonical `MONITORING` phase instead of ending at action alone.
 
 ## Decision Tree
 
@@ -512,7 +547,7 @@ These are secondary tools:
 - `OB`
 - `Breaker`
 - premium/discount
-- extra lens comparisons
+- extra overlay checks
 
 They help after the primary chart map is already coherent.
 
