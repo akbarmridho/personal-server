@@ -54,11 +54,6 @@ Validate breakout and continuation quality using close behavior, follow-through,
 - `R-VOL-04` Price up + volume up is strongest continuation profile.
 - `R-VOL-05` Price down + volume down can be healthy pullback in uptrend context.
 
-### Early Participation Signal
-
-- If first-hour intraday volume reaches roughly 70 percent of average daily volume, escalate monitoring.
-- This is an alert condition, not standalone entry permission.
-
 ### Trace Requirements
 
 - trigger candle timestamp and close
