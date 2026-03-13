@@ -178,6 +178,7 @@ Wyckoff historical-state note:
 - store a compact phase timeline so the policy can reason about transition, maturity, and recent phase alternation
 - this should support both a machine-readable sequence and a chart artifact with historical phase bands
 - use the contract defined in `wyckoff-historical-state-design.md`
+- low-confidence fresh phases should be handled as forming context, not as immediate hard regime flips
 
 Moving-average state note:
 
@@ -522,6 +523,81 @@ That execution system should define:
 This keeps the focus on technical policy quality.
 
 Later, portfolio-management can be layered on top.
+
+## Cross-Skill Alignment With Flow Analysis
+
+The future backtest stack should align `technical-analysis` and `flow-analysis` under one shared evaluation ladder.
+
+Use these layers:
+
+### Layer A. Skill-Only Validation
+
+Test each skill on its own first.
+
+- `technical-analysis`: deterministic state extraction -> `ablation` -> `full vibe`
+- `flow-analysis`: deterministic flow-state extraction -> `rules baseline` -> `full vibe`
+
+Purpose:
+
+- validate each skill independently
+- avoid hiding weak technical logic behind flow confirmation
+- avoid hiding weak flow logic behind chart structure
+
+### Layer B. Pairwise Integration Validation
+
+After both skills are stable independently, test:
+
+- `technical-analysis` + `flow-analysis`
+
+This layer should evaluate:
+
+- agreement cases
+- disagreement cases
+- early-warning cases
+- early-turn cases
+- whether combined reasoning improves quality over either skill alone
+
+### Layer C. Parent Synthesis Validation
+
+After pairwise integration is stable, test the parent synthesis contract.
+
+This layer should evaluate:
+
+- whether the parent keeps the two skills separate before synthesis
+- whether the parent classifies confirmation versus divergence correctly
+- whether the parent handles unresolved disagreement with enough discipline
+- whether the parent improves action quality, confidence use, and `WAIT` behavior
+
+### Layer D. Full Desk Validation
+
+Only after the earlier layers are stable, add:
+
+- `portfolio-management`
+- later, broader multi-lens workflows
+
+This keeps diagnosis possible.
+
+### Shared Combined-Test Outputs
+
+When technical and flow are tested together, the combined test log should record at least:
+
+- analysis order
+- technical verdict or action
+- technical confidence
+- flow verdict
+- flow conviction
+- agreement state: `aligned` / `divergent` / `mixed`
+- lead lens: `technical` / `flow` / `unclear`
+- parent synthesis conclusion
+- final action emphasis
+
+This shared contract should be consistent across pairwise and parent-level tests.
+
+Recommended combined-test order:
+
+- `technical-analysis -> flow-analysis -> parent synthesis`
+
+If a run intentionally studies alternate ordering, record that alternate order explicitly in the log.
 
 Recommended default:
 

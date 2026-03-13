@@ -93,7 +93,15 @@ Historical Wyckoff note:
 
 - do not reduce Wyckoff to a single current-state label
 - keep a phase timeline so the analyst can see transitions, duration, confidence, and whether the current state is fresh, mature, or failing
-- the ideal artifact is a chart with historical phase bands plus a phase table showing period, duration, price change, trend character, and confidence
+- the ideal artifact is a chart with historical phase bands plus a phase table showing period, duration, price range, price change, trend character, and confidence
+- treat low-confidence fresh phases as forming context, not fully confirmed regime shifts
+- treat Wyckoff as a slower context clock than trigger and confirmation logic
+
+Practical confidence note:
+
+- below roughly `60`, the phase should usually be treated as still forming
+- around `60+`, it becomes more usable as context
+- above roughly `75`, it is strong enough to matter materially
 
 ### 3. Map Only The Important Levels
 

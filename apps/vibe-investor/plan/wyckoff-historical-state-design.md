@@ -62,6 +62,8 @@ Each historical segment should contain:
 - `start_ts`
 - `end_ts`
 - `duration_bars`
+- `price_low`
+- `price_high`
 - `price_change_pct`
 - `confidence`
 - `maturity`
@@ -127,6 +129,16 @@ It does not mean:
 - `40-69` = `moderate`
 - `70-100` = `strong`
 
+### Practical Interpretation Guide
+
+Use confidence as a support-strength guide, not a trading trigger:
+
+- below `60` usually means the phase is still forming
+- `60-74` is becoming usable as contextual support
+- `75+` is a strong contextual read
+
+This helps distinguish a fresh transition that is still developing from a mature phase that deserves more trust.
+
 ## Evidence Families For Confidence
 
 The exact weights are deferred, but the confidence model should draw from these evidence families:
@@ -137,6 +149,11 @@ The exact weights are deferred, but the confidence model should draw from these 
 - volume character
 - duration adequacy
 - transition consistency with prior segment
+
+Phase-transition note:
+
+- Wyckoff phases should not be treated as one-bar or one-day flips
+- transitions usually build over multiple bars and should be modeled as developing states before becoming solid labels
 
 ## Runtime Role
 
@@ -164,9 +181,16 @@ The phase table should show:
 - phase
 - period
 - duration
+- price range
 - price change
 - trend strength
 - confidence
+
+The current phase should be highlighted clearly so the analyst can see:
+
+- the active phase now
+- the recent sequence into that phase
+- whether confidence is building or fading
 
 ## Deferred Items
 

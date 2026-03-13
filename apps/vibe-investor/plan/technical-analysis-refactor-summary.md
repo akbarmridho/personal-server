@@ -174,6 +174,7 @@ Wyckoff should include:
 - current state
 - historical phase sequence
 - segment duration
+- segment price range
 - segment confidence
 - maturity or degradation context
 
@@ -181,6 +182,11 @@ The target artifact is:
 
 - a chart with historical phase bands
 - a compact phase table
+
+Practical interpretation:
+
+- low-confidence fresh phases should be treated as forming context
+- Wyckoff should behave as a slower context layer than trigger and confirmation logic
 
 ## Chart Artifact Direction
 
