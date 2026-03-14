@@ -77,9 +77,34 @@ Use this mode to answer:
 - how much of the result comes from preprocessing and rules alone?
 - does the LLM actually improve decisions, or only increase complexity?
 - where is the real value-add of AI judgment?
+- does the full skill outperform simpler technical baselines, or is the extra doctrine not pulling its weight?
 
 This mode is not the product.
 It is the measurement baseline.
+
+## Required Baseline Comparisons
+
+Backtesting should not compare the full skill only against its own ablation mode.
+
+It should also compare the full skill against simpler technical baselines that represent credible lower-complexity alternatives.
+
+At minimum, include:
+
+- simple trend plus pullback baseline
+- simple breakout plus volume baseline
+- simple range-reclaim baseline
+
+Purpose:
+
+- test whether the full skill adds value beyond obvious simpler systems
+- identify whether complexity improves decision quality or only explanation quality
+- detect cases where doctrine layering makes the system less robust than simpler rules
+
+Implementation rule:
+
+- run these baselines on the same replay windows, execution assumptions, and evaluation metrics as the full skill
+- record where the full skill wins, loses, or only ties the simpler baselines
+- treat this as a required comparison before claiming that the full skill complexity is justified
 
 ## Planned Analysis Modes Inside Technical Analysis
 

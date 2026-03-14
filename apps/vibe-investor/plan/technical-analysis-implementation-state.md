@@ -95,6 +95,10 @@ The first artifact to write should define:
 - Wyckoff history state implementation
 - Wyckoff history chart artifact implementation
 - backtest engine work
+- required simple-baseline comparison inside backtesting:
+  - trend plus pullback
+  - breakout plus volume
+  - range-reclaim
 
 ## Done
 
