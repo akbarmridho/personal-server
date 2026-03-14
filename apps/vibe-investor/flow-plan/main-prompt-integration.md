@@ -52,7 +52,7 @@ Load only `flow-analysis` when:
 Load both when:
 
 - the user asks for a full symbol review
-- the parent is doing thesis review
+- the parent is refreshing or challenging an existing thesis
 - the parent is doing desk-check on a holding or watchlist symbol
 - structure and sponsor quality both matter for the decision
 

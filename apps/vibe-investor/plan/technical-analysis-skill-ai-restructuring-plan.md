@@ -78,6 +78,7 @@ The target state should be:
 - topic references that support the workflow spine
 - one explicit policy contract for runtime and backtesting
 - one output contract for reporting only
+- one mandatory top-level `Decision Summary` block for fast human scanning
 - deterministic script contracts kept separate from doctrine
 
 The AI should be able to answer these questions with minimal ambiguity:
@@ -345,6 +346,7 @@ Rewrite direction:
 
 - do not preserve the old template shape and only delete obsolete fields
 - rebuild the template around the runtime spine and the new output contract layers
+- add `Decision Summary` as the first section of the future template
 - keep baseline sections compact and decision-oriented
 - make overlays appear only when actually used
 
@@ -811,7 +813,7 @@ Automatic escalation should be allowed when:
 - reversal is central
 - deviation, trap, sweep, or liquidity behavior dominates interpretation
 - the basic structure-first read remains unresolved after normal checks
-- postmortem or thesis review requires deeper forensic detail
+- postmortem or challenged-update work requires deeper forensic detail
 
 ### Structural Implication
 
@@ -840,9 +842,8 @@ Overlay trigger summary:
 
 Chart artifact implication:
 
-- keep `daily_structure_sr` as the default daily map
+- keep `daily_structure` as the default daily map
 - remove `daily_structure_fib` from the future baseline artifact set
-- if the live skill is later cleaned up enough, rename `daily_structure_sr` to `daily_structure`
 
 ## Proposed End State
 

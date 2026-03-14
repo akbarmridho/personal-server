@@ -373,7 +373,7 @@ Examples:
 
 - expectancy is positive on a meaningful sample
 - escalation improves difficult cases more often than it degrades them
-- thesis consistency is solid across `UPDATE` and `THESIS_REVIEW`
+- thesis consistency is solid across different `UPDATE` reasons
 - action quality is better than ablation on the intended scenarios
 
 ### Target

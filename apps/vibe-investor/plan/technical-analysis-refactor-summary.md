@@ -57,7 +57,7 @@ Use for ordinary technical-analysis work:
 
 - initial thesis build
 - routine update
-- thesis review
+- challenged or routine thesis re-check
 - most continuation and pullback reads
 - normal `WAIT` decisions
 
@@ -163,7 +163,7 @@ It may be invoked when:
 - the LLM judges it necessary for the chart
 - reversal, trap, sweep, or deviation interpretation is central
 - the basic structure-first read cannot resolve the chart cleanly
-- postmortem or thesis review needs deeper structural detail
+- postmortem or challenged-update work needs deeper structural detail
 
 Its role is to resolve ambiguity around liquidity behavior, not to decorate an already clear chart.
 
@@ -192,10 +192,8 @@ Practical interpretation:
 
 Keep the default daily map simple:
 
-- keep `daily_structure_sr` as the retained daily structure artifact
+- use `daily_structure` as the retained daily structure artifact
 - remove `daily_structure_fib` from the future default artifact set
-
-If the live skill is later cleaned up enough, `daily_structure_sr` may be renamed to `daily_structure`.
 
 ## Timeframe Reconciliation
 
@@ -259,17 +257,30 @@ Future output should be organized as:
 - conditional
 - escalated only
 
+Every report should begin with a compact `Decision Summary` so the reader can understand the outcome before reading the detail.
+
 Future template shape should be rewritten around the new spine:
 
-1. `Context`
-2. `State And Location`
-3. `Setup And Trigger`
-4. `Risk And Decision`
-5. `Delta And Monitoring` when non-initial
-6. `Conditional Overlays` when used
-7. `Evidence`
+1. `Decision Summary`
+2. `Context`
+3. `State And Location`
+4. `Setup And Trigger`
+5. `Risk And Decision`
+6. `Delta And Monitoring` when non-initial
+7. `Conditional Overlays` when used
+8. `Evidence`
 
 Baseline output should stay small and decision-oriented.
+
+Recommended `Decision Summary` fields:
+
+- action
+- bias
+- setup
+- key level now
+- invalidation
+- next trigger
+- confidence
 
 Remove from the future default output contract:
 
@@ -332,8 +343,12 @@ Use two axes:
 
 - `INITIAL`
 - `UPDATE`
-- `THESIS_REVIEW`
 - `POSTMORTEM`
+
+Within `UPDATE`, the runtime should carry:
+
+- `thesis_status`: `intact`, `improving`, `degrading`, or `invalidated`
+- `review_reason`: `routine`, `contradiction`, `level_break`, `regime_change`, or `trigger_failure`
 
 ### Depth Mode
 

@@ -43,12 +43,11 @@ Before reading the dashboard, define the mode:
 
 - `INITIAL`
 - `UPDATE`
-- `THESIS_REVIEW`
 - `POSTMORTEM`
 
 Human question:
 
-- am I building a fresh flow read, checking whether a prior read still holds, or reviewing a failed call?
+- am I building a fresh flow read, refreshing or challenging an existing read, or reviewing a failed call?
 
 This matters because flow reads are very sensitive to date windows and whether the question is:
 
@@ -56,6 +55,11 @@ This matters because flow reads are very sensitive to date windows and whether t
 - sponsor quality
 - deterioration
 - early accumulation
+
+Within `UPDATE`, the analyst should still record:
+
+- `flow_status`: `intact`, `improving`, `degrading`, or `invalidated`
+- `review_reason`: `routine`, `contradiction`, `sponsor_shift`, `regime_change`, or `verdict_flip`
 
 ### 2. Check Input Window And Snapshot
 

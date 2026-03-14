@@ -121,10 +121,14 @@ Use the same purpose modes as technical analysis:
 
 - `INITIAL`
 - `UPDATE`
-- `THESIS_REVIEW`
 - `POSTMORTEM`
 
 This keeps parent orchestration simple.
+
+Within `UPDATE`, the flow contract should still carry:
+
+- `flow_status`: `intact`, `improving`, `degrading`, or `invalidated`
+- `review_reason`: `routine`, `contradiction`, `sponsor_shift`, `regime_change`, or `verdict_flip`
 
 ### 2. `INPUT_SCOPE`
 
@@ -303,8 +307,11 @@ These ideas from `idx-flow.html` should become first-class doctrine:
 
 The future output should be smaller than the HTML UI but keep the same logic.
 
+Every report should begin with a compact `Decision Summary` so the reader can understand the outcome before reading the detail.
+
 Always required:
 
+- top-level `Decision Summary`
 - mode
 - symbol
 - date range
@@ -318,6 +325,16 @@ Always required:
 - integration hook
 - monitoring triggers
 
+Recommended `Decision Summary` fields:
+
+- verdict
+- conviction
+- trust level
+- sponsor-quality lean
+- key caution
+- integration signal
+- next review trigger
+
 Conditional:
 
 - persistence detail when it matters
@@ -325,6 +342,16 @@ Conditional:
 - broker-distribution note when relationship structure is especially meaningful
 - anomaly or wash-risk warning when relevant
 - supporting note for internal verdict inputs only when they materially affect conviction
+
+Future template shape should be rewritten around the flow workflow:
+
+1. `Decision Summary`
+2. `Context`
+3. `Broker Summary And Core Metrics`
+4. `Trust And Verdict`
+5. `Integration And Monitoring`
+6. `Conditional Details`
+7. `Evidence`
 
 ## Backtesting Direction
 

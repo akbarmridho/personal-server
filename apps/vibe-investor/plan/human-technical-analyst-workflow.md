@@ -53,15 +53,19 @@ The doctrine in this skill supports that model:
 Before reading the chart, define the mode:
 
 - `INITIAL`: first thesis build
-- `UPDATE`: routine refresh against prior thesis
-- `THESIS_REVIEW`: check whether prior thesis still holds
+- `UPDATE`: refresh or challenge an existing thesis
 - `POSTMORTEM`: review after invalidation or exit
 
 Human question:
 
-- Am I trying to find a new entry, manage an open position, check if a thesis still holds, or learn from a failed trade?
+- Am I trying to find a new entry, manage or re-check an existing thesis, or learn from a failed trade?
 
 This matters because the analyst will look for different evidence depending on the job.
+
+Within `UPDATE`, the analyst should still record:
+
+- `thesis_status`: `intact`, `improving`, `degrading`, or `invalidated`
+- `review_reason`: `routine`, `contradiction`, `level_break`, `regime_change`, or `trigger_failure`
 
 ### 2. Start With Daily State And Regime
 
@@ -298,7 +302,7 @@ They should enter the workflow when:
 - the user explicitly asks for them
 - the basic structure-first read remains unresolved
 - reversal, deviation, trap, or sweep interpretation is central
-- postmortem or thesis review needs more forensic detail
+- postmortem or challenged-update work needs more forensic detail
 
 They may also be invoked when the LLM judges they are necessary for the current chart context.
 
@@ -332,7 +336,7 @@ Static MA is useful for:
 - broad regime reading
 - cross-symbol consistency
 - simple dynamic support or resistance context
-- thesis review and watchlist review
+- update and watchlist review
 
 Recommended default interpretation:
 
@@ -458,7 +462,6 @@ This keeps the workflow aligned with the canonical `MONITORING` phase instead of
 1. What is the mode?
    - `INITIAL`
    - `UPDATE`
-   - `THESIS_REVIEW`
    - `POSTMORTEM`
 2. What is the daily state?
    - `trend_continuation`

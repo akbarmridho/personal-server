@@ -93,7 +93,6 @@ Possible values:
 
 - `INITIAL`
 - `UPDATE`
-- `THESIS_REVIEW`
 - `POSTMORTEM`
 
 This phase determines:
@@ -101,6 +100,11 @@ This phase determines:
 - whether prior thesis context is required
 - whether delta assessment is required
 - whether the output is oriented toward entry, maintenance, invalidation, or learning
+
+Within `UPDATE`, the contract should still carry:
+
+- `thesis_status`: `intact`, `improving`, `degrading`, or `invalidated`
+- `review_reason`: `routine`, `contradiction`, `level_break`, `regime_change`, or `trigger_failure`
 
 #### 2. `STATE`
 
@@ -332,7 +336,7 @@ Use only when:
 - reversal is central
 - trap, sweep, deviation, or liquidity behavior dominates the chart
 - the default read cannot resolve the chart cleanly
-- postmortem or thesis review needs deeper forensics
+- postmortem or challenged-update work needs deeper forensics
 
 Possible overlays:
 
@@ -507,7 +511,7 @@ It should explicitly define:
 - adaptive MA is optional and justified only when symbol-specific rhythm is evident
 - Fib and `OTE` are not part of the active default system
 - Wyckoff includes both current state and historical phase sequence
-- `daily_structure_sr` remains the default daily structure chart artifact
+- `daily_structure` is the default daily structure chart artifact
 - `daily_structure_fib` is not part of the future baseline artifact set
 
 For backtesting and runtime use, this should become a field-level contract rather than a narrative list.
@@ -612,7 +616,8 @@ The future output contract should be split into three layers:
 
 These should appear in every technical-analysis output:
 
-- analysis purpose mode: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`
+- top-level `Decision Summary`
+- analysis purpose mode: `INITIAL`, `UPDATE`, or `POSTMORTEM`
 - analysis depth mode: `DEFAULT` or `ESCALATED`
 - state and regime
 - current bias
@@ -625,6 +630,18 @@ These should appear in every technical-analysis output:
 - confidence
 - monitoring triggers
 - chart evidence references
+
+`Decision Summary` should appear before the deeper sections and should be optimized for fast scanning.
+
+Recommended fields:
+
+- action
+- bias
+- setup family or `NO_VALID_SETUP`
+- key active level or decision zone
+- invalidation
+- next trigger
+- confidence
 
 ### Conditional
 
@@ -652,13 +669,14 @@ Do not preserve the old template shape and only delete fields.
 
 Rewrite the future template around the runtime spine:
 
-1. `Context`
-2. `State And Location`
-3. `Setup And Trigger`
-4. `Risk And Decision`
-5. `Delta And Monitoring`
-6. `Conditional Overlays`
-7. `Evidence`
+1. `Decision Summary`
+2. `Context`
+3. `State And Location`
+4. `Setup And Trigger`
+5. `Risk And Decision`
+6. `Delta And Monitoring`
+7. `Conditional Overlays`
+8. `Evidence`
 
 This should map directly to:
 
@@ -671,6 +689,9 @@ This should map directly to:
 - `RISK`
 - `DECISION`
 - `MONITORING`
+
+`Decision Summary` is a presentation layer on top of the runtime spine.
+It should summarize the most decision-relevant outputs without replacing the structured sections below.
 
 ### Remove From The Future Default Output Contract
 
@@ -772,7 +793,6 @@ The final mode model should use two axes.
 
 - `INITIAL`
 - `UPDATE`
-- `THESIS_REVIEW`
 - `POSTMORTEM`
 
 These answer:
@@ -794,7 +814,7 @@ They should be used together.
 Examples:
 
 - `INITIAL + DEFAULT`
-- `THESIS_REVIEW + ESCALATED`
+- `UPDATE + ESCALATED`
 - `POSTMORTEM + ESCALATED`
 
 ## 10. Immediate Next Writing Order
