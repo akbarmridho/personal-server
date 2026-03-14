@@ -1,83 +1,81 @@
 # Checklists And Red Flags
 
-## Analysis Checkpoints
+## Objective
 
-### Objective
+Use this file as a validation layer.
 
-Enforce a consistent analysis flow without forcing rigid sequencing in every scenario.
+It does not own the workflow order.
 
-### Adaptive Checklist
+## Hard Mandatory Gates
 
-1. `G1_MODE` - Analysis mode and lens are explicitly declared.
-2. `G2_DATA` - Data completeness and recency.
-3. `G3_STATE_REGIME` - Daily state (`balance` or `imbalance`) and regime are classifiable.
-4. `G4_LEVELS` - Tradable levels/zones are present.
-5. `G5_PARTICIPATION` - Volume and behavior do not contradict setup.
-6. `G6_STRUCTURE_CONFIRM` - Reversal intent requires `CHOCH + BOS` confirmation.
-7. `G7_SETUP` - Exactly one valid setup family selected.
-8. `G8_RISK` - Invalidation, stop, and size are explicit.
-9. `G9_CONFLICTS` - Any chart vs numeric contradiction is resolved explicitly.
-10. `G10_DELTA` - Non-initial mode includes prior snapshot, delta log, and thesis status.
-11. `G11_SMC` - If lens is `SMC_ICT_LIGHT`, used SMC modules and evidence are explicitly reported.
-12. `G12_VOLUME_PROFILE` - If volume-profile context is used, report POC/VAH/VAL, HVN/LVN, anchors, and value-area acceptance.
-13. `G13_IMBALANCE` - If FVG/IFVG is used, report type, bounds, CE behavior, and mitigation state.
-14. `G14_L2L_PATH` - If action is BUY/EXIT, report next-zone target and expected RR.
-15. `G15_LIQUIDITY_MAP` - Report current draw, opposing draw, sweep event/outcome, and liquidity path state.
-16. `G16_LEVEL_HEURISTICS` - Include HTF-first mapping, time-based levels, and round-number checks when relevant.
-17. `G17_BREAKOUT_FILTERS` - For breakout setups, include base quality and market-context filters; MA posture should be covered in level context.
-18. `G18_FIB_CONTEXT` - If Fib is used, include swing anchors, retracement interaction level, and extension target references.
+1. `G1_MODE` purpose mode and depth mode are explicit.
+2. `G2_DATA` required data is present and usable.
+3. `G3_STATE` daily state and regime are classifiable enough to proceed.
+4. `G4_LOCATION` price is at a meaningful area or the result is `WAIT`.
+5. `G5_SETUP` exactly one setup family or `NO_VALID_SETUP` is selected.
+6. `G6_TRIGGER` actionable decisions require a real trigger.
+7. `G7_INVALIDATION` actionable decisions require explicit invalidation.
+8. `G8_PATH` actionable decisions require a clear next-zone path.
+9. `G9_RR` actionable decisions require acceptable reward-to-risk.
+10. `G10_CONFLICTS` chart and numeric contradictions are resolved explicitly.
+11. `G11_WAIT` unresolved decision-critical ambiguity defaults to `WAIT`.
 
-### Hard Stops
+## Conditional Gates
 
-- Missing required data -> stop and report dependency.
-- Missing invalidation/stop for actionable call -> downgrade to `WAIT`.
+Activate only when relevant.
 
-### Soft Stops
+1. `C1_PRIOR_CONTEXT` `UPDATE` and `POSTMORTEM` include prior thesis context.
+2. `C2_DELTA` `UPDATE` includes thesis status, review reason, and delta log.
+3. `C3_POSTMORTEM` `POSTMORTEM` includes failure point and handling improvement.
+4. `C4_BREAKOUT` breakout setups include breakout quality and follow-through.
+5. `C5_VOLUME_PROFILE` VPVR usage includes POC, VAH, VAL, and acceptance state.
+6. `C6_IMBALANCE` imbalance usage includes type, bounds, mitigation state, and why it mattered.
+7. `C7_DIVERGENCE` divergence usage includes status and why it was activated.
+8. `C8_ADAPTIVE_MA` adaptive MA usage includes period, justification, and chart mode when charting is used.
+9. `C9_SMC` `SMC/ICT` usage includes which overlay mattered and what question it resolved.
+10. `C10_ESCALATION` `ESCALATED` runs include reason code, reason text, and overlays used.
 
-- Mixed or conflicting evidence -> reduce confidence and prefer `WAIT` or smaller risk.
+## Advisory Diagnostics
 
-## Red Flags Taxonomy
+- Prefer `WAIT` over forcing a low-quality narrative.
+- Downgrade confidence when `60m` timing conflicts with the daily thesis.
+- Treat mid-range noise as a weak location state.
+- Treat weak follow-through as a veto or delay, not as proof.
 
-### Objective
+## Red Flags
 
-Standardize warning signals and severity assessment for risk communication.
-
-### Red Flag IDs
+### Core Red Flags
 
 - `F1_STRUCTURE_BREAK`
 - `F2_DISTRIBUTION`
 - `F3_WEAK_BREAKOUT`
 - `F4_LEVEL_EXHAUSTION`
-- `F5_DIVERGENCE_ESCALATION`
-- `F6_MARKET_CONTEXT_MISMATCH`
-- `F7_MA_BREAKDOWN`
-- `F8_POSITION_RISK`
-- `F9_NO_NEARBY_SUPPORT`
-- `F10_UNCONFIRMED_CHOCH`
-- `F11_MISSING_PRIOR_CONTEXT`
-- `F12_SMC_EVIDENCE_GAP`
-- `F13_VOLUME_CONFLUENCE_WEAK`
-- `F14_IMBALANCE_QUALITY_WEAK`
-- `F15_NO_NEXT_ZONE_PATH`
-- `F16_LIQUIDITY_MAP_MISSING`
-- `F17_BREAKOUT_STALLING`
+- `F5_MARKET_CONTEXT_MISMATCH`
+- `F6_MA_BREAKDOWN`
+- `F7_POSITION_RISK`
+- `F8_NO_NEARBY_SUPPORT`
+- `F9_UNCONFIRMED_STRUCTURE_SHIFT`
+- `F11_NO_NEXT_ZONE_PATH`
+- `F12_LIQUIDITY_MAP_MISSING`
+- `F13_BREAKOUT_STALLING`
+
+### Conditional Red Flags
+
+- `F14_DIVERGENCE_ESCALATION`
+- `F15_VOLUME_CONFLUENCE_WEAK`
+- `F16_IMBALANCE_QUALITY_WEAK`
+- `F17_SMC_EVIDENCE_GAP`
 - `F18_BREAKOUT_FILTER_WEAK`
+- `F19_MA_WHIPSAW`
 
-### Severity
+## Severity
 
-- `LOW`
-- `MEDIUM`
-- `HIGH`
-- `CRITICAL`
+- `low`
+- `medium`
+- `high`
+- `critical`
 
-### Agent-Assigned Flags
-
-The following flags are assigned by the agent during analysis based on qualitative judgment, not generated by deterministic scripts:
-
-- `F8_POSITION_RISK`
-- `F11_MISSING_PRIOR_CONTEXT`
-
-### Trace Requirements
+## Trace Requirements
 
 Every red flag should include:
 
@@ -85,4 +83,4 @@ Every red flag should include:
 - `severity`
 - `why`
 
-Also include overall risk summary: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` with one-sentence rationale.
+Also include an overall risk summary with one short rationale.

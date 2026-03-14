@@ -2,21 +2,18 @@
 
 ## Objective
 
-Single source of truth for shared statuses and enum labels used across references and reports.
+Single source of truth for shared enum labels used across runtime references.
 
-## Modes
+## Purpose Mode
 
 - `INITIAL`
 - `UPDATE`
-- `THESIS_REVIEW`
 - `POSTMORTEM`
 
-## Lens
+## Depth Mode
 
-- `UNIFIED`
-- `CLASSICAL_TA`
-- `WYCKOFF`
-- `SMC_ICT_LIGHT`
+- `DEFAULT`
+- `ESCALATED`
 
 ## State And Regime
 
@@ -24,25 +21,34 @@ Single source of truth for shared statuses and enum labels used across reference
 - `regime`: `trend_continuation`, `range_rotation`, `potential_reversal`, `no_trade`
 - `trend_bias`: `bullish`, `bearish`, `neutral`
 
-## Wyckoff Context
+## Thesis Status
 
-- `accumulation`
-- `markup`
-- `distribution`
-- `markdown`
-- `unclear`
+- `intact`
+- `improving`
+- `degrading`
+- `invalidated`
+
+## Review Reason
+
+- `routine`
+- `contradiction`
+- `level_break`
+- `regime_change`
+- `trigger_failure`
+
+## Wyckoff
+
+- `phase`: `accumulation`, `markup`, `distribution`, `markdown`, `unclear`
+- `maturity`: `fresh`, `maturing`, `mature`, `degrading`
+- `trend_strength`: `weak`, `moderate`, `strong`
 
 ## Structure Status
 
-- `no_signal`
-- `choch_only`
-- `choch_plus_bos_confirmed`
-
-## Divergence Status
-
-- `no_divergence`
-- `divergence_unconfirmed`
-- `divergence_confirmed`
+- `trend_intact`
+- `range_intact`
+- `transitioning`
+- `damaged`
+- `unclear`
 
 ## Setup IDs
 
@@ -60,57 +66,118 @@ Single source of truth for shared statuses and enum labels used across reference
 - `WAIT`
 - `EXIT`
 
-## IB States
+## Trigger State
 
-- `accepted_above_ibh`
-- `accepted_below_ibl`
-- `failed_break_above_ibh`
-- `failed_break_below_ibl`
-- `inside_ib_range`
+- `not_triggered`
+- `watchlist_only`
+- `triggered`
+- `failed`
+
+## Trigger Type
+
+- `breakout_close`
+- `retest_hold`
+- `reclaim`
+- `sweep_reclaim`
+- `choch_bos_reversal`
+- `range_edge_rejection`
+- `spring_reclaim`
+- `none`
+
+## Confirmation State
+
+- `confirmed`
+- `mixed`
+- `rejected`
+- `not_applicable`
+
+## Participation Quality
+
+- `strong`
+- `adequate`
+- `weak`
+- `contradictory`
+
+## Location State
+
+- `near_support_in_bullish_structure`
+- `near_resistance_in_bearish_structure`
+- `at_range_edge`
+- `accepted_above_resistance`
+- `accepted_below_support`
+- `mid_range_noise`
 
 ## Liquidity Fields
 
 - `sweep_event`: `none`, `eqh_swept`, `eql_swept`, `trendline_swept`, `swing_swept`
-- `sweep_outcome`: `accepted`, `rejected`, `unresolved`
-- `liquidity_path`: `external_to_internal`, `internal_to_external`, `unclear`
+- `sweep_outcome`: `accepted`, `rejected`, `unresolved`, `not_applicable`
+- `path_state`: `external_to_internal`, `internal_to_external`, `unclear`
 
-## Volume-Profile Acceptance
+## Value-Area Acceptance
 
 - `accepted_above_vah`
 - `accepted_below_val`
 - `probe_above_vah`
 - `probe_below_val`
 - `inside_value`
+- `failed_acceptance_back_inside`
+- `not_applicable`
 
-## Breakout Filter Notes
+## Breakout Quality
 
-- `breakout_displacement`: `clean_displacement`, `stalling`
-- `market_context_impact`: `supportive`, `neutral`, `adverse`
+- `status`: `clean`, `adequate`, `stalling`, `failed`
+- `base_quality`: `strong`, `adequate`, `weak`
+- `market_context`: `supportive`, `neutral`, `adverse`
 
-## MA Context Mode
+## Baseline MA Roles
 
-- `ma_mode`: `baseline_stack`, `adaptive_primary`, `hybrid`
+- `support`
+- `resistance`
+- `noise`
 
-## Imbalance Types And Mitigation
+## Overlay Types
 
-- `imbalance_type`: `FVG`, `OPENING_GAP`, `IFVG`
-- `mitigation_state`: `unmitigated`, `partially_mitigated`, `fully_mitigated`
+- `divergence`
+- `adaptive_ma`
+- `imbalance`
+- `smc_ict`
 
-## Fibonacci Labels
+## Imbalance Types
 
-- `fib_retracement`: `0.236`, `0.382`, `0.5`, `0.618`, `0.706`, `0.786`
-- `fib_extension`: `1.0`, `1.272`, `1.618`, `2.618`
+- `FVG`
+- `OPENING_GAP`
+- `IFVG`
 
-## Thesis Status
+## Mitigation State
 
-- `intact`
-- `improving`
-- `degrading`
-- `invalidated`
+- `unmitigated`
+- `partially_mitigated`
+- `fully_mitigated`
+
+## Escalation Reason Code
+
+- `user_requested_deeper_analysis`
+- `reversal_interpretation_needed`
+- `trap_or_sweep_interpretation_needed`
+- `default_read_conflicted`
+- `thesis_degradation_review`
+- `postmortem_forensic_review`
+- `adaptive_ma_needed`
+- `divergence_check_needed`
+- `imbalance_check_needed`
+- `smc_ict_needed`
+
+## Risk Status
+
+- `valid`
+- `insufficient_rr`
+- `no_clear_invalidation`
+- `no_clear_path`
+- `wait`
 
 ## Red-Flag Severity
 
-- `LOW`
-- `MEDIUM`
-- `HIGH`
-- `CRITICAL`
+- `low`
+- `medium`
+- `high`
+- `critical`

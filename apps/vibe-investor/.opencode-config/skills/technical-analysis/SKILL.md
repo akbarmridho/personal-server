@@ -1,300 +1,277 @@
 ---
 name: technical-analysis
-description: Expert swing and position technical analysis for IDX stocks using chart-first Wyckoff and balance-imbalance logic, support-resistance and volume diagnostics, and auditable evidence-first output for human decision support.
+description: Technical-analysis helper for IDX stocks used to refine entry, exit, timing, and risk inside a broader investment process, with deterministic preprocessing and bounded decision output.
 ---
 
 ## Scope
 
-This skill is for swing and longer-horizon investing (days to months), not intraday scalping.
+Use this skill to perform technical analysis for:
 
-- Primary thesis: `daily[]`
-- Tactical acceptance timing: `intraday[]` 60m (last 7 days)
-- Context events: optional `corp_actions[]` (ignore when unavailable)
+- entry timing
+- exit timing
+- invalidation
+- trade path and risk map
 
-## Analysis Modes (Human Workflow)
+Time horizon:
 
-Pick one mode for each run:
+- swing
+- medium-term position
+- long-term position
 
-- `INITIAL` - first full thesis build for a symbol.
-- `UPDATE` - periodic refresh (for example weekly) against prior thesis.
-- `THESIS_REVIEW` - explicit check whether thesis still holds.
-- `POSTMORTEM` - review after invalidation/exit to improve process.
+Use:
 
-Mode requirements:
+- `daily[]` for thesis direction and main risk map
+- `intraday[]` `60m` for trigger, confirmation, and tactical timing
+- optional `corp_actions[]` when available
 
-- `INITIAL`: full report using standard template.
-- `UPDATE`: include previous-analysis context and mandatory delta section.
-- `THESIS_REVIEW`: focus on thesis status and invalidation triggers.
-- `POSTMORTEM`: include what failed, what was missed, and rule improvements.
+## Runtime Modes
 
-## Preset Policy
+### Purpose Mode
 
-Use a progressive-depth workflow so analysis stays useful without overwhelming the human.
+- `INITIAL`
+- `UPDATE`
+- `POSTMORTEM`
 
-### BASIC
+### Depth Mode
 
-- Start with `BASIC` by default.
-- Lens: `UNIFIED`
-- Context modules: `core,vpvr,breakout`
-- Chart modules: `core,vpvr`
-- Keep output concise and plain-English.
-- Keep risk protocol mandatory: action, entry zone, invalidation, stop, target path, and RR.
+- `DEFAULT`
+- `ESCALATED`
 
-### DEEP
+The meaning and rules for these modes are owned by:
 
-Escalate to `DEEP` only when at least one condition is true:
+- `references/workflow-spine.md`
+- `references/policy-contract.md`
 
-- user explicitly asks for SMC/ICT or deep dive
-- reversal thesis is central and structure is unclear/conflicted
-- breakout fails or trap/deviation behavior dominates
-- BASIC run shows unresolved contradictions needing imbalance/liquidity refinement
-- postmortem or thesis-review requires deeper forensic detail
+## Mandatory Load Order
 
-`DEEP` modules:
+For every run:
 
-- Context modules: `core,vpvr,imbalance,breakout,smc`
-- Chart modules: `core,vpvr,imbalance,detail`
+1. determine `purpose_mode`
+2. determine whether the run stays in `DEFAULT` or requires `ESCALATED`
+3. load `references/workflow-spine.md`
+4. load `references/policy-contract.md`
+5. load only the topic references required by the active branch
+6. run deterministic preprocessing and chart generation
+7. decide using the bounded contract
+8. render the answer using `references/output-report-template.md`
 
-Workflow rule:
+Do not infer the workflow from topic references alone.
 
-- Escalate to `DEEP` only after stating why escalation is needed.
-- If no clear setup after `BASIC`, prefer `WAIT` over forcing a complex narrative.
+## Reference Routing
 
-Communication rule:
+Always load:
 
-- Prioritize structure + levels + risk in plain language.
-- Keep SMC terms as optional confluence, not primary decision authority.
-- Translate jargon on first use when it materially affects the decision.
-- For beginner-facing outputs, include a short glossary line for any advanced term used.
+- `references/workflow-spine.md`
+- `references/policy-contract.md`
 
-Execution preflight (mandatory):
+Load by need:
 
-1. Determine the user's current technical objective and active mode (`INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`) before analysis.
-2. Resolve an explicit reference-file list for the active mode and requested lens/modules.
-3. Read the resolved reference files before starting `DATA_PREP`.
-4. If the required references are unavailable or unread, stop and report the missing reference context instead of continuing with partial analysis.
-
-## Concepts And School Of Thought
-
-- Use a structure-first market map: state/regime, key levels, liquidity draws, and participation context are the core decision inputs.
-- Treat `UNIFIED` as default lens, with `CLASSICAL_TA`, `WYCKOFF`, and `SMC_ICT_LIGHT` as optional overlays for disagreement testing.
-- Run chart-first workflow (build charts, read charts, then numeric cross-check) and resolve conflicts explicitly with evidence.
-- Execute level-to-level logic only: entry near decision zone, invalidation beyond structure, and target at the next mapped zone.
-- Apply breakout quality, imbalance context, and liquidity sweep outcomes as confluence filters, never as standalone permission.
-- Keep risk-first discipline: no invalidation/stop means no action, and no valid setup defaults to `WAIT`.
+- `STATE` -> `references/market-structure-and-trend.md`
+- `LOCATION` -> `references/levels.md`, `references/volume-profile-and-volume-flow.md`, `references/liquidity-draw-and-sweep.md`
+- `SETUP`, `TRIGGER`, `CONFIRMATION` -> `references/setups-and-breakouts.md`
+- `RISK`, `DECISION`, `MONITORING` -> `references/execution-and-risk-protocol.md`
+- imbalance overlay -> `references/fair-value-gap-and-imbalances.md`
+- `SMC/ICT` overlay -> `references/smart-money-concepts.md`
+- validation only -> `references/checklists-and-red-flags.md`
+- enums only -> `references/enums-and-glossary.md`
+- output only -> `references/output-report-template.md`
 
 ## Required Data And Fail-Fast
 
 Use `fetch-ohlcv` as the only chart-data source.
 
-- `symbol`: 4 uppercase letters, example `BBCA`
-- `output_path`: JSON file under `work/`
-- JSON object required (never CSV)
-- Required arrays: `daily[]`, `intraday[]`
-- Optional array: `corp_actions[]`
+Required arrays:
 
-If any required array is missing or empty, stop analysis and return dependency failure.
-If `fetch-ohlcv` errors, stop analysis.
+- `daily[]`
+- `intraday[]`
 
-When the active workflow specifies a retained output directory (e.g., `memory/analysis/symbols/{SYMBOL}/{TODAY}/`), override `--outdir` for deterministic context/chart generation to write artifacts there. Raw `fetch-ohlcv` JSON may still go to `work/`.
+Optional array:
 
-Expected fields:
+- `corp_actions[]`
 
-- `timestamp`, `datetime`, `date`
-- `open`, `high`, `low`, `close`, `volume`, `value`
-- `foreign_buy`, `foreign_sell`, `foreign_flow`
+Expected price fields:
 
-Price-adjustment note:
+- `timestamp`
+- `datetime`
+- `date`
+- `open`
+- `high`
+- `low`
+- `close`
+- `volume`
+- `value`
 
-- Trading prices are split-style adjusted (split, reverse split, rights issue), not dividend-adjusted.
+If any required array is missing or empty, stop analysis and report dependency failure.
+If `fetch-ohlcv` fails, stop analysis.
 
-## Preferred Workflow (Chart-First)
+Price-adjustment contract:
 
-Use this flow by default, but adapt depth to context. The process is structured, not rigid.
+- prices are split-style adjusted
+- prices are not dividend-adjusted
 
-1. `DATA_PREP` - Fetch, parse, validate data and build base features.
-2. `PREV_CONTEXT` - For non-initial mode, extract prior thesis, action, invalidators, and evidence anchors.
-3. `LEVEL_DRAFT` - Draft key levels/zones from daily structure and liquidity map.
-4. `CHART_BUILD` - Generate chart outputs with lines/zones/labels (daily + intraday), including core artifacts and conditional module artifacts.
-5. `CHART_READ` - Read the generated charts first; write chart observations before final decision.
-6. `CROSS_CHECK` - Cross-check chart observations with numeric evidence (volume ratios, closes, retests).
-7. `DELTA_ASSESS` - For non-initial mode, classify what changed vs previous analysis.
-8. `SETUP_RISK` - Build setup and risk plan (or no-trade plan).
-9. `DECISION` - Produce action, invalidation, and monitoring triggers.
+## Deterministic Runtime Steps
 
-### Scripted Context Build (Deterministic)
+The deterministic layer is mandatory.
 
-Use the context builder script during `DATA_PREP` to convert raw OHLCV into deterministic analysis inputs.
+1. fetch and validate OHLCV
+2. build `ta_context`
+3. generate chart artifacts
+4. read chart artifacts before final synthesis
+5. cross-check chart observations against deterministic evidence
+
+Do not skip chart generation.
+Do not skip chart reading.
+
+## Context Build
+
+Run the context builder before policy reasoning.
 
 ```bash
 python scripts/build_ta_context.py \
   --input {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --outdir work \
-  --modules core,vpvr,imbalance,breakout,smc
+  --modules core,vpvr,breakout
 ```
 
-- Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
-- Output contract: `work/{SYMBOL}_ta_context.json` (or `--output` path) with deterministic fields for regime, levels, MA posture, structure events, and liquidity.
-- When the active workflow requires retained output, override `--outdir` to the workflow's artifact path.
-- Available modules for `--modules`:
-  - `core`: regime, levels, MA posture, time/round levels, structure events, liquidity, divergence, price-volume summary, distribution days, informed money, red flags, Wyckoff context, spring detection, trendline sweep detection
-  - `vpvr`: adds `poc/vah/val/hvn/lvn` context
-  - `imbalance`: adds imbalance zones (`FVG`, `OPENING_GAP`, `IFVG`) and CE levels
-  - `breakout`: adds breakout trigger/follow-through snapshot and displacement quality
-  - `smc`: adds EQH/EQL, OB/Breaker zones, and premium-discount context
-  - `all`: shorthand for `core,vpvr,imbalance,breakout,smc`
+Use escalated modules only when the workflow requires them:
 
-### Scripted Chart Build (Deterministic)
+- add `imbalance` when imbalance overlay is active
+- add `smc` when `SMC/ICT` overlay is active
 
-Use the chart generator script to build artifacts from OHLCV JSON before `CHART_READ`.
+Input contract:
+
+- `--input` must use the exact JSON returned by `fetch-ohlcv`
+
+Output contract:
+
+- deterministic `ta_context` JSON for policy reasoning
+
+If the active workflow specifies a retained artifact directory, write outputs there instead of `work/`.
+
+## Chart Build
+
+Run the chart generator before final reasoning.
 
 ```bash
 python scripts/generate_ta_charts.py \
   --input {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --outdir work \
-  --modules core,vpvr,imbalance
+  --modules core,vpvr \
+  --overlays {OVERLAYS} \
+  --ma-mode {DAILY_MA_MODE}
 ```
 
-- Input contract: `--input` must use the exact `output_path` returned/provided to `fetch-ohlcv`.
-- Input JSON contract at that path: required arrays `daily[]`, `intraday[]`; optional `corp_actions[]`.
-- Output contract: chart PNG artifacts in `work/` and `work/{SYMBOL}_chart_evidence.json`.
-- When the active workflow requires retained output, override `--outdir` to the workflow's artifact path.
-- Time-window mode: `--range-mode auto|fixed` (`auto` selects a focused daily window from recent structure/imbalance context; intraday uses full available candles).
-- Available modules for `--modules`:
-  - `core`: required baseline artifacts (`daily_structure_sr`, `daily_structure_fib`, `intraday_structure`, `structure_events`, `trade_plan`)
-  - `vpvr`: adds `vpvr_profile` chart
-  - `imbalance`: adds `imbalance_fvg` chart
-  - `detail`: adds optional detail chart
-  - `all`: shorthand for `core,vpvr,imbalance,detail`
-- Use `--modules core` when only mandatory charts are needed.
+Use escalated chart modules only when required:
 
-Hard requirements:
+- add `imbalance` when imbalance overlay is active
 
-- Do not skip `CHART_BUILD` and `CHART_READ`.
-- Core chart artifacts are mandatory for every run; conditional chart artifacts are mandatory when their module is active.
-- If data dependency fails, stop and report missing dependency.
-- If no valid setup, output `WAIT` with conditions for re-entry review.
-- Resolve contradictions explicitly: if chart-read and numeric checks differ, state which side is trusted and why.
-- In `UPDATE` and `THESIS_REVIEW`, include explicit thesis delta and status.
+Daily chart MA mode:
 
-Topic ownership (avoid overlap):
+- `hybrid` -> `EMA21` + `SMA50` + `SMA200` plus highlighted chosen `SMA{n}`
+- `baseline` -> `EMA21` + `SMA50` + `SMA200`
 
-- Market state/regime/Wyckoff -> `references/market-structure-and-trend.md`
-- Levels (horizontal, MA, Fibonacci, time/psychological, VPVR confluence) -> `references/levels.md`
-- Volume profile and participation flow -> `references/volume-profile-and-volume-flow.md`
-- Liquidity draw and sweep framework -> `references/liquidity-draw-and-sweep.md`
-- Fair value gap and imbalance handling -> `references/fair-value-gap-and-imbalances.md`
-- Setups, breakouts, quality filters, and reversal playbooks -> `references/setups-and-breakouts.md`
-- Level-to-level execution workflow -> `references/level-to-level-execution.md`
-- SMC modules (OB/Breaker/FVG/IFVG/EQH-EQL/Premium-Discount) -> `references/smart-money-concepts.md`
-- Risk/positioning/decision -> `references/execution-and-risk-protocol.md`
-- Checklists and red flags -> `references/checklists-and-red-flags.md`
-- Analysis lifecycle and framework modes -> `references/analysis-lifecycle-and-frameworks.md`
-- Shared enums and glossary -> `references/enums-and-glossary.md`
-- Output formatting contract -> `references/output-report-template.md`
+Rules:
 
-Template boundary:
+- default to `hybrid`
+- use `baseline` only when a lean static read is preferred
+- hybrid charting does not by itself mean adaptive MA changed the decision
+- read the chart evidence manifest for the selected MA mode, adaptive period, and respect details
 
-- `references/output-report-template.md` defines report structure only.
-- Artifact retention path and runtime storage location are owned by this skill and the active workflow contract.
-- Other references provide analysis doctrine and checklists only.
-- Execution order, runtime storage, and persistence rules are owned by this skill and the active workflow contract.
+Input contract:
 
-## Reasoning Trace And Proof Contract
+- `--input` must use the exact JSON returned by `fetch-ohlcv`
 
-The output must include final decision plus concise, auditable reasoning.
+Output contract:
 
-Use markdown sections and tables, not JSON-like payloads.
+- chart artifacts
+- chart evidence JSON
 
-- Include a `Workflow Trace` markdown table using the phases actually used.
-- Each row should include:
-  - `Phase`
-  - `Key Observation`
-  - `Rule Refs`
-  - `Evidence Refs`
-- Include an `Evidence Ledger` markdown table with concrete proof:
-  - candle timestamps/date ranges
-  - exact levels/ratios used
-  - generated chart file path(s)
-- Include `Confidence` and `Invalidators` as normal markdown bullets in final call.
-- Include `Divergence Status` explicitly: `no_divergence`, `divergence_unconfirmed`, `divergence_confirmed`.
+The runtime should read the generated chart evidence manifest and use the artifact paths it provides.
+Do not hardcode chart names in the final answer if the manifest already provides the paths.
 
-Keep trace concise, human-readable, and evidence-backed. Do not make unsupported conclusions.
+## Core Runtime Rules
 
-## Reference Index
+- treat `daily` as thesis authority
+- treat `60m` as timing authority
+- use one setup family or `NO_VALID_SETUP`
+- use one final action: `BUY`, `HOLD`, `WAIT`, or `EXIT`
+- default to `WAIT` under unresolved contradiction
+- do not let overlays override structure, trigger, invalidation, and risk
+- keep baseline MA context lean
+- use overlays only when `workflow-spine.md` and `policy-contract.md` permit them
+- treat hybrid charting as default visual context, not as automatic decision escalation
 
-- [Market structure and trend](references/market-structure-and-trend.md)
-- [Levels](references/levels.md)
-- [Volume profile and volume flow](references/volume-profile-and-volume-flow.md)
-- [Liquidity draw and sweep](references/liquidity-draw-and-sweep.md)
-- [Fair value gap and imbalances](references/fair-value-gap-and-imbalances.md)
-- [Setups and breakouts](references/setups-and-breakouts.md)
-- [Level to level execution](references/level-to-level-execution.md)
-- [Smart money concepts](references/smart-money-concepts.md)
-- [Execution and risk protocol](references/execution-and-risk-protocol.md)
-- [Checklists and red flags](references/checklists-and-red-flags.md)
-- [Analysis lifecycle and frameworks](references/analysis-lifecycle-and-frameworks.md)
-- [Enums and glossary](references/enums-and-glossary.md)
-- [Output report template](references/output-report-template.md)
+## Output Contract
+
+The final answer must follow:
+
+- `references/output-report-template.md`
+
+The output must begin with a compact `Decision Summary`.
+
+The answer must include:
+
+- purpose mode
+- depth mode
+- selected setup family or `NO_VALID_SETUP`
+- final action
+- confidence
+- invalidation
+- next trigger
+- monitoring conditions
+- chart evidence references
 
 ## Execution Defaults
 
-- Parse JSON directly. Never use CSV readers.
-- Declare `Mode` at top of output: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, or `POSTMORTEM`.
-- For non-initial mode, require previous analysis reference (path/date) and prior thesis snapshot.
-- When invoked by a parent workflow, use the mode and output paths specified by that workflow.
-- After every technical analysis response, add one short plain-language wrap-up that restates the bias, key level, and immediate action (`BUY`/`SELL`/`HOLD`/`WAIT`) without jargon.
-- Daily drives thesis. Intraday refines timing and acceptance only.
-- Primary lens is state: `balance` vs `imbalance`, then map to Wyckoff phase context.
-- Reversal calls must follow BOS/CHOCH confirmation contract in market-structure reference.
-- FVG usage must state type, bounds, CE behavior, and mitigation status.
-- Map levels HTF-first then refine lower timeframe; keep level map minimal and actionable.
-- When Fib is used, report explicit swing anchors and treat retracement/extension as confluence, not standalone permission.
-- Treat charting as market map only; execution still requires setup, invalidation, and risk criteria.
-- Use volume-profile context (POC/VAH/VAL/HVN/LVN) as higher-level decision support from anchored and fixed ranges.
-- Include liquidity draw map: current draw, opposing draw, sweep event, sweep outcome, and path state.
-- Prefer level-to-level execution: entry near mapped zone, target next zone, explicit RR before action.
-- For breakout setups, include base-quality and market-context filter notes before final action.
-- Use `hybrid` MA mode by default: baseline stack (21/50/100/200) plus one adaptive MA when measurable respect exists.
-- MA posture should be reported in levels context as dynamic support/resistance.
-- Declare framework lens: `UNIFIED`, `CLASSICAL_TA`, `WYCKOFF`, `SMC_ICT_LIGHT`.
-- If alternate lens is requested, include agreement/disagreement vs `UNIFIED` conclusion.
-- When `SMC_ICT_LIGHT` is active, report used SMC modules and evidence for each used module.
-- Every actionable output must include explicit invalidation and stop-loss.
-- Always include generated chart artifacts in output and reference each artifact in evidence.
-- For standalone/manual runs, `work/{SYMBOL}_*.png` is acceptable.
-- When the active workflow specifies a retained artifact path, use that path instead of `work/`.
-- Core chart artifacts (required every run):
-  - `work/{SYMBOL}_daily_structure_sr.png`
-  - `work/{SYMBOL}_daily_structure_fib.png`
-  - `work/{SYMBOL}_intraday_structure.png`
-  - `work/{SYMBOL}_structure_events.png`
-  - `work/{SYMBOL}_trade_plan.png`
-- Conditional chart artifacts (required when module is active):
-  - `work/{SYMBOL}_vpvr_profile.png` when volume-profile context is used.
-  - `work/{SYMBOL}_imbalance_fvg.png` when FVG/IFVG or imbalance context is used.
-- Optional deep-dive artifact:
-  - `work/{SYMBOL}_detail.png`
-- In no-resistance conditions (new highs with no overhead supply), avoid fixed top calls; manage by structure until invalidated.
+- parse JSON directly
+- when invoked by a parent workflow, use the mode and output paths provided by that workflow
+- for `UPDATE` and `POSTMORTEM`, require prior thesis context
+- after the technical answer, add one short plain-language wrap-up with bias, key level, and immediate action
+- for actionable output, always include invalidation and stop-loss
+- when evidence is mixed, prefer `WAIT`
 
-## Python Libraries
+## Runtime Owners
 
-Deterministic scripts under `scripts/` use:
+This file owns:
 
-- `json` (stdlib)
-- `pandas`
-- `numpy`
-- `matplotlib`
-- `mplfinance`
+- scope
+- runtime load order
+- deterministic tool invocation
+- reference routing
+- fail-fast behavior
 
-## Implementation Note
+This file does not own:
 
-For deterministic preprocessing and artifact generation, use:
+- phase sequencing detail
+- action policy detail
+- field-level state schema
+- topic doctrine
+- output layout detail
 
-- Context modules (`build_ta_context.py`): `core`, `vpvr`, `imbalance`, `breakout`, `smc`
-- Chart modules (`generate_ta_charts.py`): `core`, `vpvr`, `imbalance`, `detail`
-- Shared library: `scripts/ta_common.py`
-- Script: `scripts/build_ta_context.py`
-- Script: `scripts/generate_ta_charts.py`
+Those are owned by:
+
+- `references/workflow-spine.md`
+- `references/policy-contract.md`
+- topic references
+- `references/output-report-template.md`
+
+## Runtime Files
+
+- `references/workflow-spine.md`
+- `references/policy-contract.md`
+- `references/market-structure-and-trend.md`
+- `references/levels.md`
+- `references/volume-profile-and-volume-flow.md`
+- `references/liquidity-draw-and-sweep.md`
+- `references/setups-and-breakouts.md`
+- `references/execution-and-risk-protocol.md`
+- `references/fair-value-gap-and-imbalances.md`
+- `references/smart-money-concepts.md`
+- `references/checklists-and-red-flags.md`
+- `references/enums-and-glossary.md`
+- `references/output-report-template.md`
+- `scripts/build_ta_context.py`
+- `scripts/generate_ta_charts.py`
+- `scripts/ta_common.py`

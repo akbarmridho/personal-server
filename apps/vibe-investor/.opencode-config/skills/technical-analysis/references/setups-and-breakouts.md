@@ -1,168 +1,177 @@
 # Setups And Breakouts
 
-## Setup Families And Selection
+## Objective
 
-### Objective
+Select one setup family, demand the right trigger, and confirm it before the plan becomes actionable.
 
-Select one setup family based on regime, structure status, and acceptance context.
+## Allowed Setup Families
 
-### Allowed Setup Families
+- `S1` breakout and retest continuation
+- `S2` pullback to demand in intact uptrend
+- `S3` sweep and reclaim reversal
+- `S4` range edge rotation
+- `S5` Wyckoff spring with reclaim
+- `NO_VALID_SETUP`
 
-- `S1` Breakout and retest continuation.
-- `S2` Pullback to demand in intact uptrend.
-- `S3` Sweep and reclaim reversal.
-- `S4` Range edge rotation.
-- `S5` Wyckoff spring from support with reclaim (advanced, requires strict confirmation).
+## Setup Selection Rules
 
-### Core Selection Rules
+- choose one setup family or `NO_VALID_SETUP`
+- setup must fit the daily regime and current location
+- setup labels without location, trigger, and risk are not tradable
+- middle-of-range entries usually downgrade to `NO_VALID_SETUP`
+- reversal intent requires structure shift confirmation, not narrative alone
 
-- `R-PA-04` Pattern labels without structure and volume confluence are not tradable.
-- `R-PA-05` Prefer setups aligned with daily regime and liquidity draw.
-- `R-PA-06` In balance state, prioritize edge-to-edge behavior; avoid middle-of-range entries.
-- `R-PA-07` Reversal setups require `CHOCH + confirmation BOS`; CHOCH alone is warning only.
+## Setup Family Guidance
 
-### Trace Requirements
+### `S1` Breakout And Retest Continuation
 
-- selected setup id and reason
-- setup rejection reason when `NO_VALID_SETUP`
+Use when:
 
-### Implementation Note
+- daily regime supports continuation
+- resistance is meaningfully challenged or reclaimed
+- participation supports acceptance
 
-Deterministic setup-family selection and Wyckoff spring detection outputs are implemented in:
+Needs:
 
-- Module: `core`
-- Script: `scripts/build_ta_context.py`
+- close beyond level
+- follow-through
+- retest hold or continued acceptance
 
-## Breakout And Participation
+### `S2` Pullback To Demand In Intact Uptrend
 
-### Objective
+Use when:
 
-Validate breakout and continuation quality using close behavior, follow-through, and volume participation.
+- trend remains intact
+- price returns to meaningful support or demand
+- pullback quality is constructive
 
-### Breakout Rules
+Needs:
 
-- `R-PA-01` Breakout needs close beyond level plus volume expansion.
-- `R-PA-02` Breakout without follow-through is suspect.
-- `R-PA-03` Failed breakout (deviation) is a valid opposite signal only after reclaim/failure confirmation.
-- `R-PA-08` Clean breakout should displace quickly; post-breakout stalling increases trap risk.
+- support hold
+- acceptable selling pressure
+- thesis still aligned with daily structure
 
-### Volume Confirmation
+### `S3` Sweep And Reclaim Reversal
 
-- `R-VOL-01` Breakout volume should be above recent average (example 20-day mean).
-- `R-VOL-02` Up move on weak volume is lower quality.
-- `R-VOL-03` Repeated high-volume down closes near highs signals distribution risk.
-- `R-VOL-04` Price up + volume up is strongest continuation profile.
-- `R-VOL-05` Price down + volume down can be healthy pullback in uptrend context.
+Use when:
 
-### Trace Requirements
+- sweep behavior is central
+- price takes liquidity and snaps back
+- reversal context is plausible
 
-- trigger candle timestamp and close
-- follow-through candle timestamp and close
-- trigger volume ratio
-- displacement quality note: clean displacement or stalling
+Needs:
 
-### Implementation Note
+- clear sweep
+- reclaim or rejection
+- confirmation that the reclaim is holding
 
-Deterministic breakout snapshot extraction is implemented in:
+### `S4` Range Edge Rotation
 
-- Module: `breakout`
-- Script: `scripts/build_ta_context.py`
+Use when:
+
+- regime is balance
+- price is at a range edge
+- edge reaction is clean
+
+Needs:
+
+- rejection or acceptance behavior at the edge
+- edge-to-edge path
+- avoid mid-range execution
+
+### `S5` Wyckoff Spring With Reclaim
+
+Use when:
+
+- range or accumulation context is credible
+- support sweep behaves like a spring
+- reclaim is visible and defensible
+
+Needs:
+
+- spring-like sweep
+- reclaim of the relevant level
+- follow-through strong enough to avoid immediate trap failure
+
+## Trigger Rules
+
+- a setup area is not enough by itself
+- action requires a trigger tied to the selected setup family
+- `60m` owns trigger quality inside the daily thesis
+- absent trigger means watchlist or `WAIT`
+
+Common trigger types:
+
+- breakout close
+- retest hold
+- reclaim
+- sweep reclaim
+- range-edge rejection
+- `CHOCH` plus confirmation `BOS`
+- spring reclaim
+
+## Breakout And Follow-Through
+
+- breakout needs close beyond level plus participation support
+- breakout without follow-through is suspect
+- stalling after break increases trap risk
+- failed breakout matters only after failure or reclaim is clear
 
 ## Breakout Quality Filters
 
-### Objective
+- avoid weak bases for swing continuation calls
+- late or loose bases need stronger confirmation
+- volume expansion improves breakout quality
+- fast post-break displacement is preferred
+- weak broader market context can downgrade pure breakout setups
 
-Improve breakout selectivity using base-quality and market-context filters before execution.
+## Reversal And Structure-Shift Rules
 
-### Base-Quality Filters
+For bullish reversal intent:
 
-- `R-BQ-04` Avoid very short bases (example under 7 weeks) for swing breakout calls.
-- `R-BQ-05` Avoid excessively deep/loose bases (example drawdown over 35 percent) unless separate reversal thesis is active.
-- `R-BQ-06` Late-stage bases carry higher failure risk; demand stronger confirmation.
+1. prior structure is damaged or bearish
+2. `CHOCH` appears
+3. pullback holds constructively
+4. confirmation `BOS` appears
+5. only then does the reversal become actionable
 
-### Breakout Strength Filters
+Rules:
 
-- `R-BQ-07` Breakout day should show volume expansion versus average.
-- `R-BQ-08` Fast post-break displacement is preferred; stalling quickly after break is warning.
-- `R-BQ-09` If broad market context is weak/risk-off, downgrade pure breakout setups.
+- `CHOCH` alone is warning, not confirmation
+- structure shift without confirmation usually stays in watchlist or `WAIT`
+- reversal interpretation can trigger escalation when the default read is not enough
 
-### Watchlist Context Filter
+## Conditional Diagnostics And Overlays
 
-- `R-BQ-10` For momentum-style continuation scans, prioritize names trading relatively close to major highs.
-- This is a prioritization filter only, not an entry trigger.
+### Divergence
 
-### Trace Requirements
+Use divergence only when:
 
-- base quality note (duration/depth/stage)
-- breakout strength note (volume and displacement)
-- market context impact note (`supportive`, `neutral`, `adverse`)
+- the move is extended
+- reversal suspicion is active
+- thesis quality is degrading
+- postmortem needs a momentum warning check
 
-### Implementation Note
+Divergence is warning or support, not trade permission.
 
-Deterministic breakout base-quality outputs are implemented in:
+### Imbalance
 
-- Module: `breakout`
-- Script: `scripts/build_ta_context.py`
+Use imbalance only when it materially helps resolve:
 
-## Reversal Playbooks And Confluence
+- entry refinement
+- location quality
+- confirmation quality
 
-### Objective
+### `SMC/ICT`
 
-Standardize reversal validation and optional confluence usage after structural confirmation.
+Use `SMC/ICT` only when liquidity behavior is central or the default read remains unresolved.
 
-### Divergence Protocol
+## Trace Requirements
 
-- Always run a quick bearish divergence scan (price higher high vs RSI14 or MACD histogram lower high).
-- Divergence alone is warning, not reversal confirmation.
-- Escalate only after structure break confirmation.
-
-### BOS And CHOCH Reversal Playbooks
-
-Bullish reversal flow:
-
-1. market in bearish structure
-2. bullish CHOCH (break above recent lower high)
-3. pullback holds as higher low
-4. confirmation BOS up
-5. setup eligible for long plan
-
-Bearish reversal flow:
-
-1. market in bullish structure
-2. bearish CHOCH (break below recent higher low)
-3. pullback fails as lower high
-4. confirmation BOS down
-5. setup eligible for bearish plan context
-
-Structure status enum:
-
-- `no_signal`
-- `choch_only`
-- `choch_plus_bos_confirmed`
-
-### Optional Confluence (FVG And OTE)
-
-Use only after structural confirmation. These refine entries and do not validate reversals.
-
-- FVG retrace zone
-- OTE zone (`0.618`, `0.706`, `0.786`)
-
-OTE is tactical; broader Fib retracement/extension context remains in the Fibonacci Retracement And Extension section of `levels.md`.
-
-Detailed FVG/IFVG and mitigation logic is in `fair-value-gap-and-imbalances.md`.
-
-When lens is `SMC_ICT_LIGHT`, confluence may also include OB/Breaker/IFVG/EQH-EQL context.
-
-### Trace Requirements
-
-- CHOCH evidence (time and level)
-- confirmation BOS evidence (time and level)
-- divergence status and invalidator
-- confluence bounds when FVG/OTE is used
-
-### Implementation Note
-
-Deterministic structure-status and OTE helper outputs are implemented in:
-
-- Module: `core`
-- Script: `scripts/build_ta_context.py`
+- selected setup id
+- setup acceptance or rejection reason
+- trigger state and trigger type
+- trigger evidence
+- confirmation evidence
+- breakout quality note when relevant
+- conditional overlay note when used

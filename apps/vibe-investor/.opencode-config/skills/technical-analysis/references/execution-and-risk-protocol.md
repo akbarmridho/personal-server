@@ -2,80 +2,164 @@
 
 ## Objective
 
-Convert a valid technical setup into an executable swing plan with structural invalidation, chart-derived targets, and measurable risk-reward.
+Convert a valid technical setup into an executable plan with:
+
+- explicit invalidation
+- explicit stop placement
+- level-to-level target mapping
+- measurable reward-to-risk
+
+This file owns the bridge from setup to action.
 
 ## Scope Boundary
 
-This file owns the bridge from TA setup to trade plan: stop placement, target mapping, entry refinement, divergence handling, and R:R calculation using chart-derived levels.
+This file owns:
 
-Portfolio-level concerns are owned by the portfolio-management skill:
+- entry zone definition
+- invalidation logic
+- stop hierarchy
+- next-zone path requirement
+- target ladder construction
+- reward-to-risk gating
+- trade management rules
+- `WAIT` behavior when the path is unclear
 
-- Position sizing formula and portfolio heat limits -> `position-sizing-and-diversification.md`
-- Conviction scaling and hard-loss fallback caps -> `position-sizing-and-diversification.md`
-- Adding to winners / averaging down portfolio rules -> `entry-exit-and-rebalancing-playbook.md`
-- Cut-loss behavioral discipline and thesis-break exits -> `entry-exit-and-rebalancing-playbook.md`
-
-When both skills are active, TA produces the plan (entry, stop, targets, R:R), PM validates sizing against portfolio constraints before execution.
+Portfolio-level sizing and allocation constraints are outside this file.
 
 ## Core Rules
 
 - `R-RISK-01` No setup without invalidation.
 - `R-RISK-02` Every actionable decision must include explicit stop-loss and invalidator.
 - `R-RISK-03` Action must be one of: `BUY`, `HOLD`, `WAIT`, `EXIT`.
-- `R-RISK-04` Add only when trade is working and structure remains valid.
-- `R-RISK-05` Do not average down into structural failure.
-- `R-RISK-06` FVG/OTE are optional entry refinements only after structure confirmation.
-- `R-RISK-07` Optional confluence never overrides invalidation, stop, or risk sizing.
-- `R-RISK-08` Fib retracement/extension may support entry/target mapping only when swing anchors and structure context are explicit.
+- `R-RISK-04` Entry is valid only near a mapped decision zone.
+- `R-RISK-05` Primary target is the next meaningful zone in path.
+- `R-RISK-06` If no clear next-zone path exists, default action is `WAIT`.
+- `R-RISK-07` Mid-range entries without zone confluence are low quality and usually not actionable.
+- `R-RISK-08` Minimum expected reward-to-risk must be stated before execution.
+- `R-RISK-09` Add only when the trade is working and structure remains valid.
+- `R-RISK-10` Do not average down into structural failure.
+- `R-RISK-11` Optional overlays may refine execution only after the structural plan already exists.
+- `R-RISK-12` Optional overlays never override invalidation, stop, or risk discipline.
+
+## Level-To-Level Execution
+
+Trade from validated zone to validated zone.
+
+Core idea:
+
+- do not trade random mid-range noise
+- trade reactions at mapped decision zones
+- target the next meaningful zone, not arbitrary fixed points
+
+Operational workflow:
+
+1. map top actionable zones
+2. identify the likely next draw and opposing draw
+3. define the candidate entry zone
+4. place invalidation beyond structural failure of that zone
+5. require trigger and confirmation before action
+6. manage toward the next zone or invalidate the thesis
 
 ## Stop Hierarchy
 
-1. Structural invalidation stop (preferred).
-2. ATR fallback stop when structure is unclear.
-3. Time stop for stale setup (no progress in defined window).
+1. structural invalidation stop
+2. ATR fallback stop when structure is unclear
+3. time stop for stale setup
 
-Use stop as thesis invalidation, not arbitrary percentage.
+Use stop as thesis invalidation, not as an arbitrary percentage.
 
 ## Target And Management
 
-- Use nearest liquidity/level as first target.
-- Use partial exits at major resistance/support transitions.
-- Keep trailing stop rule explicit after first target.
+- first target should be the nearest meaningful zone in path
+- further targets may extend along the zone ladder
+- partial exits may be used at major support or resistance transitions
+- trailing logic should become explicit after the first target
 
-In no-resistance conditions (price discovery), prioritize structural trailing logic over fixed target projection.
+In price discovery, prefer structural trailing logic over arbitrary top calls.
 
 ## Optional Entry Refinement
 
-If structural setup is already valid, entry may be refined with:
+Optional refinement is allowed only after the base structural plan is valid.
 
-- FVG retrace zone
-- OTE zone (`0.618`, `0.706`, `0.786`)
-- Fib retracement and extension context from the Fibonacci Retracement And Extension section of `levels.md`
+Allowed refinement sources:
 
-If refinement is not available, continue with base structural plan. Do not downgrade solely because optional confluence is absent.
+- imbalance reaction zones such as `FVG` or `IFVG`
+- local acceptance or rejection behavior on `60m`
+- adaptive MA only when it is already an active overlay
 
-## Divergence Action Ladder
+If refinement is unavailable, keep the base structural plan.
+Do not downgrade solely because optional refinement is absent.
 
-1. `divergence_unconfirmed`: reduce aggressiveness, tighten risk, avoid adding size.
-2. `divergence_confirmed` with structure break: de-risk or exit by structure.
-3. No structural confirmation: remain reactive, avoid top prediction.
+## Conditional Divergence Handling
+
+Divergence is a conditional diagnostic, not a baseline execution step.
+
+If divergence is active:
+
+1. `divergence_unconfirmed`: reduce aggressiveness and avoid adding size
+2. `divergence_confirmed` with structural weakness: tighten management or exit by structure
+3. no structural confirmation: remain reactive and avoid prediction
+
+## Minimum Actionability Requirements
+
+An actionable plan requires all of the following:
+
+- a valid setup family
+- a meaningful location
+- a valid trigger
+- confirmation that is not rejected
+- explicit invalidation
+- explicit next-zone path
+- acceptable reward-to-risk
+
+If any item is missing, default to `WAIT`.
 
 ## Trace Requirements
 
-- Provide proof for each risk field:
-  - entry basis and exact level
-  - stop basis and exact level
-  - target ladder source levels
-  - R:R per target
-- Include confidence and invalidators in plain language.
-- If optional confluence is used, include: type (`FVG` or `OTE`), exact zone, and source swing/time references.
-- If Fib is used, include: anchor swings, retracement level used, and extension target references.
+Every actionable plan must report:
+
+- entry zone and why it is valid
+- invalidation level and why it invalidates the thesis
+- stop level and stop basis
+- next-zone target
+- target ladder when relevant
+- reward-to-risk by target
+
+If the result is `WAIT`, report why:
+
+- no clear zone
+- no trigger
+- no clear invalidation
+- no clear path
+- insufficient reward-to-risk
+
+If an overlay is used for refinement, report:
+
+- overlay type
+- exact zone or condition used
+- what it changed in the execution plan
 
 ## Reference Code
 
 ```python
+def next_zone_target(entry: float, zones: list[float], side: str):
+    if side == "long":
+        cands = sorted([z for z in zones if z > entry])
+    else:
+        cands = sorted([z for z in zones if z < entry], reverse=True)
+    return cands[0] if cands else None
+
+
+def rr_ratio(entry: float, stop: float, target: float):
+    risk = abs(entry - stop)
+    reward = abs(target - entry)
+    if risk <= 0:
+        return None
+    return reward / risk
+
+
 def build_trade_plan(side, entry, invalidation, nearest_levels):
-    """Build chart-derived trade plan. Sizing is deferred to PM."""
+    """Build a chart-derived plan. Sizing is handled outside TA."""
     if side == "long":
         stop = min(invalidation, entry)
         targets = sorted([x for x in nearest_levels if x > entry])[:3]
@@ -100,19 +184,6 @@ def build_trade_plan(side, entry, invalidation, nearest_levels):
         "targets": targets,
         "rr_by_target": rr,
     }
-
-
-def attach_optional_refinement(plan, refinement_type=None, zone=None, source_ref=None):
-    """refinement_type in {None, "FVG", "OTE"}"""
-    if refinement_type is None:
-        return plan
-    out = dict(plan)
-    out["entry_refinement"] = {
-        "type": refinement_type,
-        "zone": zone,
-        "source_ref": source_ref,
-    }
-    return out
 
 
 def decision_with_position(has_position, setup_id, red_flag_severity):

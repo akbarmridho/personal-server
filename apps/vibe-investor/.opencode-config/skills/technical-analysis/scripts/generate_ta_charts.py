@@ -22,8 +22,8 @@ from ta_common import (
     add_swings,
     add_volume_features,
     anomaly_overrides,
+    choose_adaptive_ma,
     derive_levels,
-    derive_recent_fib_lines,
     detect_imbalance_zones,
     detect_structure_events,
     infer_ifvg_zones,
@@ -36,13 +36,12 @@ DEFAULT_FIGRATIO = (20, 9)
 DEFAULT_FIGSCALE = 1.25
 DEFAULT_DPI = 180
 MAX_DISPLAY_SR_LINES = 5
-MAX_DISPLAY_FIB_LINES = 3
 MAX_TRADE_TARGETS = 3
 MIN_ACCEPTABLE_RR = 1.2
 DAILY_SR_LINE_COLORS = ["#1f77b4", "#2ca02c", "#ff7f0e", "#d62728", "#17becf"]
-DAILY_FIB_LINE_COLORS = ["#8e44ad", "#c2185b", "#6a1b9a", "#ec407a", "#7b1fa2"]
-DAILY_SR_LINE_WIDTH = 2.6
-DAILY_FIB_LINE_WIDTH = 2.4
+DAILY_SR_LINE_WIDTH = 1.75
+DAILY_SR_COLOR = "#374151"
+DAILY_SR_MARKER_SIZE = 18
 
 
 def _width_config() -> dict[str, float]:
@@ -68,7 +67,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--modules",
         default="core",
-        help="Comma-separated modules: core,vpvr,imbalance,detail or all.",
+        help="Comma-separated modules: core,vpvr,imbalance or all.",
+    )
+    parser.add_argument(
+        "--overlays",
+        default="",
+        help="Comma-separated overlays: adaptive_ma,divergence,imbalance,smc_ict.",
+    )
+    parser.add_argument(
+        "--ma-mode",
+        choices=["hybrid", "baseline"],
+        default="hybrid",
+        help="Daily chart MA mode: hybrid or baseline.",
     )
     parser.add_argument(
         "--daily-lookback", type=int, default=240, help="Daily candles to render."
@@ -86,12 +96,21 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_modules(raw: str) -> set[str]:
+    CHART_MODULES = {"core", "vpvr", "imbalance"}
     items = {x.strip().lower() for x in raw.split(",") if x.strip()}
     if not items:
         items = {"core"}
     if "all" in items:
-        return {"core", "vpvr", "imbalance", "detail"}
+        return set(CHART_MODULES)
+    items &= CHART_MODULES
     items.add("core")
+    return items
+
+
+def parse_overlays(raw: str, modules: set[str]) -> set[str]:
+    items = {x.strip().lower() for x in raw.split(",") if x.strip()}
+    if "imbalance" in modules:
+        items.add("imbalance")
     return items
 
 
@@ -116,6 +135,173 @@ def prepare_daily_window(df_daily: pd.DataFrame, lookback: int) -> pd.DataFrame:
         return enriched
     used = min(max(int(lookback), 1), len(enriched))
     return enriched.tail(used).copy()
+
+
+def build_daily_ma_config(
+    df_daily: pd.DataFrame,
+    ma_mode: str,
+) -> dict[str, Any]:
+    config: dict[str, Any] = {
+        "mode": ma_mode,
+        "displayed_series": [],
+    }
+    if ma_mode == "baseline":
+        config["displayed_series"] = ["EMA21", "SMA50", "SMA200"]
+        return config
+
+    adaptive = choose_adaptive_ma(df_daily)
+    adaptive_period = adaptive.get("adaptive_period")
+    if adaptive_period is None:
+        raise ValueError("hybrid MA mode requested but no adaptive period was found")
+
+    config["adaptive"] = {
+        "period": int(adaptive_period),
+        "ma_type": "sma",
+        "respect_score": float(adaptive["score"]),
+        "label": f"SMA{int(adaptive_period)}",
+    }
+    details = adaptive.get("details")
+    if isinstance(details, dict) and details:
+        config["adaptive"]["details"] = details
+    config["displayed_series"] = ["EMA21", "SMA50", "SMA200", f"SMA{int(adaptive_period)}"]
+    return config
+
+
+def _daily_ma_lines(
+    x: pd.DataFrame,
+    ma_config: dict[str, Any],
+) -> tuple[list[Any], list[Line2D], str]:
+    mode = str(ma_config["mode"])
+    apds: list[Any] = []
+    legend_handles: list[Line2D] = []
+    title_suffix = "S/R + Baseline MA"
+
+    if mode == "baseline":
+        lines = [
+            ("EMA21", "#f39c12", "EMA21", 1.8),
+            ("SMA50", "#3498db", "SMA50", 1.8),
+            ("SMA200", "#9b59b6", "SMA200", 1.8),
+        ]
+    else:
+        adaptive = dict(ma_config["adaptive"])
+        col = adaptive["label"]
+        if col not in x.columns:
+            x[col] = x["close"].rolling(int(adaptive["period"])).mean()
+        lines = [
+            ("EMA21", "#f39c12", "EMA21", 1.6),
+            ("SMA50", "#3498db", "SMA50", 1.6),
+            ("SMA200", "#9b59b6", "SMA200", 1.7),
+            (col, "#e74c3c", f"Adaptive {col}", 2.2),
+        ]
+        title_suffix = f"S/R + Hybrid {col}"
+
+    for col, color, label, width in lines:
+        if col in x.columns and x[col].notna().any():
+            apds.append(mpf.make_addplot(x[col], color=color, width=width))
+            legend_handles.append(
+                Line2D([], [], color=color, linewidth=2.0, label=label)
+            )
+    return apds, legend_handles, title_suffix
+
+
+def _level_touch_indices(
+    df: pd.DataFrame,
+    level: float,
+    tolerance_pct: float = 0.015,
+) -> list[int]:
+    tol = max(abs(level) * tolerance_pct, 1e-9)
+    mask = (
+        ((df["low"] - tol) <= level) & ((df["high"] + tol) >= level)
+    ) | ((df["close"] - level).abs() <= tol)
+    return [int(i) for i in np.flatnonzero(mask.to_numpy())]
+
+
+def _cluster_touch_indices(indices: list[int], gap: int = 6) -> list[tuple[int, int]]:
+    if not indices:
+        return []
+    sorted_idx = sorted(indices)
+    clusters: list[tuple[int, int]] = []
+    start = sorted_idx[0]
+    end = sorted_idx[0]
+    for idx in sorted_idx[1:]:
+        if idx - end <= gap:
+            end = idx
+            continue
+        clusters.append((start, end))
+        start = idx
+        end = idx
+    clusters.append((start, end))
+    return clusters
+
+
+def _draw_level_segments(
+    ax: Any,
+    df: pd.DataFrame,
+    levels: list[float],
+    colors: list[str],
+    linewidth: float,
+    extend_to_latest: bool = True,
+    latest_min_window: int = 18,
+    historical_pad: int = 2,
+) -> list[float]:
+    visible_levels: list[float] = []
+    n = len(df)
+    if n == 0:
+        return visible_levels
+    recent_start = max(0, n - latest_min_window)
+    for i, level in enumerate(levels):
+        color = colors[i % len(colors)] if colors else DAILY_SR_COLOR
+        touches = _level_touch_indices(df, float(level))
+        if not touches:
+            continue
+        clusters = _cluster_touch_indices(touches)
+        drawn_any = False
+        if len(clusters) >= 2:
+            start, end = clusters[-2]
+            x0 = max(0, start - historical_pad)
+            x1 = min(n - 1, end + historical_pad)
+            ax.plot(
+                [x0, x1], [float(level), float(level)],
+                color=color, linewidth=linewidth, alpha=0.52,
+                linestyle=(0, (4, 3)), solid_capstyle="round",
+            )
+            ax.scatter(
+                [x0, x1], [float(level), float(level)],
+                color=color, s=DAILY_SR_MARKER_SIZE, marker="s", alpha=0.55, zorder=3,
+            )
+            drawn_any = True
+        latest_start, latest_end = clusters[-1]
+        x0 = max(recent_start, latest_start - historical_pad)
+        x1 = n - 1 if extend_to_latest else min(n - 1, latest_end + historical_pad)
+        if x1 > x0:
+            ax.plot(
+                [x0, x1], [float(level), float(level)],
+                color=color, linewidth=linewidth, alpha=0.92,
+                linestyle=(0, (6, 3)), solid_capstyle="round",
+            )
+            ax.scatter(
+                [x0, x1], [float(level), float(level)],
+                color=color, s=DAILY_SR_MARKER_SIZE, marker="s", alpha=0.95, zorder=4,
+            )
+            drawn_any = True
+        if drawn_any:
+            visible_levels.append(float(level))
+    return visible_levels
+
+
+def _draw_trade_plan_segments(
+    ax: Any,
+    x_len: int,
+    levels: list[tuple[float, str, str, float]],
+    line_style: str,
+    recent_window: int = 22,
+) -> None:
+    if x_len <= 0:
+        return
+    x0 = max(0, x_len - recent_window)
+    x1 = x_len - 1
+    for y, color, _, linewidth in levels:
+        ax.hlines(float(y), x0, x1, colors=color, linewidth=linewidth, linestyles=line_style)
 
 
 def nearest_draws(price: float, zones: list[dict[str, Any]]) -> dict[str, Any]:
@@ -324,68 +510,40 @@ def plot_daily_structure(
     path: Path,
     symbol: str,
     lookback: int,
-    include_sr: bool = True,
-    include_fib: bool = True,
-    title_suffix: str | None = None,
+    ma_config: dict[str, Any],
 ) -> None:
     x = prepare_daily_window(df_daily, lookback)
     last_close = float(x["close"].iloc[-1])
-    sr_lines = select_nearest_levels(
+    sr_levels = select_nearest_levels(
         [z["zone_mid"] for z in zones], ref_price=last_close, max_n=MAX_DISPLAY_SR_LINES,
     )
-    fib_lines_all = select_nearest_levels(
-        derive_recent_fib_lines(x), ref_price=last_close, max_n=MAX_DISPLAY_FIB_LINES,
-    )
-    hlines = sr_lines if include_sr else []
-    fib_lines = fib_lines_all if include_fib else []
-    merged_hlines = hlines + fib_lines
-    sr_colors = [DAILY_SR_LINE_COLORS[i % len(DAILY_SR_LINE_COLORS)] for i in range(len(hlines))]
-    fib_colors = [DAILY_FIB_LINE_COLORS[i % len(DAILY_FIB_LINE_COLORS)] for i in range(len(fib_lines))]
+    sr_colors = [DAILY_SR_COLOR] * len(sr_levels)
     sh = x["swing_high"].copy()
     sl = x["swing_low"].copy()
-    apds = []
-    for col, color in [
-        ("EMA21", "#f39c12"), ("SMA50", "#3498db"),
-        ("SMA100", "#2ecc71"), ("SMA200", "#9b59b6"),
-    ]:
-        if x[col].notna().any():
-            apds.append(mpf.make_addplot(x[col], color=color, width=1.8))
+    apds, legend_handles, title_suffix = _daily_ma_lines(x, ma_config)
     if sh.notna().any():
         apds.append(mpf.make_addplot(sh, type="scatter", marker="v", markersize=60, color="#d62728"))
     if sl.notna().any():
         apds.append(mpf.make_addplot(sl, type="scatter", marker="^", markersize=60, color="#2ca02c"))
     fig, axes = mpf.plot(
         to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        hlines=dict(
-            hlines=merged_hlines,
-            colors=sr_colors + fib_colors,
-            linewidths=([DAILY_SR_LINE_WIDTH] * len(hlines)) + ([DAILY_FIB_LINE_WIDTH] * len(fib_lines)),
-        ) if merged_hlines else None,
         marketcolor_overrides=anomaly_overrides(x),
-        title=(
-            f"{symbol} Daily Structure ({title_suffix})"
-            if title_suffix
-            else f"{symbol} Daily Structure"
-        ),
+        title=f"{symbol} Daily Structure ({title_suffix})",
         figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
         update_width_config=_width_config(), returnfig=True,
     )
     ax = axes[0]
-    zone_preview = ", ".join(f"{v:.0f}" for v in hlines) if hlines else "-"
-    fib_preview = ", ".join(f"{v:.0f}" for v in fib_lines) if fib_lines else "-"
-    legend_handles = [
-        Line2D([], [], color="#f39c12", linewidth=2.0, label="EMA21"),
-        Line2D([], [], color="#3498db", linewidth=2.0, label="SMA50"),
-        Line2D([], [], color="#2ecc71", linewidth=2.0, label="SMA100"),
-        Line2D([], [], color="#9b59b6", linewidth=2.0, label="SMA200"),
-    ]
-    if hlines:
+    visible_levels = _draw_level_segments(
+        ax, x.reset_index(drop=True), sr_levels, sr_colors, DAILY_SR_LINE_WIDTH
+    )
+    zone_preview = ", ".join(f"{v:.0f}" for v in visible_levels) if visible_levels else "-"
+    if visible_levels:
         legend_handles.append(
-            Line2D([], [], color=DAILY_SR_LINE_COLORS[0], linewidth=DAILY_SR_LINE_WIDTH, label="S/R zones (multi-color)")
-        )
-    if fib_lines:
-        legend_handles.append(
-            Line2D([], [], color=DAILY_FIB_LINE_COLORS[0], linewidth=DAILY_FIB_LINE_WIDTH, label="Fib levels (multi-color)")
+            Line2D(
+                [], [], color=DAILY_SR_COLOR, linewidth=DAILY_SR_LINE_WIDTH,
+                linestyle=(0, (6, 3)), marker="s", markersize=5,
+                label="Localized S/R",
+            )
         )
     legend_handles.extend([
         Line2D([], [], marker="^", linestyle="None", markerfacecolor="#2ca02c",
@@ -394,14 +552,13 @@ def plot_daily_structure(
                markeredgecolor="#d62728", markersize=7, label="Swing high"),
     ])
     ax.legend(handles=legend_handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.9)
-    summary_lines: list[str] = []
-    if include_sr:
-        summary_lines.append(f"S/R zones shown ({len(hlines)}): {zone_preview}")
-    if include_fib:
-        summary_lines.append(f"Fib levels shown ({len(fib_lines)}): {fib_preview}")
     ax.text(
         1.02, 1.15,
-        "\n".join(summary_lines) if summary_lines else "No horizontal levels selected",
+        (
+            f"S/R zones shown ({len(visible_levels)}): {zone_preview}"
+            if visible_levels
+            else "No localized S/R levels selected"
+        ),
         transform=ax.transAxes, ha="right", va="top", fontsize=8,
         bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
     )
@@ -645,21 +802,25 @@ def plot_trade_plan(
     ax = axes[0]
     line_style = "--" if mode == "SCENARIO_MAP" else "-"
     handles: list[Line2D] = []
+    plan_levels: list[tuple[float, str, str, float]] = []
     if entry is not None:
         y = float(entry)
-        ax.axhline(y, color="#1f77b4", linewidth=2.1, linestyle=line_style)
+        plan_levels.append((y, "#1f77b4", "Entry", 1.9))
         ax.text(len(x) - 1, y, " ENTRY", fontsize=8, color="#1f77b4", fontweight="bold")
         handles.append(Line2D([], [], color="#1f77b4", linewidth=2.1, label="Entry"))
     if stop is not None:
         y = float(stop)
-        ax.axhline(y, color="#d62728", linewidth=2.1, linestyle=line_style)
+        plan_levels.append((y, "#d62728", "Invalidation", 1.9))
         ax.text(len(x) - 1, y, " STOP", fontsize=8, color="#d62728", fontweight="bold")
         handles.append(Line2D([], [], color="#d62728", linewidth=2.1, label="Invalidation"))
     for i, target in enumerate(targets[:MAX_TRADE_TARGETS]):
         c = target_palette[min(i, len(target_palette) - 1)]
-        ax.axhline(float(target), color=c, linewidth=2.0, linestyle=line_style)
-        ax.text(len(x) - 1, float(target), f" T{i + 1}", fontsize=8, color=c, fontweight="bold")
+        y = float(target)
+        plan_levels.append((y, c, f"Target {i + 1}", 1.8))
+        ax.text(len(x) - 1, y, f" T{i + 1}", fontsize=8, color=c, fontweight="bold")
         handles.append(Line2D([], [], color=c, linewidth=2.0, label=f"Target {i + 1}"))
+
+    _draw_trade_plan_segments(ax, len(x), plan_levels, line_style=line_style)
 
     if handles:
         ax.legend(handles=handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.9)
@@ -850,84 +1011,11 @@ def plot_imbalance_fvg(
     plt.close(fig)
 
 
-def plot_detail(df_daily: pd.DataFrame, path: Path, symbol: str, lookback: int) -> None:
-    x = prepare_daily_window(df_daily, lookback)
-    sh = x["swing_high"].copy()
-    sl = x["swing_low"].copy()
-    last_close = float(x["close"].iloc[-1])
-    fib_lines = select_nearest_levels(
-        derive_recent_fib_lines(x), ref_price=last_close, max_n=MAX_DISPLAY_FIB_LINES,
-    )
-    rsi70 = pd.Series(70.0, index=x.index)
-    rsi30 = pd.Series(30.0, index=x.index)
-    apds = []
-    if x["EMA21"].notna().any():
-        apds.append(mpf.make_addplot(x["EMA21"], color="#f39c12", width=1.8))
-    if x["SMA50"].notna().any():
-        apds.append(mpf.make_addplot(x["SMA50"], color="#3498db", width=1.8))
-    if sh.notna().any():
-        apds.append(mpf.make_addplot(sh, type="scatter", marker="v", markersize=60, color="#d62728"))
-    if sl.notna().any():
-        apds.append(mpf.make_addplot(sl, type="scatter", marker="^", markersize=60, color="#2ca02c"))
-    apds.extend([
-        mpf.make_addplot(x["RSI14"], panel=2, color="#9b59b6", width=1.6, ylabel="RSI14"),
-        mpf.make_addplot(rsi70, panel=2, color="#95a5a6", width=1.2),
-        mpf.make_addplot(rsi30, panel=2, color="#95a5a6", width=1.2),
-    ])
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        hlines=dict(
-            hlines=fib_lines,
-            colors=["#8e44ad"] * len(fib_lines),
-            linewidths=[1.5] * len(fib_lines),
-        ) if fib_lines else None,
-        marketcolor_overrides=anomaly_overrides(x),
-        title=f"{symbol} Detail",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
-    ax_price = axes[0]
-    ax_rsi = axes[4] if len(axes) > 4 else axes[-1]
-    ax_rsi.set_ylim(0, 100)
-    if len(axes) > 5:
-        ax_rsi.tick_params(left=False, labelleft=False)
-        axes[5].set_ylim(0, 100)
-        axes[5].set_ylabel("RSI14")
-    else:
-        ax_rsi.set_ylabel("RSI14")
-    ax_rsi.text(
-        0.01, 0.92, "Bottom panel: RSI14 (purple) with 70/30 guides",
-        transform=ax_rsi.transAxes, va="top", fontsize=8,
-        bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
-    )
-
-    fib_preview = ", ".join(f"{v:.0f}" for v in fib_lines) if fib_lines else "-"
-    ax_price.legend(
-        handles=[
-            Line2D([], [], color="#f39c12", linewidth=2.0, label="EMA21"),
-            Line2D([], [], color="#3498db", linewidth=2.0, label="SMA50"),
-            Line2D([], [], color="#8e44ad", linewidth=2.0, label="Fib levels"),
-            Line2D([], [], marker="^", linestyle="None", markerfacecolor="#2ca02c",
-                   markeredgecolor="#2ca02c", markersize=7, label="Swing low"),
-            Line2D([], [], marker="v", linestyle="None", markerfacecolor="#d62728",
-                   markeredgecolor="#d62728", markersize=7, label="Swing high"),
-        ],
-        loc="upper left", fontsize=8, ncol=2, framealpha=0.9,
-    )
-    ax_price.text(
-        1.02, 1.15, f"Fib levels shown ({len(fib_lines)}): {fib_preview}",
-        transform=ax_price.transAxes, ha="right", va="top", fontsize=8,
-        bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
-    )
-
-    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
-    plt.close(fig)
-
-
 def main() -> None:
     args = parse_args()
     symbol = args.symbol.strip().upper()
     modules = parse_modules(args.modules)
+    overlays = parse_overlays(args.overlays, modules)
 
     input_path = Path(args.input).expanduser().resolve()
     outdir = Path(args.outdir).expanduser().resolve()
@@ -940,6 +1028,7 @@ def main() -> None:
     zones = derive_levels(daily)
     events = detect_structure_events(daily)
     imbalance_zones_all = detect_imbalance_zones(daily, dt_key="start_dt")
+    ma_config = build_daily_ma_config(daily, args.ma_mode)
 
     if args.range_mode == "auto":
         daily_lookback = compute_dynamic_daily_lookback(
@@ -955,7 +1044,6 @@ def main() -> None:
         intraday_lookback = len(intraday)
     else:
         intraday_lookback = min(len(intraday), max(30, intraday_lookback))
-    detail_lookback = min(len(daily), max(90, min(daily_lookback, 150)))
     imbalance_lookback = min(len(daily), max(80, min(daily_lookback, 130)))
 
     last_close = float(daily["close"].iloc[-1])
@@ -965,19 +1053,11 @@ def main() -> None:
 
     generated: dict[str, str] = {}
 
-    p_daily_sr = outdir / f"{symbol}_daily_structure_sr.png"
+    p_daily = outdir / f"{symbol}_daily_structure.png"
     plot_daily_structure(
-        daily, zones, p_daily_sr, symbol, daily_lookback,
-        include_sr=True, include_fib=False, title_suffix="S/R + MA",
+        daily, zones, p_daily, symbol, daily_lookback, ma_config,
     )
-    generated["daily_structure_sr"] = str(p_daily_sr)
-
-    p_daily_fib = outdir / f"{symbol}_daily_structure_fib.png"
-    plot_daily_structure(
-        daily, zones, p_daily_fib, symbol, daily_lookback,
-        include_sr=False, include_fib=True, title_suffix="Fib + MA",
-    )
-    generated["daily_structure_fib"] = str(p_daily_fib)
+    generated["daily_structure"] = str(p_daily)
 
     p_intraday = outdir / f"{symbol}_intraday_structure.png"
     plot_intraday_structure(intraday, zones, p_intraday, symbol, intraday_lookback)
@@ -1005,15 +1085,9 @@ def main() -> None:
         plot_imbalance_fvg(daily, imbalance_zones, p_fvg, symbol, imbalance_lookback)
         generated["imbalance_fvg"] = str(p_fvg)
 
-    if "detail" in modules:
-        p_detail = outdir / f"{symbol}_detail.png"
-        plot_detail(daily, p_detail, symbol, detail_lookback)
-        generated["detail"] = str(p_detail)
-
     range_selection = {
         "mode": args.range_mode,
         "daily_lookback_used": int(daily_lookback),
-        "detail_lookback_used": int(detail_lookback),
         "intraday_lookback_used": int(intraday_lookback),
     }
     if "imbalance" in modules:
@@ -1023,7 +1097,9 @@ def main() -> None:
         "symbol": symbol,
         "input": str(input_path),
         "modules": sorted(modules),
-        "generated_charts": generated,
+        "overlays": sorted(overlays),
+        "ma_config": ma_config,
+        "artifacts": generated,
         "range_selection": range_selection,
         "data_range": {
             "daily": {
@@ -1050,7 +1126,7 @@ def main() -> None:
             }
             for e in events
         ],
-        "liquidity_draws": draws,
+        "liquidity_map": draws,
         "trade_plan": plan,
     }
     if vpvr is not None:
@@ -1072,7 +1148,7 @@ def main() -> None:
     with evidence_path.open("w", encoding="utf-8") as f:
         json.dump(evidence, f, indent=2)
 
-    print(json.dumps({"ok": True, "charts": generated, "evidence": str(evidence_path)}, indent=2))
+    print(json.dumps({"ok": True, "artifacts": generated, "evidence": str(evidence_path)}, indent=2))
 
 
 if __name__ == "__main__":

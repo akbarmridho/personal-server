@@ -83,9 +83,105 @@ def add_ma_stack(df: pd.DataFrame) -> pd.DataFrame:
     x = df.copy()
     x["EMA21"] = x["close"].ewm(span=21, adjust=False).mean()
     x["SMA50"] = x["close"].rolling(50).mean()
-    x["SMA100"] = x["close"].rolling(100).mean()
     x["SMA200"] = x["close"].rolling(200).mean()
     return x
+
+
+def choose_adaptive_ma(
+    df: pd.DataFrame,
+    candidates: tuple[int, ...] = (8, 10, 13, 20, 34),
+    lookback: int = 120,
+) -> dict[str, Any]:
+    x = df.tail(lookback).copy()
+    prev_close = x["close"].shift(1)
+    tr = pd.concat(
+        [
+            x["high"] - x["low"],
+            (x["high"] - prev_close).abs(),
+            (x["low"] - prev_close).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+    x["adaptive_atr"] = tr.rolling(14).mean()
+    best_n = None
+    best_score = -1.0
+    best_details: dict[str, Any] = {}
+    for n in candidates:
+        col = f"SMA{n}"
+        x[col] = x["close"].rolling(n).mean()
+        y = x.dropna(subset=[col, "adaptive_atr"]).copy()
+        if len(y) < 30:
+            continue
+        ma = y[col]
+        atr = y["adaptive_atr"].replace(0, np.nan)
+        if atr.isna().all():
+            continue
+        dist = y["close"] - ma
+        prev_dist = dist.shift(1)
+        eps = atr.fillna((y["high"] - y["low"]).rolling(5).mean()).fillna(
+            (y["high"] - y["low"]).median()
+        ) * 0.35
+        near_touch = dist.abs() <= eps
+        touch_count = int(near_touch.sum())
+
+        support_bounce = (
+            near_touch
+            & (y["low"] <= (ma + eps))
+            & (y["close"] >= ma)
+            & (y["close"].shift(-1) > y["close"])
+        )
+        resistance_reject = (
+            near_touch
+            & (y["high"] >= (ma - eps))
+            & (y["close"] <= ma)
+            & (y["close"].shift(-1) < y["close"])
+        )
+        reclaim_up = (prev_dist < -eps.shift(1)) & (dist > eps)
+        reject_down = (prev_dist > eps.shift(1)) & (dist < -eps)
+        cross = (
+            prev_dist.notna()
+            & (((dist > eps) & (prev_dist < -eps.shift(1))) | ((dist < -eps) & (prev_dist > eps.shift(1))))
+        )
+        cross_count = int(cross.sum())
+        whipsaw = cross & (
+            cross.shift(1, fill_value=False) | cross.shift(2, fill_value=False)
+        )
+        whipsaw_count = int(whipsaw.sum())
+
+        normalized_distance = (dist.abs() / atr).replace([np.inf, -np.inf], np.nan)
+        distance_penalty = float(normalized_distance.fillna(3.0).clip(upper=3.0).mean())
+
+        support_count = int(support_bounce.sum())
+        resistance_count = int(resistance_reject.sum())
+        reclaim_count = int(reclaim_up.sum())
+        reject_count = int(reject_down.sum())
+
+        score = (
+            support_count * 3.0
+            + resistance_count * 2.4
+            + reclaim_count * 2.8
+            + reject_count * 2.2
+            + touch_count * 0.45
+            - cross_count * 0.9
+            - whipsaw_count * 2.2
+            - distance_penalty * 6.0
+            - (8.0 / float(n))
+        )
+        if score > best_score:
+            best_score = score
+            best_n = n
+            best_details = {
+                "touch_count": touch_count,
+                "support_bounce_count": support_count,
+                "resistance_reject_count": resistance_count,
+                "reclaim_count": reclaim_count,
+                "reject_count": reject_count,
+                "cross_count": cross_count,
+                "whipsaw_count": whipsaw_count,
+                "avg_normalized_distance": round(distance_penalty, 4),
+                "model": "respect_score_v2",
+            }
+    return {"adaptive_period": best_n, "score": best_score, "details": best_details}
 
 
 def add_atr14(df: pd.DataFrame) -> pd.DataFrame:
