@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document describes the current human-readable method behind the `technical-analysis` skill.
+This document describes the current human-readable method behind the live `technical-analysis` skill.
 
-It mirrors the live structure-first workflow used by the skill, without restating the full runtime contract.
+It is a current-state workflow reference, not a planning file.
 
 ## Core Method
 
@@ -20,7 +20,16 @@ The workflow is:
 8. choose one action
 9. define monitoring conditions
 
-If any decision-critical step is unclear, the correct outcome is `WAIT`.
+If any decision-critical step is unclear, the correct result is `WAIT`.
+
+## Inputs
+
+Use:
+
+- `daily[]` for thesis direction, setup context, and main risk map
+- raw `intraday_1m[]` as the intraday source
+- derived `15m` for tactical timing
+- `corp_actions[]` when available
 
 ## Phase Guide
 
@@ -32,13 +41,7 @@ Use one of:
 - `UPDATE`
 - `POSTMORTEM`
 
-Questions:
-
-- am I building a fresh thesis?
-- am I refreshing an existing thesis?
-- am I reviewing a failed or exited thesis?
-
-For `UPDATE`, the analyst should still record:
+For `UPDATE`, still record:
 
 - `thesis_status`
 - `review_reason`
@@ -76,7 +79,7 @@ Mark only the meaningful decision zones:
   - `SMA200`
 - time opens and round levels when relevant
 
-The analyst should answer:
+Answer:
 
 - where would a reaction matter?
 - where would a break matter?
@@ -93,7 +96,7 @@ Typical location reads:
 - accepted below support
 - mid-range noise
 
-If price is in mid-range noise and no meaningful zone is active, the workflow should lean to `WAIT`.
+If price is in mid-range noise and no meaningful zone is active, lean to `WAIT`.
 
 ### 5. Choose one setup family
 
@@ -129,8 +132,6 @@ Examples:
 The `15m` chart enters here for tactical timing.
 It refines the daily thesis but does not replace it.
 
-If the symbol is too thin intraday, the analyst should downgrade the read to daily-only timing or stay in `WAIT`.
-
 ### 7. Confirm participation and acceptance
 
 Relevant checks:
@@ -139,8 +140,15 @@ Relevant checks:
 - price-volume behavior
 - value-area acceptance or rejection
 - latest structure event relevance
+- intraday timing authority
+- raw intraday participation quality
 
 This is a confirmation or veto layer, not the origin of the trade idea.
+
+If raw intraday quality is weak:
+
+- downgrade to daily-only timing
+- or stay in `WAIT`
 
 ### 8. Use adaptive MA only as refinement
 
@@ -160,14 +168,14 @@ Baseline context remains:
 
 ### 9. Use liquidity logic for path, not narrative
 
-The analyst should ask:
+Ask:
 
 - what is the current draw?
 - what is the opposing draw?
 - was a recent sweep accepted or rejected?
 - is there a clear path to the next zone?
 
-This helps map the likely path, but it should not override invalidation or risk discipline.
+This helps map likely path, but it should not override invalidation or risk discipline.
 
 ### 10. Build the trade from invalidation backward
 
@@ -222,6 +230,12 @@ Daily owns:
 - local acceptance or rejection
 - tactical timing
 
+Raw `1m` supports:
+
+- intraday liquidity gating
+- participation quality
+- future profile and replay improvements
+
 Authority rule:
 
 - daily owns thesis direction
@@ -238,20 +252,31 @@ Use it for:
 - slower context
 - spring and reclaim interpretation
 - `S5`
+- recent phase sequence context
 
-Do not let it replace structure, location, trigger, or risk.
+Do not let Wyckoff replace the structure-first workflow.
 
-Historical Wyckoff state belongs to its own module, not to this human workflow note.
+## VPVR Role
 
-## Quick Decision Tree
+VPVR remains supportive, not primary.
 
-1. What is the job: `INITIAL`, `UPDATE`, or `POSTMORTEM`?
-2. What is the daily regime?
-3. Is price at a meaningful decision zone?
-4. Which single setup family fits?
-5. Has the setup actually triggered?
-6. Does participation confirm it?
-7. Is invalidation clear?
-8. Is there a clear path to the next zone?
-9. Is RR acceptable?
-10. If not, return `WAIT`.
+Use it for:
+
+- better location context
+- acceptance versus rejection around value
+- confluence around active decision zones
+
+Do not let VPVR override structure, invalidation, or risk.
+
+## Practical Stop Rules
+
+Return `WAIT` when:
+
+- daily state is unclear
+- price is in mid-range noise
+- no setup family fits cleanly
+- trigger is absent
+- intraday timing authority is too weak
+- invalidation is unclear
+- next-zone path is unclear
+- reward-to-risk is insufficient

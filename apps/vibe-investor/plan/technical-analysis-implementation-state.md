@@ -4,19 +4,18 @@
 
 - Date: `2026-03-15`
 - Scope: `apps/vibe-investor/.opencode-config/skills/technical-analysis`
-- Status: core contract and first script simplification pass are done; remaining work is backtest realism and separate-state expansion
+- Status: live TA pipeline is in place; remaining work is backtest realism and replay implementation
 
 ## Remaining Work
 
-### 1. Define the simple baseline rule specs
+### 1. Lock baseline execution semantics
 
 Still needed:
 
-- trend plus pullback
-- breakout plus volume
-- range-reclaim
-
-These need concrete deterministic entry, invalidation, exit, and RR rules.
+- exact entry timing
+- exact stop and target execution assumptions
+- stale-expiry behavior
+- whether each baseline is daily-only or may use `15m` timing
 
 ### 2. Define corporate-action-aware backtest behavior
 
@@ -35,40 +34,13 @@ Still needed:
 - baseline comparison harness
 - doctrine audit metrics
 
-## Script-Level Scope
+## Constraints
 
-The next script work should stay focused on:
-
-- corporate-action-aware replay behavior
-- backtest and comparison tooling
-
-Data-quality note:
-
-- the current scripts are most constrained by coarse inputs in VPVR/value-area reconstruction and intraday trigger quality
-- the next most useful data upgrade is `1m` OHLCV, followed by session or auction metadata, then trade-count or turnover-style activity data
-- daily structure, baseline MA posture, adaptive MA, and the coarse Wyckoff cycle are less sensitive to finer granularity
-
-Do not expand `build_ta_context.py` with broad new doctrine layers.
-
-## Skill-Level Scope
-
-Future skill/doc edits should preserve the narrowed runtime:
-
-- structure and trend
-- support/resistance and location
-- daily thesis plus `15m` timing
-- lean MA regime
-- trigger, confirmation, invalidation, and risk
-
-Backtest-specific mechanics should stay in the replay and evaluation layer, not get pushed back into prompt bloat.
+- do not re-expand the live TA doctrine stack while backtest prerequisites remain open
+- keep replay and execution realism in the backtest layer, not in prompt bloat
+- treat raw `1m` plus derived `15m` as the current intraday contract
+- treat corporate-action handling as mandatory before long-window evaluation
 
 ## Active Next Step
 
 Lock the baseline rule semantics and corporate-action replay behavior before backtest work proceeds.
-
-## Guardrails
-
-- keep the core stack structure-first and risk-first
-- keep `ta_context` and chart generation separate
-- keep Wyckoff narrow in decision authority even though its history is now integrated into the default TA pipeline
-- do not re-expand the core skill with removed doctrine layers
