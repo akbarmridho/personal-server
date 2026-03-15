@@ -38,7 +38,7 @@ However, this technical-analysis layer should also be strong enough to be backte
 Current design uses only OHLCV-style market data:
 
 - `daily[]`
-- `60m intraday[]`
+- derived `15m intraday[]` from raw `1m`
 - optional `corp_actions[]` in runtime
 
 For backtesting and long-window evaluation, `corp_actions[]` should be treated as required.
@@ -75,7 +75,7 @@ The AI is not intended to freestyle unsupported chart narratives.
 The approach is top-down and multi-timeframe:
 
 - `daily` = thesis authority
-- `60m` = trigger, confirmation, and tactical timing authority
+- `15m` = trigger, confirmation, and tactical timing authority
 
 The lower timeframe is not supposed to run as a separate thesis engine.
 It exists to refine the daily thesis.
@@ -278,7 +278,7 @@ The methodology already has several systematic constraints:
 - explicit `WAIT` default
 - explicit invalidation requirement
 - explicit next-zone path requirement
-- daily-thesis and `60m`-timing separation
+- daily-thesis and `15m`-timing separation
 
 ## Where The Approach May Still Need Validation
 

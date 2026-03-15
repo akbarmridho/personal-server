@@ -458,17 +458,24 @@ def plot_intraday_structure(
         mpf.make_addplot(x["EMA20"], color="#5e35b1", width=1.7),
         mpf.make_addplot(x["VWAP"], color="#ff9800", width=1.9),
     ]
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        hlines=dict(
-            hlines=hlines,
-            colors=["#1f77b4"] * len(hlines),
-            linewidths=[1.5] * len(hlines),
-        ) if hlines else None,
-        title=f"{symbol} Intraday Structure",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
+    plot_kwargs: dict[str, Any] = {
+        "type": "candle",
+        "volume": True,
+        "style": _base_style(),
+        "addplot": apds,
+        "title": f"{symbol} Intraday Structure",
+        "figratio": DEFAULT_FIGRATIO,
+        "figscale": DEFAULT_FIGSCALE,
+        "update_width_config": _width_config(),
+        "returnfig": True,
+    }
+    if hlines:
+        plot_kwargs["hlines"] = {
+            "hlines": hlines,
+            "colors": ["#1f77b4"] * len(hlines),
+            "linewidths": [1.5] * len(hlines),
+        }
+    fig, axes = mpf.plot(to_mpf(x), **plot_kwargs)
     ax = axes[0]
     latest = x.iloc[-1]
     latest_vwap = float(latest["VWAP"]) if pd.notna(latest["VWAP"]) else float(latest["close"])
@@ -559,17 +566,24 @@ def plot_structure_events(
                 down_choch, type="scatter", marker="v", markersize=115, color="#fb8c00",
             )
         )
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(), addplot=apds,
-        hlines=dict(
-            hlines=draws_list,
-            colors=["#e91e63"] * len(draws_list),
-            linewidths=[1.8] * len(draws_list),
-        ) if draws_list else None,
-        title=f"{symbol} Structure Events & Liquidity",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
+    plot_kwargs: dict[str, Any] = {
+        "type": "candle",
+        "volume": True,
+        "style": _base_style(),
+        "addplot": apds,
+        "title": f"{symbol} Structure Events & Liquidity",
+        "figratio": DEFAULT_FIGRATIO,
+        "figscale": DEFAULT_FIGSCALE,
+        "update_width_config": _width_config(),
+        "returnfig": True,
+    }
+    if draws_list:
+        plot_kwargs["hlines"] = {
+            "hlines": draws_list,
+            "colors": ["#e91e63"] * len(draws_list),
+            "linewidths": [1.8] * len(draws_list),
+        }
+    fig, axes = mpf.plot(to_mpf(x), **plot_kwargs)
     ax = axes[0]
     atr_unit = float((x["high"] - x["low"]).tail(min(50, n)).median())
     if not np.isfinite(atr_unit) or atr_unit <= 0:
@@ -821,7 +835,7 @@ def main() -> None:
     outdir = Path(args.outdir).expanduser().resolve()
     outdir.mkdir(parents=True, exist_ok=True)
 
-    daily, intraday, corp = load_ohlcv(input_path)
+    daily, intraday_1m, intraday, corp = load_ohlcv(input_path)
     daily = add_ma_stack(daily)
     daily = add_swings(daily)
     daily = add_volume_features(daily)
@@ -894,7 +908,12 @@ def main() -> None:
                 "end": str(daily["datetime"].iloc[-1]),
                 "rows": int(len(daily)),
             },
-            "intraday": {
+            "intraday_1m": {
+                "start": str(intraday_1m["datetime"].iloc[0]),
+                "end": str(intraday_1m["datetime"].iloc[-1]),
+                "rows": int(len(intraday_1m)),
+            },
+            "intraday_15m": {
                 "start": str(intraday["datetime"].iloc[0]),
                 "end": str(intraday["datetime"].iloc[-1]),
                 "rows": int(len(intraday)),

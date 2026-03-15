@@ -16,8 +16,17 @@ import pandas as pd
 # Constants
 # ---------------------------------------------------------------------------
 
-REQUIRED_ARRAYS = ("daily", "intraday")
+REQUIRED_ARRAYS = ("daily",)
 REQUIRED_PRICE_COLS = ("datetime", "open", "high", "low", "close", "volume")
+TA_INTRADAY_MINUTES = 15
+OPTIONAL_NUMERIC_COLS = (
+    "timestamp",
+    "value",
+    "frequency",
+    "foreign_buy",
+    "foreign_sell",
+    "foreign_flow",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -25,13 +34,97 @@ REQUIRED_PRICE_COLS = ("datetime", "open", "high", "low", "close", "volume")
 # ---------------------------------------------------------------------------
 
 
-def load_ohlcv(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def resample_intraday(
+    df_intraday: pd.DataFrame, minutes: int = 60
+) -> pd.DataFrame:
+    x = df_intraday.copy()
+    if x.empty:
+        return x
+
+    x = x.sort_values("datetime").reset_index(drop=True)
+    diffs = x["datetime"].diff().dt.total_seconds().dropna()
+    positive_diffs = diffs[diffs > 0]
+    typical_gap = (
+        float(positive_diffs.min()) if not positive_diffs.empty else float(minutes * 60)
+    )
+    if typical_gap >= minutes * 60 * 0.8:
+        return x.reset_index(drop=True)
+
+    gap_seconds = x["datetime"].diff().dt.total_seconds()
+    new_session = (
+        gap_seconds.isna()
+        | (x["datetime"].dt.date != x["datetime"].shift(1).dt.date)
+        | (gap_seconds > 60)
+    )
+    x["_session_id"] = new_session.cumsum()
+
+    output_frames: list[pd.DataFrame] = []
+    resolution_seconds = minutes * 60
+
+    aggregate_spec: dict[str, tuple[str, str]] = {
+        "open": ("open", "first"),
+        "high": ("high", "max"),
+        "low": ("low", "min"),
+        "close": ("close", "last"),
+        "volume": ("volume", "sum"),
+    }
+    for col in ("value", "frequency", "foreign_buy", "foreign_sell", "foreign_flow"):
+        if col in x.columns:
+            aggregate_spec[col] = (col, "sum")
+    if "is_partial" in x.columns:
+        aggregate_spec["is_partial"] = ("is_partial", "last")
+
+    for _, session_df in x.groupby("_session_id", sort=False):
+        session_df = session_df.sort_values("datetime").reset_index(drop=True)
+        if session_df.empty:
+            continue
+
+        anchor_dt = session_df["datetime"].iloc[0]
+        anchor_ts = (
+            float(session_df["timestamp"].iloc[0])
+            if "timestamp" in session_df.columns and pd.notna(session_df["timestamp"].iloc[0])
+            else anchor_dt.timestamp()
+        )
+        bucket_index = (
+            (session_df["datetime"] - anchor_dt).dt.total_seconds() // resolution_seconds
+        ).astype(int)
+        session_df = session_df.assign(_bucket_index=bucket_index)
+        agg = (
+            session_df.groupby("_bucket_index", sort=True)
+            .agg(**aggregate_spec)
+            .reset_index()
+        )
+        agg["datetime"] = anchor_dt + pd.to_timedelta(
+            agg["_bucket_index"] * minutes, unit="m"
+        )
+        agg["timestamp"] = (anchor_ts + agg["_bucket_index"] * resolution_seconds).astype(int)
+        agg["date"] = agg["datetime"].dt.strftime("%Y-%m-%d")
+        agg["interval"] = f"{minutes}m"
+        output_frames.append(agg.drop(columns=["_bucket_index"]))
+
+    if not output_frames:
+        return x.drop(columns=["_session_id"]).reset_index(drop=True)
+
+    out = pd.concat(output_frames, ignore_index=True)
+    return out.sort_values("datetime").reset_index(drop=True)
+
+
+def load_ohlcv(
+    path: Path,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     with path.open("r", encoding="utf-8") as f:
         raw = json.load(f)
 
     for key in REQUIRED_ARRAYS:
         if key not in raw or not isinstance(raw[key], list) or len(raw[key]) == 0:
             raise ValueError(f"Missing required dependency: {key}")
+
+    if "intraday_1m" in raw:
+        intraday_key = "intraday_1m"
+    elif "intraday" in raw:
+        intraday_key = "intraday"
+    else:
+        raise ValueError("Missing required dependency: intraday_1m")
 
     def _prep(df: pd.DataFrame, name: str) -> pd.DataFrame:
         for col in REQUIRED_PRICE_COLS:
@@ -45,7 +138,9 @@ def load_ohlcv(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
             .drop_duplicates(subset=["datetime"])
             .reset_index(drop=True)
         )
-        for col in ("open", "high", "low", "close", "volume"):
+        for col in ("open", "high", "low", "close", "volume", *OPTIONAL_NUMERIC_COLS):
+            if col not in x.columns:
+                continue
             x[col] = pd.to_numeric(x[col], errors="coerce")
         x = x.dropna(subset=["open", "high", "low", "close", "volume"])
         if x.empty:
@@ -53,7 +148,8 @@ def load_ohlcv(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         return x
 
     daily = _prep(pd.DataFrame(raw["daily"]), "daily")
-    intraday = _prep(pd.DataFrame(raw["intraday"]), "intraday")
+    intraday_1m = _prep(pd.DataFrame(raw[intraday_key]), intraday_key)
+    intraday_ta = resample_intraday(intraday_1m, minutes=TA_INTRADAY_MINUTES)
 
     raw_corp = raw.get("corp_actions", [])
     if raw_corp is None:
@@ -71,7 +167,7 @@ def load_ohlcv(path: Path) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     else:
         corp["datetime"] = pd.NaT
 
-    return daily, intraday, corp
+    return daily, intraday_1m, intraday_ta, corp
 
 
 # ---------------------------------------------------------------------------
@@ -248,6 +344,156 @@ def add_intraday_context(df_intraday: pd.DataFrame) -> pd.DataFrame:
     x["cum_vol"] = x.groupby("session")["volume"].cumsum()
     x["VWAP"] = x["cum_pv"] / x["cum_vol"].replace(0, np.nan)
     return x
+
+
+def summarize_intraday_liquidity(
+    df_intraday_1m: pd.DataFrame,
+) -> dict[str, Any]:
+    x = df_intraday_1m.copy().sort_values("datetime").reset_index(drop=True)
+    if x.empty:
+        return {
+            "liquidity_quality_state": "weak",
+            "timing_authority": "wait_only",
+            "summary": "no_intraday_rows",
+        }
+
+    sessions = []
+    for session_date, session_df in x.groupby(x["datetime"].dt.date, sort=True):
+        session_df = session_df.sort_values("datetime")
+        first_dt = session_df["datetime"].iloc[0]
+        last_dt = session_df["datetime"].iloc[-1]
+        span_minutes = max(
+            int((last_dt - first_dt).total_seconds() // 60) + 1,
+            1,
+        )
+        row_count = int(len(session_df))
+        coverage_ratio = float(row_count / span_minutes)
+        value_sum = float(session_df["value"].sum()) if "value" in session_df.columns else 0.0
+        frequency_sum = (
+            float(session_df["frequency"].sum()) if "frequency" in session_df.columns else 0.0
+        )
+        sessions.append(
+            {
+                "date": str(session_date),
+                "rows": row_count,
+                "coverage_ratio": coverage_ratio,
+                "value_sum": value_sum,
+                "frequency_sum": frequency_sum,
+            }
+        )
+
+    if not sessions:
+        return {
+            "liquidity_quality_state": "weak",
+            "timing_authority": "wait_only",
+            "summary": "no_intraday_sessions",
+        }
+
+    median_rows = int(np.median([s["rows"] for s in sessions]))
+    median_coverage = float(np.median([s["coverage_ratio"] for s in sessions]))
+    median_frequency = float(np.median([s["frequency_sum"] for s in sessions]))
+
+    if median_rows >= 180 and median_coverage >= 0.55 and median_frequency >= 180:
+        quality = "strong"
+        authority = "full_15m"
+    elif median_rows >= 90 and median_coverage >= 0.30:
+        quality = "usable"
+        authority = "daily_only"
+    else:
+        quality = "weak"
+        authority = "wait_only"
+
+    return {
+        "liquidity_quality_state": quality,
+        "timing_authority": authority,
+        "summary": (
+            f"sessions_{len(sessions)}"
+            f"_median_rows_{median_rows}"
+            f"_coverage_{median_coverage:.2f}"
+            f"_frequency_{int(median_frequency)}"
+        ),
+    }
+
+
+def summarize_intraday_participation(
+    df_intraday_1m: pd.DataFrame,
+) -> dict[str, Any]:
+    x = df_intraday_1m.copy().sort_values("datetime").reset_index(drop=True)
+    if x.empty:
+        return {
+            "raw_participation_quality": "weak",
+            "summary": "no_intraday_rows",
+        }
+
+    intraday_tf = resample_intraday(x, minutes=TA_INTRADAY_MINUTES)
+    if intraday_tf.empty:
+        return {
+            "raw_participation_quality": "weak",
+            "summary": "no_intraday_windows",
+        }
+
+    recent_bar = intraday_tf.iloc[-1]
+    recent_ts = pd.Timestamp(recent_bar["datetime"])
+    recent_raw = x[
+        (x["datetime"] >= (recent_ts - pd.Timedelta(minutes=TA_INTRADAY_MINUTES - 1)))
+        & (x["datetime"] <= recent_ts + pd.Timedelta(minutes=TA_INTRADAY_MINUTES - 1))
+    ]
+    minute_density = float(
+        min(len(recent_raw), TA_INTRADAY_MINUTES) / float(TA_INTRADAY_MINUTES)
+    )
+
+    # Build baseline from same time-of-day bars across all prior sessions.
+    recent_time = recent_ts.time()
+    half_window = pd.Timedelta(minutes=TA_INTRADAY_MINUTES)
+    prior_bars = intraday_tf.iloc[:-1].copy()
+    if not prior_bars.empty:
+        bar_times = prior_bars["datetime"].dt.time
+        ref_seconds = recent_time.hour * 3600 + recent_time.minute * 60
+        bar_seconds = pd.array(
+            [t.hour * 3600 + t.minute * 60 for t in bar_times], dtype="int64"
+        )
+        time_diff = (bar_seconds - ref_seconds).abs()
+        baseline = prior_bars[time_diff <= half_window.total_seconds()]
+    else:
+        baseline = prior_bars
+
+    if baseline.empty:
+        quality = "adequate" if minute_density >= 0.35 else "weak"
+        return {
+            "raw_participation_quality": quality,
+            "summary": f"baseline_insufficient_density_{minute_density:.2f}",
+        }
+
+    value_base = float(baseline["value"].replace(0, np.nan).median()) if "value" in baseline.columns else np.nan
+    freq_base = (
+        float(baseline["frequency"].replace(0, np.nan).median())
+        if "frequency" in baseline.columns
+        else np.nan
+    )
+    volume_base = float(baseline["volume"].replace(0, np.nan).median())
+
+    value_ratio = float(recent_bar.get("value", 0.0) / value_base) if np.isfinite(value_base) and value_base > 0 else 1.0
+    freq_ratio = float(recent_bar.get("frequency", 0.0) / freq_base) if np.isfinite(freq_base) and freq_base > 0 else 1.0
+    vol_ratio = float(recent_bar["volume"] / volume_base) if np.isfinite(volume_base) and volume_base > 0 else 1.0
+
+    score = max(value_ratio, freq_ratio, vol_ratio)
+    if minute_density < 0.20 or score < 0.70:
+        quality = "weak"
+    elif minute_density >= 0.55 and score >= 1.15:
+        quality = "strong"
+    else:
+        quality = "adequate"
+
+    return {
+        "raw_participation_quality": quality,
+        "summary": (
+            f"density_{minute_density:.2f}"
+            f"_value_ratio_{value_ratio:.2f}"
+            f"_freq_ratio_{freq_ratio:.2f}"
+            f"_vol_ratio_{vol_ratio:.2f}"
+            f"_baseline_bars_{len(baseline)}"
+        ),
+    }
 
 
 # ---------------------------------------------------------------------------

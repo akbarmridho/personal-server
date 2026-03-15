@@ -29,6 +29,8 @@ from ta_common import (
     liquidity_path_after_event,
     pick_draw_targets,
     profile_from_range,
+    summarize_intraday_liquidity,
+    summarize_intraday_participation,
     structure_status,
     sweep_outcome,
     value_area_from_hist,
@@ -544,9 +546,11 @@ def infer_location_state(
 
 
 def build_intraday_timing(
-    intraday: pd.DataFrame, daily_bias: str
-) -> dict[str, str]:
-    x = add_intraday_context(intraday)
+    intraday_15m: pd.DataFrame, intraday_1m: pd.DataFrame, daily_bias: str
+) -> dict[str, Any]:
+    x = add_intraday_context(intraday_15m)
+    liquidity = summarize_intraday_liquidity(intraday_1m)
+    participation = summarize_intraday_participation(intraday_1m)
     last = x.iloc[-1]
     prev = x.iloc[-2] if len(x) > 1 else last
     close_price = float(last["close"])
@@ -592,11 +596,17 @@ def build_intraday_timing(
     else:
         follow_through_state = "unclear"
 
-    timing_window_state = (
-        "active"
-        if intraday_structure_state == "aligned" and follow_through_state in {"strong", "adequate"}
-        else "developing"
-    )
+    if liquidity["timing_authority"] == "wait_only":
+        timing_window_state = "unclear"
+    elif liquidity["timing_authority"] == "daily_only":
+        timing_window_state = "developing"
+    else:
+        timing_window_state = (
+            "active"
+            if intraday_structure_state == "aligned"
+            and follow_through_state in {"strong", "adequate"}
+            else "developing"
+        )
 
     return {
         "timing_bias": timing_bias,
@@ -604,6 +614,12 @@ def build_intraday_timing(
         "acceptance_state": acceptance_state,
         "follow_through_state": follow_through_state,
         "timing_window_state": timing_window_state,
+        "liquidity_quality_state": str(liquidity["liquidity_quality_state"]),
+        "timing_authority": str(liquidity["timing_authority"]),
+        "raw_participation_quality": str(participation["raw_participation_quality"]),
+        "intraday_quality_summary": (
+            f"{liquidity['summary']}|{participation['summary']}"
+        ),
     }
 
 
@@ -648,6 +664,7 @@ def build_trigger_confirmation(
     regime: str,
     value_acceptance_state: str,
     displacement: str | None,
+    intraday_timing: dict[str, Any],
 ) -> dict[str, Any]:
     trigger_state = "not_triggered"
     trigger_type = "none"
@@ -706,12 +723,29 @@ def build_trigger_confirmation(
             trigger_state = "watchlist_only"
             confirmation_state = "mixed"
 
+    timing_authority = str(intraday_timing.get("timing_authority", "full_15m"))
+    raw_participation = str(
+        intraday_timing.get("raw_participation_quality", "adequate")
+    )
+    if participation_quality != "contradictory":
+        if raw_participation == "weak":
+            participation_quality = "weak"
+        elif raw_participation == "adequate" and participation_quality == "strong":
+            participation_quality = "adequate"
+
+    if timing_authority == "wait_only" and trigger_state == "triggered":
+        trigger_state = "watchlist_only"
+        confirmation_state = "mixed"
+        if participation_quality != "contradictory":
+            participation_quality = "weak"
+
     out: dict[str, Any] = {
         "trigger_state": trigger_state,
         "trigger_type": trigger_type,
         "confirmation_state": confirmation_state,
         "participation_quality": participation_quality,
         "value_acceptance_state": value_acceptance_state,
+        "timing_authority": timing_authority,
     }
     if trigger_level is not None:
         out["trigger_level"] = float(trigger_level)
@@ -1152,7 +1186,7 @@ def main() -> None:
     outdir = Path(args.outdir).expanduser().resolve()
     outdir.mkdir(parents=True, exist_ok=True)
 
-    daily, intraday, corp = load_ohlcv(input_path)
+    daily, intraday_1m, intraday, corp = load_ohlcv(input_path)
     daily = add_ma_stack(daily)
     daily = add_atr14(daily)
     daily = add_swings(daily, n=args.swing_n)
@@ -1244,7 +1278,9 @@ def main() -> None:
     location_state = infer_location_state(
         last_close, regime["trend_bias"], regime["regime"], supports, resistances
     )
-    intraday_timing = build_intraday_timing(intraday, regime["trend_bias"])
+    intraday_timing = build_intraday_timing(
+        intraday, intraday_1m, regime["trend_bias"]
+    )
     risk_map = build_risk_map(
         setup_id=setup_id,
         position_state=position_state,
@@ -1322,6 +1358,7 @@ def main() -> None:
         regime=regime["regime"],
         value_acceptance_state=value_area["acceptance_state"],
         displacement=bo_displacement,
+        intraday_timing=intraday_timing,
     )
 
     prior_thesis = load_prior_thesis(args.prior_thesis_json)
@@ -1347,7 +1384,8 @@ def main() -> None:
             "intent": build_intent(purpose_mode, position_state),
             "position_state": position_state,
             "daily_timeframe": "1d",
-            "intraday_timeframe": "60m",
+            "intraday_timeframe": "15m",
+            "intraday_source_timeframe": "1m",
             "min_rr_required": float(args.min_rr_required),
         },
         "daily_thesis": {

@@ -145,7 +145,7 @@ Workflow ownership:
 
 Tools are available via MCP (stock data, knowledge base, social, web), custom tools (fetch-ohlcv, deep-doc-extract, portfolio), and filesystem operations. Use tool schemas for parameter names and types.
 
-**`fetch-ohlcv`** writes a UTF-8 `.json` file containing a unified JSON object with `daily` (3yr), `intraday` (7d 60m bars), and optional `corp_actions`. Treat as JSON only. Prices are split-style corporate-action adjusted, not dividend-adjusted.
+**`fetch-ohlcv`** writes a UTF-8 `.json` file containing a unified JSON object with `daily` (3yr), `intraday_1m` (7d raw 1-minute bars), and optional `corp_actions`. Treat as JSON only. Prices are split-style corporate-action adjusted, not dividend-adjusted. The technical-analysis scripts derive `15m` internally when needed.
 
 **`deep-doc-extract`** — case-by-case extraction for large PDFs/images (laporan keuangan, public expose, keterbukaan informasi, long filings). Pass exactly two params: `goal` and `sources` (array of URLs/file paths). Uses a cost-efficient multimodal model, so be specific with the goal.
 

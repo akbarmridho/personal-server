@@ -97,7 +97,7 @@ Needs:
 
 - a setup area is not enough by itself
 - action requires a trigger tied to the selected setup family
-- `60m` owns trigger quality inside the daily thesis
+- `15m` owns trigger quality inside the daily thesis
 - absent trigger means watchlist or `WAIT`
 
 Common trigger types:

@@ -8,20 +8,7 @@
 
 ## Remaining Work
 
-### 1. Add `60m` liquidity gating
-
-Still needed:
-
-- minimum intraday data-quality threshold
-- fallback behavior when intraday timing is too weak
-- consistent use in live TA and backtest replay
-- action downgrade path:
-  - daily-only timing
-  - or `WAIT` when tradability is too weak
-
-This is the next implementation step and should be treated as a prerequisite for credible backtesting.
-
-### 2. Define the simple baseline rule specs
+### 1. Define the simple baseline rule specs
 
 Still needed:
 
@@ -31,7 +18,7 @@ Still needed:
 
 These need concrete deterministic entry, invalidation, exit, and RR rules.
 
-### 3. Define corporate-action-aware backtest behavior
+### 2. Define corporate-action-aware backtest behavior
 
 Still needed:
 
@@ -39,7 +26,7 @@ Still needed:
 - replay behavior around splits and ex-dividend windows
 - return and invalidation treatment across event windows
 
-### 4. Start the backtest engine
+### 3. Start the backtest engine
 
 Still needed:
 
@@ -52,9 +39,14 @@ Still needed:
 
 The next script work should stay focused on:
 
-- `60m` liquidity gating
 - corporate-action-aware replay behavior
 - backtest and comparison tooling
+
+Data-quality note:
+
+- the current scripts are most constrained by coarse inputs in VPVR/value-area reconstruction and intraday trigger quality
+- the next most useful data upgrade is `1m` OHLCV, followed by session or auction metadata, then trade-count or turnover-style activity data
+- daily structure, baseline MA posture, adaptive MA, and the coarse Wyckoff cycle are less sensitive to finer granularity
 
 Do not expand `build_ta_context.py` with broad new doctrine layers.
 
@@ -64,7 +56,7 @@ Future skill/doc edits should preserve the narrowed runtime:
 
 - structure and trend
 - support/resistance and location
-- daily thesis plus `60m` timing
+- daily thesis plus `15m` timing
 - lean MA regime
 - trigger, confirmation, invalidation, and risk
 
@@ -72,7 +64,7 @@ Backtest-specific mechanics should stay in the replay and evaluation layer, not 
 
 ## Active Next Step
 
-Implement `60m` liquidity gating in the TA scripts so intraday timing can be downgraded to daily-only or `WAIT` before backtest work proceeds.
+Lock the baseline rule semantics and corporate-action replay behavior before backtest work proceeds.
 
 ## Guardrails
 

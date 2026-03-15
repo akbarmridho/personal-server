@@ -21,7 +21,8 @@ Time horizon:
 Use:
 
 - `daily[]` for thesis direction and main risk map
-- `intraday[]` `60m` for trigger, confirmation, and tactical timing
+- raw `intraday_1m[]` as the intraday source
+- internally derived `15m` bars for trigger, confirmation, and tactical timing
 - optional `corp_actions[]` when available
 
 ## Runtime Modes
@@ -75,7 +76,7 @@ Use `fetch-ohlcv` as the only chart-data source.
 Required arrays:
 
 - `daily[]`
-- `intraday[]`
+- `intraday_1m[]`
 
 Optional array:
 
@@ -95,6 +96,12 @@ Expected price fields:
 
 If any required array is missing or empty, stop analysis and report dependency failure.
 If `fetch-ohlcv` fails, stop analysis.
+
+Intraday handling rule:
+
+- treat `intraday_1m[]` as the raw source contract
+- derive `15m` internally inside the TA scripts
+- do not treat the fetch layer as the owner of strategy timeframe aggregation
 
 Price-adjustment contract:
 
@@ -184,7 +191,7 @@ Do not hardcode chart names in the final answer if the manifest already provides
 ## Core Runtime Rules
 
 - treat `daily` as thesis authority
-- treat `60m` as timing authority
+- treat `15m` as timing authority
 - use one setup family or `NO_VALID_SETUP`
 - use one final action: `BUY`, `HOLD`, `WAIT`, or `EXIT`
 - default to `WAIT` under unresolved contradiction

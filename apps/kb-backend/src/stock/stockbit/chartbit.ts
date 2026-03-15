@@ -9,7 +9,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const JAKARTA_TIMEZONE = "Asia/Jakarta";
-const INTRADAY_RESOLUTION_MINUTES = 60;
 const INTRADAY_WINDOW_DAYS = 7;
 const DAILY_WINDOW_YEARS = 3;
 const CORP_ACTION_FUTURE_END_DATE = "2037-01-01";
@@ -161,7 +160,7 @@ export interface UnifiedIntradayCandle {
   timestamp: number;
   datetime: string;
   date: string;
-  interval: "60m";
+  interval: "1m";
   open: number;
   high: number;
   low: number;
@@ -185,7 +184,7 @@ export interface UnifiedCorpActionEvent {
 
 export interface UnifiedChartbitRawData {
   daily: UnifiedChartCandle[];
-  intraday: UnifiedIntradayCandle[];
+  intraday_1m: UnifiedIntradayCandle[];
   corp_actions: UnifiedCorpActionEvent[];
 }
 
@@ -291,7 +290,7 @@ function normalizeIntradayRows(
         timestamp,
         datetime: dateTime.format("YYYY-MM-DD HH:mm:ss"),
         date: dateTime.format("YYYY-MM-DD"),
-        interval: "60m" as const,
+        interval: "1m" as const,
         open: toNumber(row.open),
         high: toNumber(row.high),
         low: toNumber(row.low),
@@ -306,101 +305,6 @@ function normalizeIntradayRows(
       };
     })
     .sort((a, b) => a.timestamp - b.timestamp);
-}
-
-function resampleIntradayTo60m(
-  rows: UnifiedIntradayCandle[],
-): UnifiedIntradayCandle[] {
-  const resolutionSeconds = INTRADAY_RESOLUTION_MINUTES * 60;
-  const nowUnix = dayjs().tz(JAKARTA_TIMEZONE).unix();
-  const sortedRows = [...rows].sort((a, b) => a.timestamp - b.timestamp);
-  const sessions: UnifiedIntradayCandle[][] = [];
-  let currentSession: UnifiedIntradayCandle[] = [];
-
-  for (let i = 0; i < sortedRows.length; i += 1) {
-    const current = sortedRows[i];
-    const previous = sortedRows[i - 1];
-
-    if (previous) {
-      const gapSeconds = current.timestamp - previous.timestamp;
-      if (current.date !== previous.date || gapSeconds > 60) {
-        if (currentSession.length > 0) {
-          sessions.push(currentSession);
-        }
-        currentSession = [];
-      }
-    }
-
-    currentSession.push(current);
-  }
-
-  if (currentSession.length > 0) {
-    sessions.push(currentSession);
-  }
-
-  const output: UnifiedIntradayCandle[] = [];
-
-  for (const points of sessions) {
-    points.sort((a, b) => a.timestamp - b.timestamp);
-    const firstPoint = points[0];
-
-    if (!firstPoint) {
-      continue;
-    }
-
-    const anchorUnix = firstPoint.timestamp;
-    const buckets = new Map<number, UnifiedIntradayCandle>();
-
-    for (const point of points) {
-      const diffSeconds = point.timestamp - anchorUnix;
-      const bucketIndex = Math.max(
-        0,
-        Math.floor(diffSeconds / resolutionSeconds),
-      );
-      const bucketStart = anchorUnix + bucketIndex * resolutionSeconds;
-
-      const existingBucket = buckets.get(bucketStart);
-
-      if (!existingBucket) {
-        buckets.set(bucketStart, {
-          ...point,
-          timestamp: bucketStart,
-          datetime: dayjs
-            .unix(bucketStart)
-            .tz(JAKARTA_TIMEZONE)
-            .format("YYYY-MM-DD HH:mm:ss"),
-          interval: "60m" as const,
-          is_partial: false,
-        });
-        continue;
-      }
-
-      existingBucket.high = Math.max(existingBucket.high, point.high);
-      existingBucket.low = Math.min(existingBucket.low, point.low);
-      existingBucket.close = point.close;
-      existingBucket.volume += point.volume;
-      existingBucket.value += point.value;
-      existingBucket.frequency += point.frequency;
-      existingBucket.foreign_buy += point.foreign_buy;
-      existingBucket.foreign_sell += point.foreign_sell;
-      existingBucket.foreign_flow += point.foreign_flow;
-    }
-
-    const sortedBuckets = [...buckets.values()].sort(
-      (a, b) => a.timestamp - b.timestamp,
-    );
-
-    for (let i = 0; i < sortedBuckets.length; i += 1) {
-      const bar = sortedBuckets[i];
-      const isLastBar = i === sortedBuckets.length - 1;
-      if (isLastBar && bar.timestamp + resolutionSeconds > nowUnix) {
-        bar.is_partial = true;
-      }
-      output.push(bar);
-    }
-  }
-
-  return output.sort((a, b) => a.timestamp - b.timestamp);
 }
 
 function normalizeCorpActions(
@@ -499,7 +403,7 @@ export const getUnifiedChartbitRawData = async (symbol: string) => {
     ]);
 
   const daily = normalizeDailyData(dailyRows);
-  const intraday = resampleIntradayTo60m(normalizeIntradayRows(intradayRows));
+  const intraday1m = normalizeIntradayRows(intradayRows);
   const corpActions = mergeCorpActions(
     normalizeCorpActions(corpHistoricalRows),
     normalizeCorpActions(corpUpcomingRows),
@@ -507,7 +411,7 @@ export const getUnifiedChartbitRawData = async (symbol: string) => {
 
   return {
     daily,
-    intraday,
+    intraday_1m: intraday1m,
     corp_actions: corpActions,
   } satisfies UnifiedChartbitRawData;
 };

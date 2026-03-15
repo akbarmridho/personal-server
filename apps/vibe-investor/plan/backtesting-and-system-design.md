@@ -38,7 +38,7 @@ Before implementation, the backtest design must define these explicit contracts:
 - IDX replay and session-handling rules
 - concrete execution simulator assumptions
 - mandatory corporate-action handling
-- `60m` liquidity gating
+- `15m` liquidity gating
 - evaluator baseline bands for what counts as acceptable behavior
 - baseline strategy definitions for comparison
 
@@ -60,18 +60,18 @@ Daily replay owns:
 
 Daily replay is the minimum viable replay path.
 
-### `60m` Replay
+### `15m` Replay
 
-`60m` replay is allowed only as a timing layer inside an already-existing daily thesis or watch state.
+`15m` replay is allowed only as a timing layer inside an already-existing daily thesis or watch state.
 
-`60m` replay owns:
+`15m` replay owns:
 
 - trigger timing
 - acceptance or rejection around active levels
 - follow-through quality
 - local timing veto
 
-`60m` replay must not create an independent thesis against the daily context.
+`15m` replay must not create an independent thesis against the daily context.
 
 ### Session Handling
 
@@ -87,11 +87,11 @@ Implementation rule:
 
 - continuous-session logic is the default for normal intraday timing
 - auction-distorted bars should not be treated as ordinary trigger bars
-- if a symbol is on a board or condition where call-auction behavior dominates, `60m` timing authority should be disabled or the symbol excluded from normal intraday tests
+- if a symbol is on a board or condition where call-auction behavior dominates, `15m` timing authority should be disabled or the symbol excluded from normal intraday tests
 
 ### Bar Validity Rule
 
-The backtest engine should track whether a `60m` bar is:
+The backtest engine should track whether a `15m` bar is:
 
 - continuous-session dominant
 - auction-distorted
@@ -168,7 +168,7 @@ Default data rule:
 
 - prefer `1m` OHLCV as the practical source for VPVR reconstruction
 - treat higher-granularity trade or tick data as better if it becomes available later
-- do not treat `60m`-only or daily-only profile reconstruction as high-authority value-area truth
+- do not treat `15m`-only or daily-only profile reconstruction as high-authority value-area truth
 
 Default anchoring rule:
 
@@ -191,11 +191,45 @@ Authority rule:
 - VPVR is supportive location context, not the primary thesis owner
 - if source granularity or anchor quality is weak, downgrade confidence instead of letting VPVR override structure and risk
 
-## `60m` Liquidity Gate
+## Data-Granularity Notes By Module
 
-`60m` timing is not always valid on IDX names.
+The current TA scripts can run from daily plus derived `15m` intraday, but some modules would materially improve with better-granularity inputs.
 
-The backtest contract must define a minimum tradability gate before `60m` is allowed to have tactical authority.
+### High-impact beneficiaries
+
+- VPVR and value-area context:
+  best improved by `1m` OHLCV or trade-level data because current volume-at-price reconstruction is approximate
+- intraday trigger and timing quality:
+  best improved by `5m` or `1m` OHLCV plus session and auction metadata
+- breakout follow-through and participation checks:
+  best improved by lower-timeframe OHLCV plus trade-count or turnover-style activity data
+- future `15m` liquidity gate:
+  should use more than raw bar OHLCV where possible, especially trade count, turnover, sparse-bar frequency, and session validity
+
+### Lower-impact beneficiaries
+
+- daily swing structure
+- baseline MA posture
+- adaptive MA selection
+- coarse Wyckoff cycle state
+
+These remain usable with the current daily plus raw `1m` and derived `15m` contract.
+
+### Data-priority order
+
+If the data stack is expanded, priority should be:
+
+1. `1m` OHLCV
+2. session and auction metadata
+3. trade count and turnover
+4. corporate-action completeness
+5. trade-level or tick data only if the added complexity is justified
+
+## `15m` Liquidity Gate
+
+`15m` timing is not always valid on IDX names.
+
+The backtest contract must define a minimum tradability gate before `15m` is allowed to have tactical authority.
 
 This gate should be implemented in the live TA pipeline before serious replay work starts, so live behavior and backtest behavior do not diverge.
 
@@ -208,13 +242,13 @@ At minimum, evaluate:
 
 Fallback rule:
 
-- if `60m` liquidity quality is below threshold, disable `60m` timing authority
+- if `15m` liquidity quality is below threshold, disable `15m` timing authority
 - the daily thesis may remain valid, but the action should stay daily-driven or defer to `WAIT`
 
 Implementation priority:
 
 - treat this as a prerequisite for meaningful backtesting
-- do not evaluate `60m`-driven tactics seriously until this gate exists in the live TA scripts
+- do not evaluate `15m`-driven tactics seriously until this gate exists in the live TA scripts
 
 ## Two Evaluation Modes
 
@@ -264,6 +298,8 @@ It should also compare the full skill against simpler technical baselines that r
 
 At minimum, include:
 
+- buy and hold baseline
+- simple MA trend-following baseline
 - simple trend plus pullback baseline
 - simple breakout plus volume baseline
 - simple range-reclaim baseline
@@ -286,7 +322,52 @@ The following baseline systems are mandatory comparison systems.
 
 They should be implemented with no discretionary rescue logic.
 
-### 1. Simple Trend Plus Pullback
+### 1. Buy And Hold
+
+Intent:
+
+- provide the broadest market benchmark for long-only performance
+
+Rules:
+
+- thesis condition:
+  - symbol passes the chosen universe and tradability filter
+- entry condition:
+  - buy on the first valid bar of the test window
+- holding rule:
+  - stay in the position until the end of the test window
+  - or until a mandatory corporate-action or delisting rule forces exit
+- invalidation:
+  - none as a tactical rule
+- target:
+  - none as a tactical rule
+- use:
+  - benchmark total return, drawdown, and opportunity cost versus active trading logic
+
+### 2. Simple MA Trend-Following
+
+Intent:
+
+- provide a classic systematic TA benchmark with minimal interpretation
+
+Rules:
+
+- thesis condition:
+  - daily close is above `SMA200`
+  - `EMA21` is above `SMA50`
+- entry condition:
+  - enter on the next valid bar after the trend condition first becomes true
+- holding rule:
+  - stay in the position while daily close remains above `SMA50`
+- exit condition:
+  - exit when daily close falls below `SMA50`
+  - or when daily close falls below `SMA200` for hard regime failure
+- target:
+  - none; trend capture baseline
+- no trade:
+  - when the trend condition is not active
+
+### 3. Simple Trend Plus Pullback
 
 Intent:
 
@@ -302,7 +383,7 @@ Rules:
   - price pulls back toward `EMA21`, `SMA50`, or nearest bullish support zone
   - pullback does not break the most recent valid swing low
 - trigger condition:
-  - bullish daily reclaim or bullish `60m` hold/reclaim if `60m` timing is allowed
+  - bullish daily reclaim or bullish `15m` hold/reclaim if `15m` timing is allowed
 - invalidation:
   - below the active pullback support or below the most recent constructive swing low
 - target:
@@ -312,7 +393,7 @@ Rules:
   - broken daily structure
   - insufficient reward-to-risk
 
-### 2. Simple Breakout Plus Volume
+### 4. Simple Breakout Plus Volume
 
 Intent:
 
@@ -337,7 +418,7 @@ Rules:
   - no clear next-zone path
   - immediate failed breakout behavior
 
-### 3. Simple Range-Reclaim
+### 5. Simple Range-Reclaim
 
 Intent:
 
@@ -407,15 +488,15 @@ Key requirement:
 Replay granularity is split explicitly:
 
 - `daily replay` for thesis quality, state, location, setup, and main risk map
-- `60m replay` for trigger, confirmation, and timing quality once a daily thesis or watch condition exists
+- `15m replay` for trigger, confirmation, and timing quality once a daily thesis or watch condition exists
 
 Required rule:
 
-- do not run `60m` replay as an independent thesis engine
+- do not run `15m` replay as an independent thesis engine
 - use it only inside the daily-owned thesis context
 - if testing only thesis quality, daily replay alone is sufficient
-- if testing timing quality, pair daily replay with `60m` replay inside trigger windows
-- if `60m` liquidity quality is below threshold, disable `60m` tactical authority for that symbol-window
+- if testing timing quality, pair daily replay with `15m` replay inside trigger windows
+- if `15m` liquidity quality is below threshold, disable `15m` tactical authority for that symbol-window
 
 ### Layer 2. Deterministic Market-State Builder
 
@@ -467,7 +548,7 @@ Moving-average state note:
 Timeframe reconciliation note:
 
 - daily should own thesis direction, setup context, and the main risk map
-- `60m` should own trigger quality, follow-through, local acceptance or rejection, and tactical timing
+- `15m` should own trigger quality, follow-through, local acceptance or rejection, and tactical timing
 - the state packet should make this separation explicit so the policy engine does not mix lower-timeframe noise into the thesis layer
 
 State-packet schema requirement:
@@ -480,7 +561,7 @@ Minimum schema groups should include:
 
 - analysis purpose
 - daily thesis state
-- `60m` timing state
+- `15m` timing state
 - location and key zones
 - setup candidates
 - trigger and confirmation state
@@ -524,10 +605,10 @@ The policy engine should also output:
 
 - short rationale
 
-For daily and `60m` conflicts, the policy engine should treat:
+For daily and `15m` conflicts, the policy engine should treat:
 
 - daily as the directional authority
-- `60m` as the timing authority
+- `15m` as the timing authority
 - unresolved timing conflict as a reason to delay or keep `WAIT`, not as a reason to reverse the daily thesis by itself
 
 ### Layer 4. Execution Simulator
@@ -659,7 +740,7 @@ This is needed so decision behavior can be audited rather than hidden inside the
 The following still need implementation detail, but not a new contract decision:
 
 1. concrete state-packet schema
-2. exact numeric `60m` liquidity thresholds
+2. exact numeric `15m` liquidity thresholds
 3. exact slippage and constrained-fill heuristics
 4. evaluator baseline bands
 
@@ -972,7 +1053,7 @@ Where is the thesis wrong and what is the path?
 How is the plan improved once the core thesis already exists?
 
 - adaptive MA when symbol-specific rhythm matters
-- local acceptance or rejection behavior on `60m`
+- local acceptance or rejection behavior on `15m`
 
 This is the cleanest human-readable model of the knowledge base.
 

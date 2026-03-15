@@ -18,7 +18,7 @@ Use this structure for every technical analysis output.
 ### B. Context
 - Date
 - Intent: entry / maintenance / postmortem
-- Timeframes used: daily + 60m
+- Timeframes used: daily + 15m
 - Data dependency status
 - Prior analysis reference (required for UPDATE and POSTMORTEM)
 

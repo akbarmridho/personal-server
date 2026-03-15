@@ -162,7 +162,8 @@ Packet rules:
 | `intent` | string | yes | `entry`, `maintenance`, `postmortem` |
 | `position_state` | string | yes | `flat`, `long` |
 | `daily_timeframe` | string | yes | `1d` |
-| `intraday_timeframe` | string | yes | `60m` |
+| `intraday_timeframe` | string | yes | `15m` |
+| `intraday_source_timeframe` | string | yes | `1m` |
 | `min_rr_required` | number | yes | positive decimal threshold |
 | `thesis_status` | string | conditional | `intact`, `improving`, `degrading`, `invalidated`; required for `UPDATE` |
 | `review_reason` | string | conditional | `routine`, `contradiction`, `level_break`, `regime_change`, `trigger_failure`; required for `UPDATE` |
@@ -210,6 +211,10 @@ Required in:
 | `acceptance_state` | string | yes | `accepted_above_level`, `accepted_below_level`, `reclaimed_level`, `rejected_at_level`, `inside_noise`, `unclear` |
 | `follow_through_state` | string | yes | `strong`, `adequate`, `weak`, `failing`, `unclear` |
 | `timing_window_state` | string | yes | `active`, `developing`, `late`, `stale`, `unclear` |
+| `liquidity_quality_state` | string | yes | `strong`, `usable`, `weak` |
+| `timing_authority` | string | yes | `full_15m`, `daily_only`, `wait_only` |
+| `raw_participation_quality` | string | yes | `strong`, `adequate`, `weak` |
+| `intraday_quality_summary` | string | yes | short machine-readable quality summary |
 
 ### E. `location`
 
@@ -243,6 +248,7 @@ Required in:
 | `trigger_ts` | string | conditional | ISO timestamp when triggered |
 | `confirmation_state` | string | yes | `confirmed`, `mixed`, `rejected`, `not_applicable` |
 | `participation_quality` | string | yes | `strong`, `adequate`, `weak`, `contradictory` |
+| `timing_authority` | string | yes | `full_15m`, `daily_only`, `wait_only` |
 | `value_acceptance_state` | string | yes | `accepted_above_vah`, `accepted_below_val`, `probe_above_vah`, `probe_below_val`, `inside_value`, `failed_acceptance_back_inside`, `not_applicable` |
 | `latest_structure_event` | object | no | schema in section `Q` |
 | `breakout_quality` | object | no | schema in section `R`; include only for breakout cases |
@@ -311,7 +317,7 @@ Required in:
 | `low` | number | yes | zone floor |
 | `high` | number | yes | zone ceiling |
 | `mid` | number | yes | zone midpoint |
-| `timeframe` | string | yes | `1d`, `60m` |
+| `timeframe` | string | yes | `1d`, `15m` |
 | `strength` | string | yes | `weak`, `moderate`, `strong` |
 | `source` | string | yes | `horizontal`, `swing`, `vpvr`, `ma`, `liquidity`, `opening_level` |
 

@@ -22,7 +22,7 @@ It owns:
 
 - phase order
 - purpose mode handling
-- daily versus `60m` authority split
+- daily versus `15m` authority split
 - stop rules
 
 ### Policy ownership
@@ -66,13 +66,13 @@ Canonical phase order:
 Authority split:
 
 - daily owns thesis direction, setup context, and main risk map
-- `60m` owns trigger, confirmation, follow-through, and tactical timing
+- `15m` owns trigger, confirmation, follow-through, and tactical timing
 
 Conflict rule:
 
 - daily keeps directional authority
-- `60m` may delay action, downgrade confidence, or keep the system in `WAIT`
-- `60m` should not create a trade against the daily thesis by itself
+- `15m` may delay action, downgrade confidence, or keep the system in `WAIT`
+- `15m` should not create a trade against the daily thesis by itself
 
 ## Resolved Core Doctrine
 
@@ -80,7 +80,7 @@ The core method should remain:
 
 - market structure and trend
 - support and resistance / location
-- daily thesis plus `60m` timing
+- daily thesis plus `15m` timing
 - lean MA regime:
   - `EMA21`
   - `SMA50`
@@ -139,5 +139,5 @@ They are remaining implementation items:
 
 - IDX-specific backtest assumptions
 - simple-baseline rule definitions
-- liquidity gate for `60m`
+- liquidity gate for `15m`
 - corporate-action-aware backtest handling

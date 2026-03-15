@@ -316,9 +316,9 @@ export const setupStockRoutes = () =>
         detail: {
           tags: ["Stock Technical Analysis"],
           summary:
-            "Get unified raw chartbit data (daily + intraday + corp actions)",
+            "Get unified raw chartbit data (daily + intraday_1m + corp actions)",
           description:
-            "Returns unified chart data from Stockbit: past 3 years daily candles, past 7 calendar days intraday candles resampled to 60-minute bars (partial bar kept), and corporate action events. Fails the whole request if any component fetch fails.",
+            "Returns unified chart data from Stockbit: past 3 years daily candles, past 7 calendar days raw 1-minute intraday candles, and corporate action events. Fails the whole request if any component fetch fails.",
         },
       },
     )

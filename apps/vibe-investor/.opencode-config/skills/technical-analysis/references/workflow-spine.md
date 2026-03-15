@@ -11,7 +11,7 @@ It defines:
 - the minimum evidence required to move forward
 - when the workflow should stop and return `WAIT`
 - how `INITIAL`, `UPDATE`, and `POSTMORTEM` fit into one flow
-- how daily thesis and `60m` timing interact
+- how daily thesis and `15m` timing interact
 
 Use this file before reading topic doctrine.
 
@@ -161,6 +161,7 @@ Minimum evidence:
 - value acceptance or repricing state
 - Wyckoff current cycle plus recent sequence
 - baseline `21EMA`, `50SMA`, `200SMA` posture
+- intraday timing authority when lower-timeframe timing is used
 
 Stop rules:
 
@@ -236,7 +237,7 @@ Question:
 
 Primary owner:
 
-- `60m` timing inside the daily thesis
+- `15m` timing inside the daily thesis
 
 Required outputs:
 
@@ -254,8 +255,8 @@ Minimum evidence:
 Rules:
 
 - daily still owns thesis direction
-- `60m` refines tactical timing
-- `60m` may delay action
+- `15m` refines tactical timing
+- `15m` may delay action
 
 Stop rules:
 
@@ -270,7 +271,7 @@ Question:
 
 Primary owner:
 
-- `60m` timing plus daily participation context
+- `15m` timing plus daily participation context
 
 Required outputs:
 
@@ -362,7 +363,7 @@ Rules:
 - `UPDATE` must record thesis status and review reason
 - `POSTMORTEM` must record what failed and what should change in future handling
 
-## Daily And `60m` Reconciliation
+## Daily And `15m` Reconciliation
 
 Daily owns:
 
@@ -371,7 +372,7 @@ Daily owns:
 - `SETUP`
 - the main risk map
 
-`60m` owns:
+`15m` owns:
 
 - `TRIGGER`
 - `CONFIRMATION`
@@ -382,10 +383,10 @@ Daily owns:
 Authority rules:
 
 - daily has final authority on thesis direction
-- `60m` can veto timing
-- `60m` can downgrade confidence
-- `60m` can keep the result in `WAIT`
-- `60m` cannot create a trade against the daily thesis by itself
+- `15m` can veto timing
+- `15m` can downgrade confidence
+- `15m` can keep the result in `WAIT`
+- `15m` cannot create a trade against the daily thesis by itself
 
 ## Reference Loading Policy
 

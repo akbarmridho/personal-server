@@ -34,7 +34,7 @@ Activate only when relevant.
 ## Advisory Diagnostics
 
 - Prefer `WAIT` over forcing a low-quality narrative.
-- Downgrade confidence when `60m` timing conflicts with the daily thesis.
+- Downgrade confidence when `15m` timing conflicts with the daily thesis.
 - Treat mid-range noise as a weak location state.
 - Treat weak follow-through as a veto or delay, not as proof.
 

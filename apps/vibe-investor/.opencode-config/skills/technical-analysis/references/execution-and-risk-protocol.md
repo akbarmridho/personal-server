@@ -83,7 +83,7 @@ Optional refinement is allowed only after the base structural plan is valid.
 
 Allowed refinement sources:
 
-- local acceptance or rejection behavior on `60m`
+- local acceptance or rejection behavior on `15m`
 - adaptive MA when a valid period is available
 
 If refinement is unavailable, keep the base structural plan.
