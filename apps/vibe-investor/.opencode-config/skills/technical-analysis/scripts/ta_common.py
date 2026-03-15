@@ -111,6 +111,7 @@ def resample_intraday(
 
 def load_ohlcv(
     path: Path,
+    include_intraday: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     with path.open("r", encoding="utf-8") as f:
         raw = json.load(f)
@@ -118,13 +119,6 @@ def load_ohlcv(
     for key in REQUIRED_ARRAYS:
         if key not in raw or not isinstance(raw[key], list) or len(raw[key]) == 0:
             raise ValueError(f"Missing required dependency: {key}")
-
-    if "intraday_1m" in raw:
-        intraday_key = "intraday_1m"
-    elif "intraday" in raw:
-        intraday_key = "intraday"
-    else:
-        raise ValueError("Missing required dependency: intraday_1m")
 
     def _prep(df: pd.DataFrame, name: str) -> pd.DataFrame:
         for col in REQUIRED_PRICE_COLS:
@@ -148,8 +142,18 @@ def load_ohlcv(
         return x
 
     daily = _prep(pd.DataFrame(raw["daily"]), "daily")
-    intraday_1m = _prep(pd.DataFrame(raw[intraday_key]), intraday_key)
-    intraday_ta = resample_intraday(intraday_1m, minutes=TA_INTRADAY_MINUTES)
+    intraday_1m = pd.DataFrame(columns=REQUIRED_PRICE_COLS)
+    intraday_ta = pd.DataFrame(columns=REQUIRED_PRICE_COLS)
+
+    if include_intraday:
+        if "intraday_1m" in raw:
+            intraday_key = "intraday_1m"
+        elif "intraday" in raw:
+            intraday_key = "intraday"
+        else:
+            raise ValueError("Missing required dependency: intraday_1m")
+        intraday_1m = _prep(pd.DataFrame(raw[intraday_key]), intraday_key)
+        intraday_ta = resample_intraday(intraday_1m, minutes=TA_INTRADAY_MINUTES)
 
     raw_corp = raw.get("corp_actions", [])
     if raw_corp is None:

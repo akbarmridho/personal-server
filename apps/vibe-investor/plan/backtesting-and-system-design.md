@@ -35,14 +35,108 @@ The LLM layer interprets that packet, handles conflict resolution, and chooses a
 Before implementation, the backtest design must define these explicit contracts:
 
 - a field-level state packet schema, not only prose
-- IDX replay and session-handling rules
+- v1 scenario-window input contract
+- daily-first replay rules and optional intraday extension rules
 - concrete execution simulator assumptions
-- mandatory corporate-action handling
-- `15m` liquidity gating
 - evaluator baseline bands for what counts as acceptable behavior
 - baseline strategy definitions for comparison
 
 These contracts should not remain implicit.
+
+## V1 Implementation Scope
+
+The first implementation should use window backtest mode.
+
+Window selection should be anchored to the user's real trades.
+
+This means:
+
+- each scenario is one symbol plus one replay window
+- the replay window is selected because it matches a real trade period or a closely related management period
+- the engine replays the entire window day by day
+- the comparison target is the user's actual trade behavior on that same window
+
+The first implementation should be daily-only.
+
+This means:
+
+- use daily OHLCV only in the first pass
+- do not require `intraday_1m[]` to start validating trade-management quality
+- do not block v1 on `15m` replay or intraday liquidity gating
+- keep the architecture ready for later `1m -> 15m` replay without making it a prerequisite
+
+The first implementation is still a backtest engine, not a single-trade checker.
+
+Each replay window should emit:
+
+- a daily decision log
+- simulated entries and exits under the shared execution contract
+- final scenario outcome
+- comparison against the user's actual trade when provided
+
+## V1 Scenario Input Contract
+
+The first implementation should accept a scenario manifest.
+
+Each scenario should support:
+
+- `id`
+- `symbol`
+- `ohlcv_path`
+- `window_start_date`
+- `window_end_date`
+- `initial_position`
+- optional `actual_trade`
+- optional `notes`
+
+`initial_position` should support two states:
+
+- `flat`
+- `long`
+
+If the state is `long`, include:
+
+- `entry_date`
+- `entry_price`
+- optional `size`
+
+If actual user behavior is available, include:
+
+- actual entry details when relevant
+- actual exit details when relevant
+- optional comments for why the trade was managed that way
+
+Example:
+
+```json
+{
+  "scenarios": [
+    {
+      "id": "bbca-2025-01-window-01",
+      "symbol": "BBCA",
+      "ohlcv_path": "data/bbca_2025_q1_daily.json",
+      "window_start_date": "2025-01-10",
+      "window_end_date": "2025-02-14",
+      "initial_position": {
+        "state": "long",
+        "entry_date": "2025-01-08",
+        "entry_price": 9875,
+        "size": 1
+      },
+      "actual_trade": {
+        "exit_date": "2025-02-03",
+        "exit_price": 10350
+      }
+    }
+  ]
+}
+```
+
+Interpretation rule:
+
+- one scenario is one replay window
+- one replay window may contain no trade, one trade episode, or multiple actions
+- the preferred v1 use is one trade-management episode per scenario so comparison against the user's real trade stays clean
 
 ## IDX Replay Contract
 
@@ -141,24 +235,64 @@ Every simulated trade should record:
 
 ## Corporate-Action Contract
 
-Corporate-action handling is mandatory for backtests.
+Corporate-action handling is deferred for the first backtest pass.
 
-`corp_actions[]` should not be optional in any long-window replay that is used for evaluation.
+Current assumption:
 
-The backtest layer must explicitly handle:
+- the provided OHLCV is already adjusted for stock splits and reverse splits
 
-- stock splits
-- reverse splits
-- ex-dividend dates
-- other events that materially change price continuity or reference pricing
+So the first replay pass should:
 
-Implementation rule:
+- not perform another split or reverse-split normalization pass
+- not treat split-adjusted price continuity as an open backtest problem
+- ignore `corp_actions[]` in the initial backtest implementation unless a future replay feature explicitly opts into them
 
-- structural replay and return measurement must remain internally consistent across corporate-action windows
-- ex-dividend windows should not be treated as ordinary structural breaks without corporate-action-aware handling
-- long-horizon performance claims should not be made from replay that ignores corporate-action effects
+Corporate actions remain post-backtest TODO territory.
 
-Backtest output should record when a signal or invalidation occurred inside a corporate-action-aware window.
+### Deferred Dividend TODO
+
+If corporate-action handling is revisited later, the first implementation should handle ex-dividend behavior.
+
+Why:
+
+- this is the remaining corporate-action case most likely to distort technical replay
+- it matters more than split handling under the current adjusted-OHLCV contract
+- it is still relevant even if dividend-heavy names are not the main trading universe
+
+Required behavior:
+
+- detect dividend events from `corp_actions[]`
+- parse at least:
+  - dividend amount
+  - ex-date reference price when available
+- mark a short ex-dividend event window in replay
+- do not treat a mechanical ex-dividend gap as an ordinary bearish structural break by default
+- record when a signal or invalidation occurs inside a dividend-aware event window
+
+Minimum first-pass replay rule:
+
+- event day and immediate follow-up bar should be treated as dividend-aware bars
+- pure ex-dividend repricing should not by itself trigger fresh breakdown interpretation
+- continued weak follow-through after the event window may still count as real technical damage
+
+Observed payload shape example:
+
+- `label = "D"`
+- tooltips contain fields like:
+  - `Dividend : 100`
+  - `Ex-date Price : 4880`
+  - `Date : 06 Jan 2026`
+
+### Deferred Corporate-Action Scope
+
+The following can stay explicitly deferred unless the trading universe starts to rely on them:
+
+- rights issues
+- bonus shares
+- warrants and conversion-related reference-price events
+- other non-dividend reference-price distortions
+
+These should remain TODO items, not immediate replay blockers.
 
 ## Volume-Profile Contract
 
@@ -247,8 +381,9 @@ Fallback rule:
 
 Implementation priority:
 
-- treat this as a prerequisite for meaningful backtesting
+- treat this as a prerequisite for meaningful intraday replay
 - do not evaluate `15m`-driven tactics seriously until this gate exists in the live TA scripts
+- do not block the daily-only v1 backtest on this requirement
 
 ## Two Evaluation Modes
 
@@ -322,6 +457,34 @@ The following baseline systems are mandatory comparison systems.
 
 They should be implemented with no discretionary rescue logic.
 
+## Baseline Execution Contract
+
+Unless a baseline explicitly says otherwise, use these shared execution rules:
+
+- signal timeframe:
+  - daily only
+- entry timing:
+  - next valid daily open after the signal bar closes
+- position policy:
+  - one live long position per symbol at a time
+- stale expiry:
+  - if a pending setup does not trigger within `5` daily bars, expire it
+- same-bar ambiguity:
+  - if both stop and target are touched in the same bar, use the conservative assumption:
+    stop wins
+- re-entry:
+  - no same-day re-entry after exit
+  - require at least one full new daily bar before a fresh entry on the same symbol
+- intraday rule:
+  - do not use `15m` timing in the first baseline pass
+  - `15m` baseline variants may be added later as separate experiments, not mixed into the core baseline definitions
+
+Baseline-variant rule:
+
+- each baseline should represent one exact rule set
+- do not bundle multiple trigger styles into one baseline
+- if a retest variant is tested later, it should be a separate named variant
+
 ### 1. Buy And Hold
 
 Intent:
@@ -333,7 +496,7 @@ Rules:
 - thesis condition:
   - symbol passes the chosen universe and tradability filter
 - entry condition:
-  - buy on the first valid bar of the test window
+  - buy on the first valid daily open of the test window
 - holding rule:
   - stay in the position until the end of the test window
   - or until a mandatory corporate-action or delisting rule forces exit
@@ -356,12 +519,12 @@ Rules:
   - daily close is above `SMA200`
   - `EMA21` is above `SMA50`
 - entry condition:
-  - enter on the next valid bar after the trend condition first becomes true
+  - enter on the next valid daily open after the trend condition first becomes true on a daily close
 - holding rule:
   - stay in the position while daily close remains above `SMA50`
 - exit condition:
-  - exit when daily close falls below `SMA50`
-  - or when daily close falls below `SMA200` for hard regime failure
+  - exit on the next valid daily open after daily close falls below `SMA50`
+  - or after daily close falls below `SMA200` for hard regime failure
 - target:
   - none; trend capture baseline
 - no trade:
@@ -383,7 +546,10 @@ Rules:
   - price pulls back toward `EMA21`, `SMA50`, or nearest bullish support zone
   - pullback does not break the most recent valid swing low
 - trigger condition:
-  - bullish daily reclaim or bullish `15m` hold/reclaim if `15m` timing is allowed
+  - bullish daily reclaim from the pullback zone
+  - signal only after the daily bar closes back constructively from the zone
+- entry condition:
+  - next valid daily open after the reclaim signal
 - invalidation:
   - below the active pullback support or below the most recent constructive swing low
 - target:
@@ -392,6 +558,7 @@ Rules:
   - mid-range location
   - broken daily structure
   - insufficient reward-to-risk
+  - pullback setup expired after `5` daily bars without a valid reclaim signal
 
 ### 4. Simple Breakout Plus Volume
 
@@ -408,7 +575,9 @@ Rules:
   - price closes through resistance
   - breakout bar shows required volume expansion relative to recent baseline
 - trigger condition:
-  - breakout close or breakout retest hold
+  - breakout close only
+- entry condition:
+  - next valid daily open after the breakout close
 - invalidation:
   - back inside the broken level or below the breakout base low
 - target:
@@ -417,6 +586,7 @@ Rules:
   - weak breakout volume
   - no clear next-zone path
   - immediate failed breakout behavior
+  - breakout setup expired after `3` daily bars without follow-through
 
 ### 5. Simple Range-Reclaim
 
@@ -433,7 +603,9 @@ Rules:
   - price sweeps or dips through a support edge and reclaims it
   - or price rejects near range support without a full breakdown
 - trigger condition:
-  - reclaim close or immediate follow-through hold from the range edge
+  - reclaim close from the range edge on the daily bar
+- entry condition:
+  - next valid daily open after the reclaim signal
 - invalidation:
   - below the swept or reclaimed edge
 - target:
@@ -442,6 +614,7 @@ Rules:
   - entry in the middle of the range
   - weak reclaim
   - unclear range boundaries
+  - setup expired after `5` daily bars without a valid reclaim close
 
 ## Planned Analysis Mode Inside Technical Analysis
 
@@ -490,6 +663,13 @@ Replay granularity is split explicitly:
 - `daily replay` for thesis quality, state, location, setup, and main risk map
 - `15m replay` for trigger, confirmation, and timing quality once a daily thesis or watch condition exists
 
+V1 replay rule:
+
+- start with daily-only window replay
+- select windows from the user's real trades
+- support both `flat` and `long` starting states
+- compare replay output to the user's actual trade when provided
+
 Required rule:
 
 - do not run `15m` replay as an independent thesis engine
@@ -497,6 +677,12 @@ Required rule:
 - if testing only thesis quality, daily replay alone is sufficient
 - if testing timing quality, pair daily replay with `15m` replay inside trigger windows
 - if `15m` liquidity quality is below threshold, disable `15m` tactical authority for that symbol-window
+
+V1 script-routing rule:
+
+- the replay engine may call the deterministic TA scripts in a daily-only mode
+- that mode should skip intraday loading, resampling, and intraday-state construction
+- the control should be an internal script flag and does not need to be exposed in the live skill contract
 
 ### Layer 2. Deterministic Market-State Builder
 
@@ -561,7 +747,7 @@ Minimum schema groups should include:
 
 - analysis purpose
 - daily thesis state
-- `15m` timing state
+- optional `15m` timing state
 - location and key zones
 - setup candidates
 - trigger and confirmation state
@@ -662,6 +848,7 @@ Decision-process outcomes:
 - number of late exits
 - action stability across adjacent reviews
 - thesis consistency across updates
+- divergence versus the user's actual trade outcome when that reference is present
 
 Evaluator baseline requirement:
 
@@ -740,9 +927,10 @@ This is needed so decision behavior can be audited rather than hidden inside the
 The following still need implementation detail, but not a new contract decision:
 
 1. concrete state-packet schema
-2. exact numeric `15m` liquidity thresholds
-3. exact slippage and constrained-fill heuristics
-4. evaluator baseline bands
+2. daily-only scenario manifest schema
+3. exact numeric `15m` liquidity thresholds for later intraday replay
+4. exact slippage and constrained-fill heuristics
+5. evaluator baseline bands
 
 The following can stay later-stage:
 
@@ -1111,6 +1299,7 @@ This preserves the AI-oriented structure while making the system easier to test 
 Define:
 
 - compact market-state packet
+- daily-only scenario-window manifest
 - full-vibe policy contract
 - ablation policy contract
 - static execution assumptions
@@ -1119,6 +1308,7 @@ Define:
 
 Run:
 
+- daily-only replay windows selected from real user trades
 - deterministic state extraction
 - static execution
 - ablation baseline
@@ -1147,6 +1337,7 @@ If the immediate goal is to evaluate the technical-analysis skill, do not start 
 
 Start with:
 
+- daily-only replay windows anchored to the user's real trades
 - deterministic market-state extraction
 - static execution system
 - ablation baseline

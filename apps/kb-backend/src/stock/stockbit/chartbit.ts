@@ -188,6 +188,10 @@ export interface UnifiedChartbitRawData {
   corp_actions: UnifiedCorpActionEvent[];
 }
 
+type UnifiedChartbitRawDataOptions = {
+  asOfDate?: string;
+};
+
 function toNumber(value: unknown): number {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -203,6 +207,38 @@ function toNumber(value: unknown): number {
 
 function parseJakartaDateTime(dateTime: string): dayjs.Dayjs {
   return dayjs.tz(dateTime, "YYYY-MM-DD HH:mm:ss", JAKARTA_TIMEZONE);
+}
+
+function resolveAsOfDate(asOfDate?: string): dayjs.Dayjs {
+  const now = dayjs().tz(JAKARTA_TIMEZONE);
+  if (!asOfDate) {
+    return now;
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDate)) {
+    throw new Error(
+      `Invalid as_of_date "${asOfDate}". Use YYYY-MM-DD in Asia/Jakarta timezone.`,
+    );
+  }
+
+  const parsed = parseJakartaDateTime(`${asOfDate} 23:59:59`);
+  if (!parsed.isValid()) {
+    throw new Error(
+      `Invalid as_of_date "${asOfDate}". Use YYYY-MM-DD in Asia/Jakarta timezone.`,
+    );
+  }
+
+  if (asOfDate === now.format("YYYY-MM-DD")) {
+    return now;
+  }
+
+  if (parsed.isAfter(now)) {
+    throw new Error(
+      `Invalid as_of_date "${asOfDate}". Future dates are not allowed.`,
+    );
+  }
+
+  return parsed;
 }
 
 export const getIntradayChartbitData = async (input: {
@@ -231,8 +267,9 @@ export const getChartbitCorpActions = async (input: {
   from: string;
   to: string;
 }) => {
-  const data =
-    await stockbitGetJson<BaseStockbitResponse<ChartbitCorpActionData[]>>(
+  const data = await stockbitGetJson<
+    BaseStockbitResponse<ChartbitCorpActionData[]>
+  >(
     `https://exodus.stockbit.com/chartbit/chart/corpaction?from=${input.from}&to=${input.to}&symbol=${input.symbol}`,
   );
 
@@ -363,19 +400,24 @@ export const getChartbitData = async (input: {
   return data.data.chartbit;
 };
 
-export const getUnifiedChartbitRawData = async (symbol: string) => {
+export const getUnifiedChartbitRawData = async (
+  symbol: string,
+  options: UnifiedChartbitRawDataOptions = {},
+) => {
+  const asOf = resolveAsOfDate(options.asOfDate);
+  const asOfUnix = asOf.unix();
   const now = dayjs().tz(JAKARTA_TIMEZONE);
-  const dailyFromDate = now.subtract(DAILY_WINDOW_YEARS, "year").toDate();
-  const dailyToDate = now.toDate();
-  const dailyFrom = dateToFormatted(dailyFromDate);
-  const dailyTo = dateToFormatted(dailyToDate);
+  const dailyFromDate = asOf.subtract(DAILY_WINDOW_YEARS, "year").toDate();
+  const dailyToDate = asOf.toDate();
 
-  const intradayFromUnix = now.unix();
-  const intradayToUnix = now.subtract(INTRADAY_WINDOW_DAYS, "day").unix();
+  const intradayFromUnix = asOfUnix;
+  const intradayToUnix = asOf.subtract(INTRADAY_WINDOW_DAYS, "day").unix();
 
-  const corpHistoricalFrom = dailyFrom;
-  const corpHistoricalTo = dailyTo;
-  const corpUpcomingFrom = dailyTo;
+  const corpHistoricalFrom = dateToFormatted(
+    now.subtract(DAILY_WINDOW_YEARS, "year").toDate(),
+  );
+  const corpHistoricalTo = dateToFormatted(now.toDate());
+  const corpUpcomingFrom = corpHistoricalTo;
   const corpUpcomingTo = CORP_ACTION_FUTURE_END_DATE;
 
   const [dailyRows, intradayRows, corpHistoricalRows, corpUpcomingRows] =
@@ -402,12 +444,16 @@ export const getUnifiedChartbitRawData = async (symbol: string) => {
       }),
     ]);
 
-  const daily = normalizeDailyData(dailyRows);
-  const intraday1m = normalizeIntradayRows(intradayRows);
+  const daily = normalizeDailyData(dailyRows).filter(
+    (row) => row.timestamp <= asOfUnix,
+  );
+  const intraday1m = normalizeIntradayRows(intradayRows).filter(
+    (row) => row.timestamp <= asOfUnix,
+  );
   const corpActions = mergeCorpActions(
     normalizeCorpActions(corpHistoricalRows),
     normalizeCorpActions(corpUpcomingRows),
-  );
+  ).filter((row) => row.timestamp <= asOfUnix);
 
   return {
     daily,

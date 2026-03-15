@@ -299,10 +299,12 @@ export const setupStockRoutes = () =>
     )
     .get(
       "/stock/:symbol/chartbit/raw",
-      async ({ params, set }) => {
+      async ({ params, query, set }) => {
         try {
           const symbol = params.symbol.trim().toUpperCase();
-          const data = await getUnifiedChartbitRawData(symbol);
+          const data = await getUnifiedChartbitRawData(symbol, {
+            asOfDate: query.as_of_date,
+          });
 
           return { success: true, data };
         } catch (err) {
@@ -313,12 +315,15 @@ export const setupStockRoutes = () =>
       },
       {
         params: t.Object({ symbol: t.String() }),
+        query: t.Object({
+          as_of_date: t.Optional(t.String()),
+        }),
         detail: {
           tags: ["Stock Technical Analysis"],
           summary:
             "Get unified raw chartbit data (daily + intraday_1m + corp actions)",
           description:
-            "Returns unified chart data from Stockbit: past 3 years daily candles, past 7 calendar days raw 1-minute intraday candles, and corporate action events. Fails the whole request if any component fetch fails.",
+            "Returns unified chart data from Stockbit: past 3 years daily candles, past 7 calendar days raw 1-minute intraday candles, and corporate action events. Optional query param as_of_date=YYYY-MM-DD truncates all returned data to that Jakarta calendar date so snapshots never include future bars. When omitted, the snapshot defaults to now in Asia/Jakarta. Fails the whole request if any component fetch fails.",
         },
       },
     )

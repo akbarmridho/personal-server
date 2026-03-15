@@ -1,0 +1,40 @@
+{
+  "scenarios": [
+    {
+      "id": "bbca-2025-01-window-01",
+      "symbol": "BBCA",
+      "ohlcv_path": "data/bbca_2025_q1_daily.json",
+      "window_start_date": "2025-01-10",
+      "window_end_date": "2025-02-14",
+      "initial_position": {
+        "state": "long",
+        "entry_date": "2025-01-08",
+        "entry_price": 9875,
+        "size": 1
+      },
+      "actual_trade": {
+        "exit_date": "2025-02-03",
+        "exit_price": 10350,
+        "notes": "User trimmed into strength before the window ended."
+      },
+      "notes": "Daily-only replay window anchored to a real management period."
+    },
+    {
+      "id": "tlkm-2025-02-window-01",
+      "symbol": "TLKM",
+      "ohlcv_path": "data/tlkm_2025_q1_daily.json",
+      "window_start_date": "2025-02-03",
+      "window_end_date": "2025-03-07",
+      "initial_position": {
+        "state": "flat",
+        "size": 1
+      },
+      "actual_trade": {
+        "entry_date": "2025-02-10",
+        "entry_price": 2780,
+        "exit_date": "2025-02-24",
+        "exit_price": 2860
+      }
+    }
+  ]
+}

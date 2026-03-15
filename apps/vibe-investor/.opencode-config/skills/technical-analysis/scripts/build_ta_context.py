@@ -623,6 +623,20 @@ def build_intraday_timing(
     }
 
 
+def build_disabled_intraday_timing(mode: str = "daily_only") -> dict[str, Any]:
+    return {
+        "timing_bias": "not_evaluated",
+        "intraday_structure_state": "not_evaluated",
+        "acceptance_state": "not_evaluated",
+        "follow_through_state": "not_evaluated",
+        "timing_window_state": "not_evaluated",
+        "liquidity_quality_state": "not_evaluated",
+        "timing_authority": mode,
+        "raw_participation_quality": "not_evaluated",
+        "intraday_quality_summary": f"{mode}_intraday_skipped",
+    }
+
+
 def latest_structure_event_payload(events: list[dict[str, Any]]) -> dict[str, Any] | None:
     if not events:
         return None
@@ -1162,34 +1176,43 @@ def enrich_red_flags(
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
-    from ta_common import load_ohlcv
-
-    args = parse_args()
-    modules = parse_modules(args.modules)
-    symbol = args.symbol.strip().upper()
-    purpose_mode = args.purpose_mode
-    position_state = args.position_state
-
-    if purpose_mode in {"UPDATE", "POSTMORTEM"} and not args.prior_thesis_json:
+def validate_runtime_requirements(
+    purpose_mode: str,
+    prior_thesis_json: str | None,
+    thesis_status: str | None,
+    review_reason: str | None,
+) -> None:
+    if purpose_mode in {"UPDATE", "POSTMORTEM"} and not prior_thesis_json:
         raise ValueError(
             "prior thesis context is required for UPDATE and POSTMORTEM"
         )
     if purpose_mode == "UPDATE" and (
-        args.thesis_status is None or args.review_reason is None
+        thesis_status is None or review_reason is None
     ):
         raise ValueError(
             "thesis-status and review-reason are required for UPDATE"
         )
 
-    input_path = Path(args.input).expanduser().resolve()
-    outdir = Path(args.outdir).expanduser().resolve()
-    outdir.mkdir(parents=True, exist_ok=True)
 
-    daily, intraday_1m, intraday, corp = load_ohlcv(input_path)
+def build_ta_context_result(
+    *,
+    symbol: str,
+    daily: pd.DataFrame,
+    intraday_1m: pd.DataFrame,
+    intraday: pd.DataFrame,
+    modules: set[str],
+    purpose_mode: str,
+    position_state: str,
+    min_rr_required: float,
+    prior_thesis: dict[str, Any] | None,
+    thesis_status: str | None = None,
+    review_reason: str | None = None,
+    swing_n: int = 2,
+    timeframe_mode: str = "full",
+) -> dict[str, Any]:
     daily = add_ma_stack(daily)
     daily = add_atr14(daily)
-    daily = add_swings(daily, n=args.swing_n)
+    daily = add_swings(daily, n=swing_n)
     daily = add_volume_features(daily)
 
     # Compute structure status first so classify_regime can detect potential_reversal
@@ -1278,8 +1301,10 @@ def main() -> None:
     location_state = infer_location_state(
         last_close, regime["trend_bias"], regime["regime"], supports, resistances
     )
-    intraday_timing = build_intraday_timing(
-        intraday, intraday_1m, regime["trend_bias"]
+    intraday_timing = (
+        build_disabled_intraday_timing(mode="daily_only")
+        if timeframe_mode == "daily_only"
+        else build_intraday_timing(intraday, intraday_1m, regime["trend_bias"])
     )
     risk_map = build_risk_map(
         setup_id=setup_id,
@@ -1287,7 +1312,7 @@ def main() -> None:
         close_price=last_close,
         supports=supports,
         resistances=resistances,
-        min_rr_required=args.min_rr_required,
+        min_rr_required=min_rr_required,
     )
 
     max_touches = max((z["touches"] for z in levels), default=0)
@@ -1361,7 +1386,6 @@ def main() -> None:
         intraday_timing=intraday_timing,
     )
 
-    prior_thesis = load_prior_thesis(args.prior_thesis_json)
     if prior_thesis is None and purpose_mode in {"UPDATE", "POSTMORTEM"}:
         raise ValueError("prior thesis context is required")
 
@@ -1376,18 +1400,23 @@ def main() -> None:
         breakout=breakout_result,
     )
 
+    analysis_payload: dict[str, Any] = {
+        "symbol": symbol,
+        "as_of_date": str(daily["datetime"].iloc[-1].date()),
+        "purpose_mode": purpose_mode,
+        "intent": build_intent(purpose_mode, position_state),
+        "position_state": position_state,
+        "daily_timeframe": "1d",
+        "min_rr_required": float(min_rr_required),
+    }
+    if timeframe_mode == "daily_only":
+        analysis_payload["timeframe_mode"] = "daily_only"
+    else:
+        analysis_payload["intraday_timeframe"] = "15m"
+        analysis_payload["intraday_source_timeframe"] = "1m"
+
     result: dict[str, Any] = {
-        "analysis": {
-            "symbol": symbol,
-            "as_of_date": str(daily["datetime"].iloc[-1].date()),
-            "purpose_mode": purpose_mode,
-            "intent": build_intent(purpose_mode, position_state),
-            "position_state": position_state,
-            "daily_timeframe": "1d",
-            "intraday_timeframe": "15m",
-            "intraday_source_timeframe": "1m",
-            "min_rr_required": float(args.min_rr_required),
-        },
+        "analysis": analysis_payload,
         "daily_thesis": {
             "state": state,
             "regime": regime["regime"],
@@ -1441,8 +1470,8 @@ def main() -> None:
     }
 
     if purpose_mode == "UPDATE":
-        result["analysis"]["thesis_status"] = str(args.thesis_status)
-        result["analysis"]["review_reason"] = str(args.review_reason)
+        result["analysis"]["thesis_status"] = str(thesis_status)
+        result["analysis"]["review_reason"] = str(review_reason)
     if adaptive_ma.get("adaptive_period") is not None:
         adaptive_details = adaptive_ma.get("details") if isinstance(adaptive_ma.get("details"), dict) else {}
         justification_bits = [
@@ -1459,6 +1488,47 @@ def main() -> None:
         }
     if prior_thesis is not None:
         result["prior_thesis"] = prior_thesis
+
+    return result
+
+
+def main() -> None:
+    from ta_common import load_ohlcv
+
+    args = parse_args()
+    modules = parse_modules(args.modules)
+    symbol = args.symbol.strip().upper()
+    purpose_mode = args.purpose_mode
+    position_state = args.position_state
+
+    validate_runtime_requirements(
+        purpose_mode=purpose_mode,
+        prior_thesis_json=args.prior_thesis_json,
+        thesis_status=args.thesis_status,
+        review_reason=args.review_reason,
+    )
+
+    input_path = Path(args.input).expanduser().resolve()
+    outdir = Path(args.outdir).expanduser().resolve()
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    daily, intraday_1m, intraday, corp = load_ohlcv(input_path)
+    prior_thesis = load_prior_thesis(args.prior_thesis_json)
+    result = build_ta_context_result(
+        symbol=symbol,
+        daily=daily,
+        intraday_1m=intraday_1m,
+        intraday=intraday,
+        modules=modules,
+        purpose_mode=purpose_mode,
+        position_state=position_state,
+        min_rr_required=args.min_rr_required,
+        prior_thesis=prior_thesis,
+        thesis_status=args.thesis_status,
+        review_reason=args.review_reason,
+        swing_n=args.swing_n,
+        timeframe_mode="full",
+    )
 
     output_path = (
         Path(args.output).expanduser().resolve()

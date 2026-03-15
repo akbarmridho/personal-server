@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akbarmr.dev/schemas/vibe-investor/backtest-scenario-manifest.schema.json",
+  "title": "Vibe Investor Backtest Scenario Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scenarios"],
+  "properties": {
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    }
+  },
+  "$defs": {
+    "dateString": {
+      "type": "string",
+      "format": "date"
+    },
+    "priceNumber": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "positiveNumber": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "initialPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["flat", "long"]
+        },
+        "entry_date": {
+          "$ref": "#/$defs/dateString"
+        },
+        "entry_price": {
+          "$ref": "#/$defs/priceNumber"
+        },
+        "size": {
+          "$ref": "#/$defs/positiveNumber"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "long"
+              }
+            }
+          },
+          "then": {
+            "required": ["entry_date", "entry_price"]
+          }
+        }
+      ]
+    },
+    "actualTrade": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entry_date": {
+          "$ref": "#/$defs/dateString"
+        },
+        "entry_price": {
+          "$ref": "#/$defs/priceNumber"
+        },
+        "exit_date": {
+          "$ref": "#/$defs/dateString"
+        },
+        "exit_price": {
+          "$ref": "#/$defs/priceNumber"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "required": ["entry_date", "entry_price"]
+            },
+            {
+              "required": ["exit_date", "exit_price"]
+            }
+          ]
+        }
+      ]
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "symbol",
+        "ohlcv_path",
+        "window_start_date",
+        "window_end_date",
+        "initial_position"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "symbol": {
+          "type": "string",
+          "pattern": "^[A-Z]{4}$"
+        },
+        "ohlcv_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "window_start_date": {
+          "$ref": "#/$defs/dateString"
+        },
+        "window_end_date": {
+          "$ref": "#/$defs/dateString"
+        },
+        "initial_position": {
+          "$ref": "#/$defs/initialPosition"
+        },
+        "actual_trade": {
+          "$ref": "#/$defs/actualTrade"
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
