@@ -7,7 +7,6 @@ Use this structure for every technical analysis output.
 
 ### A. Decision Summary
 - Purpose Mode: INITIAL / UPDATE / POSTMORTEM
-- Depth Mode: DEFAULT / ESCALATED
 - Action: BUY / HOLD / WAIT / EXIT
 - Bias: bullish / bearish / neutral
 - Setup: S1 / S2 / S3 / S4 / S5 / NO_VALID_SETUP
@@ -65,9 +64,8 @@ Use this structure for every technical analysis output.
 - Monitoring triggers
 - Stale setup condition
 
-### G. Adaptive MA And Escalation
+### G. Adaptive MA
 - Adaptive MA note when available, including selected period and chart mode
-- Escalation reason when Depth Mode is ESCALATED
 
 ### H. Evidence
 - Workflow Trace

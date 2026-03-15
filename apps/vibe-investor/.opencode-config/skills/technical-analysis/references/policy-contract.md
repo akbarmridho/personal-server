@@ -10,7 +10,6 @@ It defines:
 - allowed actions
 - allowed setup families
 - uncertainty handling
-- escalation recording
 - minimum decision outputs
 - the concrete future `ta_context` schema
 
@@ -102,33 +101,12 @@ When evidence is mixed:
 - prefer `WAIT`
 - lower confidence
 - state the unresolved contradiction
-- escalate only if deeper analysis can resolve a decision-relevant question
-
-## Escalation Contract
-
-If `analysis.depth_mode = ESCALATED`, the decision record must include:
-
-- `was_escalated`
-- `trigger_class`
-- `reason_code`
-- `reason_text`
-- `changed_decision_surface[]`
-
-Allowed `reason_code` values:
-
-- `user_requested_deeper_analysis`
-- `reversal_interpretation_needed`
-- `trap_or_sweep_interpretation_needed`
-- `default_read_conflicted`
-- `thesis_degradation_review`
-- `postmortem_forensic_review`
 
 ## Minimum Final Decision Output
 
 Every final decision must include:
 
 - `purpose_mode`
-- `depth_mode`
 - `action`
 - `bias`
 - `setup_family`
@@ -161,7 +139,6 @@ Top-level shape:
   "setup": {},
   "trigger_confirmation": {},
   "risk_map": {},
-  "escalation": {},
   "red_flags": []
 }
 ```
@@ -182,7 +159,6 @@ Packet rules:
 | `symbol` | string | yes | uppercase ticker, example `BBCA` |
 | `as_of_date` | string | yes | `YYYY-MM-DD` |
 | `purpose_mode` | string | yes | `INITIAL`, `UPDATE`, `POSTMORTEM` |
-| `depth_mode` | string | yes | `DEFAULT`, `ESCALATED` |
 | `intent` | string | yes | `entry`, `maintenance`, `postmortem` |
 | `position_state` | string | yes | `flat`, `long` |
 | `daily_timeframe` | string | yes | `1d` |
@@ -285,16 +261,6 @@ Required in:
 | `min_rr_required` | number | yes | copied from policy input for easy audit |
 | `risk_status` | string | yes | `valid`, `insufficient_rr`, `no_clear_invalidation`, `no_clear_path`, `wait` |
 | `stale_setup_condition` | string | yes | short machine-readable expiry condition |
-
-### I. `escalation`
-
-| Field | Type | Required | Allowed values / notes |
-|---|---|---:|---|
-| `was_escalated` | boolean | yes | `true` or `false` |
-| `trigger_class` | string | conditional | `explicit`, `context`; required when escalated |
-| `reason_code` | string | conditional | required when escalated |
-| `reason_text` | string | conditional | required when escalated |
-| `changed_decision_surface` | string[] | no | `action`, `confidence`, `invalidation`, `interpretation` |
 
 ### J. `baseline_ma_posture`
 

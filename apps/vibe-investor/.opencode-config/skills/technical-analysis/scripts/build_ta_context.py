@@ -61,12 +61,6 @@ def parse_args() -> argparse.Namespace:
         help="Runtime purpose mode.",
     )
     parser.add_argument(
-        "--depth-mode",
-        choices=["DEFAULT", "ESCALATED"],
-        default="DEFAULT",
-        help="Runtime depth mode.",
-    )
-    parser.add_argument(
         "--position-state",
         choices=["flat", "long"],
         default="flat",
@@ -1194,7 +1188,6 @@ def main() -> None:
     modules = parse_modules(args.modules)
     symbol = args.symbol.strip().upper()
     purpose_mode = args.purpose_mode
-    depth_mode = args.depth_mode
     position_state = args.position_state
 
     if purpose_mode in {"UPDATE", "POSTMORTEM"} and not args.prior_thesis_json:
@@ -1386,17 +1379,6 @@ def main() -> None:
         displacement=bo_displacement,
     )
 
-    escalation: dict[str, Any] = {"was_escalated": depth_mode == "ESCALATED"}
-    if depth_mode == "ESCALATED":
-        escalation.update(
-            {
-                "trigger_class": "explicit",
-                "reason_code": "user_requested_deeper_analysis",
-                "reason_text": "deeper_analysis_requested",
-                "changed_decision_surface": ["interpretation"],
-            }
-        )
-
     prior_thesis = load_prior_thesis(args.prior_thesis_json)
     if prior_thesis is None and purpose_mode in {"UPDATE", "POSTMORTEM"}:
         raise ValueError("prior thesis context is required")
@@ -1417,7 +1399,6 @@ def main() -> None:
             "symbol": symbol,
             "as_of_date": str(daily["datetime"].iloc[-1].date()),
             "purpose_mode": purpose_mode,
-            "depth_mode": depth_mode,
             "intent": build_intent(purpose_mode, position_state),
             "position_state": position_state,
             "daily_timeframe": "1d",
@@ -1468,7 +1449,6 @@ def main() -> None:
         },
         "trigger_confirmation": trigger_confirmation,
         "risk_map": risk_map,
-        "escalation": escalation,
         "red_flags": normalize_red_flags(enriched_red_flags),
     }
 

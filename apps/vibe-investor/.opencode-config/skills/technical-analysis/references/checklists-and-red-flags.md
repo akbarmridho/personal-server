@@ -8,7 +8,7 @@ It does not own the workflow order.
 
 ## Hard Mandatory Gates
 
-1. `G1_MODE` purpose mode and depth mode are explicit.
+1. `G1_MODE` purpose mode is explicit.
 2. `G2_DATA` required data is present and usable.
 3. `G3_STATE` daily state and regime are classifiable enough to proceed.
 4. `G4_LOCATION` price is at a meaningful area or the result is `WAIT`.
@@ -30,7 +30,6 @@ Activate only when relevant.
 4. `C4_BREAKOUT` breakout setups include breakout quality and follow-through.
 5. `C5_VOLUME_PROFILE` VPVR usage includes POC, VAH, VAL, and acceptance state.
 6. `C6_ADAPTIVE_MA` adaptive MA reporting includes period, justification, and chart mode when charting is used.
-7. `C7_ESCALATION` `ESCALATED` runs include reason code, reason text, and changed decision surface.
 
 ## Advisory Diagnostics
 

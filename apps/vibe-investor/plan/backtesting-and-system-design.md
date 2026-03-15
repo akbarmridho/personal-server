@@ -246,7 +246,7 @@ Implementation rule:
 
 The following baseline systems are mandatory comparison systems.
 
-They should be implemented with no optional overlays and no discretionary rescue logic.
+They should be implemented with no discretionary rescue logic.
 
 ### 1. Simple Trend Plus Pullback
 
@@ -324,15 +324,11 @@ Rules:
   - weak reclaim
   - unclear range boundaries
 
-## Planned Analysis Modes Inside Technical Analysis
+## Planned Analysis Mode Inside Technical Analysis
 
-Separate from evaluation modes, the refactored technical-analysis system should expose two analysis modes:
+The technical-analysis system uses a single analysis mode.
 
-- `DEFAULT`
-- `ESCALATED`
-
-`DEFAULT` is the ordinary lean path.
-`ESCALATED` is the path where additional overlays or diagnostics are activated because the LLM judges they are necessary or trigger conditions are met.
+All runs use the same lean path with the full deterministic pipeline.
 
 ## Recommended Testing Sequence
 
@@ -397,7 +393,7 @@ It should summarize:
 - Wyckoff phase history as ordered segments with start, end, duration, and confidence
 - key support and resistance zones
 - baseline MA posture
-- optional adaptive MA overlay when justified
+- optional adaptive MA when justified
 - volume-profile context
 - liquidity draw map
 - breakout state
@@ -444,7 +440,7 @@ State-packet schema requirement:
 
 Minimum schema groups should include:
 
-- analysis purpose and depth mode
+- analysis purpose
 - daily thesis state
 - `60m` timing state
 - location and key zones
@@ -482,23 +478,13 @@ In ablation mode, the policy engine is replaced by a deterministic ruleset.
 For MA handling, the policy engine should treat:
 
 - baseline MA context as always available
-- adaptive MA as an optional overlay, not a replacement
+- adaptive MA as an optional refinement, not a replacement
 - MA context as support for regime and timing, not as a standalone signal source
 - `200SMA` as long-term regime context, especially useful when the broader market is weak
 
 The policy engine should also output:
 
-- whether the current step stayed in `DEFAULT` mode or moved into `ESCALATED` mode
-- the reason for escalation when escalation occurred
-
-Recommended escalation rule:
-
-- stay in `DEFAULT` unless an unresolved decision-relevant question requires an overlay
-- escalate only when the additional overlay may materially change action, confidence, invalidation, or interpretation quality
-
-Overlay trigger notes:
-
-- adaptive MA should trigger only for symbol-specific rhythm-sensitive setups where the baseline MA context is insufficient
+- short rationale
 
 For daily and `60m` conflicts, the policy engine should treat:
 
@@ -557,9 +543,6 @@ Decision-process outcomes:
 - number of late exits
 - action stability across adjacent reviews
 - thesis consistency across updates
-- escalation frequency
-- escalation hit rate by scenario
-- whether escalation improved or degraded outcomes
 
 Evaluator baseline requirement:
 
@@ -571,7 +554,6 @@ Examples:
 - minimum acceptable expectancy
 - maximum acceptable false-positive rate
 - acceptable thesis-consistency band
-- acceptable escalation frequency range
 
 These baseline bands can be refined later, but they should exist before results are treated as pass or fail.
 
@@ -593,7 +575,6 @@ Examples:
 
 - false-positive rate is not persistently extreme
 - thesis consistency is stable enough to avoid random flip-flopping
-- escalation frequency is not so high that `DEFAULT` becomes meaningless
 - sample size is large enough before interpreting results
 
 ### Acceptable
@@ -603,7 +584,6 @@ Good enough to continue iteration with confidence.
 Examples:
 
 - expectancy is positive on a meaningful sample
-- escalation improves difficult cases more often than it degrades them
 - thesis consistency is solid across different `UPDATE` reasons
 - action quality is better than ablation on the intended scenarios
 
@@ -614,8 +594,7 @@ The aspirational benchmark after refinement.
 Examples:
 
 - regime-specific or setup-specific expectancy targets
-- strong escalation hit-rate by scenario
-- better decision quality without excessive escalation
+- better decision quality on difficult cases
 - stable action quality across changing market conditions
 
 ### Deferred Threshold Work
@@ -633,14 +612,9 @@ When backtesting in LLM mode, keep a per-step log that records:
 
 - timestamp or decision point
 - selected action
-- whether analysis stayed in `DEFAULT` or moved to `ESCALATED`
-- escalation reason code
-- escalation reason text
-- which optional overlays or diagnostics were used
-- whether escalation came from explicit request or model judgment
 - short rationale
 
-This is needed so escalation behavior can be audited rather than hidden inside the final answer.
+This is needed so decision behavior can be audited rather than hidden inside the final answer.
 
 ## Open Design Items Before Backtest Implementation
 
@@ -872,7 +846,6 @@ Assumed refactored skill shape for runtime:
 
 - `workflow-spine.md` owns lifecycle and phase sequencing
 - `execution-and-risk-protocol.md` also owns level-to-level execution logic
-- advanced optional doctrine files such as imbalance remain present and load only when needed
 
 Recommended prompt inputs:
 
@@ -960,10 +933,8 @@ Where is the thesis wrong and what is the path?
 
 How is the plan improved once the core thesis already exists?
 
-- `OB`
-- `Breaker`
-- premium/discount
-
+- adaptive MA when symbol-specific rhythm matters
+- local acceptance or rejection behavior on `60m`
 
 This is the cleanest human-readable model of the knowledge base.
 

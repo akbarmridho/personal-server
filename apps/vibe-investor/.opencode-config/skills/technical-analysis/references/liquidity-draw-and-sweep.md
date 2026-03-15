@@ -26,7 +26,7 @@ Standardize liquidity analysis so direction, entry timing, and targets are frame
 Alternation model (heuristic, not certainty):
 
 1. after external sweep, next draw often shifts to internal liquidity
-2. after internal tag/mitigation, next draw often shifts to opposing external liquidity
+2. after internal tag, next draw often shifts to opposing external liquidity
 
 ## Rules
 

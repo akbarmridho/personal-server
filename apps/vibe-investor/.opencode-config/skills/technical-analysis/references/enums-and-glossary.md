@@ -10,11 +10,6 @@ Single source of truth for shared enum labels used across runtime references.
 - `UPDATE`
 - `POSTMORTEM`
 
-## Depth Mode
-
-- `DEFAULT`
-- `ESCALATED`
-
 ## State And Regime
 
 - `state`: `balance`, `imbalance`
@@ -138,21 +133,6 @@ Single source of truth for shared enum labels used across runtime references.
 ## Adaptive MA
 
 - selected period is stored in `daily_thesis.adaptive_ma.period`
-
-## Mitigation State
-
-- `unmitigated`
-- `partially_mitigated`
-- `fully_mitigated`
-
-## Escalation Reason Code
-
-- `user_requested_deeper_analysis`
-- `reversal_interpretation_needed`
-- `trap_or_sweep_interpretation_needed`
-- `default_read_conflicted`
-- `thesis_degradation_review`
-- `postmortem_forensic_review`
 
 ## Risk Status
 

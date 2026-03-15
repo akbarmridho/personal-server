@@ -32,11 +32,6 @@ Use:
 - `UPDATE`
 - `POSTMORTEM`
 
-### Depth Mode
-
-- `DEFAULT`
-- `ESCALATED`
-
 The meaning and rules for these modes are owned by:
 
 - `references/workflow-spine.md`
@@ -47,13 +42,12 @@ The meaning and rules for these modes are owned by:
 For every run:
 
 1. determine `purpose_mode`
-2. determine whether the run stays in `DEFAULT` or requires `ESCALATED`
-3. load `references/workflow-spine.md`
-4. load `references/policy-contract.md`
-5. load only the topic references required by the active branch
-6. run deterministic preprocessing and chart generation
-7. decide using the bounded contract
-8. render the answer using `references/output-report-template.md`
+2. load `references/workflow-spine.md`
+3. load `references/policy-contract.md`
+4. load only the topic references required by the active branch
+5. run deterministic preprocessing and chart generation
+6. decide using the bounded contract
+7. render the answer using `references/output-report-template.md`
 
 Do not infer the workflow from topic references alone.
 
@@ -132,8 +126,6 @@ python scripts/build_ta_context.py \
   --modules core,vpvr,breakout
 ```
 
-Use escalated modules only when the workflow requires them:
-
 Input contract:
 
 - `--input` must use the exact JSON returned by `fetch-ohlcv`
@@ -156,8 +148,6 @@ python scripts/generate_ta_charts.py \
   --modules core,vpvr \
   --ma-mode {DAILY_MA_MODE}
 ```
-
-Use escalated chart modules only when required:
 
 Daily chart MA mode:
 
@@ -191,7 +181,7 @@ Do not hardcode chart names in the final answer if the manifest already provides
 - use one final action: `BUY`, `HOLD`, `WAIT`, or `EXIT`
 - default to `WAIT` under unresolved contradiction
 - keep baseline MA context lean
-- treat hybrid charting as default visual context, not as automatic decision escalation
+- treat hybrid charting as default visual context, not as automatic decision weight
 
 ## Output Contract
 
@@ -204,7 +194,6 @@ The output must begin with a compact `Decision Summary`.
 The answer must include:
 
 - purpose mode
-- depth mode
 - selected setup family or `NO_VALID_SETUP`
 - final action
 - confidence

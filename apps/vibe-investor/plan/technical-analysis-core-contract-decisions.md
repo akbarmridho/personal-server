@@ -22,10 +22,8 @@ It owns:
 
 - phase order
 - purpose mode handling
-- depth mode handling
 - daily versus `60m` authority split
 - stop rules
-- escalation entry rules
 
 ### Policy ownership
 
@@ -37,7 +35,6 @@ It owns:
 - setup space
 - minimum required decision fields
 - packet schema
-- escalation contract
 
 ### `SKILL.md` role
 

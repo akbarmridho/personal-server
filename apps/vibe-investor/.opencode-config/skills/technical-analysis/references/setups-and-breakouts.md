@@ -139,9 +139,9 @@ Rules:
 
 - `CHOCH` alone is warning, not confirmation
 - structure shift without confirmation usually stays in watchlist or `WAIT`
-- reversal interpretation can trigger escalation when the default read is not enough
+- reversal interpretation may need deeper analysis when the default read is not enough
 
-## Conditional Diagnostics And Overlays
+## Conditional Diagnostics
 
 ## Trace Requirements
 
@@ -151,4 +151,3 @@ Rules:
 - trigger evidence
 - confirmation evidence
 - breakout quality note when relevant
-- conditional overlay note when used

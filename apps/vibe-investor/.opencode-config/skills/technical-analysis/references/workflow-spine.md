@@ -11,32 +11,17 @@ It defines:
 - the minimum evidence required to move forward
 - when the workflow should stop and return `WAIT`
 - how `INITIAL`, `UPDATE`, and `POSTMORTEM` fit into one flow
-- how `DEFAULT` and `ESCALATED` behave
 - how daily thesis and `60m` timing interact
 
 Use this file before reading topic doctrine.
 
 ## Runtime Model
 
-The workflow uses two mode axes.
-
 ### Purpose Mode
 
 - `INITIAL`
 - `UPDATE`
 - `POSTMORTEM`
-
-### Depth Mode
-
-- `DEFAULT`
-- `ESCALATED`
-
-Typical combinations:
-
-- `INITIAL + DEFAULT`
-- `UPDATE + DEFAULT`
-- `UPDATE + ESCALATED`
-- `POSTMORTEM + ESCALATED`
 
 ## Prior Thesis Input Contract
 
@@ -134,7 +119,6 @@ Required inputs:
 Required outputs:
 
 - `purpose_mode`
-- `depth_mode`
 - `position_state`
 - `analysis intent`
 
@@ -402,65 +386,6 @@ Authority rules:
 - `60m` can keep the result in `WAIT`
 - `60m` cannot create a trade against the daily thesis by itself
 
-## `DEFAULT` And `ESCALATED`
-
-### `DEFAULT`
-
-Use the lean path with:
-
-- daily state and regime
-- support and resistance zones
-- value-area and liquidity context
-- baseline `21EMA`, `50SMA`, `200SMA`
-- setup family
-- trigger and confirmation
-- risk and action
-
-### `ESCALATED`
-
-Use the same workflow with deeper diagnostic interpretation when a decision-relevant question remains unresolved.
-
-Adaptive MA charting:
-
-- `hybrid` is the default chart mode
-- `baseline` is the lean alternative
-- prefer `hybrid` when long-term regime context still matters
-
-## Escalation Rules
-
-Escalate only when the extra overlay can materially change:
-
-- action
-- confidence
-- invalidation
-- setup interpretation
-
-### Explicit Escalation Triggers
-
-- user requested deeper analysis
-- user requested reversal or trap analysis
-- postmortem requested forensic detail
-
-### Context Escalation Triggers
-
-- setup classification is still ambiguous
-- trigger looks real but confirmation conflicts
-- reversal interpretation is central
-- sweep or trap interpretation is central
-- thesis is degrading and the failure mode needs diagnosis
-- baseline MA context is insufficient for a rhythm-sensitive setup
-
-### Escalation Record
-
-Every escalated run must record:
-
-- whether escalation happened
-- trigger class: `explicit` or `context`
-- reason code
-- reason text
-- what question the deeper review was resolving
-- whether the deeper review changed action, confidence, invalidation, or interpretation only
-
 ## Reference Loading Policy
 
 Read references by phase.
@@ -483,7 +408,6 @@ Load by need:
 This workflow hands one bounded decision package to the output template:
 
 - purpose mode
-- depth mode
 - selected setup family
 - action
 - confidence

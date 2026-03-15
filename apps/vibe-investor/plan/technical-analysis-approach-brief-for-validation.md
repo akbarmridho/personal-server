@@ -169,7 +169,7 @@ Used for:
 - support or resistance role
 - damage vs intact trend context
 
-An adaptive MA is available, but only as a conditional overlay when symbol-specific rhythm matters.
+An adaptive MA is available as a conditional refinement when symbol-specific rhythm matters.
 It is not part of the preferred core doctrine.
 
 ### 4. Support/resistance and location logic
@@ -210,19 +210,16 @@ It should not replace the broader structure-first workflow.
 Wyckoff historical-state implementation is still pending as a separate state layer.
 Wyckoff is no longer intended to expand into the main thesis engine.
 
-### 7. Conditional overlays
+### 7. Adaptive MA
 
-The following are optional overlays, not mandatory baseline doctrine:
+Adaptive MA is not mandatory baseline doctrine.
 
-- adaptive MA
-
-These overlays are only supposed to activate when:
+It is only supposed to activate when:
 
 - the default read is insufficient
 - a specific decision-relevant question remains unresolved
-- the runtime is escalated
 
-They are not supposed to override:
+It is not supposed to override:
 
 - structure
 - trigger
