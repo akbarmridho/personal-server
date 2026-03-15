@@ -143,17 +143,6 @@ Rules:
 
 ## Conditional Diagnostics And Overlays
 
-### Divergence
-
-Use divergence only when:
-
-- the move is extended
-- reversal suspicion is active
-- thesis quality is degrading
-- postmortem needs a momentum warning check
-
-Divergence is warning or support, not trade permission.
-
 ### Imbalance
 
 Use imbalance only when it materially helps resolve:

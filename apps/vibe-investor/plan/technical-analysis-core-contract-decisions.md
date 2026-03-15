@@ -96,13 +96,11 @@ This is the authoritative core stack.
 
 These are not part of the preferred core methodology:
 
-- divergence
 - adaptive MA
 - `FVG / imbalance`
 
 Current direction:
 
-- divergence should be removed from the core methodology
 - adaptive MA and `FVG / imbalance` should remain non-core unless later backtests justify them
 
 Non-core layers must not override:

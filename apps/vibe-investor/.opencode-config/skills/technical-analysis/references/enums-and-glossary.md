@@ -137,7 +137,6 @@ Single source of truth for shared enum labels used across runtime references.
 
 ## Overlay Types
 
-- `divergence`
 - `adaptive_ma`
 - `imbalance`
 
@@ -162,7 +161,6 @@ Single source of truth for shared enum labels used across runtime references.
 - `thesis_degradation_review`
 - `postmortem_forensic_review`
 - `adaptive_ma_needed`
-- `divergence_check_needed`
 - `imbalance_check_needed`
 
 ## Risk Status

@@ -72,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--overlays",
         default="",
-        help="Comma-separated overlays: adaptive_ma,divergence,imbalance.",
+        help="Comma-separated overlays: adaptive_ma,imbalance.",
     )
     parser.add_argument(
         "--ma-mode",

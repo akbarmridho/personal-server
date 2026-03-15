@@ -68,7 +68,6 @@ Core should remain:
 
 The skill docs should now reflect the accepted direction:
 
-- divergence is not part of the preferred core methodology
 - adaptive MA is non-core unless later proven
 - `FVG / imbalance` is non-core unless later proven
 

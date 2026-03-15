@@ -215,7 +215,6 @@ Wyckoff is no longer intended to expand into the main thesis engine.
 The following are optional overlays, not mandatory baseline doctrine:
 
 - adaptive MA
-- divergence
 - imbalance / fair value gap
 
 These overlays are only supposed to activate when:
@@ -233,7 +232,6 @@ They are not supposed to override:
 
 Current direction after review:
 
-- `divergence` is a removal candidate from the core methodology
 - `adaptive MA` and `imbalance` are non-core unless later backtests justify them
 
 ## Charting Approach

@@ -22,7 +22,7 @@ Completed:
   - `EMA21`
   - `SMA50`
   - `SMA200`
-- made divergence non-baseline
+- tightened overlays to the current runtime set
 - aligned red-flag IDs and packet enums
 - kept `wyckoff_history` as `[]` in the packet because historical Wyckoff state belongs to a separate module
 - kept chart artifacts out of `ta_context`
@@ -67,7 +67,6 @@ It is about doctrine freeze, venue realism, and separate-state expansion.
 
 Current doctrine direction says:
 
-- divergence is not part of the preferred core methodology
 - adaptive MA and `FVG / imbalance` are non-core unless justified later
 
 So the next script phase should not add more dependence on those layers.
@@ -111,7 +110,6 @@ This should follow:
 
 After the docs are frozen, decide whether to:
 
-- disable or remove divergence from ordinary runtime script paths
 - simplify optional overlay interfaces to match the frozen doctrine
 
 ## What This File Should Not Do

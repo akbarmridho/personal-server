@@ -124,7 +124,6 @@ Allowed `reason_code` values:
 - `thesis_degradation_review`
 - `postmortem_forensic_review`
 - `adaptive_ma_needed`
-- `divergence_check_needed`
 - `imbalance_check_needed`
 
 ## Minimum Final Decision Output
@@ -193,7 +192,7 @@ Packet rules:
 | `daily_timeframe` | string | yes | `1d` |
 | `intraday_timeframe` | string | yes | `60m` |
 | `min_rr_required` | number | yes | positive decimal threshold |
-| `requested_overlays` | string[] | no | `divergence`, `adaptive_ma`, `imbalance` |
+| `requested_overlays` | string[] | no | `adaptive_ma`, `imbalance` |
 | `thesis_status` | string | conditional | `intact`, `improving`, `degrading`, `invalidated`; required for `UPDATE` |
 | `review_reason` | string | conditional | `routine`, `contradiction`, `level_break`, `regime_change`, `trigger_failure`; required for `UPDATE` |
 
@@ -404,7 +403,7 @@ Required in:
 
 | Field | Type | Required | Allowed values / notes |
 |---|---|---:|---|
-| `overlay` | string | yes | `divergence`, `adaptive_ma`, `imbalance` |
+| `overlay` | string | yes | `adaptive_ma`, `imbalance` |
 | `reason_code` | string | yes | use escalation reason codes |
 | `question` | string | yes | what the overlay was resolving |
 | `outcome` | string | yes | `confirmed_default_read`, `refined_entry`, `changed_confidence`, `changed_invalidation`, `changed_action` |

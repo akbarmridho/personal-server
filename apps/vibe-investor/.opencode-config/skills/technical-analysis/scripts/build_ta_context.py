@@ -17,7 +17,6 @@ from ta_common import (
     add_ma_stack,
     add_swings,
     add_volume_features,
-    calculate_rsi,
     classify_price_volume,
     classify_regime,
     choose_adaptive_ma,
@@ -86,7 +85,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--overlays",
         default="",
-        help="Comma-separated overlays: divergence,adaptive_ma,imbalance.",
+        help="Comma-separated overlays: adaptive_ma,imbalance.",
     )
     parser.add_argument(
         "--prior-thesis-json",
@@ -673,18 +672,6 @@ def breakout_quality_payload(
     }
 
 
-def divergence_reason_needed(
-    purpose_mode: str, overlays: set[str], regime: str, raw_structure_status: str
-) -> bool:
-    if "divergence" in overlays:
-        return True
-    if purpose_mode == "POSTMORTEM":
-        return True
-    if regime == "potential_reversal":
-        return True
-    return raw_structure_status == "choch_only"
-
-
 def build_trigger_confirmation(
     setup_id: str,
     breakout: dict[str, Any],
@@ -693,7 +680,6 @@ def build_trigger_confirmation(
     events: list[dict[str, Any]],
     regime: str,
     value_acceptance_state: str,
-    divergence: dict[str, Any] | None,
     displacement: str | None,
 ) -> dict[str, Any]:
     trigger_state = "not_triggered"
@@ -769,8 +755,6 @@ def build_trigger_confirmation(
         out["latest_structure_event"] = latest_event
     if breakout:
         out["breakout_quality"] = breakout_quality_payload(breakout, regime, displacement)
-    if divergence is not None:
-        out["divergence"] = divergence
     return out
 
 
@@ -858,53 +842,8 @@ def load_prior_thesis(path_str: str | None) -> dict[str, Any] | None:
 
 
 # ---------------------------------------------------------------------------
-# Divergence and volume diagnostics
+# Volume diagnostics
 # ---------------------------------------------------------------------------
-
-
-def detect_bearish_divergence(
-    df: pd.DataFrame, min_bars: int = 5, max_bars: int = 60
-) -> dict[str, Any]:
-    pivots = df[df["swing_high"].notna()].copy()
-    pivots = pivots[pivots["RSI14"].notna()]
-    if len(pivots) < 2:
-        return {"status": "no_divergence", "reason": "insufficient_pivot_highs"}
-    last2 = pivots.tail(2)
-    i1, i2 = last2.index[0], last2.index[1]
-    bars_apart = df.index.get_loc(i2) - df.index.get_loc(i1)
-    if bars_apart < min_bars or bars_apart > max_bars:
-        return {"status": "no_divergence", "reason": "pivot_spacing_not_comparable"}
-    p1, p2 = float(last2["high"].iloc[0]), float(last2["high"].iloc[1])
-    r1, r2 = float(last2["RSI14"].iloc[0]), float(last2["RSI14"].iloc[1])
-    if not (p2 > p1 and r2 < r1):
-        return {"status": "no_divergence", "reason": "no_price_rsi_divergence"}
-    recent_sl = (
-        float(df[df["swing_low"].notna()]["swing_low"].iloc[-1])
-        if df["swing_low"].notna().any()
-        else np.nan
-    )
-    vf = df.iloc[-1]
-    vol_ratio = (
-        float(vf["vol_ratio"])
-        if "vol_ratio" in vf.index and pd.notna(vf.get("vol_ratio"))
-        else 0.0
-    )
-    confirmed = (
-        pd.notna(recent_sl)
-        and float(df["close"].iloc[-1]) < recent_sl
-        and vol_ratio > 1.0
-    )
-    status = "divergence_confirmed" if confirmed else "divergence_unconfirmed"
-    confidence = "HIGH" if max(r1, r2) >= 60 and (r1 - r2) >= 5 else "MEDIUM"
-    return {
-        "status": status,
-        "confidence": confidence,
-        "price_high_1": p1,
-        "price_high_2": p2,
-        "rsi_high_1": r1,
-        "rsi_high_2": r2,
-        "reference_swing_low": recent_sl if pd.notna(recent_sl) else None,
-    }
 
 
 def classify_pv_window(df: pd.DataFrame, window: int = 20) -> dict[str, Any]:
@@ -1029,7 +968,6 @@ def build_red_flags(
     regime: str,
     breakout_state: str,
     level_touches: int,
-    divergence_state: str,
     structure_state: str,
     last_close: float,
     ema21: float,
@@ -1063,14 +1001,6 @@ def build_red_flags(
                 "flag_id": "F4_LEVEL_EXHAUSTION",
                 "severity": "MEDIUM",
                 "why": "repeated_tests_reduce_level_reliability",
-            }
-        )
-    if divergence_state == "divergence_confirmed":
-        flags.append(
-            {
-                "flag_id": "F14_DIVERGENCE_ESCALATION",
-                "severity": "HIGH",
-                "why": "confirmed_momentum_divergence",
             }
         )
     if structure_state == "choch_only":
@@ -1327,7 +1257,6 @@ def main() -> None:
     daily = add_ma_stack(daily)
     daily = add_atr14(daily)
     daily = add_swings(daily, n=args.swing_n)
-    daily["RSI14"] = calculate_rsi(daily["close"])
     daily = add_volume_features(daily)
 
     # Compute structure status first so classify_regime can detect potential_reversal
@@ -1428,17 +1357,11 @@ def main() -> None:
         min_rr_required=args.min_rr_required,
     )
 
-    divergence = (
-        detect_bearish_divergence(daily)
-        if divergence_reason_needed(purpose_mode, overlays, regime["regime"], structure_state)
-        else None
-    )
     max_touches = max((z["touches"] for z in levels), default=0)
     red_flags = build_red_flags(
         regime=regime["regime"],
         breakout_state=bo_snap.get("status", "no_breakout"),
         level_touches=max_touches,
-        divergence_state=divergence["status"] if divergence is not None else "no_divergence",
         structure_state=structure_state,
         last_close=last_close,
         ema21=float(last.get("EMA21", last_close)),
@@ -1513,7 +1436,6 @@ def main() -> None:
         events=events,
         regime=regime["regime"],
         value_acceptance_state=value_area["acceptance_state"],
-        divergence=divergence,
         displacement=bo_displacement,
     )
 

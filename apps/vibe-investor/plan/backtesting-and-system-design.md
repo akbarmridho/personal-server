@@ -183,7 +183,6 @@ It should summarize:
 - liquidity draw map
 - breakout state
 - setup candidates
-- divergence state only when escalation criteria are met
 - imbalance context only when escalation criteria are met
 - red flags
 - prior thesis snapshot when applicable
@@ -269,10 +268,6 @@ For MA handling, the policy engine should treat:
 - MA context as support for regime and timing, not as a standalone signal source
 - `200SMA` as long-term regime context, especially useful when the broader market is weak
 
-For divergence handling, the policy engine should treat:
-
-- divergence as a conditional diagnostic, not a mandatory scan
-
 The policy engine should also output:
 
 - whether the current step stayed in `DEFAULT` mode or moved into `ESCALATED` mode
@@ -286,7 +281,6 @@ Recommended escalation rule:
 Overlay trigger notes:
 
 - adaptive MA should trigger only for symbol-specific rhythm-sensitive setups where the baseline MA context is insufficient
-- divergence should trigger only for exhaustion, reversal suspicion, thesis degradation, or postmortem review
 
 For daily and `60m` conflicts, the policy engine should treat:
 
@@ -586,7 +580,7 @@ After pairwise integration is stable, test the parent synthesis contract.
 This layer should evaluate:
 
 - whether the parent keeps the two skills separate before synthesis
-- whether the parent classifies confirmation versus divergence correctly
+- whether the parent classifies confirmation versus cautionary overlays correctly
 - whether the parent handles unresolved disagreement with enough discipline
 - whether the parent improves action quality, confidence use, and `WAIT` behavior
 
@@ -649,7 +643,6 @@ The deterministic layer should handle:
 - MA posture
 - profile levels
 - breakout snapshots
-- conditional divergence diagnostics
 - structure-event extraction
 - red-flag generation
 - trade-path scaffolding
@@ -690,13 +683,6 @@ When MA context is included in the state packet, prefer:
 - whether they are acting as support, resistance, or noise
 - optional adaptive MA period only if justified
 - short reason why the adaptive MA is included for this symbol
-
-When divergence is included in the state packet, prefer:
-
-- the reason escalation was triggered
-- whether the escalation came from explicit user request or automatic context detection
-- only the modules actually used
-- a short note on what the basic read could not resolve without the deeper overlay
 
 Recommended output contract:
 
@@ -764,9 +750,6 @@ How is the plan improved once the core thesis already exists?
 - `OB`
 - `Breaker`
 - premium/discount
-- divergence
-
-Divergence belongs here as a conditional warning diagnostic.
 
 
 This is the cleanest human-readable model of the knowledge base.

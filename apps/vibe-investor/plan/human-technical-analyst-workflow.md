@@ -517,7 +517,6 @@ That order matters more than any single indicator.
 
 These are secondary tools:
 
-- divergence
 - `FVG`
 - `IFVG`
 - `OB`

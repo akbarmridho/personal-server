@@ -303,7 +303,6 @@ Minimum evidence:
 
 Rules:
 
-- use divergence only when activated by context
 - use imbalance only when activated by context
 - use adaptive MA only when activated by context
 - daily charting defaults to `hybrid` MA mode
@@ -426,7 +425,6 @@ Use the same workflow with additional overlays when a decision-relevant question
 
 Allowed overlays:
 
-- divergence
 - adaptive MA
 - imbalance
 

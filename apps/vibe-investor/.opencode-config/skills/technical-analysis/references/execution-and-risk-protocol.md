@@ -90,16 +90,6 @@ Allowed refinement sources:
 If refinement is unavailable, keep the base structural plan.
 Do not downgrade solely because optional refinement is absent.
 
-## Conditional Divergence Handling
-
-Divergence is a conditional diagnostic, not a baseline execution step.
-
-If divergence is active:
-
-1. `divergence_unconfirmed`: reduce aggressiveness and avoid adding size
-2. `divergence_confirmed` with structural weakness: tighten management or exit by structure
-3. no structural confirmation: remain reactive and avoid prediction
-
 ## Minimum Actionability Requirements
 
 An actionable plan requires all of the following:
