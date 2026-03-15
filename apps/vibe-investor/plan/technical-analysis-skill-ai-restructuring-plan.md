@@ -45,10 +45,6 @@ This means the skill no longer requires the AI to reconstruct the main workflow 
 - `enums-and-glossary.md`
 - `output-report-template.md`
 
-### Optional / non-core refs
-
-- `fair-value-gap-and-imbalances.md`
-
 ## What Still Needs Cleanup
 
 The remaining work is not structural centralization anymore.
@@ -69,7 +65,6 @@ Core should remain:
 The skill docs should now reflect the accepted direction:
 
 - adaptive MA is non-core unless later proven
-- `FVG / imbalance` is non-core unless later proven
 
 ### 3. Narrow Wyckoff
 

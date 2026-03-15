@@ -40,7 +40,6 @@ Completed:
   - `structure_events`
   - `trade_plan`
   - optional `vpvr_profile`
-  - optional `imbalance_fvg`
 - switched daily MA charting to:
   - `hybrid` default
   - `baseline` alternative
@@ -67,7 +66,7 @@ It is about doctrine freeze, venue realism, and separate-state expansion.
 
 Current doctrine direction says:
 
-- adaptive MA and `FVG / imbalance` are non-core unless justified later
+- adaptive MA is non-core unless justified later
 
 So the next script phase should not add more dependence on those layers.
 

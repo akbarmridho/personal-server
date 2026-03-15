@@ -27,7 +27,6 @@ This is the main doctrine stack that should be treated as authoritative.
 These are the main non-core candidates:
 
 - treat `adaptive MA` as non-core unless later backtests prove clear value
-- treat `FVG / imbalance` as non-core and optional only
 - do not let broad Wyckoff doctrine become the primary thesis engine
 
 Rule:

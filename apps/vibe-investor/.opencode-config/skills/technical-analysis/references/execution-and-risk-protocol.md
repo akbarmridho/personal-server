@@ -38,8 +38,8 @@ Portfolio-level sizing and allocation constraints are outside this file.
 - `R-RISK-08` Minimum expected reward-to-risk must be stated before execution.
 - `R-RISK-09` Add only when the trade is working and structure remains valid.
 - `R-RISK-10` Do not average down into structural failure.
-- `R-RISK-11` Optional overlays may refine execution only after the structural plan already exists.
-- `R-RISK-12` Optional overlays never override invalidation, stop, or risk discipline.
+- `R-RISK-11` Adaptive MA may refine execution only after the structural plan already exists.
+- `R-RISK-12` Adaptive MA never overrides invalidation, stop, or risk discipline.
 
 ## Level-To-Level Execution
 
@@ -83,9 +83,8 @@ Optional refinement is allowed only after the base structural plan is valid.
 
 Allowed refinement sources:
 
-- imbalance reaction zones such as `FVG` or `IFVG`
 - local acceptance or rejection behavior on `60m`
-- adaptive MA only when it is already an active overlay
+- adaptive MA when a valid period is available
 
 If refinement is unavailable, keep the base structural plan.
 Do not downgrade solely because optional refinement is absent.
@@ -123,9 +122,8 @@ If the result is `WAIT`, report why:
 - no clear path
 - insufficient reward-to-risk
 
-If an overlay is used for refinement, report:
+If adaptive MA is used for refinement, report:
 
-- overlay type
 - exact zone or condition used
 - what it changed in the execution plan
 

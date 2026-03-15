@@ -29,9 +29,8 @@ Activate only when relevant.
 3. `C3_POSTMORTEM` `POSTMORTEM` includes failure point and handling improvement.
 4. `C4_BREAKOUT` breakout setups include breakout quality and follow-through.
 5. `C5_VOLUME_PROFILE` VPVR usage includes POC, VAH, VAL, and acceptance state.
-6. `C6_IMBALANCE` imbalance usage includes type, bounds, mitigation state, and why it mattered.
-7. `C7_ADAPTIVE_MA` adaptive MA usage includes period, justification, and chart mode when charting is used.
-8. `C8_ESCALATION` `ESCALATED` runs include reason code, reason text, and overlays used.
+6. `C6_ADAPTIVE_MA` adaptive MA reporting includes period, justification, and chart mode when charting is used.
+7. `C7_ESCALATION` `ESCALATED` runs include reason code, reason text, and changed decision surface.
 
 ## Advisory Diagnostics
 
@@ -60,7 +59,6 @@ Activate only when relevant.
 ### Conditional Red Flags
 
 - `F15_VOLUME_CONFLUENCE_WEAK`
-- `F16_IMBALANCE_QUALITY_WEAK`
 - `F18_BREAKOUT_FILTER_WEAK`
 - `F19_MA_WHIPSAW`
 

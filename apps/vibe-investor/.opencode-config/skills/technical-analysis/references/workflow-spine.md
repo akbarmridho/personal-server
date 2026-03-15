@@ -293,7 +293,6 @@ Required outputs:
 - participation quality
 - value acceptance or rejection
 - breakout quality when relevant
-- overlay findings when active
 
 Minimum evidence:
 
@@ -303,8 +302,6 @@ Minimum evidence:
 
 Rules:
 
-- use imbalance only when activated by context
-- use adaptive MA only when activated by context
 - daily charting defaults to `hybrid` MA mode
 - `hybrid` chart mode keeps `21EMA`, `50SMA`, `200SMA`, and adds the chosen `SMA{n}`
 - `baseline` chart mode keeps only `21EMA`, `50SMA`, `200SMA`
@@ -421,12 +418,7 @@ Use the lean path with:
 
 ### `ESCALATED`
 
-Use the same workflow with additional overlays when a decision-relevant question remains unresolved.
-
-Allowed overlays:
-
-- adaptive MA
-- imbalance
+Use the same workflow with deeper diagnostic interpretation when a decision-relevant question remains unresolved.
 
 Adaptive MA charting:
 
@@ -447,7 +439,6 @@ Escalate only when the extra overlay can materially change:
 
 - user requested deeper analysis
 - user requested reversal or trap analysis
-- user requested imbalance analysis
 - postmortem requested forensic detail
 
 ### Context Escalation Triggers
@@ -467,9 +458,8 @@ Every escalated run must record:
 - trigger class: `explicit` or `context`
 - reason code
 - reason text
-- overlays used
-- what question the overlay was resolving
-- whether the overlay changed action, confidence, invalidation, or interpretation only
+- what question the deeper review was resolving
+- whether the deeper review changed action, confidence, invalidation, or interpretation only
 
 ## Reference Loading Policy
 
@@ -486,7 +476,6 @@ Load by need:
 - `LOCATION` -> `levels.md`, `volume-profile-and-volume-flow.md`, `liquidity-draw-and-sweep.md`
 - `SETUP`, `TRIGGER`, `CONFIRMATION` -> `setups-and-breakouts.md`
 - `RISK`, `DECISION`, `MONITORING` -> `execution-and-risk-protocol.md`
-- imbalance overlay -> `fair-value-gap-and-imbalances.md`
 - output only -> `output-report-template.md`
 
 ## Output Hand-Off

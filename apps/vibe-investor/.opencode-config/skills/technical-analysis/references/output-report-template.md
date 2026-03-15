@@ -65,11 +65,9 @@ Use this structure for every technical analysis output.
 - Monitoring triggers
 - Stale setup condition
 
-### G. Conditional Overlays
-- Adaptive MA note when used, including selected period and chart mode
-- Divergence note when used
-- Imbalance note when used
-- Escalation reason and overlays used when Depth Mode is ESCALATED
+### G. Adaptive MA And Escalation
+- Adaptive MA note when available, including selected period and chart mode
+- Escalation reason when Depth Mode is ESCALATED
 
 ### H. Evidence
 - Workflow Trace

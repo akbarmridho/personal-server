@@ -275,8 +275,6 @@ This is where many marginal ideas should be rejected.
 
 Only after the core plan exists should the analyst use:
 
-- `FVG`
-- `IFVG`
 - `OB`
 - `Breaker`
 - premium/discount
@@ -517,8 +515,6 @@ That order matters more than any single indicator.
 
 These are secondary tools:
 
-- `FVG`
-- `IFVG`
 - `OB`
 - `Breaker`
 - premium/discount

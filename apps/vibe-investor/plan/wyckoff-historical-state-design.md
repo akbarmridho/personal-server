@@ -2,74 +2,131 @@
 
 ## Purpose
 
-This document defines the future-state contract for historical Wyckoff context in the refactored technical-analysis system.
+This document is the source of truth for the separate Wyckoff historical-state module.
 
-It is intentionally a planning contract, not a final implementation spec.
+It defines:
 
-The goal is to make Wyckoff usable as structured context for AI and backtesting without pretending the full segmentation logic is already settled.
+- the role of Wyckoff in the system
+- what the module is allowed to output
+- how the output should be used
+- what implementation constraints must be respected
 
-## Scope
+It does not make Wyckoff the main technical-analysis engine.
 
-This document defines:
+## Fixed Role
 
-- what the historical Wyckoff output should look like
-- what minimum fields each segment should contain
-- how Wyckoff confidence should be represented
-- what the feature is allowed to do in the runtime system
-- what remains deferred for later implementation
+Wyckoff stays in the system, but only in a narrow role.
 
-It does not define:
+Accepted role:
 
-- the exact segmentation algorithm
-- exact score weights
-- every edge case for phase transitions
+- separate deterministic state module
+- slower context layer
+- cycle and phase history context
+- support for `S5` Wyckoff spring with reclaim
 
-## Core Requirement
+Rejected role:
 
-Do not reduce Wyckoff to a single current-state label.
+- main thesis engine
+- replacement for structure-first reading
+- broad narrative override over structure, location, trigger, or risk
 
-The future system should carry:
+## Module Boundary
 
-- current Wyckoff phase
-- a compact recent phase timeline
-- confidence for each segment
-- maturity or degradation context
+The Wyckoff engine must be separate from:
 
-This should support both:
+- `ta_context`
+- chart generation
+- ordinary trigger logic
 
-- machine-readable state for AI and backtesting
-- chart-readable historical phase bands for human review
+Required sequence:
 
-## Recommended Output Shape
+1. build Wyckoff state as its own deterministic artifact
+2. optionally summarize relevant current fields into TA later
+3. optionally render a Wyckoff chart artifact later
 
-The runtime state should include:
+Do not build Wyckoff history inside `build_ta_context.py`.
+Do not make chart generation responsible for inferring Wyckoff state.
 
+## Primary Design Reference
+
+Use:
+
+- `wyckoff-research-gpt.md` as the primary design reference
+
+Treat only as secondary support:
+
+- `wyckoff-research-gemini.md`
+
+Reason:
+
+- the GPT research is more disciplined on determinism, right-edge behavior, delayed confirmation, and backtest integrity
+- the Gemini research is useful for event ideas, but too expansive to be the canonical contract
+
+## Core Design Principle
+
+The module should be deterministic, right-edge-safe, and backtest-safe.
+
+Required properties:
+
+- same OHLCV input always produces the same Wyckoff output
+- no future bars may influence the state at time `t`
+- any delayed confirmation must be treated explicitly, not hidden
+
+If an event depends on pivot confirmation, the engine must represent:
+
+- event time
+- confirmation time
+
+or use a clear delayed-state policy that is honest in walk-forward replay.
+
+## Recommended Model
+
+Use a two-layer model:
+
+### 1. Cycle State
+
+Always available:
+
+- `accumulation`
+- `markup`
+- `distribution`
+- `markdown`
+- `unclear`
+
+This is the coarse market-cycle read.
+
+### 2. Schematic Phase
+
+Optional and only when evidence is strong enough:
+
+- `A`
+- `B`
+- `C`
+- `D`
+- `E`
+
+This is the finer trading-range phase read.
+
+Implementation rule:
+
+- the engine may output strong cycle state with weak or absent schematic phase
+- do not force full schematic labeling when evidence is not good enough
+
+## Output Contract
+
+The module should emit a standalone Wyckoff state object.
+
+Top-level fields:
+
+- `as_of_date`
+- `timeframe`
+- `current_cycle_phase`
 - `current_wyckoff_phase`
-- `wyckoff_history`
 - `wyckoff_current_confidence`
 - `wyckoff_current_maturity`
+- `wyckoff_history`
 
-The history should keep only the most recent useful context:
-
-- prefer the last `3` to `8` segments
-- do not send full-symbol history into the runtime packet
-
-## Minimum Segment Schema
-
-Each historical segment should contain:
-
-- `phase`
-- `start_ts`
-- `end_ts`
-- `duration_bars`
-- `price_low`
-- `price_high`
-- `price_change_pct`
-- `confidence`
-- `maturity`
-- `trend_strength`
-
-### `phase`
+### `current_cycle_phase`
 
 Allowed values:
 
@@ -79,7 +136,39 @@ Allowed values:
 - `markdown`
 - `unclear`
 
-### `maturity`
+### `current_wyckoff_phase`
+
+Allowed values:
+
+- `A`
+- `B`
+- `C`
+- `D`
+- `E`
+- `unclear`
+- `not_applicable`
+
+Rule:
+
+- use `not_applicable` when only broad cycle state is valid
+- use `unclear` when a schematic read is attempted but not reliable enough
+
+### `wyckoff_current_confidence`
+
+Type:
+
+- integer `0` to `100`
+
+Meaning:
+
+- confidence in the current Wyckoff interpretation as context
+
+It is not:
+
+- a trade trigger
+- a permission to override the main TA stack
+
+### `wyckoff_current_maturity`
 
 Allowed values:
 
@@ -88,126 +177,214 @@ Allowed values:
 - `mature`
 - `degrading`
 
-### `trend_strength`
+Meaning:
 
-Allowed values:
+- how developed the current state is
 
-- `weak`
-- `moderate`
-- `strong`
+## `wyckoff_history`
 
-## Optional Later Fields
+`wyckoff_history` should be a compact recent segment history.
 
-These may be added later if they prove useful:
+Keep:
 
+- the most recent `3` to `8` segments
+
+Do not keep:
+
+- full-symbol history in the live runtime payload
+
+Each segment should contain:
+
+- `cycle_phase`
+- `schematic_phase`
+- `start_ts`
+- `end_ts`
+- `start_index`
+- `end_index`
+- `duration_bars`
+- `price_low`
+- `price_high`
+- `price_change_pct`
+- `confidence`
+- `maturity`
 - `transition_reason`
-- `supporting_evidence`
-- `volume_character`
-- `value_area_relation`
-- `range_quality`
+- `invalidation_reason`
 
-These are not required in the first implementation.
+### Segment field rules
+
+`cycle_phase`:
+
+- `accumulation`
+- `markup`
+- `distribution`
+- `markdown`
+- `unclear`
+
+`schematic_phase`:
+
+- `A`
+- `B`
+- `C`
+- `D`
+- `E`
+- `unclear`
+- `not_applicable`
+
+`transition_reason`:
+
+- short machine-readable reason for why this segment began
+
+Examples:
+
+- `sc_ar_confirmed`
+- `range_building`
+- `spring_confirmed`
+- `sos_confirmed`
+- `utad_confirmed`
+- `breakout_acceptance`
+- `breakdown_acceptance`
+
+`invalidation_reason`:
+
+- omit when not needed
+- include only when a segment ended because the expected state failed
+
+Examples:
+
+- `range_failed`
+- `timeout_no_progress`
+- `contradictory_break`
+- `confidence_collapsed`
+
+## Event Log Requirement
+
+The engine should internally track event history even if the first public output keeps it compact.
+
+Minimum internal event types:
+
+- `SC`
+- `BC`
+- `AR`
+- `ST`
+- `SPRING`
+- `UT`
+- `UTAD`
+- `SOS`
+- `SOW`
+- `LPS`
+- `LPSY`
+
+Recommended public rule for first version:
+
+- keep event detail internal or expose only through `transition_reason`
+- do not overstuff the first runtime payload
 
 ## Confidence Model
 
-Use a simple bounded score:
+The exact scoring weights can evolve later, but the evidence families are fixed.
 
-- `0` to `100`
-
-Confidence means:
-
-- how well the current evidence supports the assigned phase label
-
-It does not mean:
-
-- certainty that the market is objectively in that phase
-- permission to trade by itself
-
-### Confidence Bands
-
-- `0-39` = `weak`
-- `40-69` = `moderate`
-- `70-100` = `strong`
-
-### Practical Interpretation Guide
-
-Use confidence as a support-strength guide, not a trading trigger:
-
-- below `60` usually means the phase is still forming
-- `60-74` is becoming usable as contextual support
-- `75+` is a strong contextual read
-
-This helps distinguish a fresh transition that is still developing from a mature phase that deserves more trust.
-
-## Evidence Families For Confidence
-
-The exact weights are deferred, but the confidence model should draw from these evidence families:
+Confidence should come from:
 
 - structure coherence
-- range behavior or phase geometry
+- trading-range quality
+- event sequence quality
 - breakout or rejection quality
 - volume character
 - duration adequacy
-- transition consistency with prior segment
+- consistency with prior segment
 
-Phase-transition note:
+Confidence bands:
 
-- Wyckoff phases should not be treated as one-bar or one-day flips
-- transitions usually build over multiple bars and should be modeled as developing states before becoming solid labels
+- `0-39`: weak
+- `40-69`: moderate
+- `70-100`: strong
 
-## Runtime Role
+Practical rule:
 
-Wyckoff historical state should be used as context for:
+- below `60` means context is forming and should not be trusted heavily
+- above `70` is usable contextual support
 
-- transition sequence reading
-- current phase maturity
-- whether the current phase is fresh, mature, or degrading
-- whether the current phase fits the recent cycle
+## Maturity Model
 
-It should not:
+Maturity is separate from confidence.
 
-- override structure, location, trigger, and risk by itself
-- become a standalone trade trigger
+Examples:
 
-## Chart Artifact
+- `fresh`: recently transitioned and still proving itself
+- `maturing`: developing constructively
+- `mature`: well-developed and stable
+- `degrading`: losing coherence or failing progression
 
-The target human-facing artifact should include:
+This matters because a fresh high-confidence transition should still be treated differently from a mature established state.
+
+## Runtime Use Rules
+
+Wyckoff may support:
+
+- cycle interpretation
+- recent phase-sequence interpretation
+- transition maturity
+- contextual support for `S5`
+
+Wyckoff may not:
+
+- create a trade by itself
+- overrule structure
+- overrule location
+- overrule trigger / confirmation
+- overrule invalidation / risk
+
+For the main TA skill, the intended bridge is:
+
+- current cycle / phase context
+- `S5` spring with reclaim support
+
+Not:
+
+- a broad override layer across every setup family
+
+## Chart Artifact Direction
+
+The target chart artifact is separate from the state module.
+
+Later chart output should include:
 
 - historical phase bands over price
-- a compact phase table
+- current phase highlight
+- compact recent segment table
 
-The phase table should show:
-
-- phase
-- period
-- duration
-- price range
-- price change
-- trend strength
-- confidence
-
-The current phase should be highlighted clearly so the analyst can see:
-
-- the active phase now
-- the recent sequence into that phase
-- whether confidence is building or fading
+The chart should be rendered from the separate Wyckoff state output.
 
 ## Deferred Items
 
-The following remain intentionally deferred:
+These are intentionally deferred:
 
-- exact segmentation algorithm
-- exact transition-detection rules
-- exact confidence weighting model
-- edge-case handling for overlapping or ambiguous segments
-- exact chart-rendering design details
+- exact segmentation algorithm details
+- exact score weights
+- exact timeout thresholds
+- exact tie-break rules for conflicting event interpretations
+- final chart design
 
-These should be settled only after the broader workflow and policy contracts are stable.
+These can change later without changing the role contract in this file.
 
-## Recommended Implementation Order
+## Implementation Order
 
-1. lock the segment schema
-2. lock the confidence bands
-3. emit a simple recent history in the state packet
-4. add historical phase chart artifact
-5. refine segmentation and scoring later using real review feedback
+1. lock this role and output contract
+2. implement deterministic cycle-state output
+3. add compact recent history segments
+4. add optional schematic phase labeling when reliable
+5. add chart artifact later
+6. only then refine scoring and edge cases
+
+## First Implementation Standard
+
+The first implementation is good enough when:
+
+- it is deterministic
+- it is right-edge-safe
+- it emits current cycle state
+- it emits current maturity and confidence
+- it emits compact recent history
+- it helps `S5` context without polluting the main TA contract
+
+It does not need to solve full textbook Wyckoff perfectly on the first pass.

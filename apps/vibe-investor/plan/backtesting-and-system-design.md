@@ -2,10 +2,9 @@
 
 ## Purpose
 
-This document describes how to design a backtesting and evaluation system for the technical-analysis skill while keeping the AI in the loop.
+This document is the source of truth for how to backtest and evaluate the technical-analysis skill while keeping the AI in the loop.
 
-This is a future-state design note for the planned refactor.
-It describes the intended evaluation architecture, not a claim that the current live skill already conforms to this design.
+It defines the required replay, execution, and comparison contracts for future implementation.
 
 The goal is not to remove LLM reasoning.
 
@@ -33,14 +32,151 @@ The LLM layer interprets that packet, handles conflict resolution, and chooses a
 
 ## Required Backtest Contracts
 
-Before implementation, the backtest design should define four explicit contracts:
+Before implementation, the backtest design must define these explicit contracts:
 
 - a field-level state packet schema, not only prose
-- replay granularity rules for daily and `60m`
+- IDX replay and session-handling rules
 - concrete execution simulator assumptions
+- mandatory corporate-action handling
+- `60m` liquidity gating
 - evaluator baseline bands for what counts as acceptable behavior
+- baseline strategy definitions for comparison
 
-These are still open design items and should not remain implicit.
+These contracts should not remain implicit.
+
+## IDX Replay Contract
+
+Replay and execution must model IDX market structure directly.
+
+### Daily Replay
+
+Daily replay owns:
+
+- thesis direction
+- regime and structure state
+- key support and resistance
+- main setup classification
+- main risk map
+
+Daily replay is the minimum viable replay path.
+
+### `60m` Replay
+
+`60m` replay is allowed only as a timing layer inside an already-existing daily thesis or watch state.
+
+`60m` replay owns:
+
+- trigger timing
+- acceptance or rejection around active levels
+- follow-through quality
+- local timing veto
+
+`60m` replay must not create an independent thesis against the daily context.
+
+### Session Handling
+
+For IDX backtests, the replay layer must explicitly model:
+
+- pre-open and opening auction effects
+- lunch-break discontinuity
+- late-session and pre-close distortion
+- closing auction effects
+- watchlist or call-auction symbols as a separate category
+
+Implementation rule:
+
+- continuous-session logic is the default for normal intraday timing
+- auction-distorted bars should not be treated as ordinary trigger bars
+- if a symbol is on a board or condition where call-auction behavior dominates, `60m` timing authority should be disabled or the symbol excluded from normal intraday tests
+
+### Bar Validity Rule
+
+The backtest engine should track whether a `60m` bar is:
+
+- continuous-session dominant
+- auction-distorted
+- structurally incomplete due to lunch/session split
+
+Only continuous-session-dominant bars should be trusted for normal trigger confirmation.
+
+## IDX Execution Contract
+
+### ARB / ARA Awareness
+
+Execution assumptions must respect exchange price-limit behavior.
+
+The simulator must model:
+
+- downside exit stress when price moves into ARB-constrained behavior
+- upside reward truncation or path distortion when price approaches ARA limits
+- gap-like invalidation behavior when a stop would require trading through a limit state
+
+Implementation rule:
+
+- a stop is not assumed frictionless just because the invalidation level was crossed
+- if an exit path is blocked or materially distorted by ARB behavior, the backtest should record that as constrained execution, not ideal execution
+- if a reward path depends on unrealistic unconstrained continuation through ARA behavior, the backtest should not credit it as ordinary clean execution
+
+### Default Fill Assumptions
+
+Until a more detailed simulator exists, use these default assumptions:
+
+- entries: next valid bar open after signal
+- stops: next valid executable price after invalidation, not the theoretical invalidation print
+- targets: first valid touch through the target level on an executable bar
+- stale setups: expire after the configured stale condition without assuming discretionary rescue
+
+### Required Execution Outputs
+
+Every simulated trade should record:
+
+- signal timestamp
+- assumed entry timestamp
+- assumed fill price
+- whether the fill was limit-constrained
+- stop execution result
+- target execution result
+- stale-expiry result
+- realized path notes for constrained exits
+
+## Corporate-Action Contract
+
+Corporate-action handling is mandatory for backtests.
+
+`corp_actions[]` should not be optional in any long-window replay that is used for evaluation.
+
+The backtest layer must explicitly handle:
+
+- stock splits
+- reverse splits
+- ex-dividend dates
+- other events that materially change price continuity or reference pricing
+
+Implementation rule:
+
+- structural replay and return measurement must remain internally consistent across corporate-action windows
+- ex-dividend windows should not be treated as ordinary structural breaks without corporate-action-aware handling
+- long-horizon performance claims should not be made from replay that ignores corporate-action effects
+
+Backtest output should record when a signal or invalidation occurred inside a corporate-action-aware window.
+
+## `60m` Liquidity Gate
+
+`60m` timing is not always valid on IDX names.
+
+The backtest contract must define a minimum tradability gate before `60m` is allowed to have tactical authority.
+
+At minimum, evaluate:
+
+- continuity of intraday bars
+- minimum recent intraday activity
+- whether bars are mostly meaningful candles instead of sparse prints
+- whether the symbol is tradable enough for trigger and follow-through interpretation
+
+Fallback rule:
+
+- if `60m` liquidity quality is below threshold, disable `60m` timing authority
+- the daily thesis may remain valid, but the action should stay daily-driven or defer to `WAIT`
 
 ## Two Evaluation Modes
 
@@ -106,6 +242,88 @@ Implementation rule:
 - record where the full skill wins, loses, or only ties the simpler baselines
 - treat this as a required comparison before claiming that the full skill complexity is justified
 
+## Baseline Strategy Definitions
+
+The following baseline systems are mandatory comparison systems.
+
+They should be implemented with no optional overlays and no discretionary rescue logic.
+
+### 1. Simple Trend Plus Pullback
+
+Intent:
+
+- participate in intact uptrends through constructive pullbacks
+
+Rules:
+
+- thesis condition:
+  - daily trend bias is bullish
+  - price is above `SMA200`
+  - `EMA21` is above `SMA50` or both are rising
+- setup condition:
+  - price pulls back toward `EMA21`, `SMA50`, or nearest bullish support zone
+  - pullback does not break the most recent valid swing low
+- trigger condition:
+  - bullish daily reclaim or bullish `60m` hold/reclaim if `60m` timing is allowed
+- invalidation:
+  - below the active pullback support or below the most recent constructive swing low
+- target:
+  - nearest resistance zone, then next resistance ladder
+- no trade:
+  - mid-range location
+  - broken daily structure
+  - insufficient reward-to-risk
+
+### 2. Simple Breakout Plus Volume
+
+Intent:
+
+- participate in clean continuation breakouts
+
+Rules:
+
+- thesis condition:
+  - daily structure is intact or tightening under resistance
+  - breakout level is clearly defined
+- setup condition:
+  - price closes through resistance
+  - breakout bar shows required volume expansion relative to recent baseline
+- trigger condition:
+  - breakout close or breakout retest hold
+- invalidation:
+  - back inside the broken level or below the breakout base low
+- target:
+  - next resistance zone or measured next-zone ladder
+- no trade:
+  - weak breakout volume
+  - no clear next-zone path
+  - immediate failed breakout behavior
+
+### 3. Simple Range-Reclaim
+
+Intent:
+
+- trade clean range-edge recovery without broader doctrine layering
+
+Rules:
+
+- thesis condition:
+  - daily state is balance or range rotation
+  - a clear range edge is present
+- setup condition:
+  - price sweeps or dips through a support edge and reclaims it
+  - or price rejects near range support without a full breakdown
+- trigger condition:
+  - reclaim close or immediate follow-through hold from the range edge
+- invalidation:
+  - below the swept or reclaimed edge
+- target:
+  - range midpoint first if needed, then opposite range edge
+- no trade:
+  - entry in the middle of the range
+  - weak reclaim
+  - unclear range boundaries
+
 ## Planned Analysis Modes Inside Technical Analysis
 
 Separate from evaluation modes, the refactored technical-analysis system should expose two analysis modes:
@@ -152,17 +370,18 @@ Key requirement:
 
 - no lookahead leakage
 
-Replay granularity should be split explicitly:
+Replay granularity is split explicitly:
 
 - `daily replay` for thesis quality, state, location, setup, and main risk map
 - `60m replay` for trigger, confirmation, and timing quality once a daily thesis or watch condition exists
 
-Recommended rule:
+Required rule:
 
 - do not run `60m` replay as an independent thesis engine
 - use it only inside the daily-owned thesis context
 - if testing only thesis quality, daily replay alone is sufficient
 - if testing timing quality, pair daily replay with `60m` replay inside trigger windows
+- if `60m` liquidity quality is below threshold, disable `60m` tactical authority for that symbol-window
 
 ### Layer 2. Deterministic Market-State Builder
 
@@ -183,7 +402,6 @@ It should summarize:
 - liquidity draw map
 - breakout state
 - setup candidates
-- imbalance context only when escalation criteria are met
 - red flags
 - prior thesis snapshot when applicable
 
@@ -233,7 +451,7 @@ Minimum schema groups should include:
 - setup candidates
 - trigger and confirmation state
 - risk map
-- overlay states when active
+- adaptive MA state when available
 - red flags
 - prior-thesis snapshot when applicable
 
@@ -307,19 +525,16 @@ This layer answers:
 - what happened after the decision?
 - how did the plan behave?
 
-Execution assumptions should be made concrete before implementation.
+Execution assumptions are defined by this document and should not be left implicit.
 
-At minimum define:
+At minimum enforce:
 
-- entry timing assumption, for example same-close, next-open, or next-bar-open
-- stop execution rule
-- target execution rule
-- gap-through-stop handling
-- slippage model
-- whether partial fills or partial exits are simulated
-- stale-setup expiry rule
-
-For IDX-focused testing, these assumptions should be explicit rather than left to interpretation.
+- entries use next valid bar open
+- stop execution uses the next valid executable price after invalidation
+- target execution uses first valid executable touch
+- gap-through-stop cases are recorded as constrained execution
+- stale-setup expiry is explicit
+- any ARB / ARA distortion is recorded as execution-path context
 
 ### Layer 5. Evaluator
 
@@ -429,11 +644,11 @@ This is needed so escalation behavior can be audited rather than hidden inside t
 
 ## Open Design Items Before Backtest Implementation
 
-The following should be settled before implementation work starts:
+The following still need implementation detail, but not a new contract decision:
 
 1. concrete state-packet schema
-2. replay granularity split between daily and `60m`
-3. execution simulator assumptions
+2. exact numeric `60m` liquidity thresholds
+3. exact slippage and constrained-fill heuristics
 4. evaluator baseline bands
 
 The following can stay later-stage:
@@ -745,8 +960,6 @@ Where is the thesis wrong and what is the path?
 
 How is the plan improved once the core thesis already exists?
 
-- `FVG`
-- `IFVG`
 - `OB`
 - `Breaker`
 - premium/discount

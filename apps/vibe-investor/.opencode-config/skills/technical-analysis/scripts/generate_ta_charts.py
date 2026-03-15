@@ -24,9 +24,7 @@ from ta_common import (
     anomaly_overrides,
     choose_adaptive_ma,
     derive_levels,
-    detect_imbalance_zones,
     detect_structure_events,
-    infer_ifvg_zones,
     load_ohlcv,
     select_nearest_levels,
 )
@@ -67,12 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--modules",
         default="core",
-        help="Comma-separated modules: core,vpvr,imbalance or all.",
-    )
-    parser.add_argument(
-        "--overlays",
-        default="",
-        help="Comma-separated overlays: adaptive_ma,imbalance.",
+        help="Comma-separated modules: core,vpvr or all.",
     )
     parser.add_argument(
         "--ma-mode",
@@ -96,7 +89,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_modules(raw: str) -> set[str]:
-    CHART_MODULES = {"core", "vpvr", "imbalance"}
+    CHART_MODULES = {"core", "vpvr"}
     items = {x.strip().lower() for x in raw.split(",") if x.strip()}
     if not items:
         items = {"core"}
@@ -104,13 +97,6 @@ def parse_modules(raw: str) -> set[str]:
         return set(CHART_MODULES)
     items &= CHART_MODULES
     items.add("core")
-    return items
-
-
-def parse_overlays(raw: str, modules: set[str]) -> set[str]:
-    items = {x.strip().lower() for x in raw.split(",") if x.strip()}
-    if "imbalance" in modules:
-        items.add("imbalance")
     return items
 
 
@@ -430,7 +416,6 @@ def _focus_lookback_from_anchors(
 def compute_dynamic_daily_lookback(
     df_daily: pd.DataFrame,
     events: list[dict[str, Any]],
-    imbalance_zones: list[dict[str, Any]],
     max_bars: int,
 ) -> int:
     anchors: list[pd.Timestamp] = []
@@ -441,15 +426,6 @@ def compute_dynamic_daily_lookback(
         dt = pd.to_datetime(str(raw_dt), errors="coerce")
         if pd.notna(dt):
             anchors.append(pd.Timestamp(dt))
-    for z in imbalance_zones[-10:]:
-        raw_z0 = z.get("start_dt")
-        raw_z1 = z.get("end_dt")
-        z0 = pd.to_datetime(str(raw_z0), errors="coerce") if raw_z0 is not None else pd.NaT
-        z1 = pd.to_datetime(str(raw_z1), errors="coerce") if raw_z1 is not None else pd.NaT
-        if pd.notna(z0):
-            anchors.append(pd.Timestamp(z0))
-        if pd.notna(z1):
-            anchors.append(pd.Timestamp(z1))
     return _focus_lookback_from_anchors(
         df_daily, anchors, max_bars=max_bars, min_bars=110, pre_buffer=26,
     )
@@ -899,123 +875,10 @@ def plot_vpvr_profile(
     plt.close(fig)
 
 
-def plot_imbalance_fvg(
-    df_daily: pd.DataFrame,
-    zones: list[dict[str, Any]],
-    path: Path,
-    symbol: str,
-    lookback: int,
-) -> None:
-    x = df_daily.tail(lookback).copy().reset_index(drop=True)
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(),
-        title=f"{symbol} FVG/Imbalance Context",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
-    ax = axes[0]
-    min_dt = x["datetime"].iloc[0]
-    max_dt = x["datetime"].iloc[-1]
-    plotted_count = 0
-
-    candidates: list[dict[str, Any]] = []
-    for zone in zones[-24:]:
-        x0 = max(pd.Timestamp(zone["start_dt"]), min_dt)
-        x1 = min(pd.Timestamp(zone["end_dt"]), max_dt)
-        if x1 <= min_dt or x0 >= max_dt:
-            continue
-        zone_type = str(zone.get("type", "FVG"))
-        if zone_type == "IFVG":
-            color = "#8e44ad"
-        elif zone_type == "OPENING_GAP":
-            color = "#1f77b4"
-        else:
-            color = "#2ca02c" if zone["direction"] == "bullish" else "#d62728"
-        s_idx = x[x["datetime"] >= x0].index
-        e_idx = x[x["datetime"] <= x1].index
-        if len(s_idx) == 0 or len(e_idx) == 0:
-            continue
-        start_idx = int(s_idx[0])
-        end_idx = int(e_idx[-1])
-        if end_idx < start_idx:
-            continue
-        end_idx = min(max(end_idx, start_idx + 7), len(x) - 1)
-        zone_low = float(zone["low"])
-        zone_high = float(zone["high"])
-        if zone_high <= zone_low:
-            continue
-        type_weight = {"IFVG": 1.25, "FVG": 1.15, "OPENING_GAP": 0.95}.get(
-            zone_type, 1.0
-        )
-        recency = (end_idx + 1) / max(len(x), 1)
-        score = (zone_high - zone_low) * type_weight * (0.65 + recency)
-        candidates.append({
-            "start_idx": start_idx, "end_idx": end_idx,
-            "zone_low": zone_low, "zone_high": zone_high,
-            "ce": float(zone["ce"]), "type": zone_type,
-            "direction": str(zone.get("direction", "bullish")),
-            "color": color, "score": score,
-        })
-
-    if candidates:
-        selected = sorted(candidates, key=lambda z: float(z["score"]), reverse=True)[:9]
-        selected = sorted(selected, key=lambda z: int(z["start_idx"]))
-        for rank, z in enumerate(selected):
-            alpha = 0.56 if rank < 3 else (0.46 if rank < 6 else 0.36)
-            rect = Rectangle(
-                (float(z["start_idx"]), float(z["zone_low"])),
-                max(float(z["end_idx"] - z["start_idx"]), 1.0),
-                float(z["zone_high"] - z["zone_low"]),
-                facecolor=str(z["color"]), edgecolor=str(z["color"]),
-                linewidth=2.0, alpha=alpha, zorder=0,
-            )
-            ax.add_patch(rect)
-            ax.hlines(
-                float(z["ce"]), int(z["start_idx"]), int(z["end_idx"]),
-                colors=str(z["color"]), linewidth=2.0, linestyles="--", zorder=1,
-            )
-            if rank < 6:
-                short = {"OPENING_GAP": "GAP"}.get(str(z["type"]), str(z["type"]))
-                arrow = "↑" if str(z["direction"]).lower() == "bullish" else "↓"
-                ax.text(
-                    float(z["end_idx"]) + 0.6, float(z["ce"]), f"{short}{arrow}",
-                    fontsize=8, color="#111111", va="center",
-                    bbox={"facecolor": "white", "alpha": 0.72, "edgecolor": "#d0d0d0"},
-                )
-        plotted_count = len(selected)
-        ax.set_xlim(-0.5, len(x) + 3)
-
-    ax.legend(
-        handles=[
-            Rectangle((0, 0), 1, 1, facecolor="#2ca02c", edgecolor="#2ca02c", alpha=0.35, label="Bullish FVG"),
-            Rectangle((0, 0), 1, 1, facecolor="#d62728", edgecolor="#d62728", alpha=0.35, label="Bearish FVG"),
-            Rectangle((0, 0), 1, 1, facecolor="#8e44ad", edgecolor="#8e44ad", alpha=0.35, label="IFVG"),
-            Rectangle((0, 0), 1, 1, facecolor="#1f77b4", edgecolor="#1f77b4", alpha=0.35, label="Opening Gap"),
-        ],
-        loc="upper left", fontsize=8, ncol=2, framealpha=0.9,
-    )
-    if plotted_count == 0:
-        ax.text(
-            1.02, 1.15, "No imbalance zones inside the current plotted window.",
-            transform=ax.transAxes, ha="right", va="top", fontsize=9,
-            bbox={"facecolor": "white", "alpha": 0.82, "edgecolor": "#d0d0d0"},
-        )
-    else:
-        ax.text(
-            1.02, 1.15, f"Plotted zones: {plotted_count}",
-            transform=ax.transAxes, ha="right", va="top", fontsize=9,
-            bbox={"facecolor": "white", "alpha": 0.82, "edgecolor": "#d0d0d0"},
-        )
-
-    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
-    plt.close(fig)
-
-
 def main() -> None:
     args = parse_args()
     symbol = args.symbol.strip().upper()
     modules = parse_modules(args.modules)
-    overlays = parse_overlays(args.overlays, modules)
 
     input_path = Path(args.input).expanduser().resolve()
     outdir = Path(args.outdir).expanduser().resolve()
@@ -1027,12 +890,11 @@ def main() -> None:
     daily = add_volume_features(daily)
     zones = derive_levels(daily)
     events = detect_structure_events(daily)
-    imbalance_zones_all = detect_imbalance_zones(daily, dt_key="start_dt")
     ma_config = build_daily_ma_config(daily, args.ma_mode)
 
     if args.range_mode == "auto":
         daily_lookback = compute_dynamic_daily_lookback(
-            daily, events, imbalance_zones_all, max_bars=args.daily_lookback,
+            daily, events, max_bars=args.daily_lookback,
         )
         intraday_lookback = len(intraday)
     else:
@@ -1044,7 +906,6 @@ def main() -> None:
         intraday_lookback = len(intraday)
     else:
         intraday_lookback = min(len(intraday), max(30, intraday_lookback))
-    imbalance_lookback = min(len(daily), max(80, min(daily_lookback, 130)))
 
     last_close = float(daily["close"].iloc[-1])
     draws = nearest_draws(last_close, zones)
@@ -1078,26 +939,16 @@ def main() -> None:
         plot_vpvr_profile(daily, vpvr, p_vpvr, symbol)
         generated["vpvr_profile"] = str(p_vpvr)
 
-    imbalance_zones = None
-    if "imbalance" in modules:
-        imbalance_zones = imbalance_zones_all
-        p_fvg = outdir / f"{symbol}_imbalance_fvg.png"
-        plot_imbalance_fvg(daily, imbalance_zones, p_fvg, symbol, imbalance_lookback)
-        generated["imbalance_fvg"] = str(p_fvg)
-
     range_selection = {
         "mode": args.range_mode,
         "daily_lookback_used": int(daily_lookback),
         "intraday_lookback_used": int(intraday_lookback),
     }
-    if "imbalance" in modules:
-        range_selection["imbalance_lookback_used"] = int(imbalance_lookback)
 
     evidence = {
         "symbol": symbol,
         "input": str(input_path),
         "modules": sorted(modules),
-        "overlays": sorted(overlays),
         "ma_config": ma_config,
         "artifacts": generated,
         "range_selection": range_selection,
@@ -1134,15 +985,6 @@ def main() -> None:
             "poc": vpvr["poc"], "vah": vpvr["vah"], "val": vpvr["val"],
             "hvn_top3": vpvr["hvn_top3"], "lvn_top3": vpvr["lvn_top3"],
         }
-    if imbalance_zones is not None:
-        evidence["imbalance_zones"] = [
-            {
-                "type": z.get("type", "FVG"), "direction": z["direction"],
-                "low": z["low"], "high": z["high"], "ce": z["ce"],
-                "start_dt": str(z["start_dt"]), "end_dt": str(z["end_dt"]),
-            }
-            for z in imbalance_zones
-        ]
 
     evidence_path = outdir / f"{symbol}_chart_evidence.json"
     with evidence_path.open("w", encoding="utf-8") as f:

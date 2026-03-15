@@ -6,24 +6,24 @@ Standardize liquidity analysis so direction, entry timing, and targets are frame
 
 ## Core Principle
 
-- Price seeks executable liquidity.
-- Obvious stop clusters become liquidity pools.
+- Obvious stop clusters often become reaction zones or path magnets.
+- Repeatedly visible swing extremes often act as liquidity pools.
 - Sweep outcome (acceptance or rejection) determines next directional draw.
 
 ## Liquidity Pools
 
 - swing highs and swing lows
-- equal highs and equal lows (EQH/EQL)
+- clustered equal highs and equal lows
 - trendline stop clusters
 - range boundaries (external liquidity)
-- internal inefficiencies (FVG/IFVG) as internal liquidity
+- internal reaction zones inside the active delivery path
 
 ## Internal vs External Liquidity
 
 - `external_liquidity`: major range highs/lows and structural swing extremes.
-- `internal_liquidity`: inefficiencies inside delivery path, primarily FVG/IFVG.
+- `internal_liquidity`: nearer reaction zones inside the active path.
 
-Alternation model (base expectation, not certainty):
+Alternation model (heuristic, not certainty):
 
 1. after external sweep, next draw often shifts to internal liquidity
 2. after internal tag/mitigation, next draw often shifts to opposing external liquidity
@@ -41,7 +41,7 @@ Alternation model (base expectation, not certainty):
 
 1. define HTF liquidity objective (which pool is likely to be taken)
 2. wait for HTF sweep signal (take and reject or accept)
-3. shift to LTF for entry trigger (structure break, reclaim, or internal liquidity reaction)
+3. shift to LTF for entry trigger (structure break, reclaim, or local reaction)
 4. place stop beyond sweep extreme or structural invalidation
 5. target next mapped liquidity pool
 

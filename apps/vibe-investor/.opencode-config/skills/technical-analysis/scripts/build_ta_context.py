@@ -22,15 +22,11 @@ from ta_common import (
     choose_adaptive_ma,
     cluster_levels,
     derive_levels,
-    detect_imbalance_zones,
     detect_structure_events,
     detect_trendline_levels,
     detect_wyckoff_spring,
-    fvg_bounds,
-    infer_ifvg_zones,
     liquidity_draws,
     liquidity_path_after_event,
-    mitigation_state,
     pick_draw_targets,
     profile_from_range,
     structure_status,
@@ -56,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--modules",
         default="core",
-        help="Comma-separated modules: core,vpvr,imbalance,breakout or all.",
+        help="Comma-separated modules: core,vpvr,breakout or all.",
     )
     parser.add_argument(
         "--purpose-mode",
@@ -81,11 +77,6 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.2,
         help="Minimum reward-to-risk required for an actionable plan.",
-    )
-    parser.add_argument(
-        "--overlays",
-        default="",
-        help="Comma-separated overlays: adaptive_ma,imbalance.",
     )
     parser.add_argument(
         "--prior-thesis-json",
@@ -121,16 +112,9 @@ def parse_modules(raw: str) -> set[str]:
     if not out:
         out = {"core"}
     if "all" in out:
-        return {"core", "vpvr", "imbalance", "breakout"}
+        return {"core", "vpvr", "breakout"}
     out.add("core")
     return out
-
-
-def parse_overlays(raw: str, modules: set[str]) -> set[str]:
-    items = {x.strip().lower() for x in raw.split(",") if x.strip()}
-    if "imbalance" in modules:
-        items.add("imbalance")
-    return items
 
 
 # ---------------------------------------------------------------------------
@@ -1105,7 +1089,6 @@ def enrich_red_flags(
     modules: set[str],
     liquidity: dict[str, Any],
     vpvr: dict[str, Any] | None,
-    imbalance: dict[str, Any] | None,
     breakout: dict[str, Any] | None,
 ) -> dict[str, Any]:
     flags: list[dict[str, Any]] = [dict(x) for x in red_flags.get("flags", [])]
@@ -1190,29 +1173,6 @@ def enrich_red_flags(
                 "volume_profile_context_lacks_core_levels",
             )
 
-    if "imbalance" in modules and imbalance is not None:
-        zones = imbalance.get("zones", []) if isinstance(imbalance, dict) else []
-        if len(zones) == 0:
-            add_flag(
-                flags,
-                "F16_IMBALANCE_QUALITY_WEAK",
-                "MEDIUM",
-                "imbalance_module_selected_without_active_zones",
-            )
-        else:
-            has_ce = all("ce" in z and z.get("ce") is not None for z in zones)
-            fresh = any(
-                z.get("mitigation_state") in {"unmitigated", "partially_mitigated"}
-                for z in zones
-            )
-            if not has_ce or not fresh:
-                add_flag(
-                    flags,
-                    "F16_IMBALANCE_QUALITY_WEAK",
-                    "MEDIUM",
-                    "imbalance_quality_weak_missing_ce_or_fresh_state",
-                )
-
     severity_rank = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
     overall = "LOW"
     if flags:
@@ -1232,7 +1192,6 @@ def main() -> None:
 
     args = parse_args()
     modules = parse_modules(args.modules)
-    overlays = parse_overlays(args.overlays, modules)
     symbol = args.symbol.strip().upper()
     purpose_mode = args.purpose_mode
     depth_mode = args.depth_mode
@@ -1373,21 +1332,9 @@ def main() -> None:
         ma_whipsaw_flags=ma_whipsaw_flags,
     )
 
-    imbalance_zones: list[dict[str, Any]] = []
-    if "imbalance" in modules:
-        imbalance_zones = detect_imbalance_zones(daily, dt_key="start_dt")
-        ifvg_zones = infer_ifvg_zones(imbalance_zones, last_close, prev_close)
-        imbalance_zones.extend(ifvg_zones)
-        imbalance_zones = imbalance_zones[-20:]
-
-    internal_levels = (
-        [float(z["ce"]) for z in imbalance_zones if "ce" in z]
-        if imbalance_zones
-        else None
-    )
-    liq = liquidity_draws(last_close, levels, internal_levels=internal_levels)
+    liq = liquidity_draws(last_close, levels, internal_levels=None)
     ext_levels = [float(z["zone_mid"]) for z in levels]
-    int_levels = internal_levels if internal_levels is not None else []
+    int_levels: list[float] = []
     liq["draw_targets"] = pick_draw_targets(ext_levels, int_levels, last_close)
 
     # Sweep event detection with richer enum support
@@ -1445,16 +1392,7 @@ def main() -> None:
             {
                 "trigger_class": "explicit",
                 "reason_code": "user_requested_deeper_analysis",
-                "reason_text": "overlay_or_deeper_mode_requested",
-                "overlay_records": [
-                    {
-                        "overlay": overlay,
-                        "reason_code": "user_requested_deeper_analysis",
-                        "question": "resolve_decision_relevant_detail",
-                        "outcome": "confirmed_default_read",
-                    }
-                    for overlay in sorted(overlays)
-                ],
+                "reason_text": "deeper_analysis_requested",
                 "changed_decision_surface": ["interpretation"],
             }
         )
@@ -1471,20 +1409,6 @@ def main() -> None:
         modules=modules,
         liquidity=liq,
         vpvr={"poc": value_area["poc"], "vah": value_area["vah"], "val": value_area["val"]},
-        imbalance={
-            "zones": [
-                {
-                    **z,
-                    "mitigation_state": mitigation_state(
-                        float(z["low"]),
-                        float(z["high"]),
-                        float(daily["low"].iloc[-1]),
-                        float(daily["high"].iloc[-1]),
-                    ),
-                }
-                for z in imbalance_zones
-            ]
-        } if imbalance_zones else None,
         breakout=breakout_result,
     )
 
@@ -1548,12 +1472,10 @@ def main() -> None:
         "red_flags": normalize_red_flags(enriched_red_flags),
     }
 
-    if overlays:
-        result["analysis"]["requested_overlays"] = sorted(overlays)
     if purpose_mode == "UPDATE":
         result["analysis"]["thesis_status"] = str(args.thesis_status)
         result["analysis"]["review_reason"] = str(args.review_reason)
-    if adaptive_ma.get("adaptive_period") is not None and "adaptive_ma" in overlays:
+    if adaptive_ma.get("adaptive_period") is not None:
         adaptive_details = adaptive_ma.get("details") if isinstance(adaptive_ma.get("details"), dict) else {}
         justification_bits = [
             f"touches={int(adaptive_details.get('touch_count', 0))}",

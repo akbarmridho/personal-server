@@ -70,7 +70,6 @@ Load by need:
 - `LOCATION` -> `references/levels.md`, `references/volume-profile-and-volume-flow.md`, `references/liquidity-draw-and-sweep.md`
 - `SETUP`, `TRIGGER`, `CONFIRMATION` -> `references/setups-and-breakouts.md`
 - `RISK`, `DECISION`, `MONITORING` -> `references/execution-and-risk-protocol.md`
-- imbalance overlay -> `references/fair-value-gap-and-imbalances.md`
 - validation only -> `references/checklists-and-red-flags.md`
 - enums only -> `references/enums-and-glossary.md`
 - output only -> `references/output-report-template.md`
@@ -135,8 +134,6 @@ python scripts/build_ta_context.py \
 
 Use escalated modules only when the workflow requires them:
 
-- add `imbalance` when imbalance overlay is active
-
 Input contract:
 
 - `--input` must use the exact JSON returned by `fetch-ohlcv`
@@ -157,13 +154,10 @@ python scripts/generate_ta_charts.py \
   --symbol {SYMBOL} \
   --outdir work \
   --modules core,vpvr \
-  --overlays {OVERLAYS} \
   --ma-mode {DAILY_MA_MODE}
 ```
 
 Use escalated chart modules only when required:
-
-- add `imbalance` when imbalance overlay is active
 
 Daily chart MA mode:
 
@@ -196,9 +190,7 @@ Do not hardcode chart names in the final answer if the manifest already provides
 - use one setup family or `NO_VALID_SETUP`
 - use one final action: `BUY`, `HOLD`, `WAIT`, or `EXIT`
 - default to `WAIT` under unresolved contradiction
-- do not let overlays override structure, trigger, invalidation, and risk
 - keep baseline MA context lean
-- use overlays only when `workflow-spine.md` and `policy-contract.md` permit them
 - treat hybrid charting as default visual context, not as automatic decision escalation
 
 ## Output Contract
@@ -265,7 +257,6 @@ Those are owned by:
 - `references/liquidity-draw-and-sweep.md`
 - `references/setups-and-breakouts.md`
 - `references/execution-and-risk-protocol.md`
-- `references/fair-value-gap-and-imbalances.md`
 - `references/checklists-and-red-flags.md`
 - `references/enums-and-glossary.md`
 - `references/output-report-template.md`

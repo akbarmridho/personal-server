@@ -97,11 +97,10 @@ This is the authoritative core stack.
 These are not part of the preferred core methodology:
 
 - adaptive MA
-- `FVG / imbalance`
 
 Current direction:
 
-- adaptive MA and `FVG / imbalance` should remain non-core unless later backtests justify them
+- adaptive MA should remain non-core unless later backtests justify it
 
 Non-core layers must not override:
 

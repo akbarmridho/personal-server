@@ -42,7 +42,7 @@ New contract layer now exists:
 Current direction is now frozen at a higher level:
 
 - keep the core method structure-first and risk-first
-- treat `adaptive MA` and `FVG / imbalance` as non-core unless later backtests prove value
+- treat `adaptive MA` as non-core unless later backtests prove value
 - keep Wyckoff as a narrower separate state layer plus `S5`, not as the main thesis engine
 - tighten the backtest plan around IDX-specific mechanics and simpler baselines
 
@@ -103,8 +103,8 @@ Clean the active plan and doctrine files so they reflect the current accepted di
 - kept `wyckoff_history` as `[]` because historical Wyckoff state belongs to a separate state layer
 - aligned `value_acceptance_state` enums between packet schema and runtime output
 - completed external methodology and Wyckoff research review
-- tightened the runtime overlays to adaptive MA and imbalance only
-- decided to treat `adaptive MA` and `FVG / imbalance` as non-core unless later backtests justify them
+- tightened the runtime overlays to adaptive MA only
+- decided to treat `adaptive MA` as non-core unless later backtests justify it
 - decided to keep Wyckoff in a narrower role: separate historical-state layer plus `S5`
 
 ## Guardrails

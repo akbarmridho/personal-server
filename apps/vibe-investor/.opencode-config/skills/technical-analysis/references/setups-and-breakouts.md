@@ -143,14 +143,6 @@ Rules:
 
 ## Conditional Diagnostics And Overlays
 
-### Imbalance
-
-Use imbalance only when it materially helps resolve:
-
-- entry refinement
-- location quality
-- confirmation quality
-
 ## Trace Requirements
 
 - selected setup id

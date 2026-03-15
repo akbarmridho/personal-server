@@ -135,16 +135,9 @@ Single source of truth for shared enum labels used across runtime references.
 - `resistance`
 - `noise`
 
-## Overlay Types
+## Adaptive MA
 
-- `adaptive_ma`
-- `imbalance`
-
-## Imbalance Types
-
-- `FVG`
-- `OPENING_GAP`
-- `IFVG`
+- selected period is stored in `daily_thesis.adaptive_ma.period`
 
 ## Mitigation State
 
@@ -160,8 +153,6 @@ Single source of truth for shared enum labels used across runtime references.
 - `default_read_conflicted`
 - `thesis_degradation_review`
 - `postmortem_forensic_review`
-- `adaptive_ma_needed`
-- `imbalance_check_needed`
 
 ## Risk Status
 

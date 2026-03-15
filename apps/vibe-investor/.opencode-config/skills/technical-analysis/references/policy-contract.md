@@ -102,7 +102,7 @@ When evidence is mixed:
 - prefer `WAIT`
 - lower confidence
 - state the unresolved contradiction
-- escalate only if an overlay can resolve a decision-relevant question
+- escalate only if deeper analysis can resolve a decision-relevant question
 
 ## Escalation Contract
 
@@ -112,7 +112,6 @@ If `analysis.depth_mode = ESCALATED`, the decision record must include:
 - `trigger_class`
 - `reason_code`
 - `reason_text`
-- `overlay_records[]`
 - `changed_decision_surface[]`
 
 Allowed `reason_code` values:
@@ -123,8 +122,6 @@ Allowed `reason_code` values:
 - `default_read_conflicted`
 - `thesis_degradation_review`
 - `postmortem_forensic_review`
-- `adaptive_ma_needed`
-- `imbalance_check_needed`
 
 ## Minimum Final Decision Output
 
@@ -147,7 +144,6 @@ Conditional output:
 
 - prior thesis delta for `UPDATE`
 - postmortem findings for `POSTMORTEM`
-- overlay sections only when active
 
 ## `ta_context` Packet
 
@@ -192,7 +188,6 @@ Packet rules:
 | `daily_timeframe` | string | yes | `1d` |
 | `intraday_timeframe` | string | yes | `60m` |
 | `min_rr_required` | number | yes | positive decimal threshold |
-| `requested_overlays` | string[] | no | `adaptive_ma`, `imbalance` |
 | `thesis_status` | string | conditional | `intact`, `improving`, `degrading`, `invalidated`; required for `UPDATE` |
 | `review_reason` | string | conditional | `routine`, `contradiction`, `level_break`, `regime_change`, `trigger_failure`; required for `UPDATE` |
 
@@ -227,7 +222,7 @@ Required in:
 | `wyckoff_current_maturity` | string | yes | `fresh`, `maturing`, `mature`, `degrading` |
 | `wyckoff_history` | object[] | yes | last `3` to `8` segments, schema in section `L` |
 | `baseline_ma_posture` | object | yes | schema in section `J` |
-| `adaptive_ma` | object | no | schema in section `K`; include only when active |
+| `adaptive_ma` | object | no | schema in section `K`; include when a period is available |
 
 ### D. `intraday_timing`
 
@@ -299,7 +294,6 @@ Required in:
 | `trigger_class` | string | conditional | `explicit`, `context`; required when escalated |
 | `reason_code` | string | conditional | required when escalated |
 | `reason_text` | string | conditional | required when escalated |
-| `overlay_records` | object[] | no | schema in section `S` |
 | `changed_decision_surface` | string[] | no | `action`, `confidence`, `invalidation`, `interpretation` |
 
 ### J. `baseline_ma_posture`
@@ -321,7 +315,7 @@ Required in:
 | `ma_type` | string | yes | `ema`, `sma` |
 | `respect_score` | number | yes | symbol-specific respect measure |
 | `role` | string | yes | `support`, `resistance`, `timing_refinement` |
-| `justification` | string | yes | short reason for activation |
+| `justification` | string | yes | short reason for the selected period |
 
 ### L. `wyckoff_history[]`
 
@@ -399,16 +393,7 @@ Required in:
 | `base_quality` | string | yes | `strong`, `adequate`, `weak` |
 | `market_context` | string | yes | `supportive`, `neutral`, `adverse` |
 
-### S. `overlay_record`
-
-| Field | Type | Required | Allowed values / notes |
-|---|---|---:|---|
-| `overlay` | string | yes | `adaptive_ma`, `imbalance` |
-| `reason_code` | string | yes | use escalation reason codes |
-| `question` | string | yes | what the overlay was resolving |
-| `outcome` | string | yes | `confirmed_default_read`, `refined_entry`, `changed_confidence`, `changed_invalidation`, `changed_action` |
-
-### T. `red_flags[]`
+### S. `red_flags[]`
 
 | Field | Type | Required | Allowed values / notes |
 |---|---|---:|---|
