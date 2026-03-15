@@ -28,18 +28,24 @@ from ta_common import (
     load_ohlcv,
     select_nearest_levels,
 )
+from wyckoff_state import build_wyckoff_state
 
 
 DEFAULT_FIGRATIO = (20, 9)
 DEFAULT_FIGSCALE = 1.25
 DEFAULT_DPI = 180
 MAX_DISPLAY_SR_LINES = 5
-MAX_TRADE_TARGETS = 3
-MIN_ACCEPTABLE_RR = 1.2
 DAILY_SR_LINE_COLORS = ["#1f77b4", "#2ca02c", "#ff7f0e", "#d62728", "#17becf"]
 DAILY_SR_LINE_WIDTH = 1.75
 DAILY_SR_COLOR = "#374151"
 DAILY_SR_MARKER_SIZE = 18
+WYCKOFF_PHASE_COLORS = {
+    "accumulation": "#9fd0c3",
+    "markup": "#b8c7f5",
+    "distribution": "#efc1be",
+    "markdown": "#e7c4a8",
+    "unclear": "#d1d5db",
+}
 
 
 def _width_config() -> dict[str, float]:
@@ -275,21 +281,6 @@ def _draw_level_segments(
     return visible_levels
 
 
-def _draw_trade_plan_segments(
-    ax: Any,
-    x_len: int,
-    levels: list[tuple[float, str, str, float]],
-    line_style: str,
-    recent_window: int = 22,
-) -> None:
-    if x_len <= 0:
-        return
-    x0 = max(0, x_len - recent_window)
-    x1 = x_len - 1
-    for y, color, _, linewidth in levels:
-        ax.hlines(float(y), x0, x1, colors=color, linewidth=linewidth, linestyles=line_style)
-
-
 def nearest_draws(price: float, zones: list[dict[str, Any]]) -> dict[str, Any]:
     mids = [float(z["zone_mid"]) for z in zones]
     above = sorted([z for z in mids if z > price])
@@ -298,96 +289,6 @@ def nearest_draws(price: float, zones: list[dict[str, Any]]) -> dict[str, Any]:
         "current_draw": above[0] if above else None,
         "opposing_draw": below[0] if below else None,
     }
-
-
-def infer_trade_side(df_daily: pd.DataFrame, events: list[dict[str, Any]]) -> str:
-    if events:
-        last_side = str(events[-1].get("side", "")).lower()
-        if last_side == "up":
-            return "long"
-        if last_side == "down":
-            return "short"
-    x = add_ma_stack(df_daily.tail(120))
-    if x.empty:
-        return "neutral"
-    latest = x.iloc[-1]
-    close = float(latest["close"])
-    ema = float(latest["EMA21"]) if pd.notna(latest["EMA21"]) else close
-    sma50 = float(latest["SMA50"]) if pd.notna(latest["SMA50"]) else ema
-    if close >= ema and ema >= sma50:
-        return "long"
-    if close <= ema and ema <= sma50:
-        return "short"
-    return "neutral"
-
-
-def trade_plan_from_zones(
-    price: float,
-    zones: list[dict[str, Any]],
-    side: str,
-    rr_min: float = MIN_ACCEPTABLE_RR,
-    max_targets: int = MAX_TRADE_TARGETS,
-) -> dict[str, Any]:
-    mids = sorted([float(z["zone_mid"]) for z in zones])
-    above = [z for z in mids if z > price]
-    below = [z for z in mids if z < price]
-    plan: dict[str, Any] = {
-        "setup_side": side,
-        "action": "WAIT",
-        "reason": "insufficient directional context",
-        "entry": None,
-        "stop": None,
-        "target": None,
-        "targets": [],
-        "rr": None,
-        "rr_by_target": [],
-        "best_rr": None,
-        "min_rr_required": rr_min,
-    }
-    if side not in {"long", "short"}:
-        return plan
-    if side == "long":
-        if len(below) < 2 or len(above) == 0:
-            plan["reason"] = "zone map lacks long entry/stop/target path"
-            return plan
-        entry = float(below[-1])
-        stop = float(below[-2])
-        targets = [float(t) for t in above[:max_targets]]
-        risk = entry - stop
-        rr_by_target = [((t - entry) / risk) for t in targets if risk > 0 and t > entry]
-        action = "LONG_SETUP"
-    else:
-        if len(above) < 2 or len(below) == 0:
-            plan["reason"] = "zone map lacks short entry/stop/target path"
-            return plan
-        entry = float(above[0])
-        stop = float(above[1])
-        targets = [float(t) for t in list(reversed(below))[:max_targets]]
-        risk = stop - entry
-        rr_by_target = [((entry - t) / risk) for t in targets if risk > 0 and t < entry]
-        action = "SHORT_SETUP"
-    best_rr = max(rr_by_target) if rr_by_target else None
-    if best_rr is None:
-        plan["reason"] = "no valid target produced positive reward"
-        return plan
-    if best_rr < rr_min:
-        plan.update({
-            "entry": entry, "stop": stop,
-            "target": targets[0] if targets else None, "targets": targets,
-            "rr": rr_by_target[0] if rr_by_target else None,
-            "rr_by_target": rr_by_target, "best_rr": best_rr,
-            "reason": f"best RR {best_rr:.2f} below minimum {rr_min:.2f}",
-        })
-        return plan
-    plan.update({
-        "action": action,
-        "reason": "zone-to-zone path meets minimum RR",
-        "entry": entry, "stop": stop,
-        "target": targets[0] if targets else None, "targets": targets,
-        "rr": rr_by_target[0] if rr_by_target else None,
-        "rr_by_target": rr_by_target, "best_rr": best_rr,
-    })
-    return plan
 
 
 def _focus_lookback_from_anchors(
@@ -753,72 +654,6 @@ def plot_liquidity_map(
     plt.close(fig)
 
 
-def plot_trade_plan(
-    df_daily: pd.DataFrame, plan: dict[str, Any], path: Path, symbol: str, lookback: int,
-) -> None:
-    x = df_daily.tail(lookback)
-    entry = plan.get("entry")
-    stop = plan.get("stop")
-    targets = [float(v) for v in (plan.get("targets") or []) if v is not None]
-    rr_by_target = [float(v) for v in (plan.get("rr_by_target") or []) if v is not None]
-    action = str(plan.get("action", "WAIT"))
-    mode = "ACTION" if action in {"BUY", "SELL", "EXIT"} else "SCENARIO_MAP"
-    side = str(plan.get("setup_side", "neutral")).lower()
-    reason = str(plan.get("reason", ""))
-    target_palette = ["#2ca02c", "#009688", "#1b5e20"]
-    if side == "short":
-        target_palette = ["#ff9800", "#ef6c00", "#e65100"]
-
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(),
-        title=f"{symbol} Trade Plan [{mode}] ({action})",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
-    ax = axes[0]
-    line_style = "--" if mode == "SCENARIO_MAP" else "-"
-    handles: list[Line2D] = []
-    plan_levels: list[tuple[float, str, str, float]] = []
-    if entry is not None:
-        y = float(entry)
-        plan_levels.append((y, "#1f77b4", "Entry", 1.9))
-        ax.text(len(x) - 1, y, " ENTRY", fontsize=8, color="#1f77b4", fontweight="bold")
-        handles.append(Line2D([], [], color="#1f77b4", linewidth=2.1, label="Entry"))
-    if stop is not None:
-        y = float(stop)
-        plan_levels.append((y, "#d62728", "Invalidation", 1.9))
-        ax.text(len(x) - 1, y, " STOP", fontsize=8, color="#d62728", fontweight="bold")
-        handles.append(Line2D([], [], color="#d62728", linewidth=2.1, label="Invalidation"))
-    for i, target in enumerate(targets[:MAX_TRADE_TARGETS]):
-        c = target_palette[min(i, len(target_palette) - 1)]
-        y = float(target)
-        plan_levels.append((y, c, f"Target {i + 1}", 1.8))
-        ax.text(len(x) - 1, y, f" T{i + 1}", fontsize=8, color=c, fontweight="bold")
-        handles.append(Line2D([], [], color=c, linewidth=2.0, label=f"Target {i + 1}"))
-
-    _draw_trade_plan_segments(ax, len(x), plan_levels, line_style=line_style)
-
-    if handles:
-        ax.legend(handles=handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.9)
-
-    orientation_note = "neutral map"
-    if side == "short":
-        orientation_note = "short map: stop above entry, targets below"
-    elif side == "long":
-        orientation_note = "long map: stop below entry, targets above"
-
-    txt = f"{mode} | {side.upper()} | {action}\n{orientation_note}"
-    ax.text(
-        1.01, 1.06, txt, transform=ax.transAxes, ha="right", va="top", fontsize=8,
-        bbox={
-            "facecolor": "#fff4e5" if mode == "SCENARIO_MAP" else "white",
-            "alpha": 0.82, "edgecolor": "#d0d0d0",
-        },
-    )
-    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
-    plt.close(fig)
-
-
 def plot_vpvr_profile(
     df_daily: pd.DataFrame, stats: dict[str, Any], path: Path, symbol: str,
 ) -> None:
@@ -875,6 +710,108 @@ def plot_vpvr_profile(
     plt.close(fig)
 
 
+def plot_wyckoff_history(
+    df_daily: pd.DataFrame,
+    wyckoff_state: dict[str, Any],
+    path: Path,
+    symbol: str,
+    lookback: int,
+) -> None:
+    x = df_daily.tail(lookback).copy().reset_index(drop=True)
+    if x.empty:
+        raise ValueError("cannot render Wyckoff chart for empty daily dataframe")
+    full_len = len(df_daily)
+    visible_start = full_len - len(x)
+    visible_segments = []
+    for seg in wyckoff_state.get("_full_history", wyckoff_state.get("wyckoff_history", [])):
+        start_idx = int(seg["start_index"])
+        end_idx = int(seg["end_index"])
+        if end_idx < visible_start or start_idx >= full_len:
+            continue
+        visible_segments.append(
+            {
+                **seg,
+                "_start": max(0, start_idx - visible_start),
+                "_end": min(len(x) - 1, end_idx - visible_start),
+            }
+        )
+
+    fig, axes = mpf.plot(
+        to_mpf(x),
+        type="candle",
+        volume=True,
+        style=_base_style(),
+        marketcolor_overrides=anomaly_overrides(x),
+        title=f"{symbol} Wyckoff History",
+        figratio=DEFAULT_FIGRATIO,
+        figscale=DEFAULT_FIGSCALE,
+        update_width_config=_width_config(),
+        returnfig=True,
+    )
+    price_ax = axes[0]
+    shade_axes = [ax for ax in axes if ax is not None]
+    y_top = float(x["high"].max())
+    y_span = max(float(x["high"].max() - x["low"].min()), 1.0)
+    for seg in visible_segments:
+        color = WYCKOFF_PHASE_COLORS.get(str(seg["cycle_phase"]), "#d1d5db")
+        x0 = float(seg["_start"])
+        x1 = float(seg["_end"]) + 1.0
+        for ax in shade_axes:
+            ax.axvspan(x0, x1, facecolor=color, alpha=0.28, linewidth=0)
+        if int(seg["_end"]) > int(seg["_start"]):
+            for ax in shade_axes:
+                ax.axvline(x0, color=color, linestyle="--", linewidth=1.0, alpha=0.9)
+        label_parts = [str(seg["cycle_phase"]).upper()[:4]]
+        schematic = str(seg.get("schematic_phase", "not_applicable"))
+        if schematic not in {"not_applicable", "unclear"}:
+            label_parts.append(schematic)
+        mid_x = (x0 + x1) / 2.0
+        price_ax.text(
+            mid_x,
+            y_top + y_span * 0.03,
+            " ".join(label_parts),
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color="#1f2937",
+            bbox={
+                "facecolor": color,
+                "alpha": 0.55,
+                "edgecolor": color,
+                "boxstyle": "round,pad=0.28",
+            },
+        )
+
+    handles = [
+        Rectangle((0, 0), 1, 1, facecolor=color, edgecolor=color, alpha=0.45, label=label)
+        for label, color in [
+            ("Accumulation", WYCKOFF_PHASE_COLORS["accumulation"]),
+            ("Markup", WYCKOFF_PHASE_COLORS["markup"]),
+            ("Distribution", WYCKOFF_PHASE_COLORS["distribution"]),
+            ("Markdown", WYCKOFF_PHASE_COLORS["markdown"]),
+        ]
+    ]
+    price_ax.legend(handles=handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.92)
+    summary = (
+        f"Cycle={wyckoff_state['current_cycle_phase']} | "
+        f"Phase={wyckoff_state['current_wyckoff_phase']} | "
+        f"Confidence={wyckoff_state['wyckoff_current_confidence']} | "
+        f"Maturity={wyckoff_state['wyckoff_current_maturity']}"
+    )
+    price_ax.text(
+        1.01,
+        1.06,
+        summary,
+        transform=price_ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=8,
+        bbox={"facecolor": "white", "alpha": 0.84, "edgecolor": "#d0d0d0"},
+    )
+    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     args = parse_args()
     symbol = args.symbol.strip().upper()
@@ -891,6 +828,7 @@ def main() -> None:
     zones = derive_levels(daily)
     events = detect_structure_events(daily)
     ma_config = build_daily_ma_config(daily, args.ma_mode)
+    wyckoff_state = build_wyckoff_state(daily, return_full_history=True)
 
     if args.range_mode == "auto":
         daily_lookback = compute_dynamic_daily_lookback(
@@ -909,8 +847,6 @@ def main() -> None:
 
     last_close = float(daily["close"].iloc[-1])
     draws = nearest_draws(last_close, zones)
-    trade_side = infer_trade_side(daily, events)
-    plan = trade_plan_from_zones(last_close, zones, side=trade_side)
 
     generated: dict[str, str] = {}
 
@@ -928,9 +864,9 @@ def main() -> None:
     plot_structure_events(daily, events, draws, p_events, symbol, daily_lookback)
     generated["structure_events"] = str(p_events)
 
-    p_plan = outdir / f"{symbol}_trade_plan.png"
-    plot_trade_plan(daily, plan, p_plan, symbol, daily_lookback)
-    generated["trade_plan"] = str(p_plan)
+    p_wyckoff = outdir / f"{symbol}_wyckoff_history.png"
+    plot_wyckoff_history(daily, wyckoff_state, p_wyckoff, symbol, daily_lookback)
+    generated["wyckoff_history"] = str(p_wyckoff)
 
     vpvr = None
     if "vpvr" in modules:
@@ -978,7 +914,13 @@ def main() -> None:
             for e in events
         ],
         "liquidity_map": draws,
-        "trade_plan": plan,
+        "wyckoff_state": {
+            "current_cycle_phase": wyckoff_state["current_cycle_phase"],
+            "current_wyckoff_phase": wyckoff_state["current_wyckoff_phase"],
+            "wyckoff_current_confidence": wyckoff_state["wyckoff_current_confidence"],
+            "wyckoff_current_maturity": wyckoff_state["wyckoff_current_maturity"],
+            "wyckoff_history": wyckoff_state["wyckoff_history"],
+        },
     }
     if vpvr is not None:
         evidence["vpvr"] = {

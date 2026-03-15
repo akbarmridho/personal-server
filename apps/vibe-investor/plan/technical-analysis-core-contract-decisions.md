@@ -113,7 +113,7 @@ Wyckoff stays, but in a narrower role.
 
 Accepted role:
 
-- separate historical-state module
+- integrated historical-state context inside the default TA pipeline
 - slower context layer
 - support for one concrete setup archetype:
   - `S5` Wyckoff spring with reclaim
@@ -123,11 +123,6 @@ Rejected role:
 - main thesis engine
 - replacement for structure-first reading
 - broad narrative override layer
-
-Research priority:
-
-- use `wyckoff-research-gpt.md` as the main design reference
-- treat `wyckoff-research-gemini.md` as secondary reference only
 
 ## Resolved Runtime Principles
 
@@ -142,8 +137,6 @@ Research priority:
 These are not contract debates anymore.
 They are remaining implementation items:
 
-- separate Wyckoff historical-state engine
-- Wyckoff history chart artifact
 - IDX-specific backtest assumptions
 - simple-baseline rule definitions
 - liquidity gate for `60m`

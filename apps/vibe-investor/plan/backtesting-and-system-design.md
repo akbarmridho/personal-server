@@ -160,11 +160,44 @@ Implementation rule:
 
 Backtest output should record when a signal or invalidation occurred inside a corporate-action-aware window.
 
+## Volume-Profile Contract
+
+If VPVR or value-area context remains part of the system, the backtest and live TA pipeline should treat it as approximate unless the source data is granular enough.
+
+Default data rule:
+
+- prefer `1m` OHLCV as the practical source for VPVR reconstruction
+- treat higher-granularity trade or tick data as better if it becomes available later
+- do not treat `60m`-only or daily-only profile reconstruction as high-authority value-area truth
+
+Default anchoring rule:
+
+- do not anchor VPVR to the entire symbol history by default
+- anchor it to the current meaningful daily structure range instead
+
+Anchor selection rule:
+
+- trend continuation:
+  anchor from the swing that started the current leg
+- active range or balance:
+  anchor from the start of the active range
+- potential reversal or transition:
+  anchor from the last major break, reclaim, or regime-shift point
+- unclear structure:
+  fall back to a capped recent window
+
+Authority rule:
+
+- VPVR is supportive location context, not the primary thesis owner
+- if source granularity or anchor quality is weak, downgrade confidence instead of letting VPVR override structure and risk
+
 ## `60m` Liquidity Gate
 
 `60m` timing is not always valid on IDX names.
 
 The backtest contract must define a minimum tradability gate before `60m` is allowed to have tactical authority.
+
+This gate should be implemented in the live TA pipeline before serious replay work starts, so live behavior and backtest behavior do not diverge.
 
 At minimum, evaluate:
 
@@ -177,6 +210,11 @@ Fallback rule:
 
 - if `60m` liquidity quality is below threshold, disable `60m` timing authority
 - the daily thesis may remain valid, but the action should stay daily-driven or defer to `WAIT`
+
+Implementation priority:
+
+- treat this as a prerequisite for meaningful backtesting
+- do not evaluate `60m`-driven tactics seriously until this gate exists in the live TA scripts
 
 ## Two Evaluation Modes
 
@@ -415,7 +453,7 @@ Wyckoff historical-state note:
 - do not store only `current_wyckoff_context`
 - store a compact phase timeline so the policy can reason about transition, maturity, and recent phase alternation
 - this should support both a machine-readable sequence and a chart artifact with historical phase bands
-- use the contract defined in `wyckoff-historical-state-design.md`
+- use the integrated Wyckoff history contract already carried by the live TA pipeline
 - low-confidence fresh phases should be handled as forming context, not as immediate hard regime flips
 
 Moving-average state note:

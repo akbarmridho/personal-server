@@ -148,6 +148,7 @@ Required outputs:
 - `regime`
 - `trend_bias`
 - `structure_status`
+- `current_cycle_phase`
 - `current_wyckoff_phase`
 - `wyckoff_current_confidence`
 - `wyckoff_current_maturity`
@@ -158,7 +159,7 @@ Minimum evidence:
 
 - current daily structure read
 - value acceptance or repricing state
-- Wyckoff current phase plus recent sequence
+- Wyckoff current cycle plus recent sequence
 - baseline `21EMA`, `50SMA`, `200SMA` posture
 
 Stop rules:

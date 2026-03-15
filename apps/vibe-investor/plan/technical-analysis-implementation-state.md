@@ -8,7 +8,20 @@
 
 ## Remaining Work
 
-### 1. Define the simple baseline rule specs
+### 1. Add `60m` liquidity gating
+
+Still needed:
+
+- minimum intraday data-quality threshold
+- fallback behavior when intraday timing is too weak
+- consistent use in live TA and backtest replay
+- action downgrade path:
+  - daily-only timing
+  - or `WAIT` when tradability is too weak
+
+This is the next implementation step and should be treated as a prerequisite for credible backtesting.
+
+### 2. Define the simple baseline rule specs
 
 Still needed:
 
@@ -18,14 +31,6 @@ Still needed:
 
 These need concrete deterministic entry, invalidation, exit, and RR rules.
 
-### 2. Add `60m` liquidity gating
-
-Still needed:
-
-- minimum intraday data-quality threshold
-- fallback behavior when intraday timing is too weak
-- consistent use in live TA and backtest replay
-
 ### 3. Define corporate-action-aware backtest behavior
 
 Still needed:
@@ -34,25 +39,7 @@ Still needed:
 - replay behavior around splits and ex-dividend windows
 - return and invalidation treatment across event windows
 
-### 4. Implement the separate Wyckoff state module
-
-Still needed:
-
-- deterministic Wyckoff state engine
-- current cycle / phase output
-- confidence and maturity
-- compact `wyckoff_history`
-
-This should stay separate from `build_ta_context.py`.
-
-### 5. Add the Wyckoff chart artifact
-
-Still needed:
-
-- separate Wyckoff history visualization
-- compact segment view for recent phase transitions
-
-### 6. Start the backtest engine
+### 4. Start the backtest engine
 
 Still needed:
 
@@ -67,7 +54,6 @@ The next script work should stay focused on:
 
 - `60m` liquidity gating
 - corporate-action-aware replay behavior
-- separate Wyckoff state generation
 - backtest and comparison tooling
 
 Do not expand `build_ta_context.py` with broad new doctrine layers.
@@ -86,11 +72,11 @@ Backtest-specific mechanics should stay in the replay and evaluation layer, not 
 
 ## Active Next Step
 
-Define the three simple baseline rule specs in a way that is ready for replay and comparison.
+Implement `60m` liquidity gating in the TA scripts so intraday timing can be downgraded to daily-only or `WAIT` before backtest work proceeds.
 
 ## Guardrails
 
 - keep the core stack structure-first and risk-first
 - keep `ta_context` and chart generation separate
-- keep Wyckoff as a separate slower state layer
+- keep Wyckoff narrow in decision authority even though its history is now integrated into the default TA pipeline
 - do not re-expand the core skill with removed doctrine layers

@@ -141,8 +141,6 @@ Rules:
 - structure shift without confirmation usually stays in watchlist or `WAIT`
 - reversal interpretation may need deeper analysis when the default read is not enough
 
-## Conditional Diagnostics
-
 ## Trace Requirements
 
 - selected setup id

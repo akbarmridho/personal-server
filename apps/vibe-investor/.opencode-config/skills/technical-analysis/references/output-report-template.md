@@ -26,6 +26,7 @@ Use this structure for every technical analysis output.
 - State: balance / imbalance
 - Regime: trend_continuation / range_rotation / potential_reversal / no_trade
 - Bias
+- Current Wyckoff cycle phase
 - Current Wyckoff phase
 - Wyckoff maturity and confidence
 - Key support zones

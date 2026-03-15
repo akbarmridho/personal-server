@@ -33,6 +33,7 @@ from ta_common import (
     sweep_outcome,
     value_area_from_hist,
 )
+from wyckoff_state import build_wyckoff_state
 
 
 def parse_args() -> argparse.Namespace:
@@ -433,18 +434,6 @@ def baseline_ma_payload(row: pd.Series) -> dict[str, Any]:
     return posture
 
 
-def wyckoff_confidence_and_maturity(
-    wyckoff_ctx: str, state: str, raw_structure_status: str
-) -> tuple[int, str]:
-    if wyckoff_ctx == "unclear":
-        return 35, "fresh"
-    if raw_structure_status == "choch_plus_bos_confirmed":
-        return 68, "maturing"
-    if state == "imbalance":
-        return 76, "mature"
-    return 58, "maturing"
-
-
 def zone_strength(value: str) -> str:
     if value in {"strong_first_test", "strong"}:
         return "strong"
@@ -817,48 +806,6 @@ def load_prior_thesis(path_str: str | None) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
         raise ValueError("prior thesis JSON must be an object")
     return raw
-
-
-# ---------------------------------------------------------------------------
-# Volume diagnostics
-# ---------------------------------------------------------------------------
-
-
-def classify_pv_window(df: pd.DataFrame, window: int = 20) -> dict[str, Any]:
-    x = add_volume_features(df).tail(window)
-    counts: dict[str, int] = {}
-    for _, row in x.iterrows():
-        chg = float(row.get("ret", 0.0) or 0.0)
-        vr = float(row.get("vol_ratio", 1.0) or 1.0)
-        label = classify_price_volume(chg, vr)
-        counts[label] = counts.get(label, 0) + 1
-    return {"window": window, "distribution": counts}
-
-
-def infer_wyckoff_context(
-    state: str, trend_bias: str, pv_summary: dict[str, Any]
-) -> str:
-    dist = pv_summary.get("distribution", {})
-    dist_count = dist.get("distribution", 0)
-    strong_up = dist.get("strong_up", 0)
-    if state == "imbalance" and trend_bias == "bullish":
-        return "markup"
-    if state == "imbalance" and trend_bias == "bearish":
-        return "markdown"
-    if state == "balance" and trend_bias == "bearish":
-        if strong_up > dist_count:
-            return "accumulation"
-        return "markdown"
-    if state == "balance" and trend_bias == "bullish":
-        if dist_count > strong_up:
-            return "distribution"
-        return "markup"
-    if state == "balance":
-        if dist_count >= 3:
-            return "distribution"
-        if strong_up >= 3:
-            return "accumulation"
-    return "unclear"
 
 
 def count_distribution_days(df: pd.DataFrame, window: int = 20) -> dict[str, Any]:
@@ -1264,11 +1211,7 @@ def main() -> None:
         follow_close=prev_close,
     )
 
-    pv_summary = classify_pv_window(daily, window=20)
-    wyckoff_ctx = infer_wyckoff_context(state, regime["trend_bias"], pv_summary)
-    wyckoff_confidence, wyckoff_maturity = wyckoff_confidence_and_maturity(
-        wyckoff_ctx, state, structure_state
-    )
+    wyckoff_state = build_wyckoff_state(daily)
     dist_days = count_distribution_days(daily, window=20)
 
     nearest_mid = levels[-1]["zone_mid"] if levels else last_close
@@ -1287,7 +1230,9 @@ def main() -> None:
         if bo_snap.get("status") == "valid_breakout"
         else None
     )
-    spring = detect_wyckoff_spring(daily, events, wyckoff_ctx)
+    spring = detect_wyckoff_spring(
+        daily, events, str(wyckoff_state["current_cycle_phase"])
+    )
     setup_id = choose_setup(
         regime=regime["regime"],
         breakout_state=bo_snap.get("status", "no_breakout"),
@@ -1410,10 +1355,15 @@ def main() -> None:
             "regime": regime["regime"],
             "trend_bias": regime["trend_bias"],
             "structure_status": normalized_structure_status,
-            "current_wyckoff_phase": wyckoff_ctx,
-            "wyckoff_current_confidence": wyckoff_confidence,
-            "wyckoff_current_maturity": wyckoff_maturity,
-            "wyckoff_history": [],
+            "current_cycle_phase": str(wyckoff_state["current_cycle_phase"]),
+            "current_wyckoff_phase": str(wyckoff_state["current_wyckoff_phase"]),
+            "wyckoff_current_confidence": int(
+                wyckoff_state["wyckoff_current_confidence"]
+            ),
+            "wyckoff_current_maturity": str(
+                wyckoff_state["wyckoff_current_maturity"]
+            ),
+            "wyckoff_history": list(wyckoff_state["wyckoff_history"]),
             "baseline_ma_posture": posture,
         },
         "intraday_timing": intraday_timing,

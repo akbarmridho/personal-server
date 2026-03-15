@@ -129,6 +129,8 @@ Examples:
 The `60m` chart enters here for tactical timing.
 It refines the daily thesis but does not replace it.
 
+If the symbol is too thin intraday, the analyst should downgrade the read to daily-only timing or stay in `WAIT`.
+
 ### 7. Confirm participation and acceptance
 
 Relevant checks:
@@ -225,6 +227,7 @@ Authority rule:
 - daily owns thesis direction
 - `60m` may delay action, reduce confidence, or keep the result in `WAIT`
 - `60m` should not create a trade against the daily thesis by itself
+- if intraday liquidity quality is too weak, `60m` should lose timing authority
 
 ## Wyckoff Role
 

@@ -33,9 +33,9 @@ Single source of truth for shared enum labels used across runtime references.
 
 ## Wyckoff
 
-- `phase`: `accumulation`, `markup`, `distribution`, `markdown`, `unclear`
+- `cycle_phase`: `accumulation`, `markup`, `distribution`, `markdown`, `unclear`
+- `schematic_phase`: `A`, `B`, `C`, `D`, `E`, `unclear`, `not_applicable`
 - `maturity`: `fresh`, `maturing`, `mature`, `degrading`
-- `trend_strength`: `weak`, `moderate`, `strong`
 
 ## Structure Status
 

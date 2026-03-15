@@ -193,7 +193,8 @@ Required in:
 | `regime` | string | yes | `trend_continuation`, `range_rotation`, `potential_reversal`, `no_trade` |
 | `trend_bias` | string | yes | `bullish`, `bearish`, `neutral` |
 | `structure_status` | string | yes | `trend_intact`, `range_intact`, `transitioning`, `damaged`, `unclear` |
-| `current_wyckoff_phase` | string | yes | `accumulation`, `markup`, `distribution`, `markdown`, `unclear` |
+| `current_cycle_phase` | string | yes | `accumulation`, `markup`, `distribution`, `markdown`, `unclear` |
+| `current_wyckoff_phase` | string | yes | `A`, `B`, `C`, `D`, `E`, `unclear`, `not_applicable` |
 | `wyckoff_current_confidence` | integer | yes | `0` to `100` |
 | `wyckoff_current_maturity` | string | yes | `fresh`, `maturing`, `mature`, `degrading` |
 | `wyckoff_history` | object[] | yes | last `3` to `8` segments, schema in section `L` |
@@ -287,16 +288,19 @@ Required in:
 
 | Field | Type | Required | Allowed values / notes |
 |---|---|---:|---|
-| `phase` | string | yes | `accumulation`, `markup`, `distribution`, `markdown`, `unclear` |
+| `cycle_phase` | string | yes | `accumulation`, `markup`, `distribution`, `markdown`, `unclear` |
+| `schematic_phase` | string | yes | `A`, `B`, `C`, `D`, `E`, `unclear`, `not_applicable` |
 | `start_ts` | string | yes | ISO timestamp |
 | `end_ts` | string | yes | ISO timestamp |
+| `start_index` | integer | yes | 0-based daily index |
+| `end_index` | integer | yes | 0-based daily index |
 | `duration_bars` | integer | yes | positive count |
 | `price_low` | number | yes | segment low |
 | `price_high` | number | yes | segment high |
 | `price_change_pct` | number | yes | segment percent change |
 | `confidence` | integer | yes | `0` to `100` |
 | `maturity` | string | yes | `fresh`, `maturing`, `mature`, `degrading` |
-| `trend_strength` | string | yes | `weak`, `moderate`, `strong` |
+| `transition_reason` | string | yes | short machine-readable transition reason |
 
 ### M. `zone`
 

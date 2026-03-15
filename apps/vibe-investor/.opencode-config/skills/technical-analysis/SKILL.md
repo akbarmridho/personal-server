@@ -170,6 +170,14 @@ Output contract:
 - chart artifacts
 - chart evidence JSON
 
+Default chart set includes:
+
+- `daily_structure`
+- `intraday_structure`
+- `structure_events`
+- `wyckoff_history`
+- optional `vpvr_profile`
+
 The runtime should read the generated chart evidence manifest and use the artifact paths it provides.
 Do not hardcode chart names in the final answer if the manifest already provides the paths.
 
