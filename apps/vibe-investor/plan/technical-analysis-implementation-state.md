@@ -2,18 +2,21 @@
 
 ## Snapshot
 
-- Date: `2026-03-14`
+- Date: `2026-03-15`
 - Scope: `apps/vibe-investor/.opencode-config/skills/technical-analysis`
-- Status: contract layer, script-cleanup pass, adaptive MA chart modes, and review-sync fixes implemented
+- Status: core contract refactor and first script migration pass complete; doctrine freeze and backtest-contract cleanup are next
 
 ## What Has Been Read
 
 - `apps/vibe-investor/plan/technical-analysis-skill-ai-restructuring-plan.md`
-- `apps/vibe-investor/plan/technical-analysis-refactor-summary.md`
 - `apps/vibe-investor/plan/technical-analysis-script-migration-plan.md`
 - `apps/vibe-investor/plan/human-technical-analyst-workflow.md`
 - `apps/vibe-investor/plan/backtesting-and-system-design.md`
 - `apps/vibe-investor/plan/wyckoff-historical-state-design.md`
+- `apps/vibe-investor/plan/technical-analysis-methodology-validation-memo.md`
+- `apps/vibe-investor/plan/technical-analysis-methodology-validation-deep-research-prompt.md`
+- `apps/vibe-investor/plan/technical-analysis-approach-brief-for-validation.md`
+- `apps/vibe-investor/plan/technical-analysis-next-steps-summary.md`
 - `apps/vibe-investor/plan/technical-analysis-core-contract-decisions.md`
 - `apps/vibe-investor/.opencode-config/skills/technical-analysis/SKILL.md`
 - current live references and scripts under `apps/vibe-investor/.opencode-config/skills/technical-analysis/`
@@ -27,6 +30,8 @@ Remaining gaps:
 - no real Wyckoff history state implementation in this packet
 - no Wyckoff history chart artifact yet
 - no backtest engine work yet
+- doctrine stack still needs cleanup to reflect the accepted core vs non-core split
+- IDX-specific backtest realism is not yet written into the active execution rules
 
 New contract layer now exists:
 
@@ -34,76 +39,46 @@ New contract layer now exists:
 - `references/policy-contract.md`
 - field-level future `ta_context` schema in `policy-contract.md`
 
-## Decision
+Current direction is now frozen at a higher level:
 
-Do not start with script edits.
+- keep the core method structure-first and risk-first
+- remove `SMC/ICT` and `divergence` from the core doctrine
+- treat `adaptive MA` and `FVG / imbalance` as non-core unless later backtests prove value
+- keep Wyckoff as a narrower separate state layer plus `S5`, not as the main thesis engine
+- tighten the backtest plan around IDX-specific mechanics and simpler baselines
 
-Because the skill has not been updated yet, the next work must be contract-first inside the skill docs. The script migration plan also says script cleanup should wait until the field-level `ta_context.json` target schema is explicit.
+## Active Next Step
 
-## Immediate Next Step
+Clean the active plan and doctrine files so they reflect the current accepted direction:
 
-Implement Wyckoff historical-state support:
-
-1. add `current_wyckoff_phase` support beyond the single label
-2. add `wyckoff_history`
-3. add `wyckoff_current_confidence` and `wyckoff_current_maturity` with stronger logic
-4. add the future Wyckoff history chart artifact
-
-The first blocking contract dependency is now present:
-
-- `references/workflow-spine.md`
-- `references/policy-contract.md`
-- concrete future `ta_context` schema inside `policy-contract.md`
-- router-style `SKILL.md` pointing to the new contract files
-
-## Recommended Execution Order
-
-1. Create `workflow-spine.md`.
-2. Create `policy-contract.md` with the target `ta_context` schema.
-3. Trim `SKILL.md` into a router aligned to `INITIAL` / `UPDATE` / `POSTMORTEM` and `DEFAULT` / `ESCALATED`.
-4. Merge `analysis-lifecycle-and-frameworks.md` into `workflow-spine.md`.
-5. Merge `level-to-level-execution.md` into `execution-and-risk-protocol.md`.
-6. Clean supporting references:
-   - `output-report-template.md`
-   - `checklists-and-red-flags.md`
-   - `enums-and-glossary.md`
-   - `setups-and-breakouts.md`
-   - `levels.md`
-   - `execution-and-risk-protocol.md`
-7. Only then update scripts:
-   - `build_ta_context.py`
-   - `generate_ta_charts.py`
-8. After script contract is stable, start backtesting design implementation.
-
-## Next Concrete Writing Target
-
-The first artifact to write should define:
-
-- canonical phase order: `MODE -> STATE -> LOCATION -> SETUP -> TRIGGER -> CONFIRMATION -> RISK -> DECISION -> MONITORING`
-- purpose mode: `INITIAL` / `UPDATE` / `POSTMORTEM`
-- depth mode: `DEFAULT` / `ESCALATED`
-- daily vs `60m` authority split
-- escalation rules and reason codes
-- required evidence before `BUY`, `HOLD`, `WAIT`, `EXIT`
-- allowed setup family space: `S1` to `S5` or `NO_VALID_SETUP`
-- baseline MA posture: `21EMA`, `50SMA`, `200SMA`
-- conditional overlay rules for divergence, imbalance, adaptive MA, and `SMC/ICT`
-- Wyckoff historical-state packet fields
+- freeze the core doctrine
+- mark non-core layers clearly
+- narrow Wyckoff to the separate-state role
+- add IDX-specific backtest assumptions
+- define the three required simple baselines before more feature expansion
 
 ## Not Started Yet
 
 - Wyckoff history state implementation
 - Wyckoff history chart artifact implementation
 - backtest engine work
-- required simple-baseline comparison inside backtesting:
+- formal simple-baseline rule specs:
   - trend plus pullback
   - breakout plus volume
   - range-reclaim
+- liquidity gate for `60m` timing
+- corporate-action-aware backtest behavior
+- IDX-specific execution assumptions in the backtest design
 
 ## Done
 
+- added `technical-analysis-approach-brief-for-validation.md`
+- added `technical-analysis-methodology-validation-memo.md`
+- added `technical-analysis-methodology-validation-deep-research-prompt.md`
+- added `technical-analysis-next-steps-summary.md`
 - created `references/workflow-spine.md`
 - created `references/policy-contract.md`
+- removed obsolete `technical-analysis-refactor-summary.md`
 - locked the first concrete future `ta_context` packet schema
 - rewrote `SKILL.md` into a thin router aligned to `INITIAL` / `UPDATE` / `POSTMORTEM` and `DEFAULT` / `ESCALATED`
 - merged lifecycle requirements from `analysis-lifecycle-and-frameworks.md` into `references/workflow-spine.md`
@@ -129,11 +104,16 @@ The first artifact to write should define:
 - kept `wyckoff_history` as `[]` because historical Wyckoff state belongs to a separate state layer
 - aligned `value_acceptance_state` enums between packet schema and runtime output
 - wired the `smc` module into the main deterministic pipeline for enrichment checks
+- completed external methodology and Wyckoff research review
+- decided to demote `SMC/ICT` and `divergence` from the core doctrine
+- decided to treat `adaptive MA` and `FVG / imbalance` as non-core unless later backtests justify them
+- decided to keep Wyckoff in a narrower role: separate historical-state layer plus `S5`
 
 ## Guardrails
 
-- Do not edit scripts before the target runtime schema is locked.
+- Do not reintroduce old contract sequencing that has already been completed.
 - Do not carry forward lens-system residue into the new contract.
 - Do not carry forward default Fib / `OTE` sections into the new contract.
 - Do not keep `100SMA` in the lean default baseline.
-- Do not keep divergence as a mandatory baseline step.
+- Do not keep divergence as a mandatory or default step.
+- Do not let `SMC/ICT` remain part of the core methodology.
