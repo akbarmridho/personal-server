@@ -26,7 +26,7 @@ Planned runtime interpretation:
 
 ## Core Mental Model
 
-A real technical analyst usually does not begin with indicators, setup labels, or SMC terms.
+A real technical analyst usually does not begin with indicators or setup labels.
 
 A real workflow is closer to:
 
@@ -280,7 +280,6 @@ Only after the core plan exists should the analyst use:
 - `OB`
 - `Breaker`
 - premium/discount
-- `SMC/ICT` modules
 
 These tools refine entry or improve confidence.
 
@@ -294,22 +293,6 @@ It is better treated as a conditional warning diagnostic for:
 - reversal review
 - thesis degradation
 - postmortem
-
-`SMC/ICT` modules should not be loaded by default either.
-
-They should enter the workflow when:
-
-- the user explicitly asks for them
-- the basic structure-first read remains unresolved
-- reversal, deviation, trap, or sweep interpretation is central
-- postmortem or challenged-update work needs more forensic detail
-
-They may also be invoked when the LLM judges they are necessary for the current chart context.
-
-So the AI should be adaptive here, but not unconstrained:
-
-- basic chart-first analysis first
-- then `SMC/ICT` only if the LLM judges it necessary or the context clearly justifies escalation
 
 In the planned runtime model, this means:
 
@@ -391,7 +374,7 @@ For now, the lean default should be:
 
 If an adaptive MA is used, it should be explicitly justified as a symbol-specific overlay.
 
-### Divergence And SMC/ICT Handling
+### Divergence Handling
 
 The doctrine should distinguish between:
 
@@ -413,24 +396,6 @@ Its role is:
 - postmortem insight
 
 It should not be a primary trade-originating concept.
-
-### SMC/ICT
-
-SMC or ICT modules should be:
-
-- not part of the baseline flow
-- available inside technical analysis
-- invoked when the LLM judges they are necessary or when explicit trigger conditions are met
-
-Useful escalation conditions:
-
-- unresolved contradiction after structure, levels, breakout, and risk checks
-- reversal thesis is central
-- deviation, trap, sweep, or liquidity behavior dominates interpretation
-- user explicitly requests SMC or ICT framing
-- postmortem requires deeper structural forensics
-
-This keeps the AI adaptive without letting overlays dominate ordinary continuation analysis.
 
 ### 11. End With One Of Three Outcomes
 

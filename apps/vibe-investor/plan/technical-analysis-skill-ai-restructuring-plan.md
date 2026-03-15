@@ -48,7 +48,6 @@ This means the skill no longer requires the AI to reconstruct the main workflow 
 ### Optional / non-core refs
 
 - `fair-value-gap-and-imbalances.md`
-- `smart-money-concepts.md`
 
 ## What Still Needs Cleanup
 
@@ -69,7 +68,6 @@ Core should remain:
 
 The skill docs should now reflect the accepted direction:
 
-- `SMC/ICT` is not part of the preferred core methodology
 - divergence is not part of the preferred core methodology
 - adaptive MA is non-core unless later proven
 - `FVG / imbalance` is non-core unless later proven

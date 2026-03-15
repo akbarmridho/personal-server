@@ -305,7 +305,6 @@ Rules:
 
 - use divergence only when activated by context
 - use imbalance only when activated by context
-- use `SMC/ICT` only when activated by context
 - use adaptive MA only when activated by context
 - daily charting defaults to `hybrid` MA mode
 - `hybrid` chart mode keeps `21EMA`, `50SMA`, `200SMA`, and adds the chosen `SMA{n}`
@@ -430,7 +429,6 @@ Allowed overlays:
 - divergence
 - adaptive MA
 - imbalance
-- `SMC/ICT`
 
 Adaptive MA charting:
 
@@ -452,7 +450,6 @@ Escalate only when the extra overlay can materially change:
 - user requested deeper analysis
 - user requested reversal or trap analysis
 - user requested imbalance analysis
-- user requested `SMC/ICT`
 - postmortem requested forensic detail
 
 ### Context Escalation Triggers
@@ -492,7 +489,6 @@ Load by need:
 - `SETUP`, `TRIGGER`, `CONFIRMATION` -> `setups-and-breakouts.md`
 - `RISK`, `DECISION`, `MONITORING` -> `execution-and-risk-protocol.md`
 - imbalance overlay -> `fair-value-gap-and-imbalances.md`
-- `SMC/ICT` overlay -> `smart-money-concepts.md`
 - output only -> `output-report-template.md`
 
 ## Output Hand-Off

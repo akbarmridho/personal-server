@@ -32,8 +32,7 @@ Activate only when relevant.
 6. `C6_IMBALANCE` imbalance usage includes type, bounds, mitigation state, and why it mattered.
 7. `C7_DIVERGENCE` divergence usage includes status and why it was activated.
 8. `C8_ADAPTIVE_MA` adaptive MA usage includes period, justification, and chart mode when charting is used.
-9. `C9_SMC` `SMC/ICT` usage includes which overlay mattered and what question it resolved.
-10. `C10_ESCALATION` `ESCALATED` runs include reason code, reason text, and overlays used.
+9. `C9_ESCALATION` `ESCALATED` runs include reason code, reason text, and overlays used.
 
 ## Advisory Diagnostics
 
@@ -64,7 +63,6 @@ Activate only when relevant.
 - `F14_DIVERGENCE_ESCALATION`
 - `F15_VOLUME_CONFLUENCE_WEAK`
 - `F16_IMBALANCE_QUALITY_WEAK`
-- `F17_SMC_EVIDENCE_GAP`
 - `F18_BREAKOUT_FILTER_WEAK`
 - `F19_MA_WHIPSAW`
 

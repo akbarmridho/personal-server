@@ -69,7 +69,6 @@ Use this structure for every technical analysis output.
 - Adaptive MA note when used, including selected period and chart mode
 - Divergence note when used
 - Imbalance note when used
-- SMC/ICT note when used
 - Escalation reason and overlays used when Depth Mode is ESCALATED
 
 ### H. Evidence

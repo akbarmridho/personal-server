@@ -217,7 +217,6 @@ The following are optional overlays, not mandatory baseline doctrine:
 - adaptive MA
 - divergence
 - imbalance / fair value gap
-- `SMC/ICT`
 
 These overlays are only supposed to activate when:
 
@@ -234,7 +233,6 @@ They are not supposed to override:
 
 Current direction after review:
 
-- `SMC/ICT` is a removal candidate from the core methodology
 - `divergence` is a removal candidate from the core methodology
 - `adaptive MA` and `imbalance` are non-core unless later backtests justify them
 
@@ -273,7 +271,6 @@ It is not designed as:
 - a high-frequency system
 - a pure indicator-crossover strategy
 - a pure Wyckoff-only system
-- a pure `SMC/ICT` system
 - a fundamentals replacement
 
 ## What Makes It More Systematic
@@ -296,7 +293,7 @@ The main open question is doctrine quality and doctrine consistency.
 
 Potential concerns to grade:
 
-- whether the blend of structure, VPVR, Wyckoff, and optional `SMC/ICT` is coherent
+- whether the blend of structure, VPVR, and Wyckoff is coherent
 - whether some components are redundant
 - whether some doctrines are too social-media-derived rather than primary-source-grounded
 - whether this complexity is justified for `IDX` names and the intended swing / position style

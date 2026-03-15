@@ -42,7 +42,7 @@ New contract layer now exists:
 Current direction is now frozen at a higher level:
 
 - keep the core method structure-first and risk-first
-- remove `SMC/ICT` and `divergence` from the core doctrine
+- remove `divergence` from the core doctrine
 - treat `adaptive MA` and `FVG / imbalance` as non-core unless later backtests prove value
 - keep Wyckoff as a narrower separate state layer plus `S5`, not as the main thesis engine
 - tighten the backtest plan around IDX-specific mechanics and simpler baselines
@@ -103,9 +103,8 @@ Clean the active plan and doctrine files so they reflect the current accepted di
 - removed chart-artifact attachment from `ta_context`; chart generation stays a separate step
 - kept `wyckoff_history` as `[]` because historical Wyckoff state belongs to a separate state layer
 - aligned `value_acceptance_state` enums between packet schema and runtime output
-- wired the `smc` module into the main deterministic pipeline for enrichment checks
 - completed external methodology and Wyckoff research review
-- decided to demote `SMC/ICT` and `divergence` from the core doctrine
+- decided to demote `divergence` from the core doctrine
 - decided to treat `adaptive MA` and `FVG / imbalance` as non-core unless later backtests justify them
 - decided to keep Wyckoff in a narrower role: separate historical-state layer plus `S5`
 
@@ -116,4 +115,3 @@ Clean the active plan and doctrine files so they reflect the current accepted di
 - Do not carry forward default Fib / `OTE` sections into the new contract.
 - Do not keep `100SMA` in the lean default baseline.
 - Do not keep divergence as a mandatory or default step.
-- Do not let `SMC/ICT` remain part of the core methodology.

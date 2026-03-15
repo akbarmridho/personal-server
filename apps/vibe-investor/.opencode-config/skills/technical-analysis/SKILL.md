@@ -71,7 +71,6 @@ Load by need:
 - `SETUP`, `TRIGGER`, `CONFIRMATION` -> `references/setups-and-breakouts.md`
 - `RISK`, `DECISION`, `MONITORING` -> `references/execution-and-risk-protocol.md`
 - imbalance overlay -> `references/fair-value-gap-and-imbalances.md`
-- `SMC/ICT` overlay -> `references/smart-money-concepts.md`
 - validation only -> `references/checklists-and-red-flags.md`
 - enums only -> `references/enums-and-glossary.md`
 - output only -> `references/output-report-template.md`
@@ -137,7 +136,6 @@ python scripts/build_ta_context.py \
 Use escalated modules only when the workflow requires them:
 
 - add `imbalance` when imbalance overlay is active
-- add `smc` when `SMC/ICT` overlay is active
 
 Input contract:
 
@@ -268,7 +266,6 @@ Those are owned by:
 - `references/setups-and-breakouts.md`
 - `references/execution-and-risk-protocol.md`
 - `references/fair-value-gap-and-imbalances.md`
-- `references/smart-money-concepts.md`
 - `references/checklists-and-red-flags.md`
 - `references/enums-and-glossary.md`
 - `references/output-report-template.md`

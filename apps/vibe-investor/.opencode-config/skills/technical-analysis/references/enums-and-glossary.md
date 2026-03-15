@@ -140,7 +140,6 @@ Single source of truth for shared enum labels used across runtime references.
 - `divergence`
 - `adaptive_ma`
 - `imbalance`
-- `smc_ict`
 
 ## Imbalance Types
 
@@ -165,7 +164,6 @@ Single source of truth for shared enum labels used across runtime references.
 - `adaptive_ma_needed`
 - `divergence_check_needed`
 - `imbalance_check_needed`
-- `smc_ict_needed`
 
 ## Risk Status
 

@@ -67,7 +67,6 @@ It is about doctrine freeze, venue realism, and separate-state expansion.
 
 Current doctrine direction says:
 
-- `SMC/ICT` is not part of the preferred core methodology
 - divergence is not part of the preferred core methodology
 - adaptive MA and `FVG / imbalance` are non-core unless justified later
 
@@ -112,7 +111,6 @@ This should follow:
 
 After the docs are frozen, decide whether to:
 
-- disable or remove `smc` from ordinary runtime script paths
 - disable or remove divergence from ordinary runtime script paths
 - simplify optional overlay interfaces to match the frozen doctrine
 

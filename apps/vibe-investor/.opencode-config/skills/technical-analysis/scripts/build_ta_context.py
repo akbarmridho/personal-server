@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--modules",
         default="core",
-        help="Comma-separated modules: core,vpvr,imbalance,breakout,smc or all.",
+        help="Comma-separated modules: core,vpvr,imbalance,breakout or all.",
     )
     parser.add_argument(
         "--purpose-mode",
@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--overlays",
         default="",
-        help="Comma-separated overlays: divergence,adaptive_ma,imbalance,smc_ict.",
+        help="Comma-separated overlays: divergence,adaptive_ma,imbalance.",
     )
     parser.add_argument(
         "--prior-thesis-json",
@@ -122,7 +122,7 @@ def parse_modules(raw: str) -> set[str]:
     if not out:
         out = {"core"}
     if "all" in out:
-        return {"core", "vpvr", "imbalance", "breakout", "smc"}
+        return {"core", "vpvr", "imbalance", "breakout"}
     out.add("core")
     return out
 
@@ -131,8 +131,6 @@ def parse_overlays(raw: str, modules: set[str]) -> set[str]:
     items = {x.strip().lower() for x in raw.split(",") if x.strip()}
     if "imbalance" in modules:
         items.add("imbalance")
-    if "smc" in modules:
-        items.add("smc_ict")
     return items
 
 
@@ -362,158 +360,6 @@ def breakout_displacement(df: pd.DataFrame, level: float, side: str) -> str:
     if candle_range >= atr * 0.8:
         return "clean_displacement"
     return "stalling"
-
-
-# ---------------------------------------------------------------------------
-# SMC helpers
-# ---------------------------------------------------------------------------
-
-
-def detect_equal_levels(df: pd.DataFrame, atr_mult: float = 0.2) -> dict[str, Any]:
-    highs = df[df["swing_high"].notna()][["datetime", "swing_high", "ATR14"]].copy()
-    lows = df[df["swing_low"].notna()][["datetime", "swing_low", "ATR14"]].copy()
-    eqh, eql = [], []
-    for i in range(1, len(highs)):
-        h0 = float(highs.iloc[i - 1]["swing_high"])
-        h1 = float(highs.iloc[i]["swing_high"])
-        atr = highs.iloc[i]["ATR14"]
-        tol = float(atr) * atr_mult if pd.notna(atr) else 0.0
-        if abs(h1 - h0) <= tol:
-            eqh.append({"datetime": str(highs.iloc[i]["datetime"]), "level": h1})
-    for i in range(1, len(lows)):
-        l0 = float(lows.iloc[i - 1]["swing_low"])
-        l1 = float(lows.iloc[i]["swing_low"])
-        atr = lows.iloc[i]["ATR14"]
-        tol = float(atr) * atr_mult if pd.notna(atr) else 0.0
-        if abs(l1 - l0) <= tol:
-            eql.append({"datetime": str(lows.iloc[i]["datetime"]), "level": l1})
-    return {"eqh": eqh[-5:], "eql": eql[-5:]}
-
-
-def premium_discount_zone(
-    range_low: float, range_high: float, price: float
-) -> dict[str, Any]:
-    eq = (range_low + range_high) / 2.0
-    if price > eq:
-        zone = "premium"
-    elif price < eq:
-        zone = "discount"
-    else:
-        zone = "equilibrium"
-    return {
-        "range_low": range_low,
-        "range_high": range_high,
-        "equilibrium": eq,
-        "zone": zone,
-    }
-
-
-def choose_structure_bias(swing_bias: str, internal_bias: str) -> str:
-    if swing_bias != "neutral":
-        return swing_bias
-    return internal_bias
-
-
-def detect_ob_breaker_zones(
-    df: pd.DataFrame, events: list[dict[str, Any]], lookback: int = 6
-) -> list[dict[str, Any]]:
-    if len(events) == 0:
-        return []
-    x = df.reset_index(drop=True)
-    out: list[dict[str, Any]] = []
-    for e in events[-8:]:
-        edt = pd.Timestamp(e["datetime"])
-        idxs = x.index[x["datetime"] == edt]
-        if len(idxs) == 0:
-            continue
-        i = int(idxs[0])
-        start = max(i - lookback, 0)
-        seed = x.iloc[start:i]
-        if len(seed) == 0:
-            continue
-
-        if e["side"] == "up":
-            prior = seed[seed["close"] < seed["open"]]
-            if len(prior) == 0:
-                continue
-            c = prior.iloc[-1]
-            direction = "bullish"
-        else:
-            prior = seed[seed["close"] > seed["open"]]
-            if len(prior) == 0:
-                continue
-            c = prior.iloc[-1]
-            direction = "bearish"
-
-        zone_low = float(min(c["open"], c["close"]))
-        zone_high = float(max(c["open"], c["close"]))
-        out.append(
-            {
-                "block_type": "OB",
-                "direction": direction,
-                "low": zone_low,
-                "high": zone_high,
-                "source_event": e["label"],
-                "source_datetime": str(e["datetime"]),
-            }
-        )
-
-    if len(out) == 0:
-        return out
-    last_close = float(x["close"].iloc[-1])
-    for z in out:
-        if z["direction"] == "bullish" and last_close < z["low"]:
-            z["block_type"] = "BREAKER"
-            z["direction"] = "bearish"
-        elif z["direction"] == "bearish" and last_close > z["high"]:
-            z["block_type"] = "BREAKER"
-            z["direction"] = "bullish"
-    return out[-6:]
-
-
-def build_smc_context(
-    df: pd.DataFrame,
-    events: list[dict[str, Any]],
-    close_price: float,
-    raw_structure_status: str,
-    liquidity_event: str,
-) -> dict[str, Any]:
-    eq_levels = detect_equal_levels(df)
-    recent = df.tail(60).copy()
-    range_low = float(recent["low"].min())
-    range_high = float(recent["high"].max())
-    ob_breakers = detect_ob_breaker_zones(df, events)
-    pd_zone = premium_discount_zone(range_low, range_high, close_price)
-    confluence_used: list[str] = []
-    if eq_levels.get("eqh") or eq_levels.get("eql"):
-        confluence_used.append("equal_levels")
-    if ob_breakers:
-        confluence_used.append("ob_breaker_zones")
-    if pd_zone.get("zone") in {"premium", "discount"}:
-        confluence_used.append("premium_discount")
-    structure_weighted_bias = "neutral"
-    if raw_structure_status == "choch_plus_bos_confirmed":
-        structure_weighted_bias = "reversal_bias"
-    elif events:
-        last_side = str(events[-1].get("side", "")).lower()
-        if last_side == "up":
-            structure_weighted_bias = "bullish"
-        elif last_side == "down":
-            structure_weighted_bias = "bearish"
-    return {
-        "structure_weighted_bias": structure_weighted_bias,
-        "structure_status": (
-            raw_structure_status
-            if raw_structure_status in {"choch_only", "choch_plus_bos_confirmed"}
-            else "no_signal"
-        ),
-        "liquidity_event": liquidity_event,
-        "pd_zone": str(pd_zone.get("zone", "equilibrium")),
-        "smc_confluence_used": confluence_used,
-        "equal_levels": eq_levels,
-        "premium_discount_zone": pd_zone,
-        "ob_breaker_zones": ob_breakers,
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -1331,7 +1177,6 @@ def enrich_red_flags(
     vpvr: dict[str, Any] | None,
     imbalance: dict[str, Any] | None,
     breakout: dict[str, Any] | None,
-    smc: dict[str, Any] | None,
 ) -> dict[str, Any]:
     flags: list[dict[str, Any]] = [dict(x) for x in red_flags.get("flags", [])]
 
@@ -1400,20 +1245,6 @@ def enrich_red_flags(
             "MEDIUM",
             "liquidity_map_incomplete_draw_targets_or_sweep",
         )
-
-    if "smc" in modules and smc is not None:
-        eq = smc.get("equal_levels", {}) if isinstance(smc, dict) else {}
-        obs = smc.get("ob_breaker_zones", []) if isinstance(smc, dict) else []
-        has_smc_evidence = (
-            len(eq.get("eqh", [])) + len(eq.get("eql", [])) + len(obs)
-        ) > 0
-        if not has_smc_evidence:
-            add_flag(
-                flags,
-                "F17_SMC_EVIDENCE_GAP",
-                "MEDIUM",
-                "smc_module_selected_without_sufficient_smc_evidence",
-            )
 
     if "vpvr" in modules and vpvr is not None:
         has_key = (
@@ -1636,11 +1467,6 @@ def main() -> None:
     int_levels = internal_levels if internal_levels is not None else []
     liq["draw_targets"] = pick_draw_targets(ext_levels, int_levels, last_close)
 
-    # EQH/EQL detection (needed before sweep classification when smc active)
-    eq_levels: dict[str, Any] | None = None
-    if "smc" in modules:
-        eq_levels = detect_equal_levels(daily)
-
     # Sweep event detection with richer enum support
     sweep_event = "none"
     sweep_outcome_value = "unresolved"
@@ -1651,22 +1477,6 @@ def main() -> None:
         sweep_outcome_value = sweep_outcome(
             last_close, float(last_event["broken_level"]), side
         )
-
-        # Upgrade to eqh_swept/eql_swept when the swept level matches an EQH/EQL
-        if eq_levels is not None:
-            broken_lvl = float(last_event["broken_level"])
-            atr = float(daily["ATR14"].iloc[-1]) if pd.notna(daily["ATR14"].iloc[-1]) else 0.0
-            eq_tol = atr * 0.2 if atr > 0 else abs(broken_lvl) * 0.005
-            if last_event["side"] == "up":
-                for eqh in eq_levels.get("eqh", []):
-                    if abs(float(eqh["level"]) - broken_lvl) <= eq_tol:
-                        sweep_event = "eqh_swept"
-                        break
-            else:
-                for eql in eq_levels.get("eql", []):
-                    if abs(float(eql["level"]) - broken_lvl) <= eq_tol:
-                        sweep_event = "eql_swept"
-                        break
 
     liq["sweep_event"] = sweep_event
     liq["sweep_outcome"] = sweep_outcome_value
@@ -1682,16 +1492,6 @@ def main() -> None:
             if abs(proj - broken_lvl) / max(broken_lvl, 1e-9) < 0.01:
                 liq["sweep_event"] = "trendline_swept"
                 break
-
-    smc = None
-    if "smc" in modules:
-        smc = build_smc_context(
-            daily,
-            events,
-            last_close,
-            structure_state,
-            str(liq.get("sweep_event", "none")),
-        )
 
     breakout_result = None
     if "breakout" in modules:
@@ -1764,7 +1564,6 @@ def main() -> None:
             ]
         } if imbalance_zones else None,
         breakout=breakout_result,
-        smc=smc,
     )
 
     result: dict[str, Any] = {

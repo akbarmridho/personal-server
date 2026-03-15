@@ -162,10 +162,6 @@ Use imbalance only when it materially helps resolve:
 - location quality
 - confirmation quality
 
-### `SMC/ICT`
-
-Use `SMC/ICT` only when liquidity behavior is central or the default read remains unresolved.
-
 ## Trace Requirements
 
 - selected setup id
