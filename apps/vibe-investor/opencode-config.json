@@ -75,24 +75,24 @@
   },
   "command": {
     "ta": {
-      "description": "Technical analysis (arg1=symbol, remaining args=user intent sentence)",
+      "description": "Technical analysis with WIB trading-session-aware date context (arg1=symbol, remaining args=user intent sentence)",
       "agent": "vibe-investor",
-      "template": "Run `technical-analysis` for the symbol and intent from command input: $ARGUMENTS.\n\nFirst token is symbol. Remaining text is required user intent sentence. If intent sentence is missing, fail and ask user to provide it."
+      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run `technical-analysis` for the symbol and intent from command input: $ARGUMENTS.\n\nFirst token is symbol. Remaining text is required user intent sentence. If intent sentence is missing, fail and ask user to provide it."
     },
     "desk-check": {
-      "description": "Main operator routine for holdings, watchlist, market context, and portfolio discipline",
+      "description": "Main operator routine for holdings, watchlist, market context, and portfolio discipline with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Run the `desk-check` workflow. Command input: $ARGUMENTS"
+      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `desk-check` workflow. Command input: $ARGUMENTS"
     },
     "news-digest": {
-      "description": "Reading-oriented digest from full memory scope plus all new high-signal documents",
+      "description": "Reading-oriented digest from full memory scope plus all new high-signal documents with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Run the `news-digest` workflow. Command input: $ARGUMENTS"
+      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `news-digest` workflow. Command input: $ARGUMENTS"
     },
     "digest-sync": {
-      "description": "Sync thesis/watchlist memory from the latest news digest",
+      "description": "Sync thesis/watchlist memory from the latest news digest with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Run the `digest-sync` workflow. Command input: $ARGUMENTS"
+      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `digest-sync` workflow. Command input: $ARGUMENTS"
     }
   },
   "mcp": {

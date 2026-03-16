@@ -96,10 +96,21 @@ Workflow ownership:
 - Explicit user instructions may narrow scope or change emphasis only when they do not weaken mandatory coverage, evidence requirements, continuity, or write rules.
 - Valid overrides include narrower symbol focus, a tighter date window, output emphasis, or a requested lens. Invalid overrides are ignored if they conflict with the workflow contract.
 
+Trading-day clock (authoritative):
+
+- Resolve all default workflow dates and review modes in `Asia/Jakarta` (`WIB`, UTC+7).
+- Determine first whether the current WIB date is an IDX trading day. Treat Saturday and Sunday as non-trading days. If the user provides or retrieved market-calendar evidence shows an IDX holiday or special closure, treat it as non-trading too.
+- On a non-trading day, default all relative date references and workflow windows to the most recent prior trading day.
+- On a trading day before `09:00 WIB`, default to a review of the previous trading day.
+- On a trading day from `09:00 WIB` through `16:00 WIB`, treat the run as a during-trading-day review for the current trading day.
+- On a trading day after `16:00 WIB`, treat the run as a post-close review for the current trading day.
+- Use the resolved `TRADING_DAY` for continuity windows, relative date interpretation, artifact directories, and success run-log paths unless the user explicitly supplies a different date window.
+- During-trading-day review means current-day evidence is intraday and incomplete; state that clearly when it affects the conclusion.
+
 `desk-check` defaults:
 
 - Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
-- Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
+- Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day ending at `TRADING_DAY`. If the latest successful run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
 - Mandatory top-down memory context before desk-check prep: `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`.
 - If portfolio data is missing or malformed, fail fast.
@@ -109,22 +120,23 @@ Workflow ownership:
 - Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis` and `narrative-analysis`, then a delegated top-down market review, then parent synthesis.
 - Technical analysis defaults to `THESIS_REVIEW` mode inside `desk-check` unless the user explicitly requests a broader refresh.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
-- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TODAY}/` and must include at least `technical.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON if needed).
-- Market artifacts belong under `memory/analysis/market/{TODAY}/` and must include `desk_check.md`.
-- Evidence-backed memory updates may touch only `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
+- On every successful `desk-check`, refresh `memory/notes/portfolio-monitor.md` with the current portfolio monitor state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, and any evidence-backed portfolio health flags or discipline actions from the review.
+- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON if needed).
+- Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
+- Evidence-backed memory updates may touch only `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.
-- Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
+- Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
 - Success run log `artifacts` must reference the actual memory paths produced, not scratch files under `work/`.
 - `desk-check` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 `news-digest` defaults:
 
-- Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days. If the latest successful run already has `window_to = today`, rerun with `window_from = today` and `window_to = today`.
+- Continuity: read the latest successful `memory/runs/*/*_news-digest.json`; if none exists, use last 7 calendar days ending at `TRADING_DAY`. If the latest successful run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Mandatory memory context: `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/state/theses/**/thesis.md`, `memory/state/symbols/**`, and the latest prior digest if found.
 - Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
-- Write the digest artifact to `memory/analysis/market/{TODAY}/news_digest.md`.
+- Write the digest artifact to `memory/analysis/market/{TRADING_DAY}/news_digest.md`.
 - Leave thesis and watchlist memory unchanged during digest generation.
-- Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_news-digest.json` after the digest artifact is saved.
+- Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_news-digest.json` after the digest artifact is saved.
 - `news-digest` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 `digest-sync` defaults:
@@ -135,10 +147,10 @@ Workflow ownership:
 - Update `memory/state/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes.
 - Update `memory/notes/thesis.md` only when thesis state changes.
 - Update `memory/notes/watchlist.md` only for explicit status or trigger changes.
-- Write a retained sync summary to `memory/analysis/market/{TODAY}/digest_sync.md`.
+- Write a retained sync summary to `memory/analysis/market/{TRADING_DAY}/digest_sync.md`.
 - If evidence is ambiguous, record `Needs Verification` in `digest_sync.md` and do not change thesis/watchlist state.
 - Link memory changes to the digest path and supporting document URLs.
-- Write exactly one success log at `memory/runs/{TODAY}/{HHMMSS}_digest-sync.json` after memory updates succeed.
+- Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_digest-sync.json` after memory updates succeed.
 - `digest-sync` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 ## Tools

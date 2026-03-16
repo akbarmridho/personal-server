@@ -63,6 +63,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 | File | Purpose |
 |------|---------|
+| `memory/notes/portfolio-monitor.md` | Current open-book classification, active monitor rules, health flags, and next portfolio-level focus |
 | `memory/notes/watchlist.md` | Status-driven symbols registry and trigger conditions |
 | `memory/state/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing |
 | `memory/runs/{DATE}/{TIME}_desk-check.json` | Successful desk-check continuity log written by the parent workflow |
@@ -126,9 +127,10 @@ Checklist: regime gate checked, sizing validated, liquidity cleared, plan writte
 6. For each position: check thesis status, stop levels, invalidation quality, and sizing compliance from `portfolio_state`, symbol memory, and trade-history context.
 7. Check portfolio-level: concentration, sizing flags, and recent action context from the tool outputs.
 8. Extend coverage to watchlist symbols required by the active workflow contract.
-9. Return portfolio findings, watchlist changes, and any required follow-up actions to the parent workflow.
+9. Prepare the updated portfolio-monitor state for the parent workflow: `Last updated`, open-book classification, active monitoring rules, current focus, and active portfolio health flags or discipline actions backed by the review evidence.
+10. Return portfolio findings, portfolio-monitor update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, sizing compliance checked, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, sizing compliance checked, portfolio-monitor update content prepared, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 

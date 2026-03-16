@@ -456,7 +456,7 @@ def summarize_intraday_participation(
         bar_seconds = pd.array(
             [t.hour * 3600 + t.minute * 60 for t in bar_times], dtype="int64"
         )
-        time_diff = (bar_seconds - ref_seconds).abs()
+        time_diff = np.abs(bar_seconds - ref_seconds)
         baseline = prior_bars[time_diff <= half_window.total_seconds()]
     else:
         baseline = prior_bars
