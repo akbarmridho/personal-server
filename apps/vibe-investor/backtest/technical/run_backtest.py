@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -164,25 +166,53 @@ def _summarize_strategy(
 # Context building
 # ---------------------------------------------------------------------------
 
+def _build_single_context(
+    *, scenario_id: str, trade_date: str, day_history_payload: dict[str, Any],
+    contexts_dir: Path, symbol: str, modules: str, position_state: str, min_rr_required: float,
+) -> tuple[str, dict[str, Any]]:
+    """Build context for a single bar. Designed to run in a thread."""
+    with tempfile.TemporaryDirectory(prefix=f"{scenario_id}-{trade_date}-") as tempdir:
+        snapshot_path = Path(tempdir) / "snapshot.json"
+        context_path = contexts_dir / f"{trade_date}.json"
+        with snapshot_path.open("w", encoding="utf-8") as f:
+            json.dump(day_history_payload, f, indent=2)
+        result = build_daily_context(
+            snapshot_path=snapshot_path, context_path=context_path,
+            symbol=symbol, modules=modules, position_state=position_state,
+            min_rr_required=min_rr_required,
+        )
+    return trade_date, result
+
+
 def _build_contexts(
     *, scenario: BacktestScenario, history: pd.DataFrame, window: pd.DataFrame,
     contexts_dir: Path, modules: str, min_rr_required: float,
 ) -> dict[str, dict[str, Any]]:
-    contexts: dict[str, dict[str, Any]] = {}
+    # Pre-compute payloads (cheap) then build contexts in parallel (expensive subprocess per bar)
+    bar_jobs: list[tuple[str, dict[str, Any]]] = []
     for _, bar in window.iterrows():
         trade_date = _bar_trade_date(bar)
         day_history = _history_visible(history, bar)
         if day_history.empty:
             raise ValueError(f"scenario {scenario.id}: empty visible history on {trade_date}")
-        with tempfile.TemporaryDirectory(prefix=f"{scenario.id}-{trade_date}-") as tempdir:
-            snapshot_path = Path(tempdir) / "snapshot.json"
-            context_path = contexts_dir / f"{trade_date}.json"
-            with snapshot_path.open("w", encoding="utf-8") as f:
-                json.dump(_daily_slice_to_payload(day_history), f, indent=2)
-            contexts[trade_date] = build_daily_context(
-                snapshot_path=snapshot_path, context_path=context_path,
-                symbol=scenario.symbol, modules=modules, min_rr_required=min_rr_required,
-            )
+        bar_jobs.append((trade_date, _daily_slice_to_payload(day_history)))
+
+    contexts: dict[str, dict[str, Any]] = {}
+    max_workers = min(len(bar_jobs), os.cpu_count() or 4)
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {
+            pool.submit(
+                _build_single_context,
+                scenario_id=scenario.id, trade_date=td, day_history_payload=payload,
+                contexts_dir=contexts_dir, symbol=scenario.symbol,
+                modules=modules, position_state=scenario.initial_position.state,
+                min_rr_required=min_rr_required,
+            ): td
+            for td, payload in bar_jobs
+        }
+        for future in as_completed(futures):
+            td, result = future.result()
+            contexts[td] = result
     return contexts
 
 
@@ -453,12 +483,21 @@ def main() -> None:
     outdir = Path(args.outdir).expanduser().resolve()
     outdir.mkdir(parents=True, exist_ok=True)
     manifest = load_backtest_manifest(manifest_path, check_files=bool(args.check_files))
-    results: list[dict[str, Any]] = []
-    for scenario in manifest.scenarios:
-        results.append(run_scenario(
-            scenario=scenario, outdir=outdir,
-            modules=args.modules, min_rr_required=float(args.min_rr_required),
-        ))
+    max_scenarios = min(len(manifest.scenarios), os.cpu_count() or 4)
+    with ProcessPoolExecutor(max_workers=max_scenarios) as pool:
+        future_to_idx = {
+            pool.submit(
+                run_scenario,
+                scenario=scenario, outdir=outdir,
+                modules=args.modules, min_rr_required=float(args.min_rr_required),
+            ): i
+            for i, scenario in enumerate(manifest.scenarios)
+        }
+        indexed: list[tuple[int, dict[str, Any]]] = []
+        for future in as_completed(future_to_idx):
+            indexed.append((future_to_idx[future], future.result()))
+        indexed.sort(key=lambda x: x[0])
+        results: list[dict[str, Any]] = [r for _, r in indexed]
     strategy_batch_summaries = {
         name: _strategy_batch_summary(results, name) for name in STRATEGY_ORDER
     }

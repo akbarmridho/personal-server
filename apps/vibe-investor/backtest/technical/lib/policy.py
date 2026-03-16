@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-ENTRY_BLOCKING_FLAGS = {"F1_STRUCTURE_BREAK", "F3_WEAK_BREAKOUT"}
+ENTRY_BLOCKING_FLAGS = {"F1_STRUCTURE_BREAK", "F3_WEAK_BREAKOUT", "F6_MA_BREAKDOWN"}
 EXIT_FLAGS = {"F1_STRUCTURE_BREAK", "F3_WEAK_BREAKOUT", "F6_MA_BREAKDOWN"}
 
 

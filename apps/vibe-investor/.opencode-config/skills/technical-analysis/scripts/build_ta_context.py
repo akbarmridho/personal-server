@@ -545,6 +545,14 @@ def infer_location_state(
     return "mid_range_noise"
 
 
+def is_meaningful_location(location_state: str) -> bool:
+    return location_state in {
+        "near_support_in_bullish_structure",
+        "at_range_edge",
+        "accepted_above_resistance",
+    }
+
+
 def build_intraday_timing(
     intraday_15m: pd.DataFrame, intraday_1m: pd.DataFrame, daily_bias: str
 ) -> dict[str, Any]:
@@ -679,6 +687,14 @@ def build_trigger_confirmation(
     value_acceptance_state: str,
     displacement: str | None,
     intraday_timing: dict[str, Any],
+    location_state: str,
+    supports: list[dict[str, Any]],
+    last_open: float,
+    last_low: float,
+    last_close: float,
+    prev_close: float | None,
+    ema21: float,
+    latest_event_age_bars: int | None,
 ) -> dict[str, Any]:
     trigger_state = "not_triggered"
     trigger_type = "none"
@@ -705,14 +721,54 @@ def build_trigger_confirmation(
             participation_quality = "weak"
     elif setup_id == "S2":
         trigger_type = "retest_hold"
-        trigger_state = "watchlist_only" if regime == "trend_continuation" else "not_triggered"
-        confirmation_state = "mixed" if trigger_state == "watchlist_only" else "not_applicable"
+        nearest_support = supports[0] if supports else None
+        support_mid = (
+            float(nearest_support["mid"]) if nearest_support is not None else None
+        )
+        support_high = (
+            float(nearest_support["high"]) if nearest_support is not None else None
+        )
+        support_touch = bool(
+            nearest_support is not None
+            and (
+                last_low <= max(support_high or last_low, ema21 * 1.01)
+                or location_state == "near_support_in_bullish_structure"
+            )
+        )
+        reclaimed_support = bool(
+            support_mid is not None
+            and last_close >= max(support_mid, ema21)
+            and (
+                last_close > last_open
+                or (prev_close is not None and last_close > prev_close)
+            )
+        )
+        breakout_failed = breakout.get("status") == "failed_breakout"
+        if (
+            regime == "trend_continuation"
+            and support_touch
+            and reclaimed_support
+            and not breakout_failed
+        ):
+            trigger_state = "triggered"
+            confirmation_state = "confirmed"
+        elif regime == "trend_continuation" and (
+            support_touch or location_state == "near_support_in_bullish_structure"
+        ):
+            trigger_state = "watchlist_only"
+            confirmation_state = "mixed"
+        else:
+            trigger_state = "not_triggered"
+            confirmation_state = "not_applicable"
     elif setup_id == "S3":
         trigger_type = "choch_bos_reversal"
         latest = latest_structure_event_payload(events)
         trigger_level = latest["level"] if latest else None
         trigger_ts = latest["timestamp"] if latest else None
-        if raw_structure_status == "choch_plus_bos_confirmed":
+        if latest_event_age_bars is not None and latest_event_age_bars > 5:
+            trigger_state = "not_triggered"
+            confirmation_state = "not_applicable"
+        elif raw_structure_status == "choch_plus_bos_confirmed":
             trigger_state = "triggered"
             confirmation_state = "confirmed"
             participation_quality = "adequate"
@@ -777,6 +833,8 @@ def build_risk_map(
     setup_id: str,
     position_state: str,
     close_price: float,
+    atr14: float,
+    location_state: str,
     supports: list[dict[str, Any]],
     resistances: list[dict[str, Any]],
     min_rr_required: float,
@@ -789,6 +847,9 @@ def build_risk_map(
     }
     if setup_id == "NO_VALID_SETUP":
         return result
+    if not is_meaningful_location(location_state):
+        result["risk_status"] = "poor_location"
+        return result
     if not supports:
         result["risk_status"] = "no_clear_invalidation"
         return result
@@ -797,8 +858,15 @@ def build_risk_map(
         return result
 
     entry_zone = supports[0]
-    entry = float(entry_zone["mid"])
-    invalidation_level = float(entry_zone["low"])
+    entry = max(close_price, float(entry_zone["mid"]))
+    zone_low = float(entry_zone["low"])
+    zone_width = max(float(entry_zone["high"]) - zone_low, 0.0)
+    stop_buffer = max(
+        float(atr14) * 0.75 if atr14 > 0 else 0.0,
+        entry * 0.015,
+        zone_width * 0.5,
+    )
+    invalidation_level = min(zone_low, entry - stop_buffer)
     stop_level = invalidation_level
     if entry <= stop_level:
         result["risk_status"] = "no_clear_invalidation"
@@ -952,6 +1020,18 @@ def build_red_flags(
     ma_whipsaw_flags: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     flags: list[dict[str, Any]] = []
+    breakout_failure_severity = (
+        "HIGH"
+        if (
+            position_state == "long"
+            or
+            regime != "trend_continuation"
+            or structure_state in {"choch_only", "choch_plus_bos_confirmed"}
+            or last_close < ema21
+            or last_close < sma50
+        )
+        else "MEDIUM"
+    )
     if regime == "potential_reversal":
         flags.append(
             {
@@ -964,7 +1044,7 @@ def build_red_flags(
         flags.append(
             {
                 "flag_id": "F3_WEAK_BREAKOUT",
-                "severity": "HIGH",
+                "severity": breakout_failure_severity,
                 "why": "breakout_failed_follow_through",
             }
         )
@@ -1018,11 +1098,19 @@ def build_red_flags(
                 "why": "risk_map_missing_next_zone_target",
             }
         )
-    if distribution_day_count >= 2:
+    if distribution_day_count >= 4:
         flags.append(
             {
                 "flag_id": "F2_DISTRIBUTION",
                 "severity": "HIGH",
+                "why": f"{distribution_day_count}_distribution_days_detected",
+            }
+        )
+    elif distribution_day_count >= 2:
+        flags.append(
+            {
+                "flag_id": "F2_DISTRIBUTION",
+                "severity": "MEDIUM",
                 "why": f"{distribution_day_count}_distribution_days_detected",
             }
         )
@@ -1246,6 +1334,8 @@ def build_ta_context_result(
 
     levels = derive_levels(daily)
     last = daily.iloc[-1]
+    last_open = float(last["open"])
+    last_low = float(last["low"])
     last_close = float(last["close"])
     prev_close = float(daily.iloc[-2]["close"]) if len(daily) > 1 else None
     posture = baseline_ma_payload(last)
@@ -1310,6 +1400,8 @@ def build_ta_context_result(
         setup_id=setup_id,
         position_state=position_state,
         close_price=last_close,
+        atr14=float(last.get("ATR14", 0.0) or 0.0),
+        location_state=location_state,
         supports=supports,
         resistances=resistances,
         min_rr_required=min_rr_required,
@@ -1384,6 +1476,18 @@ def build_ta_context_result(
         value_acceptance_state=value_area["acceptance_state"],
         displacement=bo_displacement,
         intraday_timing=intraday_timing,
+        location_state=location_state,
+        supports=supports,
+        last_open=last_open,
+        last_low=last_low,
+        last_close=last_close,
+        prev_close=prev_close,
+        ema21=float(last.get("EMA21", last_close)),
+        latest_event_age_bars=(
+            int((daily["datetime"] > pd.Timestamp(events[-1]["datetime"])).sum())
+            if events
+            else None
+        ),
     )
 
     if prior_thesis is None and purpose_mode in {"UPDATE", "POSTMORTEM"}:

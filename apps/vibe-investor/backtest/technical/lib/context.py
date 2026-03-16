@@ -35,6 +35,7 @@ def build_daily_context(
     context_path: Path,
     symbol: str,
     modules: str,
+    position_state: str,
     min_rr_required: float,
 ) -> dict[str, Any]:
     """Build daily TA context by invoking this module as a subprocess."""
@@ -45,7 +46,7 @@ def build_daily_context(
         "--outdir", str(context_path.parent),
         "--output", str(context_path),
         "--modules", modules,
-        "--position-state", "flat",
+        "--position-state", position_state,
         "--min-rr-required", str(min_rr_required),
     ]
     subprocess.run(
