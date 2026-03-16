@@ -1,0 +1,146 @@
+{
+  "scenarios": [
+    {
+      "id": "trin-2026-01-entry-01",
+      "symbol": "TRIN",
+      "ohlcv_path": "data/ohlcv/trin_daily_2025_2026.json",
+      "window_start_date": "2026-01-02",
+      "window_end_date": "2026-01-09",
+      "initial_position": {
+        "state": "flat"
+      },
+      "actual_trade": {
+        "entry_date": "2026-01-05",
+        "entry_price": 1270,
+        "exit_date": "2026-01-09",
+        "exit_price": 1350
+      },
+      "notes": "Entry window into a quick momentum winner."
+    },
+    {
+      "id": "antm-2026-02-entry-01",
+      "symbol": "ANTM",
+      "ohlcv_path": "data/ohlcv/antm_daily_2025_2026.json",
+      "window_start_date": "2026-02-05",
+      "window_end_date": "2026-03-03",
+      "initial_position": {
+        "state": "flat"
+      },
+      "actual_trade": {
+        "entry_date": "2026-02-10",
+        "entry_price": 3900,
+        "exit_date": "2026-03-03",
+        "exit_price": 4490
+      },
+      "notes": "Flat-start swing into a multi-week winner."
+    },
+    {
+      "id": "bwpt-2026-01-entry-01",
+      "symbol": "BWPT",
+      "ohlcv_path": "data/ohlcv/bwpt_daily_2025_2026.json",
+      "window_start_date": "2026-01-15",
+      "window_end_date": "2026-01-30",
+      "initial_position": {
+        "state": "flat"
+      },
+      "actual_trade": {
+        "entry_date": "2026-01-20",
+        "entry_price": 159,
+        "exit_date": "2026-01-30",
+        "exit_price": 137
+      },
+      "notes": "Entry test for a failed CPO-linked trade."
+    },
+    {
+      "id": "soci-2026-01-entry-01",
+      "symbol": "SOCI",
+      "ohlcv_path": "data/ohlcv/soci_daily_2025_2026.json",
+      "window_start_date": "2025-12-29",
+      "window_end_date": "2026-01-06",
+      "initial_position": {
+        "state": "flat"
+      },
+      "actual_trade": {
+        "entry_date": "2026-01-02",
+        "entry_price": 565,
+        "exit_date": "2026-01-06",
+        "exit_price": 635
+      },
+      "notes": "Short entry window around a fast breakout trade."
+    },
+    {
+      "id": "bull-2026-03-manage-01",
+      "symbol": "BULL",
+      "ohlcv_path": "data/ohlcv/bull_daily_2025_2026.json",
+      "window_start_date": "2026-03-06",
+      "window_end_date": "2026-03-10",
+      "initial_position": {
+        "state": "long",
+        "entry_date": "2026-03-05",
+        "entry_price": 490
+      },
+      "actual_trade": {
+        "entry_date": "2026-03-05",
+        "entry_price": 490,
+        "exit_date": "2026-03-10",
+        "exit_price": 390
+      },
+      "notes": "Post-entry breakdown and cut-loss window."
+    },
+    {
+      "id": "lead-2026-03-manage-01",
+      "symbol": "LEAD",
+      "ohlcv_path": "data/ohlcv/lead_daily_2025_2026.json",
+      "window_start_date": "2026-03-06",
+      "window_end_date": "2026-03-10",
+      "initial_position": {
+        "state": "long",
+        "entry_date": "2026-03-05",
+        "entry_price": 164
+      },
+      "actual_trade": {
+        "entry_date": "2026-03-05",
+        "entry_price": 164,
+        "exit_date": "2026-03-10",
+        "exit_price": 139
+      },
+      "notes": "Management window for the failed re-entry episode."
+    },
+    {
+      "id": "ratu-2026-02-manage-01",
+      "symbol": "RATU",
+      "ohlcv_path": "data/ohlcv/ratu_daily_2025_2026.json",
+      "window_start_date": "2026-02-13",
+      "window_end_date": "2026-03-04",
+      "initial_position": {
+        "state": "long",
+        "entry_date": "2026-02-12",
+        "entry_price": 6600
+      },
+      "actual_trade": {
+        "entry_date": "2026-02-12",
+        "entry_price": 6600,
+        "exit_date": "2026-03-04",
+        "exit_price": 6750
+      },
+      "notes": "Hold-versus-take-profit window after entry."
+    },
+    {
+      "id": "ptba-2026-03-manage-01",
+      "symbol": "PTBA",
+      "ohlcv_path": "data/ohlcv/ptba_daily_2025_2026.json",
+      "window_start_date": "2026-03-11",
+      "window_end_date": "2026-03-13",
+      "initial_position": {
+        "state": "long",
+        "entry_date": "2026-03-10",
+        "entry_price": 2940
+      },
+      "actual_trade": {
+        "entry_date": "2026-03-10",
+        "entry_price": 2940
+      },
+      "notes": "Open management window through the latest available daily bar."
+    }
+  ]
+}
