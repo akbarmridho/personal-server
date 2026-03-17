@@ -55,6 +55,13 @@ Activate only when relevant.
 - `F12_LIQUIDITY_MAP_MISSING`
 - `F13_BREAKOUT_STALLING`
 
+### Red-Flag Severity Guidance
+
+- `F6_MA_BREAKDOWN` is `medium` when price loses `21EMA` only
+- `F6_MA_BREAKDOWN` is `high` when price loses `50SMA`
+- `F6_MA_BREAKDOWN` is `high` when price is below both `21EMA` and `50SMA`
+- `F3_WEAK_BREAKOUT` should be treated more severely when continuation structure is no longer intact
+
 ### Conditional Red Flags
 
 - `F15_VOLUME_CONFLUENCE_WEAK`

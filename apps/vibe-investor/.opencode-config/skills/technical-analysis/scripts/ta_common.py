@@ -716,11 +716,43 @@ def classify_price_volume(change_pct: float, vol_ratio: float) -> str:
     return "neutral"
 
 
+def mixed_swing_ma_bias(
+    row: pd.Series, *, hh: bool, hl: bool, lh: bool, ll: bool
+) -> str:
+    """Use baseline MA posture to break ties when swings are mixed."""
+    close = float(row["close"])
+    ema21 = float(row["EMA21"]) if pd.notna(row.get("EMA21")) else None
+    sma50 = float(row["SMA50"]) if pd.notna(row.get("SMA50")) else None
+    sma200 = float(row["SMA200"]) if pd.notna(row.get("SMA200")) else None
+
+    ma_bullish = (
+        ema21 is not None
+        and sma50 is not None
+        and sma200 is not None
+        and close > sma200
+        and ema21 > sma50
+    )
+    ma_bearish = (
+        ema21 is not None
+        and sma50 is not None
+        and sma200 is not None
+        and close < sma200
+        and ema21 < sma50
+    )
+    if (hh or hl) and ma_bullish:
+        return "bullish"
+    if (lh or ll) and ma_bearish:
+        return "bearish"
+    return "neutral"
+
+
 def classify_regime(
     df: pd.DataFrame, structure_status_val: str = "no_signal"
 ) -> dict[str, Any]:
     """Classify regime from swing structure.
 
+    Uses last-4 swings as primary signal, with MA posture as tiebreaker
+    when swings are mixed (e.g. HH but not HL, or vice versa).
     Returns potential_reversal when CHOCH is detected but BOS is not confirmed.
     """
     swings_h = df[df["swing_high"].notna()][["datetime", "swing_high"]].tail(4)
@@ -744,7 +776,13 @@ def classify_regime(
     elif structure_status_val == "choch_only":
         regime, trend_bias = "potential_reversal", "neutral"
     else:
-        regime, trend_bias = "range_rotation", "neutral"
+        mixed_bias = mixed_swing_ma_bias(df.iloc[-1], hh=hh, hl=hl, lh=lh, ll=ll)
+        if mixed_bias == "bullish":
+            regime, trend_bias = "trend_continuation", "bullish"
+        elif mixed_bias == "bearish":
+            regime, trend_bias = "trend_continuation", "bearish"
+        else:
+            regime, trend_bias = "range_rotation", "neutral"
 
     return {
         "regime": regime,

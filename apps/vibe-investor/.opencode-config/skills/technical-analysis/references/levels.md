@@ -15,6 +15,7 @@ They are not trade permission by themselves.
 - repeated tests weaken a level
 - broken support or resistance can flip role after acceptance
 - use close-based confirmation, not wick-only breaches, for acceptance logic
+- recently broken resistance that is accepted and then holds as nearby support still counts as `accepted_above_resistance`
 - map first and trade second
 
 ## Zone Construction
@@ -26,6 +27,8 @@ Use one method consistently per analysis:
 - wick-to-body reaction zone
 
 Keep the map small and decision-oriented.
+Treat proximity against the full zone width, not only the midpoint.
+Allow a small buffer around the zone so near-edge acceptance is not mislabeled as noise.
 
 ## Trace Requirements
 

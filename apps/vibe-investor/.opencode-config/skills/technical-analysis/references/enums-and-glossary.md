@@ -138,6 +138,7 @@ Single source of truth for shared enum labels used across runtime references.
 
 - `valid`
 - `insufficient_rr`
+- `poor_location`
 - `no_clear_invalidation`
 - `no_clear_path`
 - `wait`

@@ -27,6 +27,7 @@ from ta_common import (
     detect_wyckoff_spring,
     liquidity_draws,
     liquidity_path_after_event,
+    mixed_swing_ma_bias,
     pick_draw_targets,
     profile_from_range,
     summarize_intraday_liquidity,
@@ -516,8 +517,10 @@ def build_value_area(
 
 
 def near_zone(close_price: float, zone: dict[str, Any], pct: float = 0.025) -> bool:
-    mid = float(zone["mid"])
-    return abs(close_price - mid) / max(abs(close_price), 1e-9) <= pct
+    low = float(zone.get("low", zone["mid"]))
+    high = float(zone.get("high", zone["mid"]))
+    buffer = max(close_price, 1e-9) * pct
+    return (low - buffer) <= close_price <= (high + buffer)
 
 
 def infer_location_state(
@@ -539,6 +542,14 @@ def infer_location_state(
     if trend_bias == "bearish" and nearest_resistance and near_zone(close_price, nearest_resistance):
         return "near_resistance_in_bearish_structure"
     if nearest_resistance and close_price > float(nearest_resistance["high"]):
+        return "accepted_above_resistance"
+    # Recently broken resistance now in supports — price sitting just above it
+    if (
+        nearest_support
+        and trend_bias in {"bullish", "neutral"}
+        and close_price > float(nearest_support["high"])
+        and (close_price - float(nearest_support["high"])) / max(close_price, 1e-9) <= 0.04
+    ):
         return "accepted_above_resistance"
     if nearest_support and close_price < float(nearest_support["low"]):
         return "accepted_below_support"
@@ -1023,12 +1034,9 @@ def build_red_flags(
     breakout_failure_severity = (
         "HIGH"
         if (
-            position_state == "long"
+            (position_state == "long" and last_close < sma50)
             or
-            regime != "trend_continuation"
-            or structure_state in {"choch_only", "choch_plus_bos_confirmed"}
-            or last_close < ema21
-            or last_close < sma50
+            (regime != "trend_continuation" and structure_state in {"choch_only", "choch_plus_bos_confirmed"})
         )
         else "MEDIUM"
     )
@@ -1064,20 +1072,28 @@ def build_red_flags(
                 "why": "choch_without_confirmation_bos",
             }
         )
-    if last_close < ema21:
+    if last_close < ema21 and last_close < sma50:
         flags.append(
             {
                 "flag_id": "F6_MA_BREAKDOWN",
                 "severity": "HIGH",
-                "why": "price_below_ema21",
+                "why": "price_below_ema21_and_sma50",
             }
         )
-    if last_close < sma50:
+    elif last_close < sma50:
         flags.append(
             {
                 "flag_id": "F6_MA_BREAKDOWN",
-                "severity": "CRITICAL",
+                "severity": "HIGH",
                 "why": "price_below_sma50",
+            }
+        )
+    elif last_close < ema21:
+        flags.append(
+            {
+                "flag_id": "F6_MA_BREAKDOWN",
+                "severity": "MEDIUM",
+                "why": "price_below_ema21",
             }
         )
     if position_state == "long" and (
@@ -1322,7 +1338,9 @@ def build_ta_context_result(
         elif lh and ll:
             prelim_bias = "bearish"
         else:
-            prelim_bias = "neutral"
+            prelim_bias = mixed_swing_ma_bias(
+                daily.iloc[-1], hh=hh, hl=hl, lh=lh, ll=ll
+            )
     else:
         prelim_bias = "neutral"
 

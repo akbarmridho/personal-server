@@ -266,7 +266,7 @@ Required in:
 | `rr_by_target` | number[] | no | ordered RR values aligned to `target_ladder` |
 | `best_rr` | number | conditional | required when actionable |
 | `min_rr_required` | number | yes | copied from policy input for easy audit |
-| `risk_status` | string | yes | `valid`, `insufficient_rr`, `no_clear_invalidation`, `no_clear_path`, `wait` |
+| `risk_status` | string | yes | `valid`, `insufficient_rr`, `poor_location`, `no_clear_invalidation`, `no_clear_path`, `wait` |
 | `stale_setup_condition` | string | yes | short machine-readable expiry condition |
 
 ### J. `baseline_ma_posture`

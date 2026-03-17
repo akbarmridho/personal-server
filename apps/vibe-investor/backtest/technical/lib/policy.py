@@ -40,6 +40,17 @@ def _flag_codes(context: dict[str, Any], severity: str | None = None) -> set[str
     return codes
 
 
+def _strong_location(context: dict[str, Any]) -> bool:
+    """Check if price is at a meaningful location for relaxed entry."""
+    location = context.get("location", {})
+    location_state = str(location.get("location_state", ""))
+    return location_state in {
+        "near_support_in_bullish_structure",
+        "at_range_edge",
+        "accepted_above_resistance",
+    }
+
+
 def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> PolicyDecision:
     setup = context.get("setup", {})
     trigger = context.get("trigger_confirmation", {})
@@ -49,6 +60,7 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
     setup_id = str(setup.get("primary_setup", "NO_VALID_SETUP"))
     trigger_state = str(trigger.get("trigger_state", "not_triggered"))
     risk_actionable = bool(risk_map.get("actionable", False))
+    risk_status = str(risk_map.get("risk_status", "wait"))
     trend_bias = str(daily_thesis.get("trend_bias", "neutral"))
     structure_status = str(daily_thesis.get("structure_status", "unclear"))
     high_flags = _flag_codes(context, severity="high")
@@ -63,6 +75,14 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
         return PolicyDecision("WAIT", "high_severity_entry_blocker", setup_id, False)
     if trigger_state == "triggered" and risk_actionable:
         return PolicyDecision("BUY", "triggered_actionable_setup", setup_id, False)
+    # Relaxed gate: watchlist setups with strong location and valid risk
+    if (
+        setup.get("setup_validity") == "watchlist_only"
+        and _strong_location(context)
+        and risk_status == "valid"
+        and trend_bias == "bullish"
+    ):
+        return PolicyDecision("BUY", "watchlist_setup_strong_location", setup_id, False)
     if setup.get("setup_validity") == "watchlist_only":
         return PolicyDecision(
             "WAIT", "watchlist_setup_pending_trigger", setup_id, True,

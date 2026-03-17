@@ -12,9 +12,10 @@ Classify market state before setup selection using balance-imbalance logic, then
 - `R-STATE-04` Failed acceptance (quick close back in range) is trap evidence, not trend confirmation.
 - `R-REGIME-01` Uptrend: higher highs and higher lows on daily swings.
 - `R-REGIME-02` Downtrend: lower highs and lower lows on daily swings.
-- `R-REGIME-03` Range rotation: mixed swings with repeated rejection at range edges.
-- `R-REGIME-04` Potential reversal: CHOCH plus follow-through BOS in opposite direction.
-- `R-REGIME-05` Wick-only breaks do not change regime without close confirmation.
+- `R-REGIME-03` Mixed swings default to range rotation when baseline MA posture does not clearly support continuation.
+- `R-REGIME-04` Potential reversal: CHOCH appears without confirmation BOS in the opposite direction.
+- `R-REGIME-05` Mixed swings may still resolve to trend continuation when baseline MA posture confirms the directional bias.
+- `R-REGIME-06` Wick-only breaks do not change regime without close confirmation.
 
 ## Strong And Weak Swing Logic
 
@@ -40,6 +41,10 @@ Use this sequence for reversal classification:
 4. Require confirmation BOS in new direction.
 5. If step 4 fails, keep state as unconfirmed and avoid reversal call.
 
+Interim classification rule:
+
+- CHOCH without confirmation BOS is a potential reversal warning, not a confirmed reversal.
+
 Liquidity-grab filter:
 
 - If break occurs but price quickly reclaims prior structure without follow-through, classify as deviation/liquidity grab, not reversal confirmation.
@@ -63,6 +68,14 @@ Return these fields:
 - `regime`: `trend_continuation`, `range_rotation`, `potential_reversal`, `no_trade`
 - `trend_bias`: `bullish`, `bearish`, `neutral`
 - `wyckoff_context`: `accumulation`, `markup`, `distribution`, `markdown`, `unclear`
+
+## Baseline MA Tiebreaker
+
+When the last swings are mixed:
+
+- classify `trend_continuation` bullish only if price is above `200SMA`, `21EMA` is above `50SMA`, and at least one bullish swing condition still holds
+- classify `trend_continuation` bearish only if price is below `200SMA`, `21EMA` is below `50SMA`, and at least one bearish swing condition still holds
+- otherwise keep `range_rotation`
 
 ## Trace Requirements
 

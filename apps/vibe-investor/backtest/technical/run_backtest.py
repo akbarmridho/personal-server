@@ -23,6 +23,7 @@ from lib.strategies import (
     evaluate_strategy_long,
     strategy_setup_id,
 )
+from lib.policy import PolicyDecision
 from lib.execution import (
     ClosedTrade,
     OpenPosition,
@@ -229,10 +230,14 @@ def _open_entry_position(
             entry_date=entry_date, entry_price=entry_price,
             size=size, setup_id=setup_id, source=source,
         )
-    return open_position_from_context(
+    pos = open_position_from_context(
         entry_date=entry_date, entry_price=entry_price,
         size=size, setup_id=setup_id, context=context, source=source,
     )
+    # Ablation relies on policy exits, not static targets
+    if strategy_name == "ablation":
+        pos.target_level = None
+    return pos
 
 
 # ---------------------------------------------------------------------------
@@ -250,6 +255,8 @@ def _simulate_strategy(
     pending_setup: PendingSetup | None = None
     pending_order: PendingOrder | None = None
     last_exit_index: int | None = None
+    last_exit_was_stop: bool = False
+    consecutive_exit_flag_bars: int = 0  # 3-bar persistence for ablation flag exits
     has_ever_entered = scenario.initial_position.state == "long"
 
     if scenario.initial_position.state == "long":
@@ -280,7 +287,7 @@ def _simulate_strategy(
             pending_order = None
 
         if open_position is not None:
-            closed_trade, _ = process_intrabar_exit(
+            closed_trade, exit_type = process_intrabar_exit(
                 open_position, trade_date=trade_date,
                 open_price=float(bar["open"]), high_price=float(bar["high"]), low_price=float(bar["low"]),
             )
@@ -288,6 +295,8 @@ def _simulate_strategy(
                 trades.append(closed_trade)
                 open_position = None
                 last_exit_index = index
+                last_exit_was_stop = exit_type in {"stop_hit", "stop_and_target_same_bar"}
+                consecutive_exit_flag_bars = 0
 
         expired_setup = None
         if pending_setup is not None:
@@ -298,10 +307,15 @@ def _simulate_strategy(
                 pending_setup = None
 
         if open_position is None:
+            # Ablation: 3-bar cooldown after stop-out, 1-bar after policy exit
+            if strategy_name == "ablation" and last_exit_was_stop and last_exit_index is not None:
+                cooldown_active = (index - last_exit_index) < 3
+            else:
+                cooldown_active = (last_exit_index == index)
             decision = evaluate_strategy_flat(
                 strategy_name=strategy_name, context=context,
                 history_visible=history_visible,
-                cooldown_active=(last_exit_index == index),
+                cooldown_active=cooldown_active,
                 is_first_window_bar=(index == 0),
                 has_ever_entered=has_ever_entered,
             )
@@ -334,6 +348,14 @@ def _simulate_strategy(
             decision = evaluate_strategy_long(
                 strategy_name=strategy_name, context=context, history_visible=history_visible,
             )
+            # Ablation: require 3 consecutive bars with high_severity_exit_flag before exiting
+            if strategy_name == "ablation" and decision.action == "EXIT" and decision.reason == "high_severity_exit_flag":
+                consecutive_exit_flag_bars += 1
+                if consecutive_exit_flag_bars < 3:
+                    decision = PolicyDecision("HOLD", "exit_flag_pending_persistence", decision.setup_id, False)
+            else:
+                consecutive_exit_flag_bars = 0
+
             if decision.action == "EXIT" and index + 1 < len(window):
                 next_bar = window.iloc[index + 1]
                 closed_trade = close_position(
@@ -344,6 +366,7 @@ def _simulate_strategy(
                 trades.append(closed_trade)
                 open_position = None
                 last_exit_index = index + 1
+                last_exit_was_stop = False
 
         daily_logs.append({
             "date": trade_date,
