@@ -1099,13 +1099,54 @@ def build_trigger_confirmation(
     return out
 
 
-def build_risk_map(
-    setup_id: str,
+def zone_width(zone: dict[str, Any]) -> float:
+    return max(float(zone["high"]) - float(zone["low"]), 0.0)
+
+
+def synthetic_breakout_zone(
+    breakout_level: float,
+    atr14: float,
+    fallback_zone: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if fallback_zone is not None:
+        fallback_low = float(fallback_zone["low"])
+        fallback_high = float(fallback_zone["high"])
+        if fallback_low <= breakout_level <= fallback_high:
+            return fallback_zone
+
+    half_width = max(
+        float(atr14) * 0.3 if atr14 > 0 else 0.0,
+        breakout_level * 0.005,
+        zone_width(fallback_zone) * 0.35 if fallback_zone is not None else 0.0,
+    )
+    low = breakout_level - half_width
+    high = breakout_level + half_width
+    return {
+        "label": "breakout_retest",
+        "kind": "support",
+        "low": float(low),
+        "high": float(high),
+        "mid": float(breakout_level),
+        "timeframe": "1d",
+        "strength": (
+            str(fallback_zone.get("strength", "moderate"))
+            if fallback_zone is not None
+            else "moderate"
+        ),
+        "source": (
+            str(fallback_zone.get("source", "horizontal"))
+            if fallback_zone is not None
+            else "horizontal"
+        ),
+    }
+
+
+def build_structural_risk_plan(
+    *,
     position_state: str,
     close_price: float,
     atr14: float,
-    location_state: str,
-    supports: list[dict[str, Any]],
+    entry_zone: dict[str, Any],
     resistances: list[dict[str, Any]],
     min_rr_required: float,
 ) -> dict[str, Any]:
@@ -1115,26 +1156,14 @@ def build_risk_map(
         "risk_status": "wait",
         "stale_setup_condition": "no_trigger_within_5_trading_days",
     }
-    if setup_id == "NO_VALID_SETUP":
-        return result
-    if not is_meaningful_location(location_state):
-        result["risk_status"] = "poor_location"
-        return result
-    if not supports:
-        result["risk_status"] = "no_clear_invalidation"
-        return result
-    if not resistances:
-        result["risk_status"] = "no_clear_path"
-        return result
 
-    entry_zone = supports[0]
     entry = max(close_price, float(entry_zone["mid"]))
     zone_low = float(entry_zone["low"])
-    zone_width = max(float(entry_zone["high"]) - zone_low, 0.0)
+    current_zone_width = zone_width(entry_zone)
     stop_buffer = max(
         float(atr14) * 0.75 if atr14 > 0 else 0.0,
         entry * 0.015,
-        zone_width * 0.5,
+        current_zone_width * 0.5,
     )
     invalidation_level = min(zone_low, entry - stop_buffer)
     stop_level = invalidation_level
@@ -1142,11 +1171,10 @@ def build_risk_map(
         result["risk_status"] = "no_clear_invalidation"
         return result
 
-    targets = [float(z["mid"]) for z in resistances]
+    targets = [float(z["mid"]) for z in resistances if float(z["mid"]) > entry]
     rr_by_target = [
         round((target - entry) / (entry - stop_level), 2)
         for target in targets
-        if target > entry
     ]
     if not rr_by_target:
         result["risk_status"] = "no_clear_path"
@@ -1170,6 +1198,73 @@ def build_risk_map(
         }
     )
     return result
+
+
+def build_risk_map(
+    setup_id: str,
+    position_state: str,
+    close_price: float,
+    atr14: float,
+    location_state: str,
+    supports: list[dict[str, Any]],
+    resistances: list[dict[str, Any]],
+    min_rr_required: float,
+    breakout: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "actionable": False,
+        "min_rr_required": float(min_rr_required),
+        "risk_status": "wait",
+        "stale_setup_condition": "no_trigger_within_5_trading_days",
+    }
+    if setup_id == "NO_VALID_SETUP":
+        return result
+    if not is_meaningful_location(location_state):
+        result["risk_status"] = "poor_location"
+        return result
+    if setup_id != "S1" and not supports:
+        result["risk_status"] = "no_clear_invalidation"
+        return result
+    if not resistances:
+        result["risk_status"] = "no_clear_path"
+        return result
+
+    entry_zone = supports[0] if supports else None
+    if setup_id == "S1":
+        breakout_level = (
+            float(breakout["up_level"])
+            if breakout is not None and breakout.get("up_level") is not None
+            else None
+        )
+        if breakout_level is None:
+            result["risk_status"] = "no_clear_invalidation"
+            return result
+        entry_zone = synthetic_breakout_zone(
+            breakout_level=breakout_level,
+            atr14=atr14,
+            fallback_zone=supports[0] if supports else None,
+        )
+        extension_limit = max(
+            float(atr14) * 0.75 if atr14 > 0 else 0.0,
+            close_price * 0.02,
+            zone_width(entry_zone) * 1.25,
+        )
+        if close_price - float(entry_zone["high"]) > extension_limit:
+            result["entry_zone"] = entry_zone
+            result["risk_status"] = "poor_location"
+            return result
+    elif entry_zone is None:
+        result["risk_status"] = "no_clear_invalidation"
+        return result
+
+    return build_structural_risk_plan(
+        position_state=position_state,
+        close_price=close_price,
+        atr14=atr14,
+        entry_zone=entry_zone,
+        resistances=resistances,
+        min_rr_required=min_rr_required,
+    )
 
 
 def normalize_red_flags(red_flags: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1687,6 +1782,7 @@ def build_ta_context_result(
         supports=supports,
         resistances=resistances,
         min_rr_required=min_rr_required,
+        breakout=bo_snap,
     )
 
     max_touches = max((z["touches"] for z in levels), default=0)
