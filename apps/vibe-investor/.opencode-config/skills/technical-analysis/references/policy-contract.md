@@ -278,8 +278,11 @@ Required in:
 | `above_sma50` | boolean | yes | baseline posture |
 | `above_sma200` | boolean | yes | baseline posture |
 | `ema21_role` | string | yes | `support`, `resistance`, `noise` |
+| `ema21_proximity_pct` | number | no | absolute percent distance from close to `EMA21` |
 | `sma50_role` | string | yes | `support`, `resistance`, `noise` |
+| `sma50_proximity_pct` | number | no | absolute percent distance from close to `SMA50` |
 | `sma200_role` | string | yes | `support`, `resistance`, `noise` |
+| `sma200_proximity_pct` | number | no | absolute percent distance from close to `SMA200` |
 
 ### K. `adaptive_ma`
 

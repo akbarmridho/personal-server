@@ -718,6 +718,15 @@ def ma_role(close_price: float, ma_value: float | None, tol: float = 0.03) -> st
     return "support" if close_price >= float(ma_value) else "resistance"
 
 
+def ma_proximity_pct(close_price: float, ma_value: float | None) -> float | None:
+    if ma_value is None or pd.isna(ma_value):
+        return None
+    return round(
+        abs(close_price - float(ma_value)) / max(abs(close_price), 1e-9) * 100.0,
+        3,
+    )
+
+
 def baseline_ma_payload(row: pd.Series) -> dict[str, Any]:
     close_price = float(row["close"])
     ema21 = float(row.get("EMA21", close_price))
@@ -727,6 +736,9 @@ def baseline_ma_payload(row: pd.Series) -> dict[str, Any]:
     posture["ema21_role"] = ma_role(close_price, ema21)
     posture["sma50_role"] = ma_role(close_price, sma50)
     posture["sma200_role"] = ma_role(close_price, sma200)
+    posture["ema21_proximity_pct"] = ma_proximity_pct(close_price, ema21)
+    posture["sma50_proximity_pct"] = ma_proximity_pct(close_price, sma50)
+    posture["sma200_proximity_pct"] = ma_proximity_pct(close_price, sma200)
     return posture
 
 
@@ -855,6 +867,129 @@ def is_meaningful_location(location_state: str) -> bool:
         "at_range_edge",
         "accepted_above_resistance",
     }
+
+
+def dedupe_price_levels(levels: list[float], rel_tol: float = 0.0035) -> list[float]:
+    ordered = sorted(float(level) for level in levels)
+    deduped: list[float] = []
+    for level in ordered:
+        if not deduped:
+            deduped.append(level)
+            continue
+        prev = deduped[-1]
+        if abs(level - prev) / max(abs(prev), 1e-9) > rel_tol:
+            deduped.append(level)
+    return deduped
+
+
+def derive_internal_liquidity_levels(
+    df_daily: pd.DataFrame,
+    close_price: float,
+    external_levels: list[float],
+    max_levels: int = 8,
+) -> list[float]:
+    ext_up = min((level for level in external_levels if level > close_price), default=None)
+    ext_dn = max((level for level in external_levels if level < close_price), default=None)
+
+    candidate_levels: list[float] = []
+    swing_highs = (
+        df_daily[df_daily["swing_high"].notna()][["swing_high"]].tail(8)
+        if "swing_high" in df_daily.columns
+        else pd.DataFrame(columns=["swing_high"])
+    )
+    swing_lows = (
+        df_daily[df_daily["swing_low"].notna()][["swing_low"]].tail(8)
+        if "swing_low" in df_daily.columns
+        else pd.DataFrame(columns=["swing_low"])
+    )
+
+    for value in swing_highs["swing_high"].tolist():
+        level = float(value)
+        if level <= close_price:
+            continue
+        if ext_up is not None and level >= ext_up:
+            continue
+        candidate_levels.append(level)
+    for value in swing_lows["swing_low"].tolist():
+        level = float(value)
+        if level >= close_price:
+            continue
+        if ext_dn is not None and level <= ext_dn:
+            continue
+        candidate_levels.append(level)
+
+    deduped = dedupe_price_levels(candidate_levels)
+    if len(deduped) <= max_levels:
+        return deduped
+    below = sorted([level for level in deduped if level < close_price], reverse=True)[: max_levels // 2]
+    above = sorted([level for level in deduped if level > close_price])[: max_levels // 2]
+    return sorted(below + above)
+
+
+def find_equal_liquidity_clusters(
+    df_daily: pd.DataFrame,
+    atr14: float,
+    lookback: int = 80,
+) -> dict[str, list[float]]:
+    x = df_daily.tail(lookback).copy()
+    tolerance_abs = max(float(atr14) * 0.35 if atr14 > 0 else 0.0, float(x["close"].iloc[-1]) * 0.003)
+
+    def _cluster(series: pd.Series) -> list[float]:
+        values = [float(v) for v in series.dropna().tail(10).tolist()]
+        clusters: list[list[float]] = []
+        for value in values:
+            for cluster in clusters:
+                midpoint = sum(cluster) / len(cluster)
+                if abs(value - midpoint) <= max(tolerance_abs, abs(midpoint) * 0.0035):
+                    cluster.append(value)
+                    break
+            else:
+                clusters.append([value])
+        return [round(sum(cluster) / len(cluster), 4) for cluster in clusters if len(cluster) >= 2]
+
+    highs = _cluster(x["swing_high"]) if "swing_high" in x.columns else []
+    lows = _cluster(x["swing_low"]) if "swing_low" in x.columns else []
+    return {
+        "eqh_levels": dedupe_price_levels(highs),
+        "eql_levels": dedupe_price_levels(lows),
+    }
+
+
+def classify_liquidity_sweep(
+    *,
+    events: list[dict[str, Any]],
+    last_close: float,
+    eqh_levels: list[float],
+    eql_levels: list[float],
+    internal_levels: list[float],
+    trendlines: list[dict[str, Any]],
+) -> tuple[str, str, str]:
+    if not events:
+        return "none", "unresolved", "none"
+
+    last_event = events[-1]
+    broken_level = float(last_event["broken_level"])
+    side = "above" if last_event["side"] == "up" else "below"
+    rel_tol = 0.008
+
+    def _matches(levels: list[float]) -> bool:
+        return any(
+            abs(broken_level - level) / max(abs(level), 1e-9) <= rel_tol
+            for level in levels
+        )
+
+    if side == "above" and _matches(eqh_levels):
+        return "eqh_swept", sweep_outcome(last_close, broken_level, side), "external_sweep"
+    if side == "below" and _matches(eql_levels):
+        return "eql_swept", sweep_outcome(last_close, broken_level, side), "external_sweep"
+
+    for trendline in trendlines:
+        projected = float(trendline["projected_level"])
+        if abs(projected - broken_level) / max(abs(broken_level), 1e-9) <= 0.01:
+            return "trendline_swept", sweep_outcome(last_close, broken_level, side), "external_sweep"
+
+    event_type = "internal_tag" if _matches(internal_levels) else "external_sweep"
+    return "swing_swept", sweep_outcome(last_close, broken_level, side), event_type
 
 
 def build_intraday_timing(
@@ -1617,7 +1752,7 @@ def detect_ma_whipsaw(
             continue
         diagnostics.append(
             {
-                "flag_id": "F19_MA_WHIPSAW",
+                "flag_id": "F15_MA_WHIPSAW",
                 "severity": severity,
                 "why": (
                     f"{label}_cross_count_{cross_count}_cluster_count_{recent_cluster_count}"
@@ -1721,7 +1856,7 @@ def build_red_flags(
     if risk_status == "no_clear_path":
         flags.append(
             {
-                "flag_id": "F11_NO_NEXT_ZONE_PATH",
+                "flag_id": "F10_NO_NEXT_ZONE_PATH",
                 "severity": "MEDIUM",
                 "why": "risk_map_missing_next_zone_target",
             }
@@ -1745,7 +1880,7 @@ def build_red_flags(
     if breakout_state == "valid_breakout" and breakout_displacement_state == "stalling":
         flags.append(
             {
-                "flag_id": "F13_BREAKOUT_STALLING",
+                "flag_id": "F12_BREAKOUT_STALLING",
                 "severity": "MEDIUM",
                 "why": "breakout_lacks_clean_displacement",
             }
@@ -1820,7 +1955,7 @@ def enrich_red_flags(
             if not (base_ok and context_ok):
                 add_flag(
                     flags,
-                    "F18_BREAKOUT_FILTER_WEAK",
+                    "F14_BREAKOUT_FILTER_WEAK",
                     "MEDIUM",
                     "breakout_filters_weak_base_or_context",
                 )
@@ -1831,14 +1966,14 @@ def enrich_red_flags(
             if b_side == "up" and targets.get("external_up") is None:
                 add_flag(
                     flags,
-                    "F11_NO_NEXT_ZONE_PATH",
+                    "F10_NO_NEXT_ZONE_PATH",
                     "MEDIUM",
                     "breakout_without_next_zone_target",
                 )
             if b_side == "down" and targets.get("external_down") is None:
                 add_flag(
                     flags,
-                    "F11_NO_NEXT_ZONE_PATH",
+                    "F10_NO_NEXT_ZONE_PATH",
                     "MEDIUM",
                     "breakout_without_next_zone_target",
                 )
@@ -1859,7 +1994,7 @@ def enrich_red_flags(
     if missing_liq:
         add_flag(
             flags,
-            "F12_LIQUIDITY_MAP_MISSING",
+            "F11_LIQUIDITY_MAP_MISSING",
             "MEDIUM",
             "liquidity_map_incomplete_draw_targets_or_sweep",
         )
@@ -1873,7 +2008,7 @@ def enrich_red_flags(
         if not has_key:
             add_flag(
                 flags,
-                "F15_VOLUME_CONFLUENCE_WEAK",
+                "F13_VOLUME_CONFLUENCE_WEAK",
                 "MEDIUM",
                 "volume_profile_context_lacks_core_levels",
             )
@@ -2060,36 +2195,42 @@ def build_ta_context_result(
         ma_whipsaw_flags=ma_whipsaw_flags,
     )
 
-    liq = liquidity_draws(last_close, levels, internal_levels=None)
     ext_levels = [float(z["zone_mid"]) for z in levels]
-    int_levels: list[float] = []
+    int_levels = derive_internal_liquidity_levels(daily, last_close, ext_levels)
+    liq = liquidity_draws(last_close, levels, internal_levels=int_levels)
     liq["draw_targets"] = pick_draw_targets(ext_levels, int_levels, last_close)
-
-    # Sweep event detection with richer enum support
-    sweep_event = "none"
-    sweep_outcome_value = "unresolved"
-    if events:
-        last_event = events[-1]
-        side = "above" if last_event["side"] == "up" else "below"
-        sweep_event = "swing_swept"
-        sweep_outcome_value = sweep_outcome(
-            last_close, float(last_event["broken_level"]), side
-        )
+    equal_liquidity = find_equal_liquidity_clusters(
+        daily, float(last.get("ATR14", 0.0) or 0.0)
+    )
+    trendlines = detect_trendline_levels(daily)
+    sweep_event, sweep_outcome_value, event_type = classify_liquidity_sweep(
+        events=events,
+        last_close=last_close,
+        eqh_levels=equal_liquidity["eqh_levels"],
+        eql_levels=equal_liquidity["eql_levels"],
+        internal_levels=int_levels,
+        trendlines=trendlines,
+    )
+    if event_type == "external_sweep" and events:
+        last_event_side = str(events[-1]["side"])
+        if last_event_side == "up":
+            liq["current_draw"] = liq["draw_targets"].get("internal_down") or liq.get("current_draw")
+            liq["opposing_draw"] = liq["draw_targets"].get("external_down") or liq.get("opposing_draw")
+        else:
+            liq["current_draw"] = liq["draw_targets"].get("internal_up") or liq.get("current_draw")
+            liq["opposing_draw"] = liq["draw_targets"].get("external_up") or liq.get("opposing_draw")
+    elif event_type == "internal_tag" and events:
+        last_event_side = str(events[-1]["side"])
+        if last_event_side == "up":
+            liq["current_draw"] = liq["draw_targets"].get("external_down") or liq.get("current_draw")
+            liq["opposing_draw"] = liq["draw_targets"].get("internal_down") or liq.get("opposing_draw")
+        else:
+            liq["current_draw"] = liq["draw_targets"].get("external_up") or liq.get("current_draw")
+            liq["opposing_draw"] = liq["draw_targets"].get("internal_up") or liq.get("opposing_draw")
 
     liq["sweep_event"] = sweep_event
     liq["sweep_outcome"] = sweep_outcome_value
-    event_type = "external_sweep" if sweep_event != "none" else "none"
     liq["liquidity_path"] = liquidity_path_after_event(event_type)
-
-    # Trendline sweep check (only when not already classified as eqh/eql)
-    if liq["sweep_event"] == "swing_swept" and events:
-        trendlines = detect_trendline_levels(daily)
-        broken_lvl = float(events[-1]["broken_level"])
-        for tl in trendlines:
-            proj = float(tl["projected_level"])
-            if abs(proj - broken_lvl) / max(broken_lvl, 1e-9) < 0.01:
-                liq["sweep_event"] = "trendline_swept"
-                break
 
     breakout_result = None
     if "breakout" in modules:
