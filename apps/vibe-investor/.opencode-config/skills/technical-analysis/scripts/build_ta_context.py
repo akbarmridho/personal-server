@@ -22,6 +22,7 @@ from ta_common import (
     choose_adaptive_ma,
     cluster_levels,
     derive_levels,
+    detect_sweep_events,
     detect_structure_events,
     detect_trendline_levels,
     detect_wyckoff_spring,
@@ -33,7 +34,6 @@ from ta_common import (
     summarize_intraday_liquidity,
     summarize_intraday_participation,
     structure_status,
-    sweep_outcome,
     value_area_from_hist,
 )
 from wyckoff_state import build_wyckoff_state
@@ -957,39 +957,86 @@ def find_equal_liquidity_clusters(
 
 def classify_liquidity_sweep(
     *,
-    events: list[dict[str, Any]],
-    last_close: float,
-    eqh_levels: list[float],
-    eql_levels: list[float],
-    internal_levels: list[float],
-    trendlines: list[dict[str, Any]],
-) -> tuple[str, str, str]:
-    if not events:
-        return "none", "unresolved", "none"
+    sweep_events: list[dict[str, Any]],
+) -> tuple[str, str, str, str | None]:
+    if not sweep_events:
+        return "none", "unresolved", "none", None
 
-    last_event = events[-1]
-    broken_level = float(last_event["broken_level"])
-    side = "above" if last_event["side"] == "up" else "below"
-    rel_tol = 0.008
+    type_rank = {"eqh": 4, "eql": 4, "trendline": 3, "swing": 2}
+    latest_event = max(
+        sweep_events,
+        key=lambda event: (
+            int(event.get("bar_index", -1)),
+            1 if str(event.get("outcome")) in {"accepted", "rejected"} else 0,
+            type_rank.get(str(event.get("sweep_type")), 0),
+        ),
+    )
+    sweep_label = {
+        "eqh": "eqh_swept",
+        "eql": "eql_swept",
+        "trendline": "trendline_swept",
+        "swing": "swing_swept",
+    }.get(str(latest_event.get("sweep_type")), "swing_swept")
+    return (
+        sweep_label,
+        str(latest_event.get("outcome", "unresolved")),
+        str(latest_event.get("event_scope", "none")),
+        str(latest_event.get("side")) if latest_event.get("side") is not None else None,
+    )
 
-    def _matches(levels: list[float]) -> bool:
-        return any(
-            abs(broken_level - level) / max(abs(level), 1e-9) <= rel_tol
-            for level in levels
-        )
 
-    if side == "above" and _matches(eqh_levels):
-        return "eqh_swept", sweep_outcome(last_close, broken_level, side), "external_sweep"
-    if side == "below" and _matches(eql_levels):
-        return "eql_swept", sweep_outcome(last_close, broken_level, side), "external_sweep"
+def remap_liquidity_draws(
+    *,
+    liq: dict[str, Any],
+    event_scope: str,
+    sweep_outcome_value: str,
+    sweep_side: str | None,
+) -> None:
+    if sweep_side not in {"up", "down"} or sweep_outcome_value not in {
+        "accepted",
+        "rejected",
+    }:
+        return
 
-    for trendline in trendlines:
-        projected = float(trendline["projected_level"])
-        if abs(projected - broken_level) / max(abs(broken_level), 1e-9) <= 0.01:
-            return "trendline_swept", sweep_outcome(last_close, broken_level, side), "external_sweep"
+    draw_targets = (
+        liq.get("draw_targets") if isinstance(liq.get("draw_targets"), dict) else {}
+    )
+    current_draw = liq.get("current_draw")
+    opposing_draw = liq.get("opposing_draw")
 
-    event_type = "internal_tag" if _matches(internal_levels) else "external_sweep"
-    return "swing_swept", sweep_outcome(last_close, broken_level, side), event_type
+    if event_scope == "external_sweep":
+        if sweep_side == "up":
+            if sweep_outcome_value == "accepted":
+                current_draw = draw_targets.get("external_up") or current_draw
+                opposing_draw = draw_targets.get("internal_down") or opposing_draw
+            else:
+                current_draw = draw_targets.get("internal_down") or current_draw
+                opposing_draw = draw_targets.get("external_down") or opposing_draw
+        else:
+            if sweep_outcome_value == "accepted":
+                current_draw = draw_targets.get("external_down") or current_draw
+                opposing_draw = draw_targets.get("internal_up") or opposing_draw
+            else:
+                current_draw = draw_targets.get("internal_up") or current_draw
+                opposing_draw = draw_targets.get("external_up") or opposing_draw
+    elif event_scope == "internal_tag":
+        if sweep_side == "up":
+            if sweep_outcome_value == "accepted":
+                current_draw = draw_targets.get("external_up") or current_draw
+                opposing_draw = draw_targets.get("internal_down") or opposing_draw
+            else:
+                current_draw = draw_targets.get("external_down") or current_draw
+                opposing_draw = draw_targets.get("internal_down") or opposing_draw
+        else:
+            if sweep_outcome_value == "accepted":
+                current_draw = draw_targets.get("external_down") or current_draw
+                opposing_draw = draw_targets.get("internal_up") or opposing_draw
+            else:
+                current_draw = draw_targets.get("external_up") or current_draw
+                opposing_draw = draw_targets.get("internal_up") or opposing_draw
+
+    liq["current_draw"] = current_draw
+    liq["opposing_draw"] = opposing_draw
 
 
 def build_intraday_timing(
@@ -1415,6 +1462,8 @@ def build_trigger_confirmation(
         latest = latest_structure_event_payload(events)
         trigger_level = latest["level"] if latest else None
         trigger_ts = latest["timestamp"] if latest else None
+        if trigger_level is None:
+            trigger_type = "none"
         if latest_event_age_bars is not None and latest_event_age_bars > 5:
             trigger_state = "not_triggered"
             confirmation_state = "not_applicable"
@@ -1444,10 +1493,14 @@ def build_trigger_confirmation(
         confirmation_state = str(range_edge["confirmation_state"])
         participation_quality = str(range_edge["participation_quality"])
         trigger_level = range_edge.get("trigger_level")
+        if trigger_level is None:
+            trigger_type = "none"
     elif setup_id == "S5":
         trigger_type = "spring_reclaim"
         trigger_level = spring.get("support_level")
         trigger_ts = spring.get("support_datetime")
+        if trigger_level is None:
+            trigger_type = "none"
         if spring.get("detected"):
             trigger_state = "triggered"
             confirmation_state = "confirmed"
@@ -1487,7 +1540,7 @@ def build_trigger_confirmation(
     latest_event = latest_structure_event_payload(events)
     if latest_event is not None:
         out["latest_structure_event"] = latest_event
-    if breakout:
+    if setup_id == "S1" and breakout:
         out["breakout_quality"] = breakout_quality_payload(breakout, regime, displacement)
     return out
 
@@ -2203,34 +2256,28 @@ def build_ta_context_result(
         daily, float(last.get("ATR14", 0.0) or 0.0)
     )
     trendlines = detect_trendline_levels(daily)
-    sweep_event, sweep_outcome_value, event_type = classify_liquidity_sweep(
-        events=events,
-        last_close=last_close,
+    sweep_events = detect_sweep_events(
+        daily,
         eqh_levels=equal_liquidity["eqh_levels"],
         eql_levels=equal_liquidity["eql_levels"],
         internal_levels=int_levels,
         trendlines=trendlines,
     )
-    if event_type == "external_sweep" and events:
-        last_event_side = str(events[-1]["side"])
-        if last_event_side == "up":
-            liq["current_draw"] = liq["draw_targets"].get("internal_down") or liq.get("current_draw")
-            liq["opposing_draw"] = liq["draw_targets"].get("external_down") or liq.get("opposing_draw")
-        else:
-            liq["current_draw"] = liq["draw_targets"].get("internal_up") or liq.get("current_draw")
-            liq["opposing_draw"] = liq["draw_targets"].get("external_up") or liq.get("opposing_draw")
-    elif event_type == "internal_tag" and events:
-        last_event_side = str(events[-1]["side"])
-        if last_event_side == "up":
-            liq["current_draw"] = liq["draw_targets"].get("external_down") or liq.get("current_draw")
-            liq["opposing_draw"] = liq["draw_targets"].get("internal_down") or liq.get("opposing_draw")
-        else:
-            liq["current_draw"] = liq["draw_targets"].get("external_up") or liq.get("current_draw")
-            liq["opposing_draw"] = liq["draw_targets"].get("internal_up") or liq.get("opposing_draw")
+    sweep_event, sweep_outcome_value, event_type, sweep_side = classify_liquidity_sweep(
+        sweep_events=sweep_events,
+    )
+    remap_liquidity_draws(
+        liq=liq,
+        event_scope=event_type,
+        sweep_outcome_value=sweep_outcome_value,
+        sweep_side=sweep_side,
+    )
 
     liq["sweep_event"] = sweep_event
     liq["sweep_outcome"] = sweep_outcome_value
-    liq["liquidity_path"] = liquidity_path_after_event(event_type)
+    liq["liquidity_path"] = liquidity_path_after_event(
+        event_type, sweep_outcome_value
+    )
 
     breakout_result = None
     if "breakout" in modules:

@@ -25,8 +25,9 @@ Standardize liquidity analysis so direction, entry timing, and targets are frame
 
 Alternation model (heuristic, not certainty):
 
-1. after external sweep, next draw often shifts to internal liquidity
-2. after internal tag, next draw often shifts to opposing external liquidity
+1. after rejected external sweep, next draw often shifts to internal liquidity
+2. after accepted external sweep, price may continue toward the external-side objective
+3. after internal tag, the next draw depends on whether the tag was accepted or rejected
 
 ## Rules
 
@@ -40,7 +41,7 @@ Alternation model (heuristic, not certainty):
 ## HTF-LTF Alignment Playbook
 
 1. define HTF liquidity objective (which pool is likely to be taken)
-2. wait for HTF sweep signal (take and reject or accept)
+2. wait for HTF sweep signal and classify whether it was accepted, rejected, or still unresolved
 3. shift to LTF for entry trigger (structure break, reclaim, or local reaction)
 4. place stop beyond sweep extreme or structural invalidation
 5. target next mapped liquidity pool
@@ -55,7 +56,7 @@ Alternation model (heuristic, not certainty):
 
 ## Implementation Note
 
-Deterministic liquidity draw target extraction and sweep event classification (including trendline sweep detection) are implemented in:
+Deterministic liquidity sweep detection, draw target extraction, and post-sweep path remapping are implemented in:
 
 - Module: `core`
-- Script: `scripts/build_ta_context.py`
+- Scripts: `scripts/ta_common.py`, `scripts/build_ta_context.py`

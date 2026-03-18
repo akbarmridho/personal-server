@@ -867,10 +867,10 @@ def liquidity_draws(
     return out
 
 
-def liquidity_path_after_event(event_type: str) -> str:
-    if event_type == "external_sweep":
+def liquidity_path_after_event(event_type: str, outcome: str = "unresolved") -> str:
+    if event_type == "external_sweep" and outcome == "rejected":
         return "external_to_internal"
-    if event_type == "internal_tag":
+    if event_type == "internal_tag" and outcome in {"accepted", "rejected"}:
         return "internal_to_external"
     return "unclear"
 
@@ -894,6 +894,180 @@ def pick_draw_targets(
         "internal_up": int_up[0] if int_up else None,
         "internal_down": int_dn[0] if int_dn else None,
     }
+
+
+def detect_sweep_events(
+    df_daily: pd.DataFrame,
+    *,
+    eqh_levels: list[float] | None = None,
+    eql_levels: list[float] | None = None,
+    internal_levels: list[float] | None = None,
+    trendlines: list[dict[str, Any]] | None = None,
+    lookback: int = 10,
+) -> list[dict[str, Any]]:
+    x = df_daily.reset_index(drop=True).copy()
+    if x.empty:
+        return []
+
+    eqh_levels = [float(level) for level in (eqh_levels or [])]
+    eql_levels = [float(level) for level in (eql_levels or [])]
+    internal_levels = [float(level) for level in (internal_levels or [])]
+    trendlines = list(trendlines or [])
+    recent = x.tail(lookback).copy()
+    type_rank = {"eqh": 4, "eql": 4, "trendline": 3, "swing": 2}
+
+    swing_high_levels = [
+        float(level)
+        for level in x["swing_high"].dropna().tail(8).tolist()
+        if float(level) > 0
+    ] if "swing_high" in x.columns else []
+    swing_low_levels = [
+        float(level)
+        for level in x["swing_low"].dropna().tail(8).tolist()
+        if float(level) > 0
+    ] if "swing_low" in x.columns else []
+
+    def _matches(level: float, refs: list[float], rel_tol: float = 0.006) -> bool:
+        return any(
+            abs(level - ref) / max(abs(ref), 1e-9) <= rel_tol
+            for ref in refs
+        )
+
+    def _projected_trendline_level(
+        trendline: dict[str, Any], bar_index: int
+    ) -> float:
+        anchor_start = int(trendline.get("anchor_start_index", bar_index))
+        anchor_level = float(trendline.get("anchor_start", trendline["projected_level"]))
+        slope = float(trendline.get("slope_per_bar", 0.0))
+        return anchor_level + slope * (bar_index - anchor_start)
+
+    candidates: list[dict[str, Any]] = []
+
+    def _append_candidate(
+        *,
+        row: pd.Series,
+        level: float,
+        side: str,
+        sweep_type: str,
+        event_scope: str,
+    ) -> None:
+        atr14 = (
+            float(row.get("ATR14", 0.0))
+            if pd.notna(row.get("ATR14"))
+            else 0.0
+        )
+        breach_buffer = max(atr14 * 0.08, abs(level) * 0.0012)
+        acceptance_buffer = max(atr14 * 0.05, abs(level) * 0.0008)
+        high = float(row["high"])
+        low = float(row["low"])
+        close = float(row["close"])
+
+        if side == "up":
+            breached = high > level + breach_buffer
+            if not breached:
+                return
+            if close < level - acceptance_buffer:
+                outcome = "rejected"
+            elif close > level + acceptance_buffer:
+                outcome = "accepted"
+            else:
+                outcome = "unresolved"
+        else:
+            breached = low < level - breach_buffer
+            if not breached:
+                return
+            if close > level + acceptance_buffer:
+                outcome = "rejected"
+            elif close < level - acceptance_buffer:
+                outcome = "accepted"
+            else:
+                outcome = "unresolved"
+
+        candidates.append(
+            {
+                "datetime": str(row["datetime"]),
+                "bar_index": int(row.name),
+                "level": float(level),
+                "side": side,
+                "sweep_type": sweep_type,
+                "event_scope": event_scope,
+                "outcome": outcome,
+            }
+        )
+
+    for idx, row in recent.iterrows():
+        for level in eqh_levels:
+            _append_candidate(
+                row=row,
+                level=level,
+                side="up",
+                sweep_type="eqh",
+                event_scope="external_sweep",
+            )
+        for level in eql_levels:
+            _append_candidate(
+                row=row,
+                level=level,
+                side="down",
+                sweep_type="eql",
+                event_scope="external_sweep",
+            )
+        for level in swing_high_levels:
+            _append_candidate(
+                row=row,
+                level=level,
+                side="up",
+                sweep_type="swing",
+                event_scope="internal_tag" if _matches(level, internal_levels) else "external_sweep",
+            )
+        for level in swing_low_levels:
+            _append_candidate(
+                row=row,
+                level=level,
+                side="down",
+                sweep_type="swing",
+                event_scope="internal_tag" if _matches(level, internal_levels) else "external_sweep",
+            )
+        for trendline in trendlines:
+            trendline_type = str(trendline.get("type", ""))
+            if trendline_type == "descending_resistance":
+                _append_candidate(
+                    row=row,
+                    level=_projected_trendline_level(trendline, int(idx)),
+                    side="up",
+                    sweep_type="trendline",
+                    event_scope="external_sweep",
+                )
+            elif trendline_type == "ascending_support":
+                _append_candidate(
+                    row=row,
+                    level=_projected_trendline_level(trendline, int(idx)),
+                    side="down",
+                    sweep_type="trendline",
+                    event_scope="external_sweep",
+                )
+
+    if not candidates:
+        return []
+
+    best_by_side: dict[str, dict[str, Any]] = {}
+    for candidate in sorted(
+        candidates,
+        key=lambda item: (
+            int(item["bar_index"]),
+            1 if str(item["outcome"]) in {"accepted", "rejected"} else 0,
+            type_rank.get(str(item["sweep_type"]), 0),
+        ),
+        reverse=True,
+    ):
+        side = str(candidate["side"])
+        if side not in best_by_side:
+            best_by_side[side] = candidate
+
+    return sorted(
+        best_by_side.values(),
+        key=lambda item: int(item["bar_index"]),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -991,8 +1165,11 @@ def detect_trendline_levels(
                     current_proj = values[0] + slope * (last_idx - indices[0])
                     trendlines.append({
                         "type": "ascending_support",
+                        "anchor_start_index": int(indices[0]),
                         "anchor_start": float(values[0]),
+                        "anchor_end_index": int(indices[-1]),
                         "anchor_end": float(values[-1]),
+                        "slope_per_bar": float(slope),
                         "projected_level": float(current_proj),
                         "points_on_line": on_line,
                     })
@@ -1014,8 +1191,11 @@ def detect_trendline_levels(
                     current_proj = values[0] + slope * (last_idx - indices[0])
                     trendlines.append({
                         "type": "descending_resistance",
+                        "anchor_start_index": int(indices[0]),
                         "anchor_start": float(values[0]),
+                        "anchor_end_index": int(indices[-1]),
                         "anchor_end": float(values[-1]),
+                        "slope_per_bar": float(slope),
                         "projected_level": float(current_proj),
                         "points_on_line": on_line,
                     })
