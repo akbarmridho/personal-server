@@ -22,17 +22,6 @@ from .policy import PolicyDecision
 
 TECHNICAL_DOCTRINE_FILES = [
     "SKILL.md",
-    "references/workflow-spine.md",
-    "references/policy-contract.md",
-    "references/market-structure-and-trend.md",
-    "references/levels.md",
-    "references/volume-profile-and-volume-flow.md",
-    "references/liquidity-draw-and-sweep.md",
-    "references/setups-and-breakouts.md",
-    "references/execution-and-risk-protocol.md",
-    "references/checklists-and-red-flags.md",
-    "references/enums-and-glossary.md",
-    "references/output-report-template.md",
 ]
 
 LLM_DECISION_SCHEMA: dict[str, Any] = {

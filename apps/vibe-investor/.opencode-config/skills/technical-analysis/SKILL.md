@@ -12,11 +12,7 @@ Use this skill to perform technical analysis for:
 - invalidation
 - trade path and risk map
 
-Time horizon:
-
-- swing
-- medium-term position
-- long-term position
+Time horizon: swing, medium-term position, long-term position.
 
 Use:
 
@@ -25,88 +21,19 @@ Use:
 - internally derived `15m` bars for trigger, confirmation, and tactical timing
 - optional `corp_actions[]` when available
 
-## Runtime Modes
-
-### Purpose Mode
-
-- `INITIAL`
-- `UPDATE`
-- `POSTMORTEM`
-
-The meaning and rules for these modes are owned by:
-
-- `references/workflow-spine.md`
-- `references/policy-contract.md`
-
-## Mandatory Load Order
-
-For every run:
-
-1. determine `purpose_mode`
-2. load `references/workflow-spine.md`
-3. load `references/policy-contract.md`
-4. load only the topic references required by the active branch
-5. run deterministic preprocessing and chart generation
-6. decide using the bounded contract
-7. render the answer using `references/output-report-template.md`
-
-Do not infer the workflow from topic references alone.
-
-## Reference Routing
-
-Always load:
-
-- `references/workflow-spine.md`
-- `references/policy-contract.md`
-
-Load by need:
-
-- `STATE` -> `references/market-structure-and-trend.md`
-- `LOCATION` -> `references/levels.md`, `references/volume-profile-and-volume-flow.md`, `references/liquidity-draw-and-sweep.md`
-- `SETUP`, `TRIGGER`, `CONFIRMATION` -> `references/setups-and-breakouts.md`
-- `RISK`, `DECISION`, `MONITORING` -> `references/execution-and-risk-protocol.md`
-- validation only -> `references/checklists-and-red-flags.md`
-- enums only -> `references/enums-and-glossary.md`
-- output only -> `references/output-report-template.md`
-
 ## Required Data And Fail-Fast
 
 Use `fetch-ohlcv` as the only chart-data source.
 
-Required arrays:
+Required arrays: `daily[]`, `intraday_1m[]`. Optional: `corp_actions[]`.
 
-- `daily[]`
-- `intraday_1m[]`
+Expected price fields: `timestamp`, `datetime`, `date`, `open`, `high`, `low`, `close`, `volume`, `value`.
 
-Optional array:
+If any required array is missing or empty, stop analysis and report dependency failure. If `fetch-ohlcv` fails, stop analysis.
 
-- `corp_actions[]`
+Intraday handling: treat `intraday_1m[]` as raw source contract; derive `15m` internally inside TA scripts.
 
-Expected price fields:
-
-- `timestamp`
-- `datetime`
-- `date`
-- `open`
-- `high`
-- `low`
-- `close`
-- `volume`
-- `value`
-
-If any required array is missing or empty, stop analysis and report dependency failure.
-If `fetch-ohlcv` fails, stop analysis.
-
-Intraday handling rule:
-
-- treat `intraday_1m[]` as the raw source contract
-- derive `15m` internally inside the TA scripts
-- do not treat the fetch layer as the owner of strategy timeframe aggregation
-
-Price-adjustment contract:
-
-- prices are split-style adjusted
-- prices are not dividend-adjusted
+Price-adjustment contract: prices are split-style adjusted, not dividend-adjusted.
 
 ## Deterministic Runtime Steps
 
@@ -118,12 +45,9 @@ The deterministic layer is mandatory.
 4. read chart artifacts before final synthesis
 5. cross-check chart observations against deterministic evidence
 
-Do not skip chart generation.
-Do not skip chart reading.
+Do not skip chart generation. Do not skip chart reading.
 
-## Context Build
-
-Run the context builder before policy reasoning.
+### Context Build
 
 ```bash
 python scripts/build_ta_context.py \
@@ -133,19 +57,9 @@ python scripts/build_ta_context.py \
   --modules core,vpvr,breakout
 ```
 
-Input contract:
+`--input` must use the exact JSON returned by `fetch-ohlcv`. Output: deterministic `ta_context` JSON. If the active workflow specifies a retained artifact directory, write outputs there instead of `work/`.
 
-- `--input` must use the exact JSON returned by `fetch-ohlcv`
-
-Output contract:
-
-- deterministic `ta_context` JSON for policy reasoning
-
-If the active workflow specifies a retained artifact directory, write outputs there instead of `work/`.
-
-## Chart Build
-
-Run the chart generator before final reasoning.
+### Chart Build
 
 ```bash
 python scripts/generate_ta_charts.py \
@@ -158,35 +72,12 @@ python scripts/generate_ta_charts.py \
 
 Daily chart MA mode:
 
-- `hybrid` -> `EMA21` + `SMA50` + `SMA200` plus highlighted chosen `SMA{n}`
-- `baseline` -> `EMA21` + `SMA50` + `SMA200`
+- `hybrid` (default) → `EMA21` + `SMA50` + `SMA200` plus highlighted chosen `SMA{n}`
+- `baseline` → `EMA21` + `SMA50` + `SMA200`
 
-Rules:
+Default to `hybrid`. Use `baseline` only when a lean static read is preferred. Read the chart evidence manifest for the selected MA mode, adaptive period, and respect details.
 
-- default to `hybrid`
-- use `baseline` only when a lean static read is preferred
-- hybrid charting does not by itself mean adaptive MA changed the decision
-- read the chart evidence manifest for the selected MA mode, adaptive period, and respect details
-
-Input contract:
-
-- `--input` must use the exact JSON returned by `fetch-ohlcv`
-
-Output contract:
-
-- chart artifacts
-- chart evidence JSON
-
-Default chart set includes:
-
-- `daily_structure`
-- `intraday_structure`
-- `structure_events`
-- `wyckoff_history`
-- optional `vpvr_profile`
-
-The runtime should read the generated chart evidence manifest and use the artifact paths it provides.
-Do not hardcode chart names in the final answer if the manifest already provides the paths.
+Default chart set: `daily_structure`, `intraday_structure`, `structure_events`, `wyckoff_history`, optional `vpvr_profile`. Use artifact paths from the chart evidence manifest; do not hardcode chart names.
 
 ## Core Runtime Rules
 
@@ -198,25 +89,6 @@ Do not hardcode chart names in the final answer if the manifest already provides
 - keep baseline MA context lean
 - treat hybrid charting as default visual context, not as automatic decision weight
 
-## Output Contract
-
-The final answer must follow:
-
-- `references/output-report-template.md`
-
-The output must begin with a compact `Decision Summary`.
-
-The answer must include:
-
-- purpose mode
-- selected setup family or `NO_VALID_SETUP`
-- final action
-- confidence
-- invalidation
-- next trigger
-- monitoring conditions
-- chart evidence references
-
 ## Execution Defaults
 
 - parse JSON directly
@@ -226,44 +98,645 @@ The answer must include:
 - for actionable output, always include invalidation and stop-loss
 - when evidence is mixed, prefer `WAIT`
 
-## Runtime Owners
+## Workflow Spine
 
-This file owns:
+Runtime workflow owner. Defines canonical analysis order, phase gates, stop rules, and daily/15m reconciliation.
 
-- scope
-- runtime load order
-- deterministic tool invocation
-- reference routing
-- fail-fast behavior
+### Purpose Mode
 
-This file does not own:
+- `INITIAL` — fresh thesis
+- `UPDATE` — refresh active thesis (requires prior thesis context)
+- `POSTMORTEM` — review failed/exited thesis (requires prior thesis context)
 
-- phase sequencing detail
-- action policy detail
-- field-level state schema
-- topic doctrine
-- output layout detail
+If required prior thesis context is missing, stop and report missing dependency.
 
-Those are owned by:
+#### `UPDATE` Requirements
 
-- `references/workflow-spine.md`
-- `references/policy-contract.md`
-- topic references
-- `references/output-report-template.md`
+Must produce: `thesis_status`, `review_reason`, and explicit delta assessment covering structure, levels, volume/participation, setup quality, and risk.
 
-## Runtime Files
+#### `POSTMORTEM` Requirements
 
-- `references/workflow-spine.md`
-- `references/policy-contract.md`
-- `references/market-structure-and-trend.md`
-- `references/levels.md`
-- `references/volume-profile-and-volume-flow.md`
-- `references/liquidity-draw-and-sweep.md`
-- `references/setups-and-breakouts.md`
-- `references/execution-and-risk-protocol.md`
-- `references/checklists-and-red-flags.md`
-- `references/enums-and-glossary.md`
-- `references/output-report-template.md`
-- `scripts/build_ta_context.py`
-- `scripts/generate_ta_charts.py`
-- `scripts/ta_common.py`
+Must produce: failure point, missed/absent warning, invalidation path, rule/handling improvement.
+
+### Canonical Phase Order
+
+`MODE` → `STATE` → `LOCATION` → `SETUP` → `TRIGGER` → `CONFIRMATION` → `RISK` → `DECISION` → `MONITORING`
+
+Chart-first, structure-first. Determine the job → classify daily state → map zones → choose setup or none → demand trigger → confirm → build risk from invalidation backward → choose one action → define what happens next.
+
+### Phase Contracts
+
+#### 1. MODE
+
+What job is being done? Outputs: `purpose_mode`, `position_state`, `intent`. If prior context required and missing, stop.
+
+#### 2. STATE
+
+What is the daily market state and regime? Requires: daily structure read, value acceptance/repricing state, Wyckoff cycle + recent sequence, baseline MA posture.
+
+Stop: if state cannot be classified beyond `unclear`, return `WAIT`. If `no_trade`, return `WAIT` unless `POSTMORTEM`.
+
+#### 3. LOCATION
+
+Where is price relative to meaningful decision zones? Requires: at least one meaningful nearby zone, current/opposing draw, value-area acceptance state.
+
+Stop: if mid-range noise with no meaningful zone active, return `WAIT`. If no clear next path, lean `WAIT`.
+
+#### 4. SETUP
+
+What setup family matches state and location? Select one of `S1`–`S5` or `NO_VALID_SETUP`.
+
+Stop: if no setup fits cleanly, return `WAIT`. Do not carry multiple final setups into later phases.
+
+#### 5. TRIGGER
+
+Has the setup actually triggered? `15m` owns trigger quality inside daily thesis. Requires: trigger event tied to selected setup, local acceptance/reclaim/follow-through read.
+
+Stop: if trigger absent, return `WAIT` or watchlist. Do not promote untriggered setup into actionable trade.
+
+#### 6. CONFIRMATION
+
+Does evidence support the trigger strongly enough? Requires: follow-through, participation read, contradiction check between chart and numeric evidence.
+
+Chart modes: `hybrid` (default) = `21EMA` + `50SMA` + `200SMA` + chosen `SMA{n}`; `baseline` = `21EMA` + `50SMA` + `200SMA`.
+
+Stop: if confirmation mixed and contradiction affects action quality, return `WAIT`. If trigger fails immediately, downgrade to `WAIT` or `EXIT` depending on position state.
+
+#### 7. RISK
+
+Where is the thesis wrong and what is the level-to-level path? Requires: explicit invalidation, explicit next-zone path, RR at or above threshold.
+
+Stop: if invalidation unclear, no next-zone path, or RR below threshold, return `WAIT`.
+
+#### 8. DECISION
+
+One final action: `BUY` | `HOLD` | `WAIT` | `EXIT`. Use action rules from the Policy Contract section. Unresolved contradiction defaults to `WAIT`.
+
+#### 9. MONITORING
+
+What confirms, invalidates, or refreshes this thesis next? Every run ends with explicit monitoring conditions.
+
+### Daily And 15m Authority
+
+Daily owns: STATE, LOCATION, SETUP, main risk map. Daily has final authority on thesis direction.
+
+`15m` owns: TRIGGER, CONFIRMATION, tactical timing, local acceptance/rejection, follow-through quality. `15m` can veto timing, downgrade confidence, keep result in `WAIT`. `15m` cannot create a trade against daily thesis by itself.
+
+### Workflow Trace
+
+Final response must trace phases used: MODE, STATE, LOCATION, SETUP, TRIGGER, CONFIRMATION, RISK, DECISION, MONITORING.
+
+Non-initial additions: Previous Thesis Snapshot (UPDATE/POSTMORTEM), Thesis Status + reason (UPDATE), Delta Log (UPDATE), failure + handling notes (POSTMORTEM).
+
+## Policy Contract
+
+Runtime decision contract.
+
+### Action Space (long-only)
+
+`BUY` | `HOLD` | `WAIT` | `EXIT`
+
+### Setup Space
+
+- `S1` breakout and retest continuation
+- `S2` pullback to demand in intact uptrend
+- `S3` sweep and reclaim reversal
+- `S4` range edge rotation
+- `S5` Wyckoff spring with reclaim
+- `NO_VALID_SETUP`
+
+### Required Runtime Inputs
+
+- one `ta_context` packet matching the schema below
+- current position state
+- prior thesis snapshot for `UPDATE` and `POSTMORTEM`
+
+If a required input is missing, stop and report missing dependency.
+
+### Decision Rules
+
+#### `BUY`
+
+All must be true:
+
+- `analysis.position_state = flat`
+- `setup.primary_setup != NO_VALID_SETUP`
+- location is meaningful
+- trigger is active
+- confirmation is not rejected
+- invalidation is explicit
+- next-zone path exists
+- `risk_map.best_rr >= risk_map.min_rr_required`
+
+#### `HOLD`
+
+All must be true:
+
+- `analysis.position_state = long`
+- thesis remains valid
+- no exit trigger is active
+- no critical contradiction requires immediate reduction or exit
+
+#### `WAIT`
+
+Default when any decision prerequisite is unresolved: state unclear, location poor, `NO_VALID_SETUP`, trigger absent, confirmation mixed, invalidation unclear, no next-zone path, RR below threshold.
+
+#### `EXIT`
+
+All must be true:
+
+- `analysis.position_state = long`
+- invalidation failed, thesis invalidated, trigger failure + confirmation breakdown materially damages thesis, or critical red flag forces exit
+
+### Uncertainty Handling
+
+When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved contradiction.
+
+### Validation Gates
+
+#### Hard Gates
+
+1. `G1_MODE` purpose mode is explicit
+2. `G2_DATA` required data is present and usable
+3. `G3_STATE` daily state and regime are classifiable enough to proceed
+4. `G4_LOCATION` price is at a meaningful area or result is `WAIT`
+5. `G5_SETUP` exactly one setup family or `NO_VALID_SETUP`
+6. `G6_TRIGGER` actionable decisions require a real trigger
+7. `G7_INVALIDATION` actionable decisions require explicit invalidation
+8. `G8_PATH` actionable decisions require a clear next-zone path
+9. `G9_RR` actionable decisions require acceptable reward-to-risk
+10. `G10_CONFLICTS` chart and numeric contradictions are resolved explicitly
+11. `G11_WAIT` unresolved decision-critical ambiguity defaults to `WAIT`
+
+#### Conditional Gates
+
+- `C1_PRIOR_CONTEXT` `UPDATE` and `POSTMORTEM` include prior thesis context
+- `C2_DELTA` `UPDATE` includes thesis status, review reason, and delta log
+- `C3_POSTMORTEM` `POSTMORTEM` includes failure point and handling improvement
+- `C4_BREAKOUT` breakout setups include breakout quality and follow-through
+- `C5_VOLUME_PROFILE` VPVR usage includes POC, VAH, VAL, and acceptance state
+- `C6_ADAPTIVE_MA` adaptive MA reporting includes period, justification, and chart mode
+
+#### Advisory
+
+- Prefer `WAIT` over forcing a low-quality narrative
+- Downgrade confidence when `15m` timing conflicts with daily thesis
+- Treat mid-range noise as weak location
+- Treat weak follow-through as veto or delay, not proof
+
+### Red Flags
+
+#### Core
+
+`F1_STRUCTURE_BREAK` | `F2_DISTRIBUTION` | `F3_WEAK_BREAKOUT` | `F4_LEVEL_EXHAUSTION` | `F5_MARKET_CONTEXT_MISMATCH` | `F6_MA_BREAKDOWN` | `F7_POSITION_RISK` | `F8_NO_NEARBY_SUPPORT` | `F9_UNCONFIRMED_STRUCTURE_SHIFT` | `F10_NO_NEXT_ZONE_PATH` | `F11_LIQUIDITY_MAP_MISSING` | `F12_BREAKOUT_STALLING`
+
+#### Conditional
+
+`F13_VOLUME_CONFLUENCE_WEAK` | `F14_BREAKOUT_FILTER_WEAK` | `F15_MA_WHIPSAW`
+
+#### Severity: `low` | `medium` | `high` | `critical`
+
+Severity guidance:
+
+- `F6_MA_BREAKDOWN`: `medium` when price loses `21EMA` only; `high` when price loses `50SMA` or is below both
+- `F3_WEAK_BREAKOUT`: treat more severely when continuation structure is no longer intact
+
+Every red flag must include `flag_id`, `severity`, `why`. Include an overall risk summary with one short rationale.
+
+### Minimum Final Decision Output
+
+Required: `purpose_mode`, `action`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `confidence`, `monitoring_triggers`, `chart_artifact_refs`.
+
+Conditional: prior thesis delta for `UPDATE`, postmortem findings for `POSTMORTEM`.
+
+## Market Structure And Trend
+
+Classify market state before setup selection using balance-imbalance logic, then map context with Wyckoff and swing structure.
+
+### State And Regime Rules
+
+- `R-STATE-01` Start with state: `balance` (accepted in value area) or `imbalance` (directional repricing).
+- `R-STATE-02` Default assumption: price remains in current value area until close-based acceptance proves otherwise.
+- `R-STATE-03` Breakout acceptance requires close outside range plus follow-through.
+- `R-STATE-04` Failed acceptance (quick close back in range) is trap evidence, not trend confirmation.
+- `R-REGIME-01` Uptrend: higher highs and higher lows on daily swings.
+- `R-REGIME-02` Downtrend: lower highs and lower lows on daily swings.
+- `R-REGIME-03` Mixed swings default to range rotation when baseline MA posture does not clearly support continuation.
+- `R-REGIME-04` Potential reversal: CHOCH appears without confirmation BOS in the opposite direction.
+- `R-REGIME-05` Mixed swings may still resolve to trend continuation when baseline MA posture confirms the directional bias.
+- `R-REGIME-06` Wick-only breaks do not change regime without close confirmation.
+
+### Strong And Weak Swing Logic
+
+- Strong high/low: pivot that caused structural break.
+- Weak high/low: pivot that failed to break structure and remains liquidity target.
+
+### BOS And CHOCH Taxonomy
+
+- Continuation BOS: break of prior structural level in direction of prevailing trend.
+- CHOCH: first opposite-direction structural break against prevailing trend.
+- Confirmation BOS: second structural break in new direction after CHOCH.
+- Reversal confirmed only after `CHOCH + confirmation BOS`.
+- Wick-only excursion does not qualify as BOS or CHOCH.
+- CHOCH+ (momentum-failure variant): failed extension first, then opposite structural break.
+
+### Reversal Validation Chain
+
+1. Confirm prior trend context.
+2. Detect CHOCH as first opposite close-based break.
+3. Observe pullback behavior (HL for bullish, LH for bearish).
+4. Require confirmation BOS in new direction.
+5. If step 4 fails, keep state unconfirmed — avoid reversal call.
+
+CHOCH without confirmation BOS is a potential reversal warning, not confirmed reversal. If break occurs but price quickly reclaims prior structure without follow-through, classify as deviation/liquidity grab.
+
+### Wyckoff Context Mapping
+
+One label as context after state call: `accumulation` (balance after downtrend, absorption), `markup` (imbalance up, continuation), `distribution` (balance after uptrend, supply), `markdown` (imbalance down, continuation). Contextual guidance, not standalone trigger.
+
+### Baseline MA Tiebreaker
+
+When last swings are mixed:
+
+- `trend_continuation` bullish only if price above `200SMA`, `21EMA` above `50SMA`, and at least one bullish swing condition holds
+- `trend_continuation` bearish only if price below `200SMA`, `21EMA` below `50SMA`, and at least one bearish swing condition holds
+- Otherwise keep `range_rotation`
+
+### No-Resistance Protocol
+
+If price is in discovery with no clear overhead resistance: do not force fixed top target. Keep action tied to structure continuation and invalidation. Downgrade conviction only on structural weakness or distribution evidence.
+
+## Levels And Location
+
+Map meaningful decision zones, then interpret price relative to those zones.
+
+### Horizontal Zones
+
+- Levels are zones, not single lines.
+- Higher-timeframe and repeatedly respected zones matter more.
+- First retest is strongest; repeated tests weaken a level.
+- Broken S/R can flip role after close-based acceptance.
+- Recently broken resistance that holds as support still counts as `accepted_above_resistance`.
+- Map first, trade second.
+
+Zone construction — use one method consistently: fixed-width, ATR-width, or wick-to-body reaction zone. Keep the map small and decision-oriented. Treat proximity against full zone width, not only midpoint.
+
+### Moving Average Context
+
+MAs are dynamic context, not standalone entry signals.
+
+Baseline: `21EMA`, `50SMA`, `200SMA` — read each as `support`, `resistance`, or `noise`.
+
+Adaptive MA — use only when the symbol shows repeated respect to a specific rhythm and baseline is not enough. Adaptive refines the read; it does not replace baseline regime context.
+
+Chart modes: `hybrid` = baseline + highlighted chosen `SMA{n}`; `baseline` = `21EMA` + `50SMA` + `200SMA` only.
+
+### Time-Based And Round Levels
+
+Use when materially relevant: daily open, weekly open, monthly open, round-number levels. Context enhancers, not standalone triggers.
+
+### Volume Profile (VPVR)
+
+Map institutional participation by price to strengthen zone quality.
+
+Components:
+
+- `POC`: highest traded volume price — fair-value magnet
+- `VAH`/`VAL`: value-area boundaries (70%)
+- `HVN`: accepted/fair-value zone (reaction zone)
+- `LVN`: fast-travel zone (continuation toward next HVN)
+
+Rules:
+
+- `R-VP-01` Treat profile levels as zones, not single ticks.
+- `R-VP-02` Prefer confluence: profile level + structure + price reaction.
+- `R-VP-03` POC re-tests attract price; rejection/acceptance defines bias.
+- `R-VP-04` Accepted above VAH → bullish continuation; accepted below VAL → bearish continuation; rotating inside → balance.
+- `R-VP-05` Volume-profile signal never overrides invalidation and stop discipline.
+
+Mapping: build at least one anchor profile on the active structure leg. Add one fixed-range profile on last major consolidation/distribution range. Convert key levels into zones with ATR-aware width.
+
+### Liquidity Draw And Sweep
+
+Direction, entry timing, and targets are framed by where liquidity is likely to be taken next.
+
+Liquidity pools: swing highs/lows, clustered equal highs/lows, trendline stop clusters, range boundaries (external), internal reaction zones.
+
+- `external_liquidity`: major range highs/lows and structural swing extremes
+- `internal_liquidity`: nearer reaction zones inside the active path
+
+Alternation model (heuristic):
+
+1. Rejected external sweep → next draw often shifts to internal
+2. Accepted external sweep → may continue toward external-side objective
+3. After internal tag → depends on acceptance or rejection
+
+Rules:
+
+- `R-LIQ-01` Always identify current draw and opposing draw.
+- `R-LIQ-02` Sweep must be labeled acceptance or rejection.
+- `R-LIQ-03` Wick-only sweep without follow-through is not directional confirmation.
+- `R-LIQ-04` HTF sweep should pair with LTF execution trigger when available.
+- `R-LIQ-05` If draw target is unclear, downgrade directional conviction.
+- `R-LIQ-06` Liquidity narrative cannot override invalidation and risk rules.
+
+HTF-LTF alignment: define HTF liquidity objective → wait for sweep signal and classify → shift to LTF for entry trigger → stop beyond sweep extreme or structural invalidation → target next mapped liquidity pool.
+
+### Practical Mapping Order
+
+1. Daily support and resistance
+2. Structural swing highs and lows
+3. Value-area references (POC/VAH/VAL, major HVN/LVN)
+4. Baseline MA context
+5. Liquidity draw map (current draw, opposing draw)
+6. Time-based and round levels when relevant
+
+## Setups And Execution
+
+Select one setup family, demand the right trigger, confirm it, then convert into an executable plan with explicit invalidation and level-to-level targets.
+
+### Setup Families
+
+- `S1` breakout and retest continuation
+- `S2` pullback to demand in intact uptrend
+- `S3` sweep and reclaim reversal
+- `S4` range edge rotation
+- `S5` Wyckoff spring with reclaim
+- `NO_VALID_SETUP`
+
+### Setup Selection Rules
+
+- Choose one setup family or `NO_VALID_SETUP`.
+- Setup must fit daily regime and current location.
+- Setup labels without location, trigger, and risk are not tradable.
+- Middle-of-range entries usually downgrade to `NO_VALID_SETUP`.
+- Reversal intent requires structure shift confirmation, not narrative alone.
+
+### Setup Family Guidance
+
+#### `S1` Breakout And Retest Continuation
+
+Use when daily regime supports continuation, resistance is meaningfully challenged or reclaimed, participation supports acceptance. Needs: close beyond level, follow-through, retest hold or continued acceptance.
+
+#### `S2` Pullback To Demand In Intact Uptrend
+
+Use when trend remains intact, price returns to meaningful support/demand, pullback quality is constructive. Needs: support hold, acceptable selling pressure, thesis aligned with daily structure.
+
+#### `S3` Sweep And Reclaim Reversal
+
+Use when sweep behavior is central, price takes liquidity and snaps back, reversal context is plausible. Needs: clear sweep, reclaim or rejection, confirmation that reclaim is holding.
+
+#### `S4` Range Edge Rotation
+
+Use when regime is balance, price is at range edge, edge reaction is clean. Needs: rejection or acceptance at edge, edge-to-edge path, avoid mid-range execution.
+
+#### `S5` Wyckoff Spring With Reclaim
+
+Use when range/accumulation context is credible, support sweep behaves like a spring, reclaim is visible. Needs: spring-like sweep, reclaim of relevant level, follow-through strong enough to avoid trap failure.
+
+### Trigger Rules
+
+- A setup area is not enough by itself — action requires a trigger tied to the selected setup family.
+- `15m` owns trigger quality inside the daily thesis.
+- Absent trigger means watchlist or `WAIT`.
+
+Trigger types: breakout close, retest hold, reclaim, sweep reclaim, range-edge rejection, `CHOCH` + confirmation `BOS`, spring reclaim.
+
+### Breakout Quality
+
+- Breakout needs close beyond level plus participation support.
+- Breakout without follow-through is suspect; stalling increases trap risk.
+- Avoid weak bases for swing continuation; late/loose bases need stronger confirmation.
+- Volume expansion and fast post-break displacement improve quality.
+- Weak broader market context can downgrade pure breakout setups.
+
+### Reversal And Structure-Shift Rules
+
+For bullish reversal: prior structure damaged/bearish → `CHOCH` appears → pullback holds constructively → confirmation `BOS` → reversal becomes actionable.
+
+- `CHOCH` alone is warning, not confirmation.
+- Structure shift without confirmation stays in watchlist or `WAIT`.
+
+### Execution And Risk
+
+#### Core Rules
+
+- `R-RISK-01` No setup without invalidation.
+- `R-RISK-02` Every actionable decision must include explicit stop-loss and invalidator.
+- `R-RISK-03` Entry is valid only near a mapped decision zone.
+- `R-RISK-04` Primary target is the next meaningful zone in path.
+- `R-RISK-05` If no clear next-zone path exists, default to `WAIT`.
+- `R-RISK-06` Mid-range entries without zone confluence are low quality and usually not actionable.
+- `R-RISK-07` Minimum expected reward-to-risk must be stated before execution.
+- `R-RISK-08` Add only when the trade is working and structure remains valid. Do not average down into structural failure.
+- `R-RISK-09` Adaptive MA may refine execution only after the structural plan exists. It never overrides invalidation, stop, or risk discipline.
+
+#### Level-To-Level Execution
+
+Trade from validated zone to validated zone. Do not trade random mid-range noise.
+
+1. Map top actionable zones
+2. Identify likely next draw and opposing draw
+3. Define candidate entry zone
+4. Place invalidation beyond structural failure of that zone
+5. Require trigger and confirmation before action
+6. Manage toward next zone or invalidate thesis
+
+#### Stop Hierarchy
+
+1. Structural invalidation stop
+2. ATR fallback stop when structure is unclear
+3. Time stop for stale setup
+
+Use stop as thesis invalidation, not arbitrary percentage.
+
+#### Target And Management
+
+- First target: nearest meaningful zone in path.
+- Further targets extend along zone ladder.
+- Partial exits at major S/R transitions.
+- Trailing logic becomes explicit after first target.
+- In price discovery, prefer structural trailing over arbitrary top calls.
+
+#### Optional Entry Refinement
+
+Allowed only after base structural plan is valid: local `15m` acceptance/rejection behavior, adaptive MA when valid period available. If unavailable, keep base plan. Do not downgrade solely because refinement is absent.
+
+#### Minimum Actionability
+
+All required: valid setup family, meaningful location, valid trigger, confirmation not rejected, explicit invalidation, explicit next-zone path, acceptable RR. If any missing, default to `WAIT`.
+
+## `ta_context` Schema
+
+Top-level shape:
+
+```json
+{ "analysis": {}, "prior_thesis": {}, "daily_thesis": {}, "intraday_timing": {}, "location": {}, "setup": {}, "trigger_confirmation": {}, "risk_map": {}, "red_flags": [] }
+```
+
+Rules: required sections must always be present except `prior_thesis` (required for `UPDATE`/`POSTMORTEM`). Omit inactive optional fields instead of placeholder nulls.
+
+### `analysis`
+
+- `symbol`: string, uppercase ticker
+- `as_of_date`: string, `YYYY-MM-DD`
+- `purpose_mode`: `INITIAL` | `UPDATE` | `POSTMORTEM`
+- `intent`: `entry` | `maintenance` | `postmortem`
+- `position_state`: `flat` | `long`
+- `daily_timeframe`: `1d`
+- `intraday_timeframe`: `15m`
+- `intraday_source_timeframe`: `1m`
+- `min_rr_required`: number, positive decimal
+- `thesis_status` (conditional, `UPDATE`): `intact` | `improving` | `degrading` | `invalidated`
+- `review_reason` (conditional, `UPDATE`): `routine` | `contradiction` | `level_break` | `regime_change` | `trigger_failure`
+
+### `prior_thesis` (required for `UPDATE`/`POSTMORTEM`)
+
+- `reference`: string, prior report path or run id
+- `prior_action`: `BUY` | `HOLD` | `WAIT` | `EXIT`
+- `prior_bias`: `bullish` | `bearish` | `neutral`
+- `prior_setup_family`: `S1`–`S5` | `NO_VALID_SETUP`
+- `thesis_summary`: string[], 1–3 short bullets
+- `invalidation_level`: number
+- `key_levels`: number[]
+- `prior_thesis_status` (optional): `intact` | `improving` | `degrading` | `invalidated`
+
+### `daily_thesis`
+
+- `state`: `balance` | `imbalance`
+- `regime`: `trend_continuation` | `range_rotation` | `potential_reversal` | `no_trade`
+- `trend_bias`: `bullish` | `bearish` | `neutral`
+- `structure_status`: `trend_intact` | `range_intact` | `transitioning` | `damaged` | `unclear`
+- `current_cycle_phase`: `accumulation` | `markup` | `distribution` | `markdown` | `unclear`
+- `current_wyckoff_phase`: `A`–`E` | `unclear` | `not_applicable`
+- `wyckoff_current_confidence`: integer 0–100
+- `wyckoff_current_maturity`: `fresh` | `maturing` | `mature` | `degrading`
+- `wyckoff_history`: object[], last 3–8 segments (see `wyckoff_history` sub-schema)
+- `baseline_ma_posture`: object (see `baseline_ma_posture` sub-schema)
+- `adaptive_ma` (optional): object (see `adaptive_ma` sub-schema)
+
+### `intraday_timing`
+
+- `timing_bias`: `bullish` | `bearish` | `neutral`
+- `intraday_structure_state`: `aligned` | `conflicted` | `counter_thesis` | `unclear`
+- `acceptance_state`: `accepted_above_level` | `accepted_below_level` | `reclaimed_level` | `rejected_at_level` | `inside_noise` | `unclear`
+- `follow_through_state`: `strong` | `adequate` | `weak` | `failing` | `unclear`
+- `timing_window_state`: `active` | `developing` | `late` | `stale` | `unclear`
+- `liquidity_quality_state`: `strong` | `usable` | `weak`
+- `timing_authority`: `full_15m` | `daily_only` | `wait_only`
+- `raw_participation_quality`: `strong` | `adequate` | `weak`
+- `intraday_quality_summary`: string
+
+### `location`
+
+- `location_state`: `near_support_in_bullish_structure` | `near_resistance_in_bearish_structure` | `at_range_edge` | `accepted_above_resistance` | `accepted_below_support` | `mid_range_noise`
+- `support_zones`: zone[]
+- `resistance_zones`: zone[]
+- `value_area`: object { `poc`, `vah`, `val`: number; `acceptance_state`: `accepted_above_vah` | `accepted_below_val` | `probe_above_vah` | `probe_below_val` | `inside_value` | `failed_acceptance_back_inside`; `major_hvn`, `major_lvn`: number[] optional }
+- `liquidity_map`: object { `current_draw`, `opposing_draw`: number optional; `last_sweep_type`: `none` | `eqh_swept` | `eql_swept` | `trendline_swept` | `swing_swept`; `last_sweep_side`: `up` | `down` optional; `last_sweep_outcome`: `accepted` | `rejected` | `unresolved` | `not_applicable`; `path_state`: `external_to_internal` | `internal_to_external` | `unclear` }
+- `time_levels`: object { `daily_open`, `weekly_open`, `monthly_open`: number }
+- `round_levels` (optional): object[] { `price`: number, `label`: string }
+
+### `setup`
+
+- `primary_setup`: `S1`–`S5` | `NO_VALID_SETUP`
+- `candidate_setups`: string[], ordered; when no setup is valid include leading rejected family
+- `candidate_evaluations`: object[] { `setup_id`, `status`: `valid` | `watchlist_only` | `invalid`, `score`: integer, `drivers`: string[] }
+- `setup_side`: `long` | `neutral`
+- `setup_validity`: `valid` | `watchlist_only` | `invalid`
+- `setup_drivers`: string[]
+
+### `trigger_confirmation`
+
+- `trigger_state`: `not_triggered` | `watchlist_only` | `triggered` | `failed`
+- `trigger_type`: `breakout_close` | `retest_hold` | `reclaim` | `sweep_reclaim` | `choch_bos_reversal` | `range_edge_rejection` | `spring_reclaim` | `none`
+- `trigger_level` (conditional): number, required when `trigger_type != none`
+- `trigger_ts` (conditional): ISO timestamp
+- `confirmation_state`: `confirmed` | `mixed` | `rejected` | `not_applicable`
+- `participation_quality`: `strong` | `adequate` | `weak` | `contradictory`
+- `timing_authority`: `full_15m` | `daily_only` | `wait_only`
+- `value_acceptance_state`: `accepted_above_vah` | `accepted_below_val` | `probe_above_vah` | `probe_below_val` | `inside_value` | `failed_acceptance_back_inside` | `not_applicable`
+- `latest_structure_event` (optional): object { `event_type`: `CHOCH` | `BOS` | `RECLAIM` | `SWEEP` | `NONE`; `side`: `up` | `down` | `neutral`; `level`: number optional; `timestamp`: string optional; `relevance`: `setup_trigger` | `confirmation` | `warning` | `none` }
+- `breakout_quality` (optional): object { `status`: `clean` | `adequate` | `stalling` | `failed`; `trigger_vol_ratio`: number optional; `follow_through_close`: number optional; `base_quality`: `strong` | `adequate` | `weak`; `market_context`: `supportive` | `neutral` | `adverse` }
+
+### `risk_map`
+
+- `actionable`: boolean
+- `entry_zone` (conditional): zone object, required when actionable or watchlist
+- `invalidation_level` (conditional): number, required when actionable or watchlist
+- `stop_level` (conditional): number, required when actionable
+- `next_zone_target` (conditional): number, required when actionable
+- `target_ladder` (optional): number[]
+- `rr_by_target` (optional): number[]
+- `best_rr` (conditional): number, required when actionable
+- `min_rr_required`: number
+- `risk_status`: `valid` | `insufficient_rr` | `poor_location` | `no_clear_invalidation` | `no_clear_path` | `wait`
+- `stale_setup_condition`: string
+
+### `red_flags[]`
+
+- `code`: string
+- `severity`: `low` | `medium` | `high` | `critical`
+- `summary`: string
+- `evidence_refs` (optional): string[]
+
+### Shared Sub-Schemas
+
+#### `zone`
+
+- `label`: string
+- `kind`: `support` | `resistance` | `demand` | `supply` | `value` | `liquidity`
+- `low`, `high`, `mid`: number
+- `timeframe`: `1d` | `15m`
+- `strength`: `weak` | `moderate` | `strong`
+- `source`: `horizontal` | `swing` | `vpvr` | `ma` | `liquidity` | `opening_level`
+
+#### `baseline_ma_posture`
+
+- `above_ema21`, `above_sma50`, `above_sma200`: boolean
+- `ema21_role`, `sma50_role`, `sma200_role`: `support` | `resistance` | `noise`
+- `ema21_proximity_pct`, `sma50_proximity_pct`, `sma200_proximity_pct`: number optional
+
+#### `adaptive_ma`
+
+- `period`: integer
+- `ma_type`: `ema` | `sma`
+- `respect_score`: number
+- `role`: `support` | `resistance` | `timing_refinement`
+- `justification`: string
+
+#### `wyckoff_history[]`
+
+- `cycle_phase`: `accumulation` | `markup` | `distribution` | `markdown` | `unclear`
+- `schematic_phase`: `A`–`E` | `unclear` | `not_applicable`
+- `start_ts`, `end_ts`: ISO timestamp
+- `start_index`, `end_index`: integer, 0-based daily index
+- `duration_bars`: integer
+- `price_low`, `price_high`: number
+- `price_change_pct`: number
+- `confidence`: integer 0–100
+- `maturity`: `fresh` | `maturing` | `mature` | `degrading`
+- `transition_reason`: string
+- `events` (optional): wyckoff_event[]
+
+#### `wyckoff_event[]`
+
+- `type`: `SC` | `BC` | `AR` | `ST` | `Spring` | `ToS` | `SOS` | `LPS` | `UT` | `UTAD` | `SOW` | `LPSY`
+- `bar_index`: integer
+- `ts`: ISO date string
+- `price`: number
+- `score`: 0.0–1.0
+- `vol_sig`: `climactic` | `strong` | `high_vol` | `elevated` | `moderate` | `dryup` | `sharp_rally` | `sharp_decline`
+
+## Output Report Structure
+
+Use this structure for every technical analysis output:
+
+- **A. Decision Summary**: purpose mode, action, bias, setup, key active level, invalidation, next trigger, confidence
+- **B. Context**: date, intent, timeframes, data dependency status, prior analysis reference (UPDATE/POSTMORTEM)
+- **C. State And Location**: state, regime, bias, Wyckoff (cycle phase, schematic phase, maturity, confidence), key S/R zones, baseline MA posture, value-area context, liquidity map, location summary
+- **D. Setup And Trigger**: selected setup family, validity, trigger state/type/level, confirmation state, participation quality, latest structure event, breakout quality note
+- **E. Risk And Decision**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR, red flags summary, final action rationale
+- **F. Delta And Monitoring**: previous thesis snapshot (UPDATE/POSTMORTEM), thesis status and review reason (UPDATE), delta log (UPDATE), failure point and handling improvement (POSTMORTEM), monitoring triggers, stale setup condition
+- **G. Adaptive MA**: selected period and chart mode when available
+- **H. Evidence**: workflow trace, evidence ledger, chart artifact references from manifest
