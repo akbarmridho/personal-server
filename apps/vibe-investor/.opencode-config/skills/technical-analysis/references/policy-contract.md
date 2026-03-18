@@ -311,6 +311,18 @@ Required in:
 | `confidence` | integer | yes | `0` to `100` |
 | `maturity` | string | yes | `fresh`, `maturing`, `mature`, `degrading` |
 | `transition_reason` | string | yes | short machine-readable transition reason |
+| `events` | object[] | no | Wyckoff schematic events detected within this segment; schema in section `U`; omitted when empty |
+
+### U. `wyckoff_event[]`
+
+| Field | Type | Required | Allowed values / notes |
+|---|---|---:|---|
+| `type` | string | yes | `SC`, `BC`, `AR`, `ST`, `Spring`, `ToS`, `SOS`, `LPS`, `UT`, `UTAD`, `SOW`, `LPSY` |
+| `bar_index` | integer | yes | 0-based daily index of the event bar |
+| `ts` | string | yes | ISO date string |
+| `price` | number | yes | defining price (low for support events, high for resistance events) |
+| `score` | number | yes | `0.0` to `1.0` intensity score |
+| `vol_sig` | string | yes | `climactic`, `strong`, `high_vol`, `elevated`, `moderate`, `dryup`, `sharp_rally`, `sharp_decline` |
 
 ### M. `zone`
 

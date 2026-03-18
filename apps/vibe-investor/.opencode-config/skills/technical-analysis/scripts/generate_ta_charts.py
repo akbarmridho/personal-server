@@ -865,6 +865,63 @@ def plot_wyckoff_history(
             },
         )
 
+    # Wyckoff event markers
+    _WYCKOFF_EVENT_COLORS = {
+        "SC": "#e53935", "BC": "#e53935", "AR": "#00c853",
+        "ST": "#78909c", "Spring": "#2979ff", "ToS": "#5c6bc0",
+        "SOS": "#00c853", "LPS": "#66bb6a",
+        "UT": "#ff7043", "UTAD": "#d32f2f", "SOW": "#e53935", "LPSY": "#ef5350",
+    }
+    _WYCKOFF_EVENT_MARKERS = {
+        "SC": "v", "BC": "^", "AR": "^", "ST": "o",
+        "Spring": "D", "ToS": "d", "SOS": "^", "LPS": "s",
+        "UT": "v", "UTAD": "D", "SOW": "v", "LPSY": "s",
+    }
+    event_placed: list[tuple[int, float]] = []
+    atr_unit = float((x["high"] - x["low"]).tail(min(50, len(x))).median())
+    if not np.isfinite(atr_unit) or atr_unit <= 0:
+        atr_unit = max(float(x["close"].median()) * 0.01, 8.0)
+    has_events = False
+    for seg in visible_segments:
+        seg_events = seg.get("events", [])
+        if not seg_events:
+            continue
+        has_events = True
+        for ev in seg_events:
+            ev_abs_idx = int(ev["bar_index"])
+            ev_vis_idx = ev_abs_idx - visible_start
+            if ev_vis_idx < 0 or ev_vis_idx >= len(x):
+                continue
+            ev_type = str(ev["type"])
+            ev_price = float(ev["price"])
+            ev_color = _WYCKOFF_EVENT_COLORS.get(ev_type, "#9e9e9e")
+            ev_marker = _WYCKOFF_EVENT_MARKERS.get(ev_type, "o")
+            price_ax.scatter(
+                [ev_vis_idx], [ev_price], color=ev_color, s=140, marker=ev_marker,
+                edgecolors="#111111", linewidths=0.7, zorder=6, alpha=0.92,
+            )
+            # Annotation with anti-overlap
+            is_support = ev_type in {"SC", "ST", "Spring", "ToS", "LPS", "SOW"}
+            sign = -1.0 if is_support else 1.0
+            ty = ev_price + sign * atr_unit * 0.9
+            for _ in range(5):
+                overlap = any(
+                    abs(ev_vis_idx - px) <= 4 and abs(ty - py) <= atr_unit * 0.6
+                    for px, py in event_placed
+                )
+                if not overlap:
+                    break
+                ty += sign * atr_unit * 0.5
+            price_ax.annotate(
+                ev_type, xy=(ev_vis_idx, ev_price), xytext=(ev_vis_idx, ty),
+                textcoords="data", ha="center",
+                va="top" if is_support else "bottom",
+                fontsize=7, color=ev_color, fontweight="bold",
+                bbox={"facecolor": "white", "alpha": 0.82, "edgecolor": ev_color, "boxstyle": "round,pad=0.2"},
+                arrowprops={"arrowstyle": "-", "linewidth": 0.6, "color": ev_color, "alpha": 0.7},
+            )
+            event_placed.append((ev_vis_idx, ty))
+
     handles = [
         Rectangle((0, 0), 1, 1, facecolor=color, edgecolor=color, alpha=0.45, label=label)
         for label, color in [
@@ -874,6 +931,11 @@ def plot_wyckoff_history(
             ("Markdown", WYCKOFF_PHASE_COLORS["markdown"]),
         ]
     ]
+    if has_events:
+        handles.append(
+            Line2D([], [], marker="D", linestyle="None", markerfacecolor="#2979ff",
+                   markeredgecolor="#111111", markersize=6, label="Wyckoff event"),
+        )
     price_ax.legend(handles=handles, loc="upper left", fontsize=8, ncol=2, framealpha=0.92)
     summary = (
         f"Cycle={wyckoff_state['current_cycle_phase']} | "

@@ -18,6 +18,23 @@ RECENT_WINDOW = 12
 STATE_CONFIRM_BARS = 2
 MIN_SEGMENT_BARS = 4
 
+# Event detection thresholds (ATR/RVOL-normalized, IDX-calibrated)
+CLIMAX_RVOL = 2.5
+HIGH_RVOL = 1.5
+LOW_RVOL = 0.85
+DRYUP_RVOL = 0.65
+WIDE_SPREAD_ATR = 1.5
+TEST_SPREAD_ATR = 1.0
+NARROW_SPREAD_ATR = 0.7
+CLIMAX_LOOKBACK = 40
+RANGE_PROXIMITY_PCT = 0.02
+RANGE_PIERCE_PCT = 0.005
+AR_WINDOW = 6
+TEST_OF_SPRING_WINDOW = 12
+EVENT_DEDUPE_WINDOW = 3
+MAX_EVENTS_PER_SEGMENT = 6
+EVENT_PRIORITY = ["SC", "BC", "AR", "Spring", "UTAD", "UT", "SOS", "SOW", "ST", "Test", "ToS", "LPS", "LPSY"]
+
 
 def _prepare_daily(df: pd.DataFrame) -> pd.DataFrame:
     x = df.copy()
@@ -150,6 +167,264 @@ def _spring_or_upthrust(window: pd.DataFrame, range_low: float, range_high: floa
         ).any()
     )
     return {"spring": spring, "upthrust": upthrust}
+
+
+def _new_schematic_ctx() -> dict[str, Any]:
+    return {
+        "side": "none",
+        "anchored_low": None,
+        "anchored_high": None,
+        "anchor_source": "rolling",
+        "sc_bar": None,
+        "sc_low": None,
+        "ar_bar": None,
+        "ar_high": None,
+        "bc_bar": None,
+        "bc_high": None,
+        "ar_low_dist": None,
+        "spring_bar": None,
+        "spring_low": None,
+        "spring_type": None,
+        "sos_bar": None,
+        "sow_bar": None,
+        "phase_unlocked": "A",
+        "_reset_pending": 0,
+    }
+
+
+def _event(
+    etype: str, bar_index: int, ts: str, price: float, score: float, vol_sig: str,
+) -> dict[str, Any]:
+    return {
+        "type": etype,
+        "bar_index": bar_index,
+        "ts": ts,
+        "price": round(price, 2),
+        "score": round(min(max(score, 0.0), 1.0), 3),
+        "vol_sig": vol_sig,
+    }
+
+
+def _detect_events(
+    window: pd.DataFrame,
+    bar_idx: int,
+    ctx: dict[str, Any],
+    cycle_phase: str,
+    schematic_phase: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Detect Wyckoff schematic events for the current bar. Returns (events, updated_ctx)."""
+    events: list[dict[str, Any]] = []
+    row = window.iloc[-1]
+    ts = str(row["datetime"])
+    close = float(row["close"])
+    low = float(row["low"])
+    high = float(row["high"])
+    vol_ratio = float(row["vol_ratio"]) if pd.notna(row["vol_ratio"]) else 1.0
+    atr14 = float(row["ATR14"]) if pd.notna(row["ATR14"]) and float(row["ATR14"]) > 0 else max(close * 0.02, 1e-9)
+    spread = high - low
+    cp = _bar_close_position(row)
+    ret = float(row["ret"]) if pd.notna(row["ret"]) else 0.0
+
+    # Range references: prefer anchored, fall back to rolling
+    stats = _range_stats(window)
+    range_low = ctx["anchored_low"] if ctx["anchored_low"] is not None else stats["range_low"]
+    range_high = ctx["anchored_high"] if ctx["anchored_high"] is not None else stats["range_high"]
+    range_mid = (range_low + range_high) / 2.0
+
+    side = ctx["side"]
+    phase = ctx["phase_unlocked"]
+
+    # --- Update side from cycle_phase ---
+    if cycle_phase == "accumulation" and side != "accumulation":
+        ctx = {**ctx, "side": "accumulation", "_reset_pending": 0}
+        if phase == "A" and ctx["sc_bar"] is None:
+            pass  # stay in A
+        side = "accumulation"
+    elif cycle_phase == "distribution" and side != "distribution":
+        ctx = {**ctx, "side": "distribution", "_reset_pending": 0}
+        if phase == "A" and ctx["bc_bar"] is None:
+            pass
+        side = "distribution"
+    elif cycle_phase in {"markup", "markdown", "unclear"} and side != "none":
+        # Require STATE_CONFIRM_BARS consecutive non-acc/dist readings before resetting
+        pending = ctx.get("_reset_pending", 0) + 1
+        if pending >= STATE_CONFIRM_BARS:
+            ctx = _new_schematic_ctx()
+            side = "none"
+        else:
+            ctx = {**ctx, "_reset_pending": pending}
+    elif side != "none":
+        ctx = {**ctx, "_reset_pending": 0}
+
+    if side == "none":
+        return events, ctx
+
+    # ===== ACCUMULATION EVENTS =====
+    if side == "accumulation":
+        # --- SC: Selling Climax ---
+        if phase == "A" and ctx["sc_bar"] is None:
+            lookback = window.tail(min(CLIMAX_LOOKBACK, len(window)))
+            is_new_low = low <= float(lookback["low"].min())
+            if is_new_low and vol_ratio >= CLIMAX_RVOL and spread >= WIDE_SPREAD_ATR * atr14 and cp >= 0.45:
+                score = min(1.0, 0.4 + (vol_ratio - CLIMAX_RVOL) * 0.15 + (spread / atr14 - WIDE_SPREAD_ATR) * 0.1 + (cp - 0.45) * 0.5)
+                events.append(_event("SC", bar_idx, ts, low, score, "climactic"))
+                ctx = {**ctx, "sc_bar": bar_idx, "sc_low": low, "anchored_low": low, "anchor_source": "event"}
+            # Softer SC: still climactic but slightly less extreme
+            elif is_new_low and vol_ratio >= HIGH_RVOL and spread >= 1.2 * atr14 and cp >= 0.40:
+                score = min(1.0, 0.25 + (vol_ratio - HIGH_RVOL) * 0.1 + (cp - 0.40) * 0.4)
+                events.append(_event("SC", bar_idx, ts, low, score, "high_vol"))
+                ctx = {**ctx, "sc_bar": bar_idx, "sc_low": low, "anchored_low": low, "anchor_source": "event"}
+
+        # --- AR: Automatic Rally (post-SC) ---
+        if ctx["sc_bar"] is not None and ctx["ar_bar"] is None:
+            bars_since_sc = bar_idx - ctx["sc_bar"]
+            if 1 <= bars_since_sc <= AR_WINDOW:
+                # Strong single-bar rally or multi-bar rally
+                rally_return = (close - ctx["sc_low"]) / max(abs(ctx["sc_low"]), 1e-9)
+                if spread >= WIDE_SPREAD_ATR * atr14 or rally_return >= 0.05:
+                    score = min(1.0, 0.4 + rally_return * 3.0 + (spread / atr14 - 1.0) * 0.1)
+                    events.append(_event("AR", bar_idx, ts, high, score, "sharp_rally"))
+                    ctx = {**ctx, "ar_bar": bar_idx, "ar_high": high, "anchored_high": high, "phase_unlocked": "B"}
+
+        # --- ST: Secondary Test ---
+        if phase in {"B", "C"} and ctx["sc_low"] is not None:
+            near_sc = abs(low - ctx["sc_low"]) / max(abs(ctx["sc_low"]), 1e-9) <= RANGE_PROXIMITY_PCT
+            if near_sc and vol_ratio <= LOW_RVOL and spread <= TEST_SPREAD_ATR * atr14:
+                score = min(1.0, 0.3 + (LOW_RVOL - vol_ratio) * 0.5 + (TEST_SPREAD_ATR - spread / atr14) * 0.3)
+                events.append(_event("ST", bar_idx, ts, low, score, "dryup"))
+
+        # --- Spring ---
+        if phase in {"B", "C"}:
+            pierce = low < range_low * (1.0 - RANGE_PIERCE_PCT)
+            reclaim = close > range_low
+            if pierce and reclaim and cp >= 0.50:
+                spring_type = 3 if vol_ratio <= 1.0 else 2
+                vol_sig = "dryup" if spring_type == 3 else "elevated"
+                score = min(1.0, 0.5 + (range_low - low) / max(atr14, 1e-9) * 0.2 + (cp - 0.50) * 0.4)
+                events.append(_event("Spring", bar_idx, ts, low, score, vol_sig))
+                ctx = {**ctx, "spring_bar": bar_idx, "spring_low": low, "spring_type": spring_type, "phase_unlocked": "C"}
+
+        # --- Test of Spring ---
+        if ctx["spring_bar"] is not None and ctx["spring_type"] == 2:
+            bars_since_spring = bar_idx - ctx["spring_bar"]
+            if 2 <= bars_since_spring <= TEST_OF_SPRING_WINDOW:
+                higher_low = low > ctx["spring_low"]
+                if higher_low and vol_ratio <= DRYUP_RVOL and cp >= 0.50:
+                    score = min(1.0, 0.4 + (DRYUP_RVOL - vol_ratio) * 0.5 + (cp - 0.50) * 0.3)
+                    events.append(_event("ToS", bar_idx, ts, low, score, "dryup"))
+
+        # --- SOS: Sign of Strength ---
+        if phase in {"C", "D"} or ctx["spring_bar"] is not None:
+            near_or_above_high = close >= range_high * 0.98
+            if near_or_above_high and vol_ratio >= HIGH_RVOL and spread >= WIDE_SPREAD_ATR * atr14 and cp >= 0.70:
+                score = min(1.0, 0.4 + (vol_ratio - HIGH_RVOL) * 0.1 + (cp - 0.70) * 0.5 + (spread / atr14 - WIDE_SPREAD_ATR) * 0.1)
+                events.append(_event("SOS", bar_idx, ts, close, score, "strong"))
+                ctx = {**ctx, "sos_bar": bar_idx, "phase_unlocked": "D"}
+
+        # --- LPS: Last Point of Support ---
+        if ctx["sos_bar"] is not None:
+            bars_since_sos = bar_idx - ctx["sos_bar"]
+            if 1 <= bars_since_sos <= 20:
+                above_spring = ctx["spring_low"] is None or low > ctx["spring_low"]
+                above_mid = low >= range_mid * 0.98
+                if ret < 0 and vol_ratio <= 0.75 and spread <= 0.8 * atr14 and above_spring and above_mid:
+                    score = min(1.0, 0.3 + (0.75 - vol_ratio) * 0.5 + (0.8 - spread / atr14) * 0.3)
+                    events.append(_event("LPS", bar_idx, ts, low, score, "dryup"))
+
+    # ===== DISTRIBUTION EVENTS =====
+    elif side == "distribution":
+        # --- BC: Buying Climax ---
+        if phase == "A" and ctx["bc_bar"] is None:
+            lookback = window.tail(min(CLIMAX_LOOKBACK, len(window)))
+            is_new_high = high >= float(lookback["high"].max())
+            if is_new_high and vol_ratio >= CLIMAX_RVOL and spread >= WIDE_SPREAD_ATR * atr14 and cp <= 0.40:
+                score = min(1.0, 0.4 + (vol_ratio - CLIMAX_RVOL) * 0.15 + (spread / atr14 - WIDE_SPREAD_ATR) * 0.1 + (0.40 - cp) * 0.5)
+                events.append(_event("BC", bar_idx, ts, high, score, "climactic"))
+                ctx = {**ctx, "bc_bar": bar_idx, "bc_high": high, "anchored_high": high, "anchor_source": "event"}
+            elif is_new_high and vol_ratio >= HIGH_RVOL and spread >= 1.2 * atr14 and cp <= 0.45:
+                score = min(1.0, 0.25 + (vol_ratio - HIGH_RVOL) * 0.1 + (0.45 - cp) * 0.4)
+                events.append(_event("BC", bar_idx, ts, high, score, "high_vol"))
+                ctx = {**ctx, "bc_bar": bar_idx, "bc_high": high, "anchored_high": high, "anchor_source": "event"}
+
+        # --- AR: Automatic Reaction (post-BC) ---
+        if ctx["bc_bar"] is not None and ctx.get("ar_low_dist") is None:
+            bars_since_bc = bar_idx - ctx["bc_bar"]
+            if 1 <= bars_since_bc <= AR_WINDOW:
+                decline = (ctx["bc_high"] - close) / max(abs(ctx["bc_high"]), 1e-9)
+                if spread >= WIDE_SPREAD_ATR * atr14 or decline >= 0.05:
+                    score = min(1.0, 0.4 + decline * 3.0 + (spread / atr14 - 1.0) * 0.1)
+                    events.append(_event("AR", bar_idx, ts, low, score, "sharp_decline"))
+                    ctx = {**ctx, "ar_low_dist": low, "anchored_low": low, "phase_unlocked": "B"}
+
+        # --- ST: Secondary Test (distribution) ---
+        if phase in {"B", "C"} and ctx["bc_high"] is not None:
+            near_bc = abs(high - ctx["bc_high"]) / max(abs(ctx["bc_high"]), 1e-9) <= RANGE_PROXIMITY_PCT
+            if near_bc and vol_ratio <= LOW_RVOL and spread <= TEST_SPREAD_ATR * atr14:
+                score = min(1.0, 0.3 + (LOW_RVOL - vol_ratio) * 0.5 + (TEST_SPREAD_ATR - spread / atr14) * 0.3)
+                events.append(_event("ST", bar_idx, ts, high, score, "dryup"))
+
+        # --- UT: Upthrust ---
+        if phase in {"B", "C"}:
+            pierce = high > range_high * (1.0 + RANGE_PIERCE_PCT)
+            reject = close < range_high
+            if pierce and reject and cp <= 0.35 and vol_ratio < 2.0:
+                score = min(1.0, 0.4 + (high - range_high) / max(atr14, 1e-9) * 0.2 + (0.35 - cp) * 0.5)
+                events.append(_event("UT", bar_idx, ts, high, score, "moderate"))
+
+        # --- UTAD: Upthrust After Distribution ---
+        elif phase in {"B", "C"}:
+            pierce = high > range_high * (1.0 + RANGE_PIERCE_PCT)
+            reject = close < range_high
+            if pierce and reject and cp <= 0.35 and vol_ratio >= 2.0:
+                score = min(1.0, 0.5 + (vol_ratio - 2.0) * 0.15 + (high - range_high) / max(atr14, 1e-9) * 0.15 + (0.35 - cp) * 0.3)
+                events.append(_event("UTAD", bar_idx, ts, high, score, "climactic"))
+                ctx = {**ctx, "phase_unlocked": "C"}
+
+        # --- SOW: Sign of Weakness ---
+        if phase in {"C", "D"} or ctx.get("bc_bar") is not None:
+            below_low = close <= range_low * 0.99
+            if below_low and vol_ratio >= HIGH_RVOL and spread >= WIDE_SPREAD_ATR * atr14 and cp <= 0.30:
+                score = min(1.0, 0.4 + (vol_ratio - HIGH_RVOL) * 0.1 + (0.30 - cp) * 0.5 + (spread / atr14 - WIDE_SPREAD_ATR) * 0.1)
+                events.append(_event("SOW", bar_idx, ts, close, score, "strong"))
+                ctx = {**ctx, "sow_bar": bar_idx, "phase_unlocked": "D"}
+
+        # --- LPSY: Last Point of Supply ---
+        if ctx["sow_bar"] is not None:
+            bars_since_sow = bar_idx - ctx["sow_bar"]
+            if 1 <= bars_since_sow <= 20:
+                below_mid = high <= range_mid * 1.02
+                if ret > 0 and vol_ratio <= 0.75 and spread <= 0.8 * atr14 and below_mid:
+                    score = min(1.0, 0.3 + (0.75 - vol_ratio) * 0.5 + (0.8 - spread / atr14) * 0.3)
+                    events.append(_event("LPSY", bar_idx, ts, high, score, "dryup"))
+
+    return events, ctx
+
+
+def _dedupe_events(raw_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Cluster same-type events within temporal window, keep highest score, cap total."""
+    if not raw_events:
+        return []
+    sorted_events = sorted(raw_events, key=lambda e: e["bar_index"])
+    deduped: list[dict[str, Any]] = []
+    for ev in sorted_events:
+        similar = [
+            d for d in deduped
+            if d["type"] == ev["type"] and abs(ev["bar_index"] - d["bar_index"]) <= EVENT_DEDUPE_WINDOW
+        ]
+        if not similar:
+            deduped.append(ev)
+        else:
+            best = max(similar, key=lambda d: d["score"])
+            if ev["score"] > best["score"]:
+                deduped.remove(best)
+                deduped.append(ev)
+    if len(deduped) <= MAX_EVENTS_PER_SEGMENT:
+        return sorted(deduped, key=lambda e: e["bar_index"])
+    # Over budget: keep by priority
+    priority_map = {t: i for i, t in enumerate(EVENT_PRIORITY)}
+    deduped.sort(key=lambda e: priority_map.get(e["type"], 99))
+    trimmed = deduped[:MAX_EVENTS_PER_SEGMENT]
+    return sorted(trimmed, key=lambda e: e["bar_index"])
 
 
 def _classify_state(window: pd.DataFrame) -> dict[str, Any]:
@@ -287,6 +562,7 @@ def _segment_maturity(cycle_phase: str, schematic_phase: str, duration_bars: int
 def _build_segment(
     x: pd.DataFrame,
     states: list[dict[str, Any]],
+    raw_events: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     start_idx = int(states[0]["index"])
     end_idx = int(states[-1]["index"])
@@ -316,6 +592,12 @@ def _build_segment(
         "transition_reason": str(states[0]["transition_reason"]),
     }
     segment["maturity"] = _segment_maturity(cycle_phase, schematic_phase, duration)
+    # Attach deduped events for this segment's bar range
+    if raw_events:
+        seg_events = [e for e in raw_events if start_idx <= e["bar_index"] <= end_idx]
+        deduped = _dedupe_events(seg_events)
+        if deduped:
+            segment["events"] = deduped
     return segment
 
 
@@ -341,12 +623,20 @@ def build_wyckoff_state(
         return result
 
     raw_states: list[dict[str, Any]] = []
+    all_events: list[dict[str, Any]] = []
+    schematic_ctx = _new_schematic_ctx()
     for idx in range(MIN_HISTORY_BARS - 1, len(x)):
         state = _classify_state(x.iloc[: idx + 1])
         state["index"] = idx
         state["datetime"] = str(x.iloc[idx]["datetime"])
         state["close"] = float(x.iloc[idx]["close"])
         raw_states.append(state)
+        # Event detection pass
+        bar_events, schematic_ctx = _detect_events(
+            x.iloc[: idx + 1], idx, schematic_ctx,
+            state["cycle_phase"], state["schematic_phase"],
+        )
+        all_events.extend(bar_events)
 
     confirmed: list[dict[str, Any]] = []
     current = raw_states[0].copy()
@@ -411,7 +701,7 @@ def build_wyckoff_state(
         smoothed_groups.append(group)
         i += 1
 
-    segments = [_build_segment(x, group) for group in smoothed_groups]
+    segments = [_build_segment(x, group, all_events) for group in smoothed_groups]
 
     current_segment = segments[-1]
     result = {
