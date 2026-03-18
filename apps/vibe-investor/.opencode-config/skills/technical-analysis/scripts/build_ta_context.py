@@ -947,6 +947,112 @@ def breakout_quality_payload(
     }
 
 
+def evaluate_range_edge_behavior(
+    *,
+    location_state: str,
+    supports: list[dict[str, Any]],
+    resistances: list[dict[str, Any]],
+    intraday_timing: dict[str, Any],
+    last_open: float,
+    last_high: float,
+    last_low: float,
+    last_close: float,
+    prev_close: float | None,
+) -> dict[str, Any]:
+    support_zone = supports[0] if supports else None
+    resistance_zone = resistances[0] if resistances else None
+    if location_state != "at_range_edge" or support_zone is None or resistance_zone is None:
+        return {
+            "edge_side": "none",
+            "trigger_state": "not_triggered",
+            "confirmation_state": "not_applicable",
+            "participation_quality": "adequate",
+            "edge_to_edge_path": False,
+            "trigger_level": None,
+        }
+
+    support_high = float(support_zone["high"])
+    support_mid = float(support_zone["mid"])
+    resistance_low = float(resistance_zone["low"])
+    resistance_mid = float(resistance_zone["mid"])
+    near_support = last_low <= support_high or near_zone(last_close, support_zone, pct=0.015)
+    near_resistance = last_high >= resistance_low or near_zone(last_close, resistance_zone, pct=0.015)
+
+    acceptance_state = str(intraday_timing.get("acceptance_state", "unclear"))
+    follow_state = str(intraday_timing.get("follow_through_state", "unclear"))
+    structure_state = str(intraday_timing.get("intraday_structure_state", "unclear"))
+    participation = str(intraday_timing.get("raw_participation_quality", "adequate"))
+
+    support_reclaim = (
+        near_support
+        and last_close >= support_mid
+        and (
+            last_close > last_open
+            or (prev_close is not None and last_close > prev_close)
+        )
+    )
+    support_accepted = acceptance_state in {"reclaimed_level", "accepted_above_level"}
+    follow_ok = follow_state in {"strong", "adequate"}
+    edge_to_edge_path = resistance_mid > support_mid
+
+    if support_reclaim and support_accepted and follow_ok and edge_to_edge_path:
+        return {
+            "edge_side": "lower",
+            "trigger_state": "triggered",
+            "confirmation_state": "confirmed",
+            "participation_quality": "strong" if participation == "strong" else "adequate",
+            "edge_to_edge_path": True,
+            "trigger_level": support_mid,
+        }
+
+    if near_support and edge_to_edge_path:
+        return {
+            "edge_side": "lower",
+            "trigger_state": "watchlist_only",
+            "confirmation_state": "mixed",
+            "participation_quality": "adequate",
+            "edge_to_edge_path": True,
+            "trigger_level": support_mid,
+        }
+
+    upper_edge_rejection = (
+        near_resistance
+        and last_close <= resistance_mid
+        and (
+            last_close < last_open
+            or (prev_close is not None and last_close < prev_close)
+        )
+    )
+    if upper_edge_rejection:
+        return {
+            "edge_side": "upper",
+            "trigger_state": "failed",
+            "confirmation_state": "rejected",
+            "participation_quality": "contradictory",
+            "edge_to_edge_path": False,
+            "trigger_level": resistance_mid,
+        }
+
+    if near_resistance:
+        return {
+            "edge_side": "upper",
+            "trigger_state": "watchlist_only",
+            "confirmation_state": "mixed",
+            "participation_quality": "weak",
+            "edge_to_edge_path": False,
+            "trigger_level": resistance_mid,
+        }
+
+    return {
+        "edge_side": "none",
+        "trigger_state": "not_triggered",
+        "confirmation_state": "not_applicable",
+        "participation_quality": "adequate",
+        "edge_to_edge_path": False,
+        "trigger_level": None,
+    }
+
+
 def build_trigger_confirmation(
     setup_id: str,
     breakout: dict[str, Any],
@@ -959,7 +1065,9 @@ def build_trigger_confirmation(
     intraday_timing: dict[str, Any],
     location_state: str,
     supports: list[dict[str, Any]],
+    resistances: list[dict[str, Any]],
     last_open: float,
+    last_high: float,
     last_low: float,
     last_close: float,
     prev_close: float | None,
@@ -1049,8 +1157,21 @@ def build_trigger_confirmation(
             trigger_state = "not_triggered"
     elif setup_id == "S4":
         trigger_type = "range_edge_rejection"
-        trigger_state = "watchlist_only"
-        confirmation_state = "mixed"
+        range_edge = evaluate_range_edge_behavior(
+            location_state=location_state,
+            supports=supports,
+            resistances=resistances,
+            intraday_timing=intraday_timing,
+            last_open=last_open,
+            last_high=last_high,
+            last_low=last_low,
+            last_close=last_close,
+            prev_close=prev_close,
+        )
+        trigger_state = str(range_edge["trigger_state"])
+        confirmation_state = str(range_edge["confirmation_state"])
+        participation_quality = str(range_edge["participation_quality"])
+        trigger_level = range_edge.get("trigger_level")
     elif setup_id == "S5":
         trigger_type = "spring_reclaim"
         trigger_level = spring.get("support_level")
@@ -1707,6 +1828,7 @@ def build_ta_context_result(
     levels = derive_levels(daily)
     last = daily.iloc[-1]
     last_open = float(last["open"])
+    last_high = float(last["high"])
     last_low = float(last["low"])
     last_close = float(last["close"])
     prev_close = float(daily.iloc[-2]["close"]) if len(daily) > 1 else None
@@ -1856,7 +1978,9 @@ def build_ta_context_result(
         intraday_timing=intraday_timing,
         location_state=location_state,
         supports=supports,
+        resistances=resistances,
         last_open=last_open,
+        last_high=last_high,
         last_low=last_low,
         last_close=last_close,
         prev_close=prev_close,
