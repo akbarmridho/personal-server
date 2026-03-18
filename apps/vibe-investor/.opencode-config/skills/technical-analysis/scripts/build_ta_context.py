@@ -436,7 +436,18 @@ def summarize_candidate_evaluations(
         for candidate in ranked_candidates
         if str(candidate.get("status")) != "invalid"
     ]
-    selected = viable if viable else ranked_candidates[:1]
+    if viable:
+        selected = viable
+    else:
+        substantive_invalid = [
+            candidate
+            for candidate in ranked_candidates
+            if any(
+                not str(driver).startswith(("intraday_", "participation_", "timing_"))
+                for driver in candidate.get("drivers", [])
+            )
+        ]
+        selected = substantive_invalid[:1] if substantive_invalid else ranked_candidates[:1]
     return [
         {
             "setup_id": str(candidate["setup_id"]),
@@ -446,6 +457,21 @@ def summarize_candidate_evaluations(
         }
         for candidate in selected
     ]
+
+
+def candidate_setup_ids_from_evaluations(
+    candidate_evaluations: list[dict[str, Any]],
+) -> list[str]:
+    return (
+        list(
+            dict.fromkeys(
+                str(candidate.get("setup_id"))
+                for candidate in candidate_evaluations
+                if str(candidate.get("setup_id"))
+            )
+        )
+        or ["NO_VALID_SETUP"]
+    )
 
 
 def evaluate_setup_candidates(
@@ -626,24 +652,32 @@ def select_setup(
         if str(candidate["status"]) != "invalid"
     ]
     if not viable_candidates:
+        candidate_evaluations = summarize_candidate_evaluations(ranked_candidates)
         return {
             "primary_setup": "NO_VALID_SETUP",
-            "candidate_setups": ["NO_VALID_SETUP"],
-            "candidate_evaluations": summarize_candidate_evaluations(
-                ranked_candidates
+            "candidate_setups": candidate_setup_ids_from_evaluations(
+                candidate_evaluations
             ),
-            "setup_drivers": dedupe_strings(
-                [regime, trend_bias, location_state, breakout_state]
+            "candidate_evaluations": candidate_evaluations,
+            "setup_drivers": list(
+                dict.fromkeys(
+                    v
+                    for v in [regime, trend_bias, location_state, breakout_state]
+                    if v
+                )
             ),
             "setup_validity": "invalid",
             "ranked_candidates": ranked_candidates,
         }
 
     primary_candidate = viable_candidates[0]
+    candidate_evaluations = summarize_candidate_evaluations(ranked_candidates)
     return {
         "primary_setup": str(primary_candidate["setup_id"]),
-        "candidate_setups": [str(candidate["setup_id"]) for candidate in viable_candidates],
-        "candidate_evaluations": summarize_candidate_evaluations(ranked_candidates),
+        "candidate_setups": candidate_setup_ids_from_evaluations(
+            candidate_evaluations
+        ),
+        "candidate_evaluations": candidate_evaluations,
         "setup_drivers": list(primary_candidate["drivers"]),
         "setup_validity": str(primary_candidate["status"]),
         "ranked_candidates": ranked_candidates,
@@ -2070,8 +2104,12 @@ def build_ta_context_result(
                 )
                 else "watchlist_only"
             ),
-            "setup_drivers": dedupe_strings(
-                list(setup_selection["setup_drivers"]) + [role_reversal_note]
+            "setup_drivers": list(
+                dict.fromkeys(
+                    v
+                    for v in list(setup_selection["setup_drivers"]) + [role_reversal_note]
+                    if v
+                )
             ),
         },
         "trigger_confirmation": trigger_confirmation,

@@ -233,7 +233,7 @@ Required in:
 | Field | Type | Required | Allowed values / notes |
 |---|---|---:|---|
 | `primary_setup` | string | yes | `S1`, `S2`, `S3`, `S4`, `S5`, `NO_VALID_SETUP` |
-| `candidate_setups` | string[] | yes | one or more allowed setup families |
+| `candidate_setups` | string[] | yes | ordered setup families from the compact comparison trace; when no setup is valid include the leading rejected family |
 | `candidate_evaluations` | object[] | yes | compact setup comparison trace; schema in section `T` |
 | `setup_side` | string | yes | `long`, `neutral` |
 | `setup_validity` | string | yes | `valid`, `watchlist_only`, `invalid` |
