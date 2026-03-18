@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from ta_common import (
+    add_atr14,
     add_intraday_context,
     add_ma_stack,
     add_rsi,
@@ -25,8 +26,19 @@ from ta_common import (
     choose_adaptive_ma,
     derive_levels,
     detect_structure_events,
+    detect_sweep_events,
+    detect_trendline_levels,
+    liquidity_draws,
+    liquidity_path_after_event,
     load_ohlcv,
+    pick_draw_targets,
     select_nearest_levels,
+)
+from ta_context_location import (
+    classify_liquidity_sweep,
+    derive_internal_liquidity_levels,
+    find_equal_liquidity_clusters,
+    remap_liquidity_draws,
 )
 from wyckoff_state import build_wyckoff_state
 
@@ -46,6 +58,23 @@ WYCKOFF_PHASE_COLORS = {
     "markdown": "#e7c4a8",
     "unclear": "#d1d5db",
 }
+SWEEP_COLORS = {
+    "accepted_up": "#00c853",
+    "rejected_up": "#e53935",
+    "unresolved_up": "#9e9e9e",
+    "accepted_down": "#e53935",
+    "rejected_down": "#00c853",
+    "unresolved_down": "#9e9e9e",
+}
+SWEEP_TYPE_MARKERS = {
+    "eqh": "D",
+    "eql": "D",
+    "trendline": "P",
+    "swing": "o",
+}
+EQH_COLOR = "#ab47bc"
+EQL_COLOR = "#ff7043"
+INTERNAL_LIQ_COLOR = "#78909c"
 
 
 def _width_config() -> dict[str, float]:
@@ -281,14 +310,6 @@ def _draw_level_segments(
     return visible_levels
 
 
-def nearest_draws(price: float, zones: list[dict[str, Any]]) -> dict[str, Any]:
-    mids = [float(z["zone_mid"]) for z in zones]
-    above = sorted([z for z in mids if z > price])
-    below = sorted([z for z in mids if z < price], reverse=True)
-    return {
-        "current_draw": above[0] if above else None,
-        "opposing_draw": below[0] if below else None,
-    }
 
 
 def _focus_lookback_from_anchors(
@@ -506,6 +527,14 @@ def plot_structure_events(
     path: Path,
     symbol: str,
     lookback: int,
+    sweep_events: list[dict[str, Any]] | None = None,
+    sweep_label: str = "none",
+    sweep_outcome: str = "unresolved",
+    sweep_side: str | None = None,
+    path_state: str = "unclear",
+    eqh_levels: list[float] | None = None,
+    eql_levels: list[float] | None = None,
+    internal_levels: list[float] | None = None,
 ) -> None:
     x = df_daily.tail(lookback).copy().reset_index(drop=True)
     n = len(x)
@@ -515,10 +544,6 @@ def plot_structure_events(
     down_choch = np.full(n, np.nan)
 
     dt_to_idx = {pd.Timestamp(dt): int(i) for i, dt in enumerate(x["datetime"])}
-    draws_list = [
-        v for v in [draws.get("current_draw"), draws.get("opposing_draw")]
-        if v is not None
-    ]
     visible_events: list[dict[str, Any]] = []
     for e in events:
         dt = pd.Timestamp(e["datetime"])
@@ -566,28 +591,39 @@ def plot_structure_events(
                 down_choch, type="scatter", marker="v", markersize=115, color="#fb8c00",
             )
         )
-    plot_kwargs: dict[str, Any] = {
-        "type": "candle",
-        "volume": True,
-        "style": _base_style(),
-        "addplot": apds,
-        "title": f"{symbol} Structure Events & Liquidity",
-        "figratio": DEFAULT_FIGRATIO,
-        "figscale": DEFAULT_FIGSCALE,
-        "update_width_config": _width_config(),
-        "returnfig": True,
-    }
-    if draws_list:
-        plot_kwargs["hlines"] = {
-            "hlines": draws_list,
-            "colors": ["#e91e63"] * len(draws_list),
-            "linewidths": [1.8] * len(draws_list),
-        }
-    fig, axes = mpf.plot(to_mpf(x), **plot_kwargs)
+    fig, axes = mpf.plot(
+        to_mpf(x), type="candle", volume=True, style=_base_style(),
+        addplot=apds,
+        title=f"{symbol} Structure Events & Liquidity",
+        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
+        update_width_config=_width_config(), returnfig=True,
+    )
     ax = axes[0]
+
+    # Draw draw-target lines manually (avoids mpf hlines auto-legend)
+    draws_list = [
+        v for v in [draws.get("current_draw"), draws.get("opposing_draw")]
+        if v is not None
+    ]
+    for dlvl in draws_list:
+        ax.axhline(dlvl, color="#e91e63", linewidth=1.8, linestyle="-", alpha=0.85)
+
+    # EQH / EQL / internal liquidity levels
+    if eqh_levels:
+        for lvl in eqh_levels:
+            ax.axhline(lvl, color=EQH_COLOR, linewidth=1.4, linestyle=(0, (2, 3)), alpha=0.85)
+    if eql_levels:
+        for lvl in eql_levels:
+            ax.axhline(lvl, color=EQL_COLOR, linewidth=1.4, linestyle=(0, (2, 3)), alpha=0.85)
+    if internal_levels:
+        for lvl in internal_levels:
+            ax.axhline(lvl, color=INTERNAL_LIQ_COLOR, linewidth=1.0, linestyle=":", alpha=0.7)
+
     atr_unit = float((x["high"] - x["low"]).tail(min(50, n)).median())
     if not np.isfinite(atr_unit) or atr_unit <= 0:
         atr_unit = max(float(x["close"].median()) * 0.01, 8.0)
+
+    # BOS/CHOCH annotations
     placed: list[tuple[int, float]] = []
     for e in sorted(visible_events, key=lambda d: int(d["_idx"]))[-10:]:
         xpos = int(e["_idx"])
@@ -614,58 +650,91 @@ def plot_structure_events(
         )
         placed.append((xpos, ty))
 
-    ax.legend(
-        handles=[
-            Line2D([], [], marker="^", linestyle="None", markerfacecolor="#00c853",
-                   markeredgecolor="#00c853", markersize=8, label="Up BOS"),
-            Line2D([], [], marker="^", linestyle="None", markerfacecolor="#00acc1",
-                   markeredgecolor="#00acc1", markersize=8, label="Up CHOCH"),
-            Line2D([], [], marker="v", linestyle="None", markerfacecolor="#e53935",
-                   markeredgecolor="#e53935", markersize=8, label="Down BOS"),
-            Line2D([], [], marker="v", linestyle="None", markerfacecolor="#fb8c00",
-                   markeredgecolor="#fb8c00", markersize=8, label="Down CHOCH"),
-        ] + ([Line2D([], [], color="#e91e63", linewidth=2.0, label="Liquidity Draw")] if draws_list else []),
-        loc="upper left", fontsize=8, ncol=2, framealpha=0.9,
-    )
+    # Sweep event markers
+    if sweep_events:
+        dt_to_idx_sweep = {pd.Timestamp(str(row["datetime"])): int(i) for i, row in x.iterrows()}
+        for se in sweep_events:
+            se_dt = pd.Timestamp(str(se["datetime"]))
+            se_idx = dt_to_idx_sweep.get(se_dt)
+            if se_idx is None:
+                continue
+            se_level = float(se["level"])
+            se_side = str(se.get("side", "up"))
+            se_outcome_val = str(se.get("outcome", "unresolved"))
+            se_type = str(se.get("sweep_type", "swing"))
+            color_key = f"{se_outcome_val}_{se_side}"
+            color = SWEEP_COLORS.get(color_key, "#9e9e9e")
+            marker = SWEEP_TYPE_MARKERS.get(se_type, "o")
+            ax.scatter(
+                [se_idx], [se_level], color=color, s=200, marker=marker,
+                edgecolors="#111111", linewidths=0.8, zorder=6, alpha=0.95,
+            )
+            sign = 1.0 if se_side == "up" else -1.0
+            ax.annotate(
+                f"{se_type} {se_outcome_val}",
+                xy=(se_idx, se_level),
+                xytext=(se_idx, se_level + sign * atr_unit * 1.4),
+                textcoords="data", ha="center",
+                va="bottom" if se_side == "up" else "top",
+                fontsize=7, color=color, fontweight="bold",
+                bbox={"facecolor": "white", "alpha": 0.85, "edgecolor": color, "boxstyle": "round,pad=0.2"},
+                arrowprops={"arrowstyle": "->", "linewidth": 1.0, "color": color, "alpha": 0.9},
+            )
+
+    # Single unified legend
+    legend_handles: list[Line2D] = [
+        Line2D([], [], marker="^", linestyle="None", markerfacecolor="#00c853",
+               markeredgecolor="#00c853", markersize=8, label="Up BOS"),
+        Line2D([], [], marker="^", linestyle="None", markerfacecolor="#00acc1",
+               markeredgecolor="#00acc1", markersize=8, label="Up CHOCH"),
+        Line2D([], [], marker="v", linestyle="None", markerfacecolor="#e53935",
+               markeredgecolor="#e53935", markersize=8, label="Down BOS"),
+        Line2D([], [], marker="v", linestyle="None", markerfacecolor="#fb8c00",
+               markeredgecolor="#fb8c00", markersize=8, label="Down CHOCH"),
+    ]
     if draws_list:
-        txt = f"curr_draw={draws.get('current_draw')} | opp_draw={draws.get('opposing_draw')}"
+        legend_handles.append(
+            Line2D([], [], color="#e91e63", linewidth=1.8, label="Draw target"),
+        )
+    if eqh_levels:
+        legend_handles.append(
+            Line2D([], [], color=EQH_COLOR, linewidth=1.4, linestyle=(0, (2, 3)), label="EQH"),
+        )
+    if eql_levels:
+        legend_handles.append(
+            Line2D([], [], color=EQL_COLOR, linewidth=1.4, linestyle=(0, (2, 3)), label="EQL"),
+        )
+    if internal_levels:
+        legend_handles.append(
+            Line2D([], [], color=INTERNAL_LIQ_COLOR, linewidth=1.0, linestyle=":", label="Internal liq"),
+        )
+    if sweep_events:
+        legend_handles.append(
+            Line2D([], [], marker="D", linestyle="None", markerfacecolor="#00c853",
+                   markeredgecolor="#111111", markersize=7, label="Sweep accepted"),
+        )
+        legend_handles.append(
+            Line2D([], [], marker="D", linestyle="None", markerfacecolor="#e53935",
+                   markeredgecolor="#111111", markersize=7, label="Sweep rejected"),
+        )
+    ax.legend(handles=legend_handles, loc="upper left", fontsize=7, ncol=2, framealpha=0.9)
+
+    # Info box
+    info_parts = []
+    if draws_list:
+        info_parts.append(f"curr_draw={draws.get('current_draw')} | opp_draw={draws.get('opposing_draw')}")
+    if sweep_label != "none":
+        info_parts.append(f"sweep={sweep_label} side={sweep_side or '?'} outcome={sweep_outcome} path={path_state}")
+    if info_parts:
         ax.text(
-            1.02, 1.15, txt, transform=ax.transAxes, ha="right", va="top", fontsize=9,
+            1.02, 1.15, "\n".join(info_parts),
+            transform=ax.transAxes, ha="right", va="top", fontsize=8,
             bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
         )
     fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
     plt.close(fig)
 
 
-def plot_liquidity_map(
-    df_daily: pd.DataFrame,
-    draws: dict[str, Any],
-    path: Path,
-    symbol: str,
-    lookback: int,
-) -> None:
-    x = df_daily.tail(lookback)
-    hlines = [
-        v for v in [draws.get("current_draw"), draws.get("opposing_draw")]
-        if v is not None
-    ]
-    colors = ["#1f77b4", "#ff7f0e"][: len(hlines)]
-    fig, axes = mpf.plot(
-        to_mpf(x), type="candle", volume=True, style=_base_style(),
-        hlines=dict(hlines=hlines, colors=colors, linewidths=[1.8] * len(hlines))
-        if hlines else None,
-        title=f"{symbol} Liquidity Map",
-        figratio=DEFAULT_FIGRATIO, figscale=DEFAULT_FIGSCALE,
-        update_width_config=_width_config(), returnfig=True,
-    )
-    ax = axes[0]
-    txt = f"current_draw={draws.get('current_draw')}\nopposing_draw={draws.get('opposing_draw')}"
-    ax.text(
-        0.01, 0.98, txt, transform=ax.transAxes, va="top", fontsize=9,
-        bbox={"facecolor": "white", "alpha": 0.78, "edgecolor": "#d0d0d0"},
-    )
-    fig.savefig(str(path), dpi=DEFAULT_DPI, bbox_inches="tight")
-    plt.close(fig)
 
 
 def plot_vpvr_profile(
@@ -839,10 +908,39 @@ def main() -> None:
     daily = add_ma_stack(daily)
     daily = add_swings(daily)
     daily = add_volume_features(daily)
+    daily = add_atr14(daily)
     zones = derive_levels(daily)
     events = detect_structure_events(daily)
     ma_config = build_daily_ma_config(daily, args.ma_mode)
     wyckoff_state = build_wyckoff_state(daily, return_full_history=True)
+
+    last_close = float(daily["close"].iloc[-1])
+    last_atr14 = float(daily["ATR14"].iloc[-1]) if "ATR14" in daily.columns and pd.notna(daily["ATR14"].iloc[-1]) else 0.0
+    ext_levels = [float(z["zone_mid"]) for z in zones]
+    internal_levels = derive_internal_liquidity_levels(daily, last_close, ext_levels)
+    equal_liq = find_equal_liquidity_clusters(daily, last_atr14)
+    trendlines = detect_trendline_levels(daily)
+    sweep_events_list = detect_sweep_events(
+        daily,
+        eqh_levels=equal_liq["eqh_levels"],
+        eql_levels=equal_liq["eql_levels"],
+        internal_levels=internal_levels,
+        trendlines=trendlines,
+    )
+    sweep_label, sweep_outcome_val, event_scope, sweep_side = classify_liquidity_sweep(
+        sweep_events=sweep_events_list,
+    )
+    liq = liquidity_draws(last_close, zones, internal_levels=internal_levels)
+    liq["draw_targets"] = pick_draw_targets(ext_levels, internal_levels, last_close)
+    remap_liquidity_draws(
+        liq=liq,
+        event_scope=event_scope,
+        sweep_outcome_value=sweep_outcome_val,
+        sweep_side=sweep_side,
+    )
+    liq["sweep_event"] = sweep_label
+    liq["sweep_outcome"] = sweep_outcome_val
+    liq["liquidity_path"] = liquidity_path_after_event(event_scope, sweep_outcome_val)
 
     if args.range_mode == "auto":
         daily_lookback = compute_dynamic_daily_lookback(
@@ -859,8 +957,10 @@ def main() -> None:
     else:
         intraday_lookback = min(len(intraday), max(30, intraday_lookback))
 
-    last_close = float(daily["close"].iloc[-1])
-    draws = nearest_draws(last_close, zones)
+    draws = {
+        "current_draw": liq.get("current_draw"),
+        "opposing_draw": liq.get("opposing_draw"),
+    }
 
     generated: dict[str, str] = {}
 
@@ -875,7 +975,17 @@ def main() -> None:
     generated["intraday_structure"] = str(p_intraday)
 
     p_events = outdir / f"{symbol}_structure_events.png"
-    plot_structure_events(daily, events, draws, p_events, symbol, daily_lookback)
+    plot_structure_events(
+        daily, events, draws, p_events, symbol, daily_lookback,
+        sweep_events=sweep_events_list,
+        sweep_label=sweep_label,
+        sweep_outcome=sweep_outcome_val,
+        sweep_side=sweep_side,
+        path_state=liq.get("liquidity_path", "unclear"),
+        eqh_levels=equal_liq["eqh_levels"],
+        eql_levels=equal_liq["eql_levels"],
+        internal_levels=internal_levels,
+    )
     generated["structure_events"] = str(p_events)
 
     p_wyckoff = outdir / f"{symbol}_wyckoff_history.png"
@@ -932,7 +1042,18 @@ def main() -> None:
             }
             for e in events
         ],
-        "liquidity_map": draws,
+        "liquidity_map": {
+            "current_draw": liq.get("current_draw"),
+            "opposing_draw": liq.get("opposing_draw"),
+            "sweep_event": sweep_label,
+            "sweep_outcome": sweep_outcome_val,
+            **({"sweep_side": sweep_side} if sweep_side in {"up", "down"} else {}),
+            "liquidity_path": liq.get("liquidity_path", "unclear"),
+            "eqh_levels": equal_liq["eqh_levels"],
+            "eql_levels": equal_liq["eql_levels"],
+            "internal_levels": internal_levels,
+            "sweep_events": sweep_events_list,
+        },
         "wyckoff_state": {
             "current_cycle_phase": wyckoff_state["current_cycle_phase"],
             "current_wyckoff_phase": wyckoff_state["current_wyckoff_phase"],
