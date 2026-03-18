@@ -8,11 +8,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from ta_common import (
-    add_intraday_context,
     add_atr14,
     add_ma_stack,
     add_swings,
@@ -20,21 +18,53 @@ from ta_common import (
     classify_price_volume,
     classify_regime,
     choose_adaptive_ma,
-    cluster_levels,
     derive_levels,
-    detect_sweep_events,
     detect_structure_events,
+    detect_sweep_events,
     detect_trendline_levels,
     detect_wyckoff_spring,
     liquidity_draws,
     liquidity_path_after_event,
     mixed_swing_ma_bias,
     pick_draw_targets,
-    profile_from_range,
-    summarize_intraday_liquidity,
-    summarize_intraday_participation,
     structure_status,
-    value_area_from_hist,
+)
+from ta_context_execution import (
+    build_disabled_intraday_timing,
+    build_intraday_timing,
+    build_risk_map,
+    build_trigger_confirmation,
+)
+from ta_context_flags import (
+    build_red_flags,
+    count_distribution_days,
+    detect_ma_whipsaw,
+    enrich_red_flags,
+    normalize_red_flags,
+)
+from ta_context_location import (
+    baseline_ma_payload,
+    build_value_area,
+    classify_liquidity_sweep,
+    derive_internal_liquidity_levels,
+    find_equal_liquidity_clusters,
+    infer_location_state,
+    remap_liquidity_draws,
+    round_level_payload,
+    split_support_resistance,
+)
+from ta_context_setup import select_setup
+from ta_context_state import (
+    base_quality,
+    build_intent,
+    breakout_displacement,
+    breakout_snapshot,
+    infer_state,
+    nearest_round_levels,
+    normalize_structure_status,
+    role_reversal,
+    time_based_opens,
+    vpvr_core,
 )
 from wyckoff_state import build_wyckoff_state
 
@@ -106,1622 +136,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def parse_modules(raw: str) -> set[str]:
-    out = {x.strip().lower() for x in raw.split(",") if x.strip()}
+    out = {value.strip().lower() for value in raw.split(",") if value.strip()}
     if not out:
         out = {"core"}
     if "all" in out:
         return {"core", "vpvr", "breakout"}
     out.add("core")
     return out
-
-
-# ---------------------------------------------------------------------------
-# State / regime helpers
-# ---------------------------------------------------------------------------
-
-
-def infer_state(
-    last_close: float,
-    value_low: float,
-    value_high: float,
-    follow_close: float | None = None,
-) -> tuple[str, str]:
-    outside = (last_close > value_high) or (last_close < value_low)
-    if not outside:
-        return "balance", "inside_value_area"
-    if follow_close is None:
-        return "imbalance", "outside_value_area_unconfirmed"
-    if last_close > value_high and follow_close >= value_high:
-        return "imbalance", "accepted_above_value"
-    if last_close < value_low and follow_close <= value_low:
-        return "imbalance", "accepted_below_value"
-    return "balance", "failed_acceptance_back_inside"
-
-
-# ---------------------------------------------------------------------------
-# Level helpers
-# ---------------------------------------------------------------------------
-
-
-def role_reversal(last_close: float, level: float, was_support: bool) -> str:
-    if was_support and last_close < level:
-        return "support_broken_may_flip_to_resistance"
-    if (not was_support) and last_close > level:
-        return "resistance_broken_may_flip_to_support"
-    return "no_flip_signal"
-
-
-def ma_posture(row: pd.Series) -> dict[str, bool]:
-    c = float(row["close"])
-    return {
-        "above_ema21": c >= float(row.get("EMA21", c)),
-        "above_sma50": c >= float(row.get("SMA50", c)),
-        "above_sma200": c >= float(row.get("SMA200", c)),
-    }
-
-
-def time_based_opens(df_daily: pd.DataFrame) -> dict[str, Any]:
-    x = df_daily.copy()
-    latest = x.iloc[-1]
-    d_open = float(
-        x[x["datetime"].dt.date == latest["datetime"].date()].iloc[0]["open"]
-    )
-    week_key = latest["datetime"].isocalendar().week
-    w = x[x["datetime"].dt.isocalendar().week == week_key]
-    month_key = latest["datetime"].to_period("M")
-    m = x[x["datetime"].dt.to_period("M") == month_key]
-    return {
-        "daily_open": d_open,
-        "weekly_open": float(w.iloc[0]["open"]) if len(w) > 0 else None,
-        "monthly_open": float(m.iloc[0]["open"]) if len(m) > 0 else None,
-    }
-
-
-def nearest_round_levels(price: float, step: float = 100.0) -> dict[str, float]:
-    base = round(price / step) * step
-    return {
-        "round_below": float(base - step),
-        "round_at": float(base),
-        "round_above": float(base + step),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Volume profile helpers
-# ---------------------------------------------------------------------------
-
-
-def acceptance_vs_value(
-    close_price: float, vah: float, val: float, prev_close: float | None = None
-) -> str:
-    if close_price > vah:
-        if prev_close is not None and prev_close >= vah:
-            return "accepted_above_vah"
-        return "probe_above_vah"
-    if close_price < val:
-        if prev_close is not None and prev_close <= val:
-            return "accepted_below_val"
-        return "probe_below_val"
-    return "inside_value"
-
-
-def vpvr_core(df: pd.DataFrame, bins: int = 40) -> dict[str, Any]:
-    return profile_from_range(df, bins=bins)
-
-
-def anchored_profile(
-    df_daily: pd.DataFrame, trend_bias: str, max_bars: int = 260
-) -> dict[str, Any]:
-    x = df_daily.tail(max_bars).copy()
-    lows = x[x["swing_low"].notna()]
-    highs = x[x["swing_high"].notna()]
-    if trend_bias == "bearish" and len(highs) > 0:
-        anchor = highs.iloc[-1]
-        anchor_type = "swing_high"
-    elif len(lows) > 0:
-        anchor = lows.iloc[-1]
-        anchor_type = "swing_low"
-    else:
-        anchor = x.iloc[0]
-        anchor_type = "range_start"
-    anchor_dt = pd.Timestamp(anchor["datetime"])
-    rng = x[x["datetime"] >= anchor_dt]
-    if len(rng) < 20:
-        rng = x
-    prof = profile_from_range(rng, bins=35)
-    return {
-        "mode": "anchored",
-        "anchor_type": anchor_type,
-        "anchor_datetime": str(anchor_dt),
-        "anchor_end": str(x["datetime"].iloc[-1]),
-        **prof,
-    }
-
-
-# ---------------------------------------------------------------------------
-# Breakout
-# ---------------------------------------------------------------------------
-
-
-def breakout_snapshot(df: pd.DataFrame, levels: list[dict[str, Any]]) -> dict[str, Any]:
-    x = add_volume_features(df).tail(10).reset_index(drop=True)
-    if len(x) < 2:
-        return {"status": "insufficient_data"}
-    last_close = float(x.iloc[-1]["close"])
-    mids = sorted([float(z["zone_mid"]) for z in levels])
-    above = [v for v in mids if v > last_close]
-    below = [v for v in mids if v < last_close]
-    up_level = above[0] if above else None
-    dn_level = below[-1] if below else None
-    trig = x.iloc[-2]
-    foll = x.iloc[-1]
-
-    status = "no_breakout"
-    side = None
-    level = None
-    if up_level is not None and float(trig["close"]) > up_level:
-        side = "up"
-        level = float(up_level)
-    elif dn_level is not None and float(trig["close"]) < dn_level:
-        side = "down"
-        level = float(dn_level)
-
-    if side is not None and level is not None:
-        status, proof = breakout_quality(df, level=level, side=side)
-    else:
-        proof = {
-            "trigger_dt": str(trig["datetime"]),
-            "trigger_close": float(trig["close"]),
-            "follow_dt": str(foll["datetime"]),
-            "follow_close": float(foll["close"]),
-            "trigger_vol_ratio": float(trig["vol_ratio"])
-            if pd.notna(trig["vol_ratio"])
-            else None,
-        }
-
-    return {
-        "status": status,
-        "side": side,
-        "up_level": up_level,
-        "down_level": dn_level,
-        "trigger_dt": proof["trigger_dt"],
-        "trigger_close": proof["trigger_close"],
-        "follow_dt": proof["follow_dt"],
-        "follow_close": proof["follow_close"],
-        "trigger_vol_ratio": proof["trigger_vol_ratio"],
-    }
-
-
-def breakout_quality(
-    df: pd.DataFrame, level: float, side: str
-) -> tuple[str, dict[str, Any]]:
-    x = add_volume_features(df).tail(10).reset_index(drop=True)
-    if len(x) < 2:
-        return "no_breakout", {"reason": "insufficient_data"}
-    trig = x.iloc[-2]
-    foll = x.iloc[-1]
-    if side == "up":
-        trigger = float(trig["close"]) > level
-        follow = float(foll["close"]) >= level
-    else:
-        trigger = float(trig["close"]) < level
-        follow = float(foll["close"]) <= level
-    vol_ok = pd.notna(trig["vol_ratio"]) and float(trig["vol_ratio"]) >= 1.2
-    if trigger and follow and vol_ok:
-        quality = "valid_breakout"
-    elif trigger and not follow:
-        quality = "failed_breakout"
-    else:
-        quality = "no_breakout"
-    proof = {
-        "trigger_dt": str(trig["datetime"]),
-        "trigger_close": float(trig["close"]),
-        "follow_dt": str(foll["datetime"]),
-        "follow_close": float(foll["close"]),
-        "trigger_vol_ratio": float(trig["vol_ratio"])
-        if pd.notna(trig["vol_ratio"])
-        else None,
-    }
-    return quality, proof
-
-
-def breakout_displacement(df: pd.DataFrame, level: float, side: str) -> str:
-    x = add_volume_features(df).tail(5).reset_index(drop=True)
-    if len(x) < 2:
-        return "stalling"
-    trig = x.iloc[-2]
-    atr = (
-        float(trig["ATR14"])
-        if "ATR14" in trig.index and pd.notna(trig.get("ATR14"))
-        else 0.0
-    )
-    if atr <= 0:
-        return "stalling"
-    candle_range = abs(float(trig["close"]) - float(trig["open"]))
-    if candle_range >= atr * 0.8:
-        return "clean_displacement"
-    return "stalling"
-
-
-# ---------------------------------------------------------------------------
-# Setup selection and pattern detection
-# ---------------------------------------------------------------------------
-
-
-def base_quality(
-    window: pd.DataFrame, min_weeks: int = 7, max_depth: float = 0.35
-) -> dict[str, Any]:
-    n_days = len(window)
-    weeks = n_days / 5.0
-    hi = float(window["high"].max())
-    lo = float(window["low"].min())
-    depth = (hi - lo) / hi if hi > 0 else 0.0
-    too_short = weeks < min_weeks
-    too_deep = depth > max_depth
-    status = "weak" if (too_short or too_deep) else "ok"
-    return {
-        "weeks": float(weeks),
-        "depth": float(depth),
-        "too_short": bool(too_short),
-        "too_deep": bool(too_deep),
-        "status": status,
-    }
-
-
-SETUP_STATUS_RANK = {"invalid": 0, "watchlist_only": 1, "valid": 2}
-SETUP_PRIORITY = {"S1": 3, "S2": 2, "S3": 4, "S4": 1, "S5": 5}
-
-
-
-def apply_intraday_setup_adjustment(
-    setup_id: str,
-    status: str,
-    score: int,
-    drivers: list[str],
-    intraday_timing: dict[str, Any],
-) -> tuple[str, int, list[str]]:
-    timing_authority = str(intraday_timing.get("timing_authority", "full_15m"))
-    intraday_structure = str(
-        intraday_timing.get("intraday_structure_state", "unclear")
-    )
-    participation = str(
-        intraday_timing.get("raw_participation_quality", "adequate")
-    )
-
-    if intraday_structure == "aligned":
-        score += 1
-        drivers.append("intraday_aligned")
-    elif intraday_structure == "counter_thesis":
-        score -= 1
-        drivers.append("intraday_counter_thesis")
-        if status == "valid":
-            status = "watchlist_only"
-    elif intraday_structure == "conflicted":
-        drivers.append("intraday_conflicted")
-
-    if timing_authority == "wait_only":
-        score -= 1
-        drivers.append("timing_wait_only")
-        if status == "valid":
-            status = "watchlist_only"
-
-    if participation == "strong":
-        score += 1
-        drivers.append("participation_strong")
-    elif participation == "weak":
-        score -= 1
-        drivers.append("participation_weak")
-        if status == "valid" and setup_id in {"S1", "S5"}:
-            status = "watchlist_only"
-
-    return status, score, list(dict.fromkeys(v for v in drivers if v))
-
-
-def setup_candidate_payload(
-    setup_id: str, status: str, score: int, drivers: list[str]
-) -> dict[str, Any]:
-    return {
-        "setup_id": setup_id,
-        "status": status,
-        "score": int(score),
-        "drivers": list(dict.fromkeys(v for v in drivers if v)),
-    }
-
-
-def summarize_candidate_evaluations(
-    ranked_candidates: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    viable = [
-        candidate
-        for candidate in ranked_candidates
-        if str(candidate.get("status")) != "invalid"
-    ]
-    if viable:
-        selected = viable
-    else:
-        substantive_invalid = [
-            candidate
-            for candidate in ranked_candidates
-            if any(
-                not str(driver).startswith(("intraday_", "participation_", "timing_"))
-                for driver in candidate.get("drivers", [])
-            )
-        ]
-        selected = substantive_invalid[:1] if substantive_invalid else ranked_candidates[:1]
-    return [
-        {
-            "setup_id": str(candidate["setup_id"]),
-            "status": str(candidate["status"]),
-            "score": int(candidate["score"]),
-            "drivers": list(candidate["drivers"]),
-        }
-        for candidate in selected
-    ]
-
-
-def candidate_setup_ids_from_evaluations(
-    candidate_evaluations: list[dict[str, Any]],
-) -> list[str]:
-    return (
-        list(
-            dict.fromkeys(
-                str(candidate.get("setup_id"))
-                for candidate in candidate_evaluations
-                if str(candidate.get("setup_id"))
-            )
-        )
-        or ["NO_VALID_SETUP"]
-    )
-
-
-def evaluate_setup_candidates(
-    regime: str,
-    trend_bias: str,
-    breakout_state: str,
-    structure_state: str,
-    spring_confirmed: bool,
-    location_state: str,
-    intraday_timing: dict[str, Any],
-    supports: list[dict[str, Any]],
-    displacement: str | None,
-) -> list[dict[str, Any]]:
-    candidates: list[dict[str, Any]] = []
-    bullish_continuation = regime == "trend_continuation" and trend_bias == "bullish"
-    at_support = location_state == "near_support_in_bullish_structure"
-    above_resistance = location_state == "accepted_above_resistance"
-    at_range_edge = location_state == "at_range_edge"
-    breakout_valid = breakout_state == "valid_breakout"
-    breakout_failed = breakout_state == "failed_breakout"
-    structure_confirmed = structure_state == "choch_plus_bos_confirmed"
-    structure_warning = structure_state == "choch_only"
-    nearest_support = supports[0] if supports else None
-
-    s1_status = "invalid"
-    s1_score = 0
-    s1_drivers: list[str] = []
-    if bullish_continuation:
-        s1_drivers.append("trend_continuation_context")
-        if breakout_failed:
-            s1_drivers.append("failed_breakout")
-            s1_score -= 3
-        else:
-            if breakout_valid:
-                s1_score += 4
-                s1_drivers.append("valid_breakout")
-            if above_resistance:
-                s1_score += 3
-                s1_drivers.append("accepted_above_resistance")
-            elif at_support:
-                s1_score += 2
-                s1_drivers.append("retest_zone_active")
-            if displacement == "clean_displacement":
-                s1_score += 1
-                s1_drivers.append("clean_displacement")
-
-            if breakout_valid and (above_resistance or at_support):
-                s1_status = "valid"
-            elif breakout_valid or above_resistance:
-                s1_status = "watchlist_only"
-    s1_status, s1_score, s1_drivers = apply_intraday_setup_adjustment(
-        "S1", s1_status, s1_score, s1_drivers, intraday_timing
-    )
-    candidates.append(setup_candidate_payload("S1", s1_status, s1_score, s1_drivers))
-
-    s2_status = "invalid"
-    s2_score = 0
-    s2_drivers: list[str] = []
-    if bullish_continuation and at_support:
-        s2_drivers.extend(["trend_continuation_context", "pullback_to_demand"])
-        s2_score += 4
-        if nearest_support is not None:
-            support_strength = str(nearest_support.get("strength", "moderate"))
-            if support_strength == "strong":
-                s2_score += 1
-                s2_drivers.append("support_strength_strong")
-            elif support_strength == "weak":
-                s2_score -= 1
-                s2_drivers.append("support_strength_weak")
-        if breakout_failed:
-            s2_score -= 1
-            s2_drivers.append("breakout_failure_overhang")
-            s2_status = "watchlist_only"
-        else:
-            s2_status = "valid"
-    s2_status, s2_score, s2_drivers = apply_intraday_setup_adjustment(
-        "S2", s2_status, s2_score, s2_drivers, intraday_timing
-    )
-    candidates.append(setup_candidate_payload("S2", s2_status, s2_score, s2_drivers))
-
-    s3_status = "invalid"
-    s3_score = 0
-    s3_drivers: list[str] = []
-    if not spring_confirmed:
-        if structure_confirmed:
-            s3_status = "valid"
-            s3_score += 5
-            s3_drivers.append("choch_plus_bos_confirmed")
-        elif structure_warning:
-            s3_status = "watchlist_only"
-            s3_score += 2
-            s3_drivers.append("choch_only")
-        elif regime == "potential_reversal":
-            s3_status = "watchlist_only"
-            s3_score += 1
-            s3_drivers.append("potential_reversal_context")
-        if location_state in {
-            "near_support_in_bullish_structure",
-            "accepted_below_support",
-        }:
-            s3_score += 1
-            s3_drivers.append("reversal_location_active")
-    s3_status, s3_score, s3_drivers = apply_intraday_setup_adjustment(
-        "S3", s3_status, s3_score, s3_drivers, intraday_timing
-    )
-    candidates.append(setup_candidate_payload("S3", s3_status, s3_score, s3_drivers))
-
-    s4_status = "invalid"
-    s4_score = 0
-    s4_drivers: list[str] = []
-    if regime == "range_rotation" and at_range_edge:
-        s4_status = "valid"
-        s4_score += 4
-        s4_drivers.extend(["range_rotation_context", "range_edge_active"])
-    s4_status, s4_score, s4_drivers = apply_intraday_setup_adjustment(
-        "S4", s4_status, s4_score, s4_drivers, intraday_timing
-    )
-    candidates.append(setup_candidate_payload("S4", s4_status, s4_score, s4_drivers))
-
-    s5_status = "invalid"
-    s5_score = 0
-    s5_drivers: list[str] = []
-    if spring_confirmed:
-        s5_status = "valid"
-        s5_score += 5
-        s5_drivers.append("spring_detected")
-        if regime in {"range_rotation", "potential_reversal"}:
-            s5_score += 1
-            s5_drivers.append("spring_context_supported")
-        if location_state in {
-            "near_support_in_bullish_structure",
-            "at_range_edge",
-            "accepted_below_support",
-        }:
-            s5_score += 1
-            s5_drivers.append("spring_location_active")
-    s5_status, s5_score, s5_drivers = apply_intraday_setup_adjustment(
-        "S5", s5_status, s5_score, s5_drivers, intraday_timing
-    )
-    candidates.append(setup_candidate_payload("S5", s5_status, s5_score, s5_drivers))
-
-    return sorted(
-        candidates,
-        key=lambda candidate: (
-            SETUP_STATUS_RANK.get(str(candidate["status"]), 0),
-            int(candidate["score"]),
-            SETUP_PRIORITY.get(str(candidate["setup_id"]), 0),
-        ),
-        reverse=True,
-    )
-
-
-def select_setup(
-    regime: str,
-    trend_bias: str,
-    breakout_state: str,
-    structure_state: str,
-    spring_confirmed: bool,
-    location_state: str,
-    intraday_timing: dict[str, Any],
-    supports: list[dict[str, Any]],
-    displacement: str | None,
-) -> dict[str, Any]:
-    ranked_candidates = evaluate_setup_candidates(
-        regime=regime,
-        trend_bias=trend_bias,
-        breakout_state=breakout_state,
-        structure_state=structure_state,
-        spring_confirmed=spring_confirmed,
-        location_state=location_state,
-        intraday_timing=intraday_timing,
-        supports=supports,
-        displacement=displacement,
-    )
-    viable_candidates = [
-        candidate
-        for candidate in ranked_candidates
-        if str(candidate["status"]) != "invalid"
-    ]
-    if not viable_candidates:
-        candidate_evaluations = summarize_candidate_evaluations(ranked_candidates)
-        return {
-            "primary_setup": "NO_VALID_SETUP",
-            "candidate_setups": candidate_setup_ids_from_evaluations(
-                candidate_evaluations
-            ),
-            "candidate_evaluations": candidate_evaluations,
-            "setup_drivers": list(
-                dict.fromkeys(
-                    v
-                    for v in [regime, trend_bias, location_state, breakout_state]
-                    if v
-                )
-            ),
-            "setup_validity": "invalid",
-            "ranked_candidates": ranked_candidates,
-        }
-
-    primary_candidate = viable_candidates[0]
-    candidate_evaluations = summarize_candidate_evaluations(ranked_candidates)
-    return {
-        "primary_setup": str(primary_candidate["setup_id"]),
-        "candidate_setups": candidate_setup_ids_from_evaluations(
-            candidate_evaluations
-        ),
-        "candidate_evaluations": candidate_evaluations,
-        "setup_drivers": list(primary_candidate["drivers"]),
-        "setup_validity": str(primary_candidate["status"]),
-        "ranked_candidates": ranked_candidates,
-    }
-
-
-def build_intent(purpose_mode: str, position_state: str) -> str:
-    if purpose_mode == "POSTMORTEM":
-        return "postmortem"
-    if position_state == "long":
-        return "maintenance"
-    return "entry"
-
-
-def normalize_structure_status(
-    raw_status: str, regime: str, trend_bias: str
-) -> str:
-    if raw_status == "choch_only":
-        return "transitioning"
-    if raw_status == "choch_plus_bos_confirmed":
-        return "transitioning"
-    if regime == "potential_reversal":
-        return "damaged"
-    if regime == "trend_continuation" and trend_bias in {"bullish", "bearish"}:
-        return "trend_intact"
-    if regime == "range_rotation":
-        return "range_intact"
-    if regime == "no_trade":
-        return "unclear"
-    return "unclear"
-
-
-def ma_role(close_price: float, ma_value: float | None, tol: float = 0.03) -> str:
-    if ma_value is None or pd.isna(ma_value):
-        return "noise"
-    if abs(close_price - float(ma_value)) / max(abs(close_price), 1e-9) > tol:
-        return "noise"
-    return "support" if close_price >= float(ma_value) else "resistance"
-
-
-def ma_proximity_pct(close_price: float, ma_value: float | None) -> float | None:
-    if ma_value is None or pd.isna(ma_value):
-        return None
-    return round(
-        abs(close_price - float(ma_value)) / max(abs(close_price), 1e-9) * 100.0,
-        3,
-    )
-
-
-def baseline_ma_payload(row: pd.Series) -> dict[str, Any]:
-    close_price = float(row["close"])
-    ema21 = float(row.get("EMA21", close_price))
-    sma50 = float(row.get("SMA50", close_price))
-    sma200 = float(row.get("SMA200", close_price))
-    posture = ma_posture(row)
-    posture["ema21_role"] = ma_role(close_price, ema21)
-    posture["sma50_role"] = ma_role(close_price, sma50)
-    posture["sma200_role"] = ma_role(close_price, sma200)
-    posture["ema21_proximity_pct"] = ma_proximity_pct(close_price, ema21)
-    posture["sma50_proximity_pct"] = ma_proximity_pct(close_price, sma50)
-    posture["sma200_proximity_pct"] = ma_proximity_pct(close_price, sma200)
-    return posture
-
-
-def zone_strength(value: str) -> str:
-    if value in {"strong_first_test", "strong"}:
-        return "strong"
-    if value == "weakening":
-        return "moderate"
-    return "weak"
-
-
-def zone_payload(
-    level: dict[str, Any],
-    label: str,
-    kind: str,
-    source: str = "horizontal",
-    timeframe: str = "1d",
-) -> dict[str, Any]:
-    return {
-        "label": label,
-        "kind": kind,
-        "low": float(level["zone_low"]),
-        "high": float(level["zone_high"]),
-        "mid": float(level["zone_mid"]),
-        "timeframe": timeframe,
-        "strength": zone_strength(str(level.get("strength", ""))),
-        "source": source,
-    }
-
-
-def split_support_resistance(
-    levels: list[dict[str, Any]], last_close: float
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    supports = [
-        zone_payload(z, f"support_{i+1}", "support")
-        for i, z in enumerate(
-            sorted(
-                [lvl for lvl in levels if float(lvl["zone_mid"]) <= last_close],
-                key=lambda x: float(x["zone_mid"]),
-                reverse=True,
-            )[:4]
-        )
-    ]
-    resistances = [
-        zone_payload(z, f"resistance_{i+1}", "resistance")
-        for i, z in enumerate(
-            sorted(
-                [lvl for lvl in levels if float(lvl["zone_mid"]) > last_close],
-                key=lambda x: float(x["zone_mid"]),
-            )[:4]
-        )
-    ]
-    return supports, resistances
-
-
-def round_level_payload(round_levels: dict[str, float]) -> list[dict[str, Any]]:
-    return [
-        {"price": float(price), "label": label}
-        for label, price in round_levels.items()
-    ]
-
-
-def build_value_area(
-    vp: dict[str, Any], close_price: float, prev_close: float | None
-) -> dict[str, Any]:
-    vah = float(vp["vah"]) if vp.get("vah") is not None else close_price
-    val = float(vp["val"]) if vp.get("val") is not None else close_price
-    return {
-        "poc": float(vp["poc"]) if vp.get("poc") is not None else close_price,
-        "vah": vah,
-        "val": val,
-        "acceptance_state": acceptance_vs_value(
-            close_price,
-            vah,
-            val,
-            prev_close=prev_close,
-        ),
-        "major_hvn": [float(x) for x in vp.get("hvn_top3", [])],
-        "major_lvn": [float(x) for x in vp.get("lvn_top3", [])],
-    }
-
-
-def near_zone(close_price: float, zone: dict[str, Any], pct: float = 0.025) -> bool:
-    low = float(zone.get("low", zone["mid"]))
-    high = float(zone.get("high", zone["mid"]))
-    buffer = max(close_price, 1e-9) * pct
-    return (low - buffer) <= close_price <= (high + buffer)
-
-
-def infer_location_state(
-    close_price: float,
-    trend_bias: str,
-    regime: str,
-    supports: list[dict[str, Any]],
-    resistances: list[dict[str, Any]],
-) -> str:
-    nearest_support = supports[0] if supports else None
-    nearest_resistance = resistances[0] if resistances else None
-    if regime == "range_rotation":
-        if nearest_support and near_zone(close_price, nearest_support):
-            return "at_range_edge"
-        if nearest_resistance and near_zone(close_price, nearest_resistance):
-            return "at_range_edge"
-    if trend_bias == "bullish" and nearest_support and near_zone(close_price, nearest_support):
-        return "near_support_in_bullish_structure"
-    if trend_bias == "bearish" and nearest_resistance and near_zone(close_price, nearest_resistance):
-        return "near_resistance_in_bearish_structure"
-    if nearest_resistance and close_price > float(nearest_resistance["high"]):
-        return "accepted_above_resistance"
-    # Recently broken resistance now in supports — price sitting just above it
-    if (
-        nearest_support
-        and trend_bias in {"bullish", "neutral"}
-        and close_price > float(nearest_support["high"])
-        and (close_price - float(nearest_support["high"])) / max(close_price, 1e-9) <= 0.04
-    ):
-        return "accepted_above_resistance"
-    if nearest_support and close_price < float(nearest_support["low"]):
-        return "accepted_below_support"
-    return "mid_range_noise"
-
-
-def is_meaningful_location(location_state: str) -> bool:
-    return location_state in {
-        "near_support_in_bullish_structure",
-        "at_range_edge",
-        "accepted_above_resistance",
-    }
-
-
-def dedupe_price_levels(levels: list[float], rel_tol: float = 0.0035) -> list[float]:
-    ordered = sorted(float(level) for level in levels)
-    deduped: list[float] = []
-    for level in ordered:
-        if not deduped:
-            deduped.append(level)
-            continue
-        prev = deduped[-1]
-        if abs(level - prev) / max(abs(prev), 1e-9) > rel_tol:
-            deduped.append(level)
-    return deduped
-
-
-def derive_internal_liquidity_levels(
-    df_daily: pd.DataFrame,
-    close_price: float,
-    external_levels: list[float],
-    max_levels: int = 8,
-) -> list[float]:
-    ext_up = min((level for level in external_levels if level > close_price), default=None)
-    ext_dn = max((level for level in external_levels if level < close_price), default=None)
-
-    candidate_levels: list[float] = []
-    swing_highs = (
-        df_daily[df_daily["swing_high"].notna()][["swing_high"]].tail(8)
-        if "swing_high" in df_daily.columns
-        else pd.DataFrame(columns=["swing_high"])
-    )
-    swing_lows = (
-        df_daily[df_daily["swing_low"].notna()][["swing_low"]].tail(8)
-        if "swing_low" in df_daily.columns
-        else pd.DataFrame(columns=["swing_low"])
-    )
-
-    for value in swing_highs["swing_high"].tolist():
-        level = float(value)
-        if level <= close_price:
-            continue
-        if ext_up is not None and level >= ext_up:
-            continue
-        candidate_levels.append(level)
-    for value in swing_lows["swing_low"].tolist():
-        level = float(value)
-        if level >= close_price:
-            continue
-        if ext_dn is not None and level <= ext_dn:
-            continue
-        candidate_levels.append(level)
-
-    deduped = dedupe_price_levels(candidate_levels)
-    if len(deduped) <= max_levels:
-        return deduped
-    below = sorted([level for level in deduped if level < close_price], reverse=True)[: max_levels // 2]
-    above = sorted([level for level in deduped if level > close_price])[: max_levels // 2]
-    return sorted(below + above)
-
-
-def find_equal_liquidity_clusters(
-    df_daily: pd.DataFrame,
-    atr14: float,
-    lookback: int = 80,
-) -> dict[str, list[float]]:
-    x = df_daily.tail(lookback).copy()
-    tolerance_abs = max(float(atr14) * 0.35 if atr14 > 0 else 0.0, float(x["close"].iloc[-1]) * 0.003)
-
-    def _cluster(series: pd.Series) -> list[float]:
-        values = [float(v) for v in series.dropna().tail(10).tolist()]
-        clusters: list[list[float]] = []
-        for value in values:
-            for cluster in clusters:
-                midpoint = sum(cluster) / len(cluster)
-                if abs(value - midpoint) <= max(tolerance_abs, abs(midpoint) * 0.0035):
-                    cluster.append(value)
-                    break
-            else:
-                clusters.append([value])
-        return [round(sum(cluster) / len(cluster), 4) for cluster in clusters if len(cluster) >= 2]
-
-    highs = _cluster(x["swing_high"]) if "swing_high" in x.columns else []
-    lows = _cluster(x["swing_low"]) if "swing_low" in x.columns else []
-    return {
-        "eqh_levels": dedupe_price_levels(highs),
-        "eql_levels": dedupe_price_levels(lows),
-    }
-
-
-def classify_liquidity_sweep(
-    *,
-    sweep_events: list[dict[str, Any]],
-) -> tuple[str, str, str, str | None]:
-    if not sweep_events:
-        return "none", "unresolved", "none", None
-
-    type_rank = {"eqh": 4, "eql": 4, "trendline": 3, "swing": 2}
-    latest_event = max(
-        sweep_events,
-        key=lambda event: (
-            int(event.get("bar_index", -1)),
-            1 if str(event.get("outcome")) in {"accepted", "rejected"} else 0,
-            type_rank.get(str(event.get("sweep_type")), 0),
-        ),
-    )
-    sweep_label = {
-        "eqh": "eqh_swept",
-        "eql": "eql_swept",
-        "trendline": "trendline_swept",
-        "swing": "swing_swept",
-    }.get(str(latest_event.get("sweep_type")), "swing_swept")
-    return (
-        sweep_label,
-        str(latest_event.get("outcome", "unresolved")),
-        str(latest_event.get("event_scope", "none")),
-        str(latest_event.get("side")) if latest_event.get("side") is not None else None,
-    )
-
-
-def remap_liquidity_draws(
-    *,
-    liq: dict[str, Any],
-    event_scope: str,
-    sweep_outcome_value: str,
-    sweep_side: str | None,
-) -> None:
-    if sweep_side not in {"up", "down"} or sweep_outcome_value not in {
-        "accepted",
-        "rejected",
-    }:
-        return
-
-    draw_targets = (
-        liq.get("draw_targets") if isinstance(liq.get("draw_targets"), dict) else {}
-    )
-    current_draw = liq.get("current_draw")
-    opposing_draw = liq.get("opposing_draw")
-
-    if event_scope == "external_sweep":
-        if sweep_side == "up":
-            if sweep_outcome_value == "accepted":
-                current_draw = draw_targets.get("external_up") or current_draw
-                opposing_draw = draw_targets.get("internal_down") or opposing_draw
-            else:
-                current_draw = draw_targets.get("internal_down") or current_draw
-                opposing_draw = draw_targets.get("external_down") or opposing_draw
-        else:
-            if sweep_outcome_value == "accepted":
-                current_draw = draw_targets.get("external_down") or current_draw
-                opposing_draw = draw_targets.get("internal_up") or opposing_draw
-            else:
-                current_draw = draw_targets.get("internal_up") or current_draw
-                opposing_draw = draw_targets.get("external_up") or opposing_draw
-    elif event_scope == "internal_tag":
-        if sweep_side == "up":
-            if sweep_outcome_value == "accepted":
-                current_draw = draw_targets.get("external_up") or current_draw
-                opposing_draw = draw_targets.get("internal_down") or opposing_draw
-            else:
-                current_draw = draw_targets.get("external_down") or current_draw
-                opposing_draw = draw_targets.get("internal_down") or opposing_draw
-        else:
-            if sweep_outcome_value == "accepted":
-                current_draw = draw_targets.get("external_down") or current_draw
-                opposing_draw = draw_targets.get("internal_up") or opposing_draw
-            else:
-                current_draw = draw_targets.get("external_up") or current_draw
-                opposing_draw = draw_targets.get("internal_up") or opposing_draw
-
-    liq["current_draw"] = current_draw
-    liq["opposing_draw"] = opposing_draw
-
-
-def build_intraday_timing(
-    intraday_15m: pd.DataFrame, intraday_1m: pd.DataFrame, daily_bias: str
-) -> dict[str, Any]:
-    x = add_intraday_context(intraday_15m)
-    liquidity = summarize_intraday_liquidity(intraday_1m)
-    participation = summarize_intraday_participation(intraday_1m)
-    if x.empty:
-        return {
-            "timing_bias": "neutral",
-            "intraday_structure_state": "unclear",
-            "acceptance_state": "unclear",
-            "follow_through_state": "unclear",
-            "timing_window_state": "unclear",
-            "liquidity_quality_state": str(liquidity["liquidity_quality_state"]),
-            "timing_authority": str(liquidity["timing_authority"]),
-            "raw_participation_quality": str(participation["raw_participation_quality"]),
-            "intraday_quality_summary": (
-                f"{liquidity['summary']}|{participation['summary']}|no_intraday_timing"
-            ),
-        }
-
-    last = x.iloc[-1]
-    prev = x.iloc[-2] if len(x) > 1 else last
-    recent3 = x.tail(min(3, len(x))).copy()
-    recent4 = x.tail(min(4, len(x))).copy()
-    close_price = float(last["close"])
-    ema9 = float(last.get("EMA9", close_price))
-    ema20 = float(last.get("EMA20", close_price))
-    vwap = float(last.get("VWAP", close_price))
-    range_series = (recent4["high"] - recent4["low"]).clip(lower=0)
-    avg_range = float(range_series.mean()) if not range_series.empty else 0.0
-    range_buffer = max(avg_range * 0.2, close_price * 0.0015)
-    upper_ref = max(ema20, vwap)
-    lower_ref = min(ema20, vwap)
-    above_ref = close_price >= upper_ref - range_buffer
-    below_ref = close_price <= lower_ref + range_buffer
-    ema_stack_bullish = ema9 >= ema20
-    ema_stack_bearish = ema9 <= ema20
-
-    if close_price >= ema9 and above_ref and ema_stack_bullish:
-        timing_bias = "bullish"
-    elif close_price <= ema9 and below_ref and ema_stack_bearish:
-        timing_bias = "bearish"
-    else:
-        timing_bias = "neutral"
-
-    if daily_bias == "neutral" or timing_bias == "neutral":
-        intraday_structure_state = "conflicted"
-    elif timing_bias == daily_bias:
-        intraday_structure_state = "aligned"
-    else:
-        intraday_structure_state = "counter_thesis"
-
-    bullish_closes_recent = int((recent3["close"] >= (upper_ref - range_buffer)).sum())
-    bearish_closes_recent = int((recent3["close"] <= (lower_ref + range_buffer)).sum())
-    recent_lows = recent3["low"] if not recent3.empty else pd.Series(dtype="float64")
-    recent_highs = recent3["high"] if not recent3.empty else pd.Series(dtype="float64")
-    if len(x) < 2:
-        acceptance_state = "unclear"
-    elif close_price >= upper_ref and float(prev["close"]) < lower_ref:
-        acceptance_state = "reclaimed_level"
-    elif close_price <= lower_ref and float(prev["close"]) > upper_ref:
-        acceptance_state = "rejected_at_level"
-    elif (
-        bullish_closes_recent >= 2
-        and not recent_lows.empty
-        and float(recent_lows.min()) >= lower_ref - range_buffer
-    ):
-        acceptance_state = "accepted_above_level"
-    elif (
-        bearish_closes_recent >= 2
-        and not recent_highs.empty
-        and float(recent_highs.max()) <= upper_ref + range_buffer
-    ):
-        acceptance_state = "accepted_below_level"
-    else:
-        acceptance_state = "inside_noise"
-
-    if len(recent4) >= 2:
-        close_deltas = recent4["close"].diff().dropna()
-        low_deltas = recent4["low"].diff().dropna()
-        high_deltas = recent4["high"].diff().dropna()
-        bull_bodies = int((recent4["close"] > recent4["open"]).sum())
-        bear_bodies = int((recent4["close"] < recent4["open"]).sum())
-        higher_close_count = int((close_deltas > 0).sum())
-        lower_close_count = int((close_deltas < 0).sum())
-        higher_low_count = int((low_deltas > 0).sum())
-        lower_high_count = int((high_deltas < 0).sum())
-        net_move = float(recent4["close"].iloc[-1] - recent4["close"].iloc[0])
-        displacement_threshold = max(avg_range * 0.75, close_price * 0.0025)
-
-        if timing_bias == "bullish":
-            if (
-                acceptance_state == "rejected_at_level"
-                or close_price < lower_ref - range_buffer
-                or (lower_close_count >= 2 and bear_bodies >= 2 and net_move < 0)
-            ):
-                follow_through_state = "failing"
-            elif (
-                acceptance_state in {"reclaimed_level", "accepted_above_level"}
-                and higher_close_count >= 2
-                and higher_low_count >= 2
-                and bull_bodies >= 2
-                and bullish_closes_recent >= 2
-                and net_move >= displacement_threshold
-            ):
-                follow_through_state = "strong"
-            elif (
-                acceptance_state in {"reclaimed_level", "accepted_above_level", "inside_noise"}
-                and net_move >= 0
-                and bullish_closes_recent >= 2
-                and bull_bodies >= 1
-            ):
-                follow_through_state = "adequate"
-            else:
-                follow_through_state = "weak"
-        elif timing_bias == "bearish":
-            if (
-                acceptance_state == "reclaimed_level"
-                or close_price > upper_ref + range_buffer
-                or (higher_close_count >= 2 and bull_bodies >= 2 and net_move > 0)
-            ):
-                follow_through_state = "failing"
-            elif (
-                acceptance_state in {"rejected_at_level", "accepted_below_level"}
-                and lower_close_count >= 2
-                and lower_high_count >= 2
-                and bear_bodies >= 2
-                and bearish_closes_recent >= 2
-                and abs(net_move) >= displacement_threshold
-            ):
-                follow_through_state = "strong"
-            elif (
-                acceptance_state in {"rejected_at_level", "accepted_below_level", "inside_noise"}
-                and net_move <= 0
-                and bearish_closes_recent >= 2
-                and bear_bodies >= 1
-            ):
-                follow_through_state = "adequate"
-            else:
-                follow_through_state = "weak"
-        elif acceptance_state in {"reclaimed_level", "rejected_at_level"}:
-            follow_through_state = "adequate" if abs(net_move) >= avg_range * 0.35 else "weak"
-        else:
-            follow_through_state = "weak"
-    else:
-        follow_through_state = "unclear"
-
-    if liquidity["timing_authority"] == "wait_only":
-        timing_window_state = "unclear"
-    elif liquidity["timing_authority"] == "daily_only":
-        timing_window_state = "developing"
-    elif follow_through_state == "failing":
-        timing_window_state = "stale"
-    elif (
-        intraday_structure_state == "aligned"
-        and acceptance_state in {"reclaimed_level", "accepted_above_level"}
-        and follow_through_state in {"strong", "adequate"}
-    ):
-        timing_window_state = "active"
-    elif intraday_structure_state == "aligned" and follow_through_state == "weak":
-        timing_window_state = "late"
-    else:
-        timing_window_state = "developing"
-
-    return {
-        "timing_bias": timing_bias,
-        "intraday_structure_state": intraday_structure_state,
-        "acceptance_state": acceptance_state,
-        "follow_through_state": follow_through_state,
-        "timing_window_state": timing_window_state,
-        "liquidity_quality_state": str(liquidity["liquidity_quality_state"]),
-        "timing_authority": str(liquidity["timing_authority"]),
-        "raw_participation_quality": str(participation["raw_participation_quality"]),
-        "intraday_quality_summary": (
-            f"{liquidity['summary']}|{participation['summary']}|"
-            f"acceptance_{acceptance_state}|follow_{follow_through_state}|window_{timing_window_state}"
-        ),
-    }
-
-
-def build_disabled_intraday_timing(mode: str = "daily_only") -> dict[str, Any]:
-    return {
-        "timing_bias": "not_evaluated",
-        "intraday_structure_state": "not_evaluated",
-        "acceptance_state": "not_evaluated",
-        "follow_through_state": "not_evaluated",
-        "timing_window_state": "not_evaluated",
-        "liquidity_quality_state": "not_evaluated",
-        "timing_authority": mode,
-        "raw_participation_quality": "not_evaluated",
-        "intraday_quality_summary": f"{mode}_intraday_skipped",
-    }
-
-
-def latest_structure_event_payload(events: list[dict[str, Any]]) -> dict[str, Any] | None:
-    if not events:
-        return None
-    event = events[-1]
-    return {
-        "event_type": str(event["label"]),
-        "side": str(event["side"]),
-        "level": float(event["broken_level"]),
-        "timestamp": str(event["datetime"]),
-        "relevance": "confirmation" if str(event["label"]) == "BOS" else "warning",
-    }
-
-
-def breakout_quality_payload(
-    breakout: dict[str, Any], regime: str, displacement: str | None
-) -> dict[str, Any]:
-    raw_status = str(breakout.get("status", "no_breakout"))
-    if raw_status == "valid_breakout":
-        status = "clean" if displacement == "clean_displacement" else "adequate"
-    elif raw_status == "failed_breakout":
-        status = "failed"
-    else:
-        status = "stalling"
-    return {
-        "status": status,
-        "trigger_vol_ratio": breakout.get("trigger_vol_ratio"),
-        "follow_through_close": breakout.get("follow_close"),
-        "base_quality": "strong" if raw_status == "valid_breakout" else "weak",
-        "market_context": "supportive" if regime == "trend_continuation" else "neutral",
-    }
-
-
-def evaluate_range_edge_behavior(
-    *,
-    location_state: str,
-    supports: list[dict[str, Any]],
-    resistances: list[dict[str, Any]],
-    intraday_timing: dict[str, Any],
-    last_open: float,
-    last_high: float,
-    last_low: float,
-    last_close: float,
-    prev_close: float | None,
-) -> dict[str, Any]:
-    support_zone = supports[0] if supports else None
-    resistance_zone = resistances[0] if resistances else None
-    if location_state != "at_range_edge" or support_zone is None or resistance_zone is None:
-        return {
-            "edge_side": "none",
-            "trigger_state": "not_triggered",
-            "confirmation_state": "not_applicable",
-            "participation_quality": "adequate",
-            "edge_to_edge_path": False,
-            "trigger_level": None,
-        }
-
-    support_high = float(support_zone["high"])
-    support_mid = float(support_zone["mid"])
-    resistance_low = float(resistance_zone["low"])
-    resistance_mid = float(resistance_zone["mid"])
-    near_support = last_low <= support_high or near_zone(last_close, support_zone, pct=0.015)
-    near_resistance = last_high >= resistance_low or near_zone(last_close, resistance_zone, pct=0.015)
-
-    acceptance_state = str(intraday_timing.get("acceptance_state", "unclear"))
-    follow_state = str(intraday_timing.get("follow_through_state", "unclear"))
-    structure_state = str(intraday_timing.get("intraday_structure_state", "unclear"))
-    participation = str(intraday_timing.get("raw_participation_quality", "adequate"))
-
-    support_reclaim = (
-        near_support
-        and last_close >= support_mid
-        and (
-            last_close > last_open
-            or (prev_close is not None and last_close > prev_close)
-        )
-    )
-    support_accepted = acceptance_state in {"reclaimed_level", "accepted_above_level"}
-    follow_ok = follow_state in {"strong", "adequate"}
-    edge_to_edge_path = resistance_mid > support_mid
-
-    if support_reclaim and support_accepted and follow_ok and edge_to_edge_path:
-        return {
-            "edge_side": "lower",
-            "trigger_state": "triggered",
-            "confirmation_state": "confirmed",
-            "participation_quality": "strong" if participation == "strong" else "adequate",
-            "edge_to_edge_path": True,
-            "trigger_level": support_mid,
-        }
-
-    if near_support and edge_to_edge_path:
-        return {
-            "edge_side": "lower",
-            "trigger_state": "watchlist_only",
-            "confirmation_state": "mixed",
-            "participation_quality": "adequate",
-            "edge_to_edge_path": True,
-            "trigger_level": support_mid,
-        }
-
-    upper_edge_rejection = (
-        near_resistance
-        and last_close <= resistance_mid
-        and (
-            last_close < last_open
-            or (prev_close is not None and last_close < prev_close)
-        )
-    )
-    if upper_edge_rejection:
-        return {
-            "edge_side": "upper",
-            "trigger_state": "failed",
-            "confirmation_state": "rejected",
-            "participation_quality": "contradictory",
-            "edge_to_edge_path": False,
-            "trigger_level": resistance_mid,
-        }
-
-    if near_resistance:
-        return {
-            "edge_side": "upper",
-            "trigger_state": "watchlist_only",
-            "confirmation_state": "mixed",
-            "participation_quality": "weak",
-            "edge_to_edge_path": False,
-            "trigger_level": resistance_mid,
-        }
-
-    return {
-        "edge_side": "none",
-        "trigger_state": "not_triggered",
-        "confirmation_state": "not_applicable",
-        "participation_quality": "adequate",
-        "edge_to_edge_path": False,
-        "trigger_level": None,
-    }
-
-
-def build_trigger_confirmation(
-    setup_id: str,
-    breakout: dict[str, Any],
-    raw_structure_status: str,
-    spring: dict[str, Any],
-    events: list[dict[str, Any]],
-    regime: str,
-    value_acceptance_state: str,
-    displacement: str | None,
-    intraday_timing: dict[str, Any],
-    location_state: str,
-    supports: list[dict[str, Any]],
-    resistances: list[dict[str, Any]],
-    last_open: float,
-    last_high: float,
-    last_low: float,
-    last_close: float,
-    prev_close: float | None,
-    ema21: float,
-    latest_event_age_bars: int | None,
-) -> dict[str, Any]:
-    trigger_state = "not_triggered"
-    trigger_type = "none"
-    trigger_level = None
-    trigger_ts = None
-    confirmation_state = "not_applicable"
-    participation_quality = "adequate"
-
-    if setup_id == "S1":
-        trigger_type = "breakout_close"
-        trigger_level = breakout.get("up_level")
-        trigger_ts = breakout.get("trigger_dt")
-        if breakout.get("status") == "valid_breakout":
-            trigger_state = "triggered"
-            confirmation_state = "confirmed"
-            participation_quality = "strong"
-        elif breakout.get("status") == "failed_breakout":
-            trigger_state = "failed"
-            confirmation_state = "rejected"
-            participation_quality = "contradictory"
-        else:
-            trigger_state = "watchlist_only"
-            confirmation_state = "mixed"
-            participation_quality = "weak"
-    elif setup_id == "S2":
-        trigger_type = "retest_hold"
-        nearest_support = supports[0] if supports else None
-        support_mid = (
-            float(nearest_support["mid"]) if nearest_support is not None else None
-        )
-        support_high = (
-            float(nearest_support["high"]) if nearest_support is not None else None
-        )
-        support_touch = bool(
-            nearest_support is not None
-            and (
-                last_low <= max(support_high or last_low, ema21 * 1.01)
-                or location_state == "near_support_in_bullish_structure"
-            )
-        )
-        reclaimed_support = bool(
-            support_mid is not None
-            and last_close >= max(support_mid, ema21)
-            and (
-                last_close > last_open
-                or (prev_close is not None and last_close > prev_close)
-            )
-        )
-        breakout_failed = breakout.get("status") == "failed_breakout"
-        if (
-            regime == "trend_continuation"
-            and support_touch
-            and reclaimed_support
-            and not breakout_failed
-        ):
-            trigger_state = "triggered"
-            confirmation_state = "confirmed"
-        elif regime == "trend_continuation" and (
-            support_touch or location_state == "near_support_in_bullish_structure"
-        ):
-            trigger_state = "watchlist_only"
-            confirmation_state = "mixed"
-        else:
-            trigger_state = "not_triggered"
-            confirmation_state = "not_applicable"
-    elif setup_id == "S3":
-        trigger_type = "choch_bos_reversal"
-        latest = latest_structure_event_payload(events)
-        trigger_level = latest["level"] if latest else None
-        trigger_ts = latest["timestamp"] if latest else None
-        if trigger_level is None:
-            trigger_type = "none"
-        if latest_event_age_bars is not None and latest_event_age_bars > 5:
-            trigger_state = "not_triggered"
-            confirmation_state = "not_applicable"
-        elif raw_structure_status == "choch_plus_bos_confirmed":
-            trigger_state = "triggered"
-            confirmation_state = "confirmed"
-            participation_quality = "adequate"
-        elif raw_structure_status == "choch_only":
-            trigger_state = "watchlist_only"
-            confirmation_state = "mixed"
-        else:
-            trigger_state = "not_triggered"
-    elif setup_id == "S4":
-        trigger_type = "range_edge_rejection"
-        range_edge = evaluate_range_edge_behavior(
-            location_state=location_state,
-            supports=supports,
-            resistances=resistances,
-            intraday_timing=intraday_timing,
-            last_open=last_open,
-            last_high=last_high,
-            last_low=last_low,
-            last_close=last_close,
-            prev_close=prev_close,
-        )
-        trigger_state = str(range_edge["trigger_state"])
-        confirmation_state = str(range_edge["confirmation_state"])
-        participation_quality = str(range_edge["participation_quality"])
-        trigger_level = range_edge.get("trigger_level")
-        if trigger_level is None:
-            trigger_type = "none"
-    elif setup_id == "S5":
-        trigger_type = "spring_reclaim"
-        trigger_level = spring.get("support_level")
-        trigger_ts = spring.get("support_datetime")
-        if trigger_level is None:
-            trigger_type = "none"
-        if spring.get("detected"):
-            trigger_state = "triggered"
-            confirmation_state = "confirmed"
-            participation_quality = "adequate"
-        else:
-            trigger_state = "watchlist_only"
-            confirmation_state = "mixed"
-
-    timing_authority = str(intraday_timing.get("timing_authority", "full_15m"))
-    raw_participation = str(
-        intraday_timing.get("raw_participation_quality", "adequate")
-    )
-    if participation_quality != "contradictory":
-        if raw_participation == "weak":
-            participation_quality = "weak"
-        elif raw_participation == "adequate" and participation_quality == "strong":
-            participation_quality = "adequate"
-
-    if timing_authority == "wait_only" and trigger_state == "triggered":
-        trigger_state = "watchlist_only"
-        confirmation_state = "mixed"
-        if participation_quality != "contradictory":
-            participation_quality = "weak"
-
-    out: dict[str, Any] = {
-        "trigger_state": trigger_state,
-        "trigger_type": trigger_type,
-        "confirmation_state": confirmation_state,
-        "participation_quality": participation_quality,
-        "value_acceptance_state": value_acceptance_state,
-        "timing_authority": timing_authority,
-    }
-    if trigger_level is not None:
-        out["trigger_level"] = float(trigger_level)
-    if trigger_ts is not None:
-        out["trigger_ts"] = str(trigger_ts)
-    latest_event = latest_structure_event_payload(events)
-    if latest_event is not None:
-        out["latest_structure_event"] = latest_event
-    if setup_id == "S1" and breakout:
-        out["breakout_quality"] = breakout_quality_payload(breakout, regime, displacement)
-    return out
-
-
-def zone_width(zone: dict[str, Any]) -> float:
-    return max(float(zone["high"]) - float(zone["low"]), 0.0)
-
-
-def synthetic_breakout_zone(
-    breakout_level: float,
-    atr14: float,
-    fallback_zone: dict[str, Any] | None,
-) -> dict[str, Any]:
-    if fallback_zone is not None:
-        fallback_low = float(fallback_zone["low"])
-        fallback_high = float(fallback_zone["high"])
-        if fallback_low <= breakout_level <= fallback_high:
-            return fallback_zone
-
-    half_width = max(
-        float(atr14) * 0.3 if atr14 > 0 else 0.0,
-        breakout_level * 0.005,
-        zone_width(fallback_zone) * 0.35 if fallback_zone is not None else 0.0,
-    )
-    low = breakout_level - half_width
-    high = breakout_level + half_width
-    return {
-        "label": "breakout_retest",
-        "kind": "support",
-        "low": float(low),
-        "high": float(high),
-        "mid": float(breakout_level),
-        "timeframe": "1d",
-        "strength": (
-            str(fallback_zone.get("strength", "moderate"))
-            if fallback_zone is not None
-            else "moderate"
-        ),
-        "source": (
-            str(fallback_zone.get("source", "horizontal"))
-            if fallback_zone is not None
-            else "horizontal"
-        ),
-    }
-
-
-def build_structural_risk_plan(
-    *,
-    position_state: str,
-    close_price: float,
-    atr14: float,
-    entry_zone: dict[str, Any],
-    resistances: list[dict[str, Any]],
-    min_rr_required: float,
-) -> dict[str, Any]:
-    result: dict[str, Any] = {
-        "actionable": False,
-        "min_rr_required": float(min_rr_required),
-        "risk_status": "wait",
-        "stale_setup_condition": "no_trigger_within_5_trading_days",
-    }
-
-    entry = max(close_price, float(entry_zone["mid"]))
-    zone_low = float(entry_zone["low"])
-    current_zone_width = zone_width(entry_zone)
-    stop_buffer = max(
-        float(atr14) * 0.75 if atr14 > 0 else 0.0,
-        entry * 0.015,
-        current_zone_width * 0.5,
-    )
-    invalidation_level = min(zone_low, entry - stop_buffer)
-    stop_level = invalidation_level
-    if entry <= stop_level:
-        result["risk_status"] = "no_clear_invalidation"
-        return result
-
-    targets = [float(z["mid"]) for z in resistances if float(z["mid"]) > entry]
-    rr_by_target = [
-        round((target - entry) / (entry - stop_level), 2)
-        for target in targets
-    ]
-    if not rr_by_target:
-        result["risk_status"] = "no_clear_path"
-        return result
-
-    best_rr = max(rr_by_target)
-    risk_status = "valid" if best_rr >= min_rr_required else "insufficient_rr"
-    result.update(
-        {
-            "entry_zone": entry_zone,
-            "invalidation_level": invalidation_level,
-            "stop_level": stop_level,
-            "next_zone_target": targets[0],
-            "target_ladder": targets,
-            "rr_by_target": rr_by_target,
-            "best_rr": best_rr,
-            "risk_status": risk_status,
-            "actionable": bool(
-                position_state == "flat" and risk_status == "valid"
-            ),
-        }
-    )
-    return result
-
-
-def build_risk_map(
-    setup_id: str,
-    position_state: str,
-    close_price: float,
-    atr14: float,
-    location_state: str,
-    supports: list[dict[str, Any]],
-    resistances: list[dict[str, Any]],
-    min_rr_required: float,
-    breakout: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    result: dict[str, Any] = {
-        "actionable": False,
-        "min_rr_required": float(min_rr_required),
-        "risk_status": "wait",
-        "stale_setup_condition": "no_trigger_within_5_trading_days",
-    }
-    if setup_id == "NO_VALID_SETUP":
-        return result
-    if not is_meaningful_location(location_state):
-        result["risk_status"] = "poor_location"
-        return result
-    if setup_id != "S1" and not supports:
-        result["risk_status"] = "no_clear_invalidation"
-        return result
-    if not resistances:
-        result["risk_status"] = "no_clear_path"
-        return result
-
-    entry_zone = supports[0] if supports else None
-    if setup_id == "S1":
-        breakout_level = (
-            float(breakout["up_level"])
-            if breakout is not None and breakout.get("up_level") is not None
-            else None
-        )
-        if breakout_level is None:
-            result["risk_status"] = "no_clear_invalidation"
-            return result
-        entry_zone = synthetic_breakout_zone(
-            breakout_level=breakout_level,
-            atr14=atr14,
-            fallback_zone=supports[0] if supports else None,
-        )
-        extension_limit = max(
-            float(atr14) * 0.75 if atr14 > 0 else 0.0,
-            close_price * 0.02,
-            zone_width(entry_zone) * 1.25,
-        )
-        if close_price - float(entry_zone["high"]) > extension_limit:
-            result["entry_zone"] = entry_zone
-            result["risk_status"] = "poor_location"
-            return result
-    elif entry_zone is None:
-        result["risk_status"] = "no_clear_invalidation"
-        return result
-
-    return build_structural_risk_plan(
-        position_state=position_state,
-        close_price=close_price,
-        atr14=atr14,
-        entry_zone=entry_zone,
-        resistances=resistances,
-        min_rr_required=min_rr_required,
-    )
-
-
-def normalize_red_flags(red_flags: dict[str, Any]) -> list[dict[str, Any]]:
-    return [
-        {
-            "code": str(flag["flag_id"]),
-            "severity": str(flag["severity"]).lower(),
-            "summary": str(flag["why"]),
-        }
-        for flag in red_flags.get("flags", [])
-    ]
 
 
 def load_prior_thesis(path_str: str | None) -> dict[str, Any] | None:
@@ -1735,351 +156,6 @@ def load_prior_thesis(path_str: str | None) -> dict[str, Any] | None:
     return raw
 
 
-def count_distribution_days(df: pd.DataFrame, window: int = 20) -> dict[str, Any]:
-    x = add_volume_features(df).tail(window)
-    days = x[(x["ret"] < -0.03) & (x["vol_ratio"] > 1.2)]
-    return {
-        "count": int(len(days)),
-        "dates": [str(d) for d in days["datetime"].tolist()]
-        if "datetime" in days.columns
-        else [],
-    }
-
-
-# ---------------------------------------------------------------------------
-# Red flags
-# ---------------------------------------------------------------------------
-
-
-def detect_ma_whipsaw(
-    df: pd.DataFrame,
-    adaptive_period: int | None = None,
-    lookback: int = 30,
-) -> list[dict[str, Any]]:
-    x = add_atr14(add_ma_stack(df)).tail(lookback).copy()
-    if x.empty:
-        return []
-
-    ma_specs: list[tuple[str, str]] = [
-        ("EMA21", "ema21"),
-        ("SMA50", "sma50"),
-    ]
-    if adaptive_period is not None:
-        adaptive_col = f"SMA{int(adaptive_period)}"
-        if adaptive_col not in x.columns:
-            x[adaptive_col] = x["close"].rolling(int(adaptive_period)).mean()
-        ma_specs.append((adaptive_col, f"adaptive_sma{int(adaptive_period)}"))
-
-    diagnostics: list[dict[str, Any]] = []
-    for col, label in ma_specs:
-        y = x.dropna(subset=[col]).copy()
-        if len(y) < 12:
-            continue
-        band = y["ATR14"].fillna((y["high"] - y["low"]).rolling(5).mean()).fillna(
-            (y["high"] - y["low"]).median()
-        ) * 0.18
-        dist = y["close"] - y[col]
-        state = pd.Series(np.where(dist > band, 1, np.where(dist < -band, -1, 0)), index=y.index)
-        state_ffill = state.replace(0, np.nan).ffill()
-        cross_mask = (
-            state_ffill.notna()
-            & state_ffill.shift(1).notna()
-            & (state_ffill != state_ffill.shift(1))
-        )
-        cross_count = int(cross_mask.sum())
-        if cross_count == 0:
-            continue
-
-        cross_positions = np.flatnonzero(cross_mask.to_numpy())
-        recent_cluster_count = 0
-        for i in range(1, len(cross_positions)):
-            if int(cross_positions[i] - cross_positions[i - 1]) <= 4:
-                recent_cluster_count += 1
-        last_state = int(state.iloc[-1])
-        severity = None
-        if cross_count >= 4 or recent_cluster_count >= 2:
-            severity = "HIGH"
-        elif cross_count >= 3 or recent_cluster_count >= 1:
-            severity = "MEDIUM"
-        if severity is None:
-            continue
-        diagnostics.append(
-            {
-                "flag_id": "F15_MA_WHIPSAW",
-                "severity": severity,
-                "why": (
-                    f"{label}_cross_count_{cross_count}_cluster_count_{recent_cluster_count}"
-                    f"_last_state_{last_state}"
-                ),
-            }
-        )
-    return diagnostics
-
-
-def build_red_flags(
-    regime: str,
-    breakout_state: str,
-    level_touches: int,
-    structure_state: str,
-    last_close: float,
-    ema21: float,
-    sma50: float,
-    position_state: str,
-    risk_status: str,
-    distribution_day_count: int,
-    breakout_displacement_state: str | None = None,
-    ma_whipsaw_flags: list[dict[str, Any]] | None = None,
-) -> dict[str, Any]:
-    flags: list[dict[str, Any]] = []
-    breakout_failure_severity = (
-        "HIGH"
-        if (
-            (position_state == "long" and last_close < sma50)
-            or
-            (regime != "trend_continuation" and structure_state in {"choch_only", "choch_plus_bos_confirmed"})
-        )
-        else "MEDIUM"
-    )
-    if regime == "potential_reversal":
-        flags.append(
-            {
-                "flag_id": "F1_STRUCTURE_BREAK",
-                "severity": "HIGH",
-                "why": "daily_structure_transitioning",
-            }
-        )
-    if breakout_state == "failed_breakout":
-        flags.append(
-            {
-                "flag_id": "F3_WEAK_BREAKOUT",
-                "severity": breakout_failure_severity,
-                "why": "breakout_failed_follow_through",
-            }
-        )
-    if level_touches >= 4:
-        flags.append(
-            {
-                "flag_id": "F4_LEVEL_EXHAUSTION",
-                "severity": "MEDIUM",
-                "why": "repeated_tests_reduce_level_reliability",
-            }
-        )
-    if structure_state == "choch_only":
-        flags.append(
-            {
-                "flag_id": "F9_UNCONFIRMED_STRUCTURE_SHIFT",
-                "severity": "MEDIUM",
-                "why": "choch_without_confirmation_bos",
-            }
-        )
-    if last_close < ema21 and last_close < sma50:
-        flags.append(
-            {
-                "flag_id": "F6_MA_BREAKDOWN",
-                "severity": "HIGH",
-                "why": "price_below_ema21_and_sma50",
-            }
-        )
-    elif last_close < sma50:
-        flags.append(
-            {
-                "flag_id": "F6_MA_BREAKDOWN",
-                "severity": "HIGH",
-                "why": "price_below_sma50",
-            }
-        )
-    elif last_close < ema21:
-        flags.append(
-            {
-                "flag_id": "F6_MA_BREAKDOWN",
-                "severity": "MEDIUM",
-                "why": "price_below_ema21",
-            }
-        )
-    if position_state == "long" and (
-        risk_status != "valid" or last_close < ema21 or last_close < sma50
-    ):
-        flags.append(
-            {
-                "flag_id": "F7_POSITION_RISK",
-                "severity": "HIGH" if last_close < ema21 else "MEDIUM",
-                "why": "open_position_under_technical_stress",
-            }
-        )
-    if risk_status == "no_clear_path":
-        flags.append(
-            {
-                "flag_id": "F10_NO_NEXT_ZONE_PATH",
-                "severity": "MEDIUM",
-                "why": "risk_map_missing_next_zone_target",
-            }
-        )
-    if distribution_day_count >= 4:
-        flags.append(
-            {
-                "flag_id": "F2_DISTRIBUTION",
-                "severity": "HIGH",
-                "why": f"{distribution_day_count}_distribution_days_detected",
-            }
-        )
-    elif distribution_day_count >= 2:
-        flags.append(
-            {
-                "flag_id": "F2_DISTRIBUTION",
-                "severity": "MEDIUM",
-                "why": f"{distribution_day_count}_distribution_days_detected",
-            }
-        )
-    if breakout_state == "valid_breakout" and breakout_displacement_state == "stalling":
-        flags.append(
-            {
-                "flag_id": "F12_BREAKOUT_STALLING",
-                "severity": "MEDIUM",
-                "why": "breakout_lacks_clean_displacement",
-            }
-        )
-    for flag in ma_whipsaw_flags or []:
-        add_flag(
-            flags,
-            str(flag["flag_id"]),
-            str(flag["severity"]),
-            str(flag["why"]),
-        )
-    severity_rank = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
-    overall = "LOW"
-    if flags:
-        overall = max(flags, key=lambda f: severity_rank[f["severity"]])["severity"]
-    return {"flags": flags, "overall_severity": overall}
-
-
-def add_flag(
-    flags: list[dict[str, Any]], flag_id: str, severity: str, why: str
-) -> None:
-    key = (flag_id, why)
-    for f in flags:
-        if (f.get("flag_id"), f.get("why")) == key:
-            return
-    flags.append({"flag_id": flag_id, "severity": severity, "why": why})
-
-
-def nearest_support_distance_pct(
-    last_close: float, levels: list[dict[str, Any]]
-) -> float | None:
-    supports = [
-        float(z["zone_mid"]) for z in levels if float(z["zone_mid"]) < last_close
-    ]
-    if not supports:
-        return None
-    nearest = max(supports)
-    return abs((last_close - nearest) / max(last_close, 1e-9))
-
-
-def enrich_red_flags(
-    red_flags: dict[str, Any],
-    last_close: float,
-    regime: str,
-    levels: list[dict[str, Any]],
-    modules: set[str],
-    liquidity: dict[str, Any],
-    vpvr: dict[str, Any] | None,
-    breakout: dict[str, Any] | None,
-) -> dict[str, Any]:
-    flags: list[dict[str, Any]] = [dict(x) for x in red_flags.get("flags", [])]
-
-    if breakout is not None:
-        b_status = str(breakout.get("status", "no_breakout"))
-        b_side = breakout.get("side")
-        b_base = breakout.get("base_quality", {})
-        if b_status == "valid_breakout" and regime in {
-            "range_rotation",
-            "potential_reversal",
-        }:
-            add_flag(
-                flags,
-                "F5_MARKET_CONTEXT_MISMATCH",
-                "MEDIUM",
-                "breakout_signal_conflicts_with_current_regime",
-            )
-        if b_status == "valid_breakout":
-            base_ok = (
-                bool(b_base.get("status") == "ok") if isinstance(b_base, dict) else True
-            )
-            context_ok = regime in {"trend_continuation"}
-            if not (base_ok and context_ok):
-                add_flag(
-                    flags,
-                    "F14_BREAKOUT_FILTER_WEAK",
-                    "MEDIUM",
-                    "breakout_filters_weak_base_or_context",
-                )
-
-            targets = (
-                liquidity.get("draw_targets", {}) if isinstance(liquidity, dict) else {}
-            )
-            if b_side == "up" and targets.get("external_up") is None:
-                add_flag(
-                    flags,
-                    "F10_NO_NEXT_ZONE_PATH",
-                    "MEDIUM",
-                    "breakout_without_next_zone_target",
-                )
-            if b_side == "down" and targets.get("external_down") is None:
-                add_flag(
-                    flags,
-                    "F10_NO_NEXT_ZONE_PATH",
-                    "MEDIUM",
-                    "breakout_without_next_zone_target",
-                )
-
-    ns = nearest_support_distance_pct(last_close, levels)
-    if ns is not None and ns > 0.10:
-        add_flag(
-            flags,
-            "F8_NO_NEARBY_SUPPORT",
-            "MEDIUM",
-            "nearest_support_too_far_from_current_price",
-        )
-
-    missing_liq = any(
-        liquidity.get(k) is None
-        for k in ("current_draw", "opposing_draw", "sweep_event")
-    )
-    if missing_liq:
-        add_flag(
-            flags,
-            "F11_LIQUIDITY_MAP_MISSING",
-            "MEDIUM",
-            "liquidity_map_incomplete_draw_targets_or_sweep",
-        )
-
-    if "vpvr" in modules and vpvr is not None:
-        has_key = (
-            vpvr.get("poc") is not None
-            and vpvr.get("vah") is not None
-            and vpvr.get("val") is not None
-        )
-        if not has_key:
-            add_flag(
-                flags,
-                "F13_VOLUME_CONFLUENCE_WEAK",
-                "MEDIUM",
-                "volume_profile_context_lacks_core_levels",
-            )
-
-    severity_rank = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
-    overall = "LOW"
-    if flags:
-        overall = max(
-            flags, key=lambda f: severity_rank.get(str(f.get("severity")), 1)
-        )["severity"]
-    return {"flags": flags, "overall_severity": overall}
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
-
 def validate_runtime_requirements(
     purpose_mode: str,
     prior_thesis_json: str | None,
@@ -2087,15 +163,11 @@ def validate_runtime_requirements(
     review_reason: str | None,
 ) -> None:
     if purpose_mode in {"UPDATE", "POSTMORTEM"} and not prior_thesis_json:
-        raise ValueError(
-            "prior thesis context is required for UPDATE and POSTMORTEM"
-        )
+        raise ValueError("prior thesis context is required for UPDATE and POSTMORTEM")
     if purpose_mode == "UPDATE" and (
         thesis_status is None or review_reason is None
     ):
-        raise ValueError(
-            "thesis-status and review-reason are required for UPDATE"
-        )
+        raise ValueError("thesis-status and review-reason are required for UPDATE")
 
 
 def build_ta_context_result(
@@ -2119,13 +191,11 @@ def build_ta_context_result(
     daily = add_swings(daily, n=swing_n)
     daily = add_volume_features(daily)
 
-    # Compute structure status first so classify_regime can detect potential_reversal
     events = detect_structure_events(daily)
-    last_labels = [e["label"] for e in events[-4:]]
+    last_labels = [event["label"] for event in events[-4:]]
     choch_triggered = "CHOCH" in last_labels
     bos_confirmed = choch_triggered and ("BOS" in last_labels)
 
-    # Infer preliminary trend bias from last 4 swings for structure_status
     swings_h = daily[daily["swing_high"].notna()][["datetime", "swing_high"]].tail(4)
     swings_l = daily[daily["swing_low"].notna()][["datetime", "swing_low"]].tail(4)
     if len(swings_h) >= 2 and len(swings_l) >= 2:
@@ -2144,10 +214,10 @@ def build_ta_context_result(
     else:
         prelim_bias = "neutral"
 
-    structure_state = structure_status(prelim_bias, choch_triggered, bos_confirmed)
-    regime = classify_regime(daily, structure_status_val=structure_state)
-    normalized_structure_status = normalize_structure_status(
-        structure_state, regime["regime"], regime["trend_bias"]
+    structure_state_value = structure_status(prelim_bias, choch_triggered, bos_confirmed)
+    regime = classify_regime(daily, structure_status_val=structure_state_value)
+    normalized_structure = normalize_structure_status(
+        structure_state_value, regime["regime"], regime["trend_bias"]
     )
 
     levels = derive_levels(daily)
@@ -2170,7 +240,7 @@ def build_ta_context_result(
     vp_base = vpvr_core(daily.tail(260))
     value_area = build_value_area(vp_base, last_close, prev_close)
 
-    state, state_reason = infer_state(
+    state, _state_reason = infer_state(
         last_close,
         float(vp_base["val"]) if vp_base["val"] is not None else last_close,
         float(vp_base["vah"]) if vp_base["vah"] is not None else last_close,
@@ -2184,16 +254,18 @@ def build_ta_context_result(
     role_reversal_note = role_reversal(
         last_close, float(nearest_mid), was_support=(regime["trend_bias"] == "bullish")
     )
-    bo_snap = breakout_snapshot(daily, levels)
-    bo_displacement = (
+    breakout_snapshot_value = breakout_snapshot(daily, levels)
+    breakout_displacement_value = (
         breakout_displacement(
             daily,
             level=float(
-                bo_snap.get("up_level") or bo_snap.get("down_level") or last_close
+                breakout_snapshot_value.get("up_level")
+                or breakout_snapshot_value.get("down_level")
+                or last_close
             ),
-            side=bo_snap.get("side") or "up",
+            side=breakout_snapshot_value.get("side") or "up",
         )
-        if bo_snap.get("status") == "valid_breakout"
+        if breakout_snapshot_value.get("status") == "valid_breakout"
         else None
     )
     spring = detect_wyckoff_spring(
@@ -2211,13 +283,13 @@ def build_ta_context_result(
     setup_selection = select_setup(
         regime=regime["regime"],
         trend_bias=regime["trend_bias"],
-        breakout_state=bo_snap.get("status", "no_breakout"),
-        structure_state=structure_state,
+        breakout_state=breakout_snapshot_value.get("status", "no_breakout"),
+        structure_state=structure_state_value,
         spring_confirmed=bool(spring.get("detected", False)),
         location_state=location_state,
         intraday_timing=intraday_timing,
         supports=supports,
-        displacement=bo_displacement,
+        displacement=breakout_displacement_value,
     )
     setup_id = str(setup_selection["primary_setup"])
     risk_map = build_risk_map(
@@ -2229,29 +301,29 @@ def build_ta_context_result(
         supports=supports,
         resistances=resistances,
         min_rr_required=min_rr_required,
-        breakout=bo_snap,
+        breakout=breakout_snapshot_value,
     )
 
-    max_touches = max((z["touches"] for z in levels), default=0)
+    max_touches = max((level["touches"] for level in levels), default=0)
     red_flags = build_red_flags(
         regime=regime["regime"],
-        breakout_state=bo_snap.get("status", "no_breakout"),
+        breakout_state=breakout_snapshot_value.get("status", "no_breakout"),
         level_touches=max_touches,
-        structure_state=structure_state,
+        structure_state=structure_state_value,
         last_close=last_close,
         ema21=float(last.get("EMA21", last_close)),
         sma50=float(last.get("SMA50", last_close)),
         position_state=position_state,
         risk_status=str(risk_map["risk_status"]),
         distribution_day_count=dist_days["count"],
-        breakout_displacement_state=bo_displacement,
+        breakout_displacement_state=breakout_displacement_value,
         ma_whipsaw_flags=ma_whipsaw_flags,
     )
 
-    ext_levels = [float(z["zone_mid"]) for z in levels]
-    int_levels = derive_internal_liquidity_levels(daily, last_close, ext_levels)
-    liq = liquidity_draws(last_close, levels, internal_levels=int_levels)
-    liq["draw_targets"] = pick_draw_targets(ext_levels, int_levels, last_close)
+    external_levels = [float(level["zone_mid"]) for level in levels]
+    internal_levels = derive_internal_liquidity_levels(daily, last_close, external_levels)
+    liquidity = liquidity_draws(last_close, levels, internal_levels=internal_levels)
+    liquidity["draw_targets"] = pick_draw_targets(external_levels, internal_levels, last_close)
     equal_liquidity = find_equal_liquidity_clusters(
         daily, float(last.get("ATR14", 0.0) or 0.0)
     )
@@ -2260,22 +332,21 @@ def build_ta_context_result(
         daily,
         eqh_levels=equal_liquidity["eqh_levels"],
         eql_levels=equal_liquidity["eql_levels"],
-        internal_levels=int_levels,
+        internal_levels=internal_levels,
         trendlines=trendlines,
     )
     sweep_event, sweep_outcome_value, event_type, sweep_side = classify_liquidity_sweep(
-        sweep_events=sweep_events,
+        sweep_events=sweep_events
     )
     remap_liquidity_draws(
-        liq=liq,
+        liq=liquidity,
         event_scope=event_type,
         sweep_outcome_value=sweep_outcome_value,
         sweep_side=sweep_side,
     )
-
-    liq["sweep_event"] = sweep_event
-    liq["sweep_outcome"] = sweep_outcome_value
-    liq["liquidity_path"] = liquidity_path_after_event(
+    liquidity["sweep_event"] = sweep_event
+    liquidity["sweep_outcome"] = sweep_outcome_value
+    liquidity["liquidity_path"] = liquidity_path_after_event(
         event_type, sweep_outcome_value
     )
 
@@ -2288,18 +359,18 @@ def build_ta_context_result(
             float(latest.get("vol_ratio", 1.0) or 1.0),
         )
         breakout_result["base_quality"] = base_quality(daily.tail(35))
-        if bo_displacement is not None:
-            breakout_result["displacement"] = bo_displacement
+        if breakout_displacement_value is not None:
+            breakout_result["displacement"] = breakout_displacement_value
 
     trigger_confirmation = build_trigger_confirmation(
         setup_id=setup_id,
-        breakout=breakout_result or bo_snap,
-        raw_structure_status=structure_state,
+        breakout=breakout_result or breakout_snapshot_value,
+        raw_structure_status=structure_state_value,
         spring=spring,
         events=events,
         regime=regime["regime"],
         value_acceptance_state=value_area["acceptance_state"],
-        displacement=bo_displacement,
+        displacement=breakout_displacement_value,
         intraday_timing=intraday_timing,
         location_state=location_state,
         supports=supports,
@@ -2326,8 +397,12 @@ def build_ta_context_result(
         regime=regime["regime"],
         levels=levels,
         modules=modules,
-        liquidity=liq,
-        vpvr={"poc": value_area["poc"], "vah": value_area["vah"], "val": value_area["val"]},
+        liquidity=liquidity,
+        vpvr={
+            "poc": value_area["poc"],
+            "vah": value_area["vah"],
+            "val": value_area["val"],
+        },
         breakout=breakout_result,
     )
 
@@ -2352,7 +427,7 @@ def build_ta_context_result(
             "state": state,
             "regime": regime["regime"],
             "trend_bias": regime["trend_bias"],
-            "structure_status": normalized_structure_status,
+            "structure_status": normalized_structure,
             "current_cycle_phase": str(wyckoff_state["current_cycle_phase"]),
             "current_wyckoff_phase": str(wyckoff_state["current_wyckoff_phase"]),
             "wyckoff_current_confidence": int(
@@ -2371,11 +446,11 @@ def build_ta_context_result(
             "resistance_zones": resistances,
             "value_area": value_area,
             "liquidity_map": {
-                "current_draw": liq.get("current_draw"),
-                "opposing_draw": liq.get("opposing_draw"),
-                "last_sweep_type": liq.get("sweep_event", "none"),
-                "last_sweep_outcome": liq.get("sweep_outcome", "unresolved"),
-                "path_state": liq.get("liquidity_path", "unclear"),
+                "current_draw": liquidity.get("current_draw"),
+                "opposing_draw": liquidity.get("opposing_draw"),
+                "last_sweep_type": liquidity.get("sweep_event", "none"),
+                "last_sweep_outcome": liquidity.get("sweep_outcome", "unresolved"),
+                "path_state": liquidity.get("liquidity_path", "unclear"),
                 **(
                     {"last_sweep_side": sweep_side}
                     if sweep_side in {"up", "down"}
@@ -2402,9 +477,9 @@ def build_ta_context_result(
             ),
             "setup_drivers": list(
                 dict.fromkeys(
-                    v
-                    for v in list(setup_selection["setup_drivers"]) + [role_reversal_note]
-                    if v
+                    value
+                    for value in list(setup_selection["setup_drivers"]) + [role_reversal_note]
+                    if value
                 )
             ),
         },
@@ -2417,7 +492,11 @@ def build_ta_context_result(
         result["analysis"]["thesis_status"] = str(thesis_status)
         result["analysis"]["review_reason"] = str(review_reason)
     if adaptive_ma.get("adaptive_period") is not None:
-        adaptive_details = adaptive_ma.get("details") if isinstance(adaptive_ma.get("details"), dict) else {}
+        adaptive_details = (
+            adaptive_ma.get("details")
+            if isinstance(adaptive_ma.get("details"), dict)
+            else {}
+        )
         justification_bits = [
             f"touches={int(adaptive_details.get('touch_count', 0))}",
             f"reclaims={int(adaptive_details.get('reclaim_count', 0))}",
@@ -2442,11 +521,9 @@ def main() -> None:
     args = parse_args()
     modules = parse_modules(args.modules)
     symbol = args.symbol.strip().upper()
-    purpose_mode = args.purpose_mode
-    position_state = args.position_state
 
     validate_runtime_requirements(
-        purpose_mode=purpose_mode,
+        purpose_mode=args.purpose_mode,
         prior_thesis_json=args.prior_thesis_json,
         thesis_status=args.thesis_status,
         review_reason=args.review_reason,
@@ -2456,7 +533,7 @@ def main() -> None:
     outdir = Path(args.outdir).expanduser().resolve()
     outdir.mkdir(parents=True, exist_ok=True)
 
-    daily, intraday_1m, intraday, corp = load_ohlcv(input_path)
+    daily, intraday_1m, intraday, _corp = load_ohlcv(input_path)
     prior_thesis = load_prior_thesis(args.prior_thesis_json)
     result = build_ta_context_result(
         symbol=symbol,
@@ -2464,8 +541,8 @@ def main() -> None:
         intraday_1m=intraday_1m,
         intraday=intraday,
         modules=modules,
-        purpose_mode=purpose_mode,
-        position_state=position_state,
+        purpose_mode=args.purpose_mode,
+        position_state=args.position_state,
         min_rr_required=args.min_rr_required,
         prior_thesis=prior_thesis,
         thesis_status=args.thesis_status,
