@@ -863,16 +863,42 @@ def build_intraday_timing(
     x = add_intraday_context(intraday_15m)
     liquidity = summarize_intraday_liquidity(intraday_1m)
     participation = summarize_intraday_participation(intraday_1m)
+    if x.empty:
+        return {
+            "timing_bias": "neutral",
+            "intraday_structure_state": "unclear",
+            "acceptance_state": "unclear",
+            "follow_through_state": "unclear",
+            "timing_window_state": "unclear",
+            "liquidity_quality_state": str(liquidity["liquidity_quality_state"]),
+            "timing_authority": str(liquidity["timing_authority"]),
+            "raw_participation_quality": str(participation["raw_participation_quality"]),
+            "intraday_quality_summary": (
+                f"{liquidity['summary']}|{participation['summary']}|no_intraday_timing"
+            ),
+        }
+
     last = x.iloc[-1]
     prev = x.iloc[-2] if len(x) > 1 else last
+    recent3 = x.tail(min(3, len(x))).copy()
+    recent4 = x.tail(min(4, len(x))).copy()
     close_price = float(last["close"])
     ema9 = float(last.get("EMA9", close_price))
     ema20 = float(last.get("EMA20", close_price))
     vwap = float(last.get("VWAP", close_price))
+    range_series = (recent4["high"] - recent4["low"]).clip(lower=0)
+    avg_range = float(range_series.mean()) if not range_series.empty else 0.0
+    range_buffer = max(avg_range * 0.2, close_price * 0.0015)
+    upper_ref = max(ema20, vwap)
+    lower_ref = min(ema20, vwap)
+    above_ref = close_price >= upper_ref - range_buffer
+    below_ref = close_price <= lower_ref + range_buffer
+    ema_stack_bullish = ema9 >= ema20
+    ema_stack_bearish = ema9 <= ema20
 
-    if close_price >= ema9 and close_price >= vwap:
+    if close_price >= ema9 and above_ref and ema_stack_bullish:
         timing_bias = "bullish"
-    elif close_price <= ema9 and close_price <= vwap:
+    elif close_price <= ema9 and below_ref and ema_stack_bearish:
         timing_bias = "bearish"
     else:
         timing_bias = "neutral"
@@ -884,27 +910,98 @@ def build_intraday_timing(
     else:
         intraday_structure_state = "counter_thesis"
 
+    bullish_closes_recent = int((recent3["close"] >= (upper_ref - range_buffer)).sum())
+    bearish_closes_recent = int((recent3["close"] <= (lower_ref + range_buffer)).sum())
+    recent_lows = recent3["low"] if not recent3.empty else pd.Series(dtype="float64")
+    recent_highs = recent3["high"] if not recent3.empty else pd.Series(dtype="float64")
     if len(x) < 2:
         acceptance_state = "unclear"
-    elif close_price >= ema20 and float(prev["close"]) < ema20:
+    elif close_price >= upper_ref and float(prev["close"]) < lower_ref:
         acceptance_state = "reclaimed_level"
-    elif close_price < ema20 and float(prev["close"]) >= ema20:
+    elif close_price <= lower_ref and float(prev["close"]) > upper_ref:
         acceptance_state = "rejected_at_level"
-    elif close_price >= ema20 and close_price >= vwap:
+    elif (
+        bullish_closes_recent >= 2
+        and not recent_lows.empty
+        and float(recent_lows.min()) >= lower_ref - range_buffer
+    ):
         acceptance_state = "accepted_above_level"
-    elif close_price <= ema20 and close_price <= vwap:
+    elif (
+        bearish_closes_recent >= 2
+        and not recent_highs.empty
+        and float(recent_highs.max()) <= upper_ref + range_buffer
+    ):
         acceptance_state = "accepted_below_level"
     else:
         acceptance_state = "inside_noise"
 
-    if len(x) >= 3:
-        recent = x.tail(3)["close"]
-        if recent.is_monotonic_increasing:
-            follow_through_state = "strong"
-        elif recent.is_monotonic_decreasing:
-            follow_through_state = "failing" if timing_bias == "bullish" else "strong"
+    if len(recent4) >= 2:
+        close_deltas = recent4["close"].diff().dropna()
+        low_deltas = recent4["low"].diff().dropna()
+        high_deltas = recent4["high"].diff().dropna()
+        bull_bodies = int((recent4["close"] > recent4["open"]).sum())
+        bear_bodies = int((recent4["close"] < recent4["open"]).sum())
+        higher_close_count = int((close_deltas > 0).sum())
+        lower_close_count = int((close_deltas < 0).sum())
+        higher_low_count = int((low_deltas > 0).sum())
+        lower_high_count = int((high_deltas < 0).sum())
+        net_move = float(recent4["close"].iloc[-1] - recent4["close"].iloc[0])
+        displacement_threshold = max(avg_range * 0.75, close_price * 0.0025)
+
+        if timing_bias == "bullish":
+            if (
+                acceptance_state == "rejected_at_level"
+                or close_price < lower_ref - range_buffer
+                or (lower_close_count >= 2 and bear_bodies >= 2 and net_move < 0)
+            ):
+                follow_through_state = "failing"
+            elif (
+                acceptance_state in {"reclaimed_level", "accepted_above_level"}
+                and higher_close_count >= 2
+                and higher_low_count >= 2
+                and bull_bodies >= 2
+                and bullish_closes_recent >= 2
+                and net_move >= displacement_threshold
+            ):
+                follow_through_state = "strong"
+            elif (
+                acceptance_state in {"reclaimed_level", "accepted_above_level", "inside_noise"}
+                and net_move >= 0
+                and bullish_closes_recent >= 2
+                and bull_bodies >= 1
+            ):
+                follow_through_state = "adequate"
+            else:
+                follow_through_state = "weak"
+        elif timing_bias == "bearish":
+            if (
+                acceptance_state == "reclaimed_level"
+                or close_price > upper_ref + range_buffer
+                or (higher_close_count >= 2 and bull_bodies >= 2 and net_move > 0)
+            ):
+                follow_through_state = "failing"
+            elif (
+                acceptance_state in {"rejected_at_level", "accepted_below_level"}
+                and lower_close_count >= 2
+                and lower_high_count >= 2
+                and bear_bodies >= 2
+                and bearish_closes_recent >= 2
+                and abs(net_move) >= displacement_threshold
+            ):
+                follow_through_state = "strong"
+            elif (
+                acceptance_state in {"rejected_at_level", "accepted_below_level", "inside_noise"}
+                and net_move <= 0
+                and bearish_closes_recent >= 2
+                and bear_bodies >= 1
+            ):
+                follow_through_state = "adequate"
+            else:
+                follow_through_state = "weak"
+        elif acceptance_state in {"reclaimed_level", "rejected_at_level"}:
+            follow_through_state = "adequate" if abs(net_move) >= avg_range * 0.35 else "weak"
         else:
-            follow_through_state = "adequate"
+            follow_through_state = "weak"
     else:
         follow_through_state = "unclear"
 
@@ -912,13 +1009,18 @@ def build_intraday_timing(
         timing_window_state = "unclear"
     elif liquidity["timing_authority"] == "daily_only":
         timing_window_state = "developing"
+    elif follow_through_state == "failing":
+        timing_window_state = "stale"
+    elif (
+        intraday_structure_state == "aligned"
+        and acceptance_state in {"reclaimed_level", "accepted_above_level"}
+        and follow_through_state in {"strong", "adequate"}
+    ):
+        timing_window_state = "active"
+    elif intraday_structure_state == "aligned" and follow_through_state == "weak":
+        timing_window_state = "late"
     else:
-        timing_window_state = (
-            "active"
-            if intraday_structure_state == "aligned"
-            and follow_through_state in {"strong", "adequate"}
-            else "developing"
-        )
+        timing_window_state = "developing"
 
     return {
         "timing_bias": timing_bias,
@@ -930,7 +1032,8 @@ def build_intraday_timing(
         "timing_authority": str(liquidity["timing_authority"]),
         "raw_participation_quality": str(participation["raw_participation_quality"]),
         "intraday_quality_summary": (
-            f"{liquidity['summary']}|{participation['summary']}"
+            f"{liquidity['summary']}|{participation['summary']}|"
+            f"acceptance_{acceptance_state}|follow_{follow_through_state}|window_{timing_window_state}"
         ),
     }
 
