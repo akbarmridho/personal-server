@@ -343,6 +343,7 @@ Required in:
 | `current_draw` | number | no | next likely draw |
 | `opposing_draw` | number | no | opposing liquidity |
 | `last_sweep_type` | string | yes | `none`, `eqh_swept`, `eql_swept`, `trendline_swept`, `swing_swept` |
+| `last_sweep_side` | string | no | `up` or `down` when a sweep side is classifiable |
 | `last_sweep_outcome` | string | yes | `accepted`, `rejected`, `unresolved`, `not_applicable` |
 | `path_state` | string | yes | `external_to_internal`, `internal_to_external`, `unclear` |
 

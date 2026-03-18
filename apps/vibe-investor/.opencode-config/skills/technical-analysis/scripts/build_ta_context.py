@@ -2376,6 +2376,11 @@ def build_ta_context_result(
                 "last_sweep_type": liq.get("sweep_event", "none"),
                 "last_sweep_outcome": liq.get("sweep_outcome", "unresolved"),
                 "path_state": liq.get("liquidity_path", "unclear"),
+                **(
+                    {"last_sweep_side": sweep_side}
+                    if sweep_side in {"up", "down"}
+                    else {}
+                ),
             },
             "time_levels": time_based_opens(daily),
             "round_levels": round_level_payload(nearest_round_levels(last_close)),

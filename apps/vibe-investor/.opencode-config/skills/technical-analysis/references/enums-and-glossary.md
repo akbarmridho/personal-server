@@ -105,6 +105,7 @@ Single source of truth for shared enum labels used across runtime references.
 ## Liquidity Fields
 
 - `sweep_event`: `none`, `eqh_swept`, `eql_swept`, `trendline_swept`, `swing_swept`
+- `sweep_side`: `up`, `down`
 - `sweep_outcome`: `accepted`, `rejected`, `unresolved`, `not_applicable`
 - `path_state`: `external_to_internal`, `internal_to_external`, `unclear`
 

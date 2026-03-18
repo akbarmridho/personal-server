@@ -387,6 +387,12 @@ def _simulate_strategy(
                 "structure_status": context.get("daily_thesis", {}).get("structure_status"),
                 "primary_setup": context.get("setup", {}).get("primary_setup"),
                 "trigger_state": context.get("trigger_confirmation", {}).get("trigger_state"),
+                "liquidity": {
+                    "last_sweep_type": context.get("location", {}).get("liquidity_map", {}).get("last_sweep_type"),
+                    "last_sweep_side": context.get("location", {}).get("liquidity_map", {}).get("last_sweep_side"),
+                    "last_sweep_outcome": context.get("location", {}).get("liquidity_map", {}).get("last_sweep_outcome"),
+                    "path_state": context.get("location", {}).get("liquidity_map", {}).get("path_state"),
+                },
             },
         })
 

@@ -6,7 +6,13 @@ from typing import Any
 
 import pandas as pd
 
-from .policy import PolicyDecision, evaluate_flat_policy, evaluate_long_policy
+from .policy import (
+    PolicyDecision,
+    evaluate_flat_policy,
+    evaluate_long_policy,
+    liquidity_entry_alignment,
+    liquidity_exit_pressure,
+)
 
 STRATEGY_ORDER = [
     "ablation", "buy_and_hold", "ma_trend",
@@ -156,8 +162,11 @@ def _policy_trend_pullback_flat(
     daily = context.get("daily_thesis", {})
     risk_map = context.get("risk_map", {})
     ma = _ma_snapshot(history_visible)
+    liquidity_alignment = liquidity_entry_alignment(context, "S2")
     if str(daily.get("trend_bias")) != "bullish" or str(daily.get("structure_status")) != "trend_intact":
         return PolicyDecision("WAIT", "trend_pullback_daily_not_supportive", "TREND_PULLBACK", False)
+    if liquidity_alignment == "contradictory":
+        return PolicyDecision("WAIT", "trend_pullback_liquidity_contradiction", "TREND_PULLBACK", False)
     if any(ma.get(k) is None for k in ("close", "sma200", "ema21", "sma50")):
         return PolicyDecision("WAIT", "trend_pullback_insufficient_ma_history", "TREND_PULLBACK", False)
     close, ema21, sma50, sma200 = float(ma["close"]), float(ma["ema21"]), float(ma["sma50"]), float(ma["sma200"])
@@ -180,6 +189,9 @@ def _policy_trend_pullback_long(*, context: dict[str, Any], history_visible: pd.
     daily = context.get("daily_thesis", {})
     ma = _ma_snapshot(history_visible)
     close, sma50, sma200 = ma.get("close"), ma.get("sma50"), ma.get("sma200")
+    exit_pressure = liquidity_exit_pressure(context)
+    if exit_pressure == "hard_exit":
+        return PolicyDecision("EXIT", "trend_pullback_accepted_downside_sweep", "TREND_PULLBACK", False)
     if str(daily.get("trend_bias")) == "bearish" or str(daily.get("structure_status")) == "damaged":
         return PolicyDecision("EXIT", "trend_pullback_thesis_broken", "TREND_PULLBACK", False)
     if close is not None and sma50 is not None and close < sma50:
@@ -202,6 +214,9 @@ def _policy_breakout_volume_flat(
     risk_map = context.get("risk_map", {})
     bq = trigger.get("breakout_quality", {})
     vol_ratio = _volume_ratio(history_visible)
+    liquidity_alignment = liquidity_entry_alignment(context, "S1")
+    if liquidity_alignment == "contradictory":
+        return PolicyDecision("WAIT", "breakout_volume_liquidity_contradiction", "BREAKOUT_VOLUME", False)
     if (
         str(setup.get("primary_setup")) == "S1"
         and str(trigger.get("trigger_state")) == "triggered"
@@ -221,6 +236,11 @@ def _policy_breakout_volume_flat(
 
 def _policy_breakout_volume_long(*, context: dict[str, Any]) -> PolicyDecision:
     daily = context.get("daily_thesis", {})
+    exit_pressure = liquidity_exit_pressure(context)
+    if exit_pressure == "hard_exit":
+        return PolicyDecision("EXIT", "breakout_volume_accepted_downside_sweep", "BREAKOUT_VOLUME", False)
+    if exit_pressure == "caution_exit":
+        return PolicyDecision("EXIT", "breakout_volume_upside_sweep_rejected", "BREAKOUT_VOLUME", False)
     if "F3_WEAK_BREAKOUT" in _high_flag_codes(context):
         return PolicyDecision("EXIT", "breakout_volume_failed_breakout", "BREAKOUT_VOLUME", False)
     if str(daily.get("trend_bias")) == "bearish" or str(daily.get("structure_status")) == "damaged":
@@ -239,15 +259,18 @@ def _policy_range_reclaim_flat(
     daily = context.get("daily_thesis", {})
     risk_map = context.get("risk_map", {})
     support = _first_zone(context, "support_zones")
+    liquidity_alignment = liquidity_entry_alignment(context, "S4")
     if support is None:
         return PolicyDecision("WAIT", "range_reclaim_no_support_zone", "RANGE_RECLAIM", False)
     if str(daily.get("state")) != "balance" and str(daily.get("regime")) != "range_rotation":
         return PolicyDecision("WAIT", "range_reclaim_not_in_range", "RANGE_RECLAIM", False)
+    if liquidity_alignment == "contradictory":
+        return PolicyDecision("WAIT", "range_reclaim_liquidity_contradiction", "RANGE_RECLAIM", False)
     bar = history_visible.iloc[-1]
     support_high = float(support.get("high", support.get("mid", bar["close"])))
     support_mid = float(support.get("mid", bar["close"]))
     reclaim = float(bar["low"]) <= support_high and float(bar["close"]) >= support_mid and float(bar["close"]) > float(bar["open"])
-    if reclaim and str(risk_map.get("risk_status")) == "valid":
+    if reclaim and str(risk_map.get("risk_status")) == "valid" and liquidity_alignment == "supportive":
         return PolicyDecision("BUY", "range_reclaim_triggered", "RANGE_RECLAIM", False)
     if str(context.get("setup", {}).get("primary_setup")) == "S4":
         return PolicyDecision(
@@ -260,6 +283,11 @@ def _policy_range_reclaim_flat(
 def _policy_range_reclaim_long(*, context: dict[str, Any], history_visible: pd.DataFrame) -> PolicyDecision:
     support = _first_zone(context, "support_zones")
     daily = context.get("daily_thesis", {})
+    exit_pressure = liquidity_exit_pressure(context)
+    if exit_pressure == "hard_exit":
+        return PolicyDecision("EXIT", "range_reclaim_accepted_downside_sweep", "RANGE_RECLAIM", False)
+    if exit_pressure == "caution_exit":
+        return PolicyDecision("EXIT", "range_reclaim_upside_sweep_rejected", "RANGE_RECLAIM", False)
     if str(daily.get("trend_bias")) == "bearish" or str(daily.get("structure_status")) == "damaged":
         return PolicyDecision("EXIT", "range_reclaim_thesis_broken", "RANGE_RECLAIM", False)
     if support is not None:

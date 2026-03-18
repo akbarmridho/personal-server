@@ -51,6 +51,73 @@ def _strong_location(context: dict[str, Any]) -> bool:
     }
 
 
+def liquidity_snapshot(context: dict[str, Any]) -> dict[str, str]:
+    liquidity = context.get("location", {}).get("liquidity_map", {})
+    if not isinstance(liquidity, dict):
+        return {
+            "last_sweep_type": "none",
+            "last_sweep_side": "none",
+            "last_sweep_outcome": "unresolved",
+            "path_state": "unclear",
+        }
+    return {
+        "last_sweep_type": str(liquidity.get("last_sweep_type", "none")),
+        "last_sweep_side": str(liquidity.get("last_sweep_side", "none")),
+        "last_sweep_outcome": str(liquidity.get("last_sweep_outcome", "unresolved")),
+        "path_state": str(liquidity.get("path_state", "unclear")),
+    }
+
+
+def liquidity_entry_alignment(context: dict[str, Any], setup_id: str) -> str:
+    liq = liquidity_snapshot(context)
+    side = liq["last_sweep_side"]
+    outcome = liq["last_sweep_outcome"]
+    if side not in {"up", "down"} or outcome not in {"accepted", "rejected"}:
+        return "neutral"
+
+    if setup_id == "S1":
+        if side == "up" and outcome == "accepted":
+            return "supportive"
+        if side == "down" and outcome == "rejected":
+            return "supportive"
+        if (side == "up" and outcome == "rejected") or (
+            side == "down" and outcome == "accepted"
+        ):
+            return "contradictory"
+        return "neutral"
+
+    if setup_id == "S2":
+        if side == "down" and outcome == "rejected":
+            return "supportive"
+        if side == "down" and outcome == "accepted":
+            return "contradictory"
+        if side == "up" and outcome == "rejected":
+            return "contradictory"
+        return "neutral"
+
+    if setup_id in {"S3", "S4", "S5"}:
+        if side == "down" and outcome == "rejected":
+            return "supportive"
+        if side == "down" and outcome == "accepted":
+            return "contradictory"
+        if side == "up" and outcome == "rejected":
+            return "contradictory"
+        return "neutral"
+
+    return "neutral"
+
+
+def liquidity_exit_pressure(context: dict[str, Any]) -> str:
+    liq = liquidity_snapshot(context)
+    side = liq["last_sweep_side"]
+    outcome = liq["last_sweep_outcome"]
+    if side == "down" and outcome == "accepted":
+        return "hard_exit"
+    if side == "up" and outcome == "rejected":
+        return "caution_exit"
+    return "neutral"
+
+
 def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> PolicyDecision:
     setup = context.get("setup", {})
     trigger = context.get("trigger_confirmation", {})
@@ -64,6 +131,7 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
     trend_bias = str(daily_thesis.get("trend_bias", "neutral"))
     structure_status = str(daily_thesis.get("structure_status", "unclear"))
     high_flags = _flag_codes(context, severity="high")
+    liquidity_alignment = liquidity_entry_alignment(context, setup_id)
 
     if cooldown_active:
         return PolicyDecision("WAIT", "cooldown_after_exit", setup_id, False)
@@ -73,6 +141,8 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
         return PolicyDecision("WAIT", "daily_thesis_not_supportive", setup_id, False)
     if high_flags & ENTRY_BLOCKING_FLAGS:
         return PolicyDecision("WAIT", "high_severity_entry_blocker", setup_id, False)
+    if liquidity_alignment == "contradictory":
+        return PolicyDecision("WAIT", "liquidity_contradicts_setup", setup_id, False)
     if trigger_state == "triggered" and risk_actionable:
         return PolicyDecision("BUY", "triggered_actionable_setup", setup_id, False)
     # Relaxed gate: watchlist setups with strong location and valid risk
@@ -81,6 +151,7 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
         and _strong_location(context)
         and risk_status == "valid"
         and trend_bias == "bullish"
+        and liquidity_alignment != "contradictory"
     ):
         return PolicyDecision("BUY", "watchlist_setup_strong_location", setup_id, False)
     if setup.get("setup_validity") == "watchlist_only":
@@ -104,13 +175,18 @@ def evaluate_long_policy(context: dict[str, Any]) -> PolicyDecision:
     ma_posture = daily_thesis.get("baseline_ma_posture", {})
     above_sma50 = bool(ma_posture.get("above_sma50", False))
     above_sma200 = bool(ma_posture.get("above_sma200", False))
+    exit_pressure = liquidity_exit_pressure(context)
 
     if high_flags & EXIT_FLAGS:
         return PolicyDecision("EXIT", "high_severity_exit_flag", setup_id, False)
+    if exit_pressure == "hard_exit":
+        return PolicyDecision("EXIT", "accepted_downside_sweep", setup_id, False)
     if trend_bias == "bearish":
         return PolicyDecision("EXIT", "bearish_trend_bias", setup_id, False)
     if structure_status == "damaged":
         return PolicyDecision("EXIT", "damaged_structure", setup_id, False)
+    if exit_pressure == "caution_exit" and confirmation_state in {"mixed", "rejected"}:
+        return PolicyDecision("EXIT", "upside_sweep_rejected", setup_id, False)
     if structure_status == "transitioning" and confirmation_state in {"mixed", "rejected"}:
         return PolicyDecision("EXIT", "transitioning_structure_with_weak_confirmation", setup_id, False)
     if not above_sma200 or (not above_sma50 and confirmation_state == "rejected"):

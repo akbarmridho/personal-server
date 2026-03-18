@@ -51,6 +51,7 @@ Alternation model (heuristic, not certainty):
 - `current_draw`: nearest likely liquidity objective
 - `opposing_draw`: opposite-side liquidity objective
 - `sweep_event`: none / eqh_swept / eql_swept / trendline_swept / swing_swept
+- `sweep_side`: up / down when a side is classifiable
 - `sweep_outcome`: accepted / rejected / unresolved
 - `liquidity_path`: external_to_internal / internal_to_external / unclear
 
