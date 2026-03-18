@@ -167,6 +167,33 @@ def _recent_action_summary(daily_logs: list[dict[str, Any]]) -> list[dict[str, A
     return items
 
 
+def _reuse_blocked(
+    *,
+    previous_llm_policy: PolicyDecision | None,
+    position_state: str,
+    cooldown_active: bool,
+    exited_this_bar: bool,
+    same_day_stopout: bool,
+    deterministic_reason: str,
+) -> bool:
+    if previous_llm_policy is None:
+        return True
+    if position_state == "flat":
+        if previous_llm_policy.action not in {"BUY", "WAIT"}:
+            return True
+        if previous_llm_policy.action == "BUY" and (
+            cooldown_active
+            or exited_this_bar
+            or same_day_stopout
+            or deterministic_reason in {"cooldown_after_exit", "high_severity_entry_blocker"}
+        ):
+            return True
+        return False
+    if previous_llm_policy.action not in {"HOLD", "EXIT"}:
+        return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Strategy summary
 # ---------------------------------------------------------------------------
@@ -485,6 +512,8 @@ def _simulate_llm_ablation(
     pending_order: PendingOrder | None = None
     last_exit_index: int | None = None
     last_exit_was_stop: bool = False
+    last_exit_date: str | None = None
+    last_exit_reason: str | None = None
     consecutive_exit_flag_bars: int = 0
     has_ever_entered = scenario.initial_position.state == "long"
     previous_gate_packet: dict[str, Any] | None = None
@@ -509,6 +538,7 @@ def _simulate_llm_ablation(
         trade_date = _bar_trade_date(bar)
         context = contexts[trade_date]
         history_visible = _history_visible(history, bar)
+        exited_this_bar = False
 
         if pending_order is not None and pending_order.intended_entry_date == trade_date:
             signal_context = contexts[pending_order.signal_date]
@@ -536,8 +566,11 @@ def _simulate_llm_ablation(
                 trades.append(closed_trade)
                 open_position = None
                 last_exit_index = index
+                last_exit_date = trade_date
+                last_exit_reason = closed_trade.exit_reason
                 last_exit_was_stop = exit_type in {"stop_hit", "stop_and_target_same_bar"}
                 consecutive_exit_flag_bars = 0
+                exited_this_bar = True
 
         expired_setup = None
         if pending_setup is not None:
@@ -548,12 +581,13 @@ def _simulate_llm_ablation(
                 pending_setup = None
 
         position_state = "long" if open_position is not None else "flat"
+        bars_since_exit = (index - last_exit_index) if last_exit_index is not None else None
+        cooldown_active = (
+            (index - last_exit_index) < 3
+            if last_exit_was_stop and last_exit_index is not None
+            else (last_exit_index == index)
+        )
         if position_state == "flat":
-            cooldown_active = (
-                (index - last_exit_index) < 3
-                if last_exit_was_stop and last_exit_index is not None
-                else (last_exit_index == index)
-            )
             deterministic_decision = evaluate_strategy_flat(
                 strategy_name="ablation",
                 context=context,
@@ -587,6 +621,12 @@ def _simulate_llm_ablation(
             open_position=_open_position_snapshot(open_position),
             pending_setup=_asdict_or_none(pending_setup),
             pending_order=asdict(pending_order) if pending_order is not None else None,
+            cooldown_active=cooldown_active,
+            exited_this_bar=exited_this_bar,
+            same_day_stopout=exited_this_bar and last_exit_was_stop,
+            last_exit_reason=last_exit_reason,
+            last_exit_date=last_exit_date,
+            bars_since_exit=bars_since_exit,
         )
         gate = worth_to_infer(
             current_packet=current_packet,
@@ -665,6 +705,13 @@ def _simulate_llm_ablation(
                     if llm_policy.reason in {"llm_invalid_action_for_flat", "llm_invalid_action_for_long"}:
                         effective_decision = deterministic_decision
                         decision_source = "deterministic_fallback_invalid_llm_action"
+                    elif (
+                        position_state == "flat"
+                        and llm_policy.action == "BUY"
+                        and deterministic_decision.reason in {"high_severity_entry_blocker", "cooldown_after_exit"}
+                    ):
+                        effective_decision = deterministic_decision
+                        decision_source = "deterministic_fallback_entry_blocked"
                     else:
                         effective_decision = llm_policy
                         decision_source = "llm_inferred"
@@ -691,7 +738,14 @@ def _simulate_llm_ablation(
                     effective_decision = deterministic_decision
                     decision_source = "deterministic_fallback_codex_error"
                     inference_meta = {"error": str(exc)}
-            elif previous_llm_policy is not None:
+            elif not _reuse_blocked(
+                previous_llm_policy=previous_llm_policy,
+                position_state=position_state,
+                cooldown_active=cooldown_active,
+                exited_this_bar=exited_this_bar,
+                same_day_stopout=exited_this_bar and last_exit_was_stop,
+                deterministic_reason=deterministic_decision.reason,
+            ):
                 effective_decision = previous_llm_policy
                 decision_source = "llm_reused"
 
@@ -729,7 +783,10 @@ def _simulate_llm_ablation(
                 trades.append(closed_trade)
                 open_position = None
                 last_exit_index = index + 1
+                last_exit_date = _bar_trade_date(next_bar)
+                last_exit_reason = closed_trade.exit_reason
                 last_exit_was_stop = False
+                exited_this_bar = True
 
         daily_logs.append(
             {
@@ -760,6 +817,14 @@ def _simulate_llm_ablation(
                     "action": deterministic_decision.action,
                     "reason": deterministic_decision.reason,
                     "setup_id": deterministic_decision.setup_id,
+                },
+                "replay_freshness": {
+                    "cooldown_active": cooldown_active,
+                    "exited_this_bar": exited_this_bar,
+                    "same_day_stopout": exited_this_bar and last_exit_was_stop,
+                    "last_exit_date": last_exit_date,
+                    "last_exit_reason": last_exit_reason,
+                    "bars_since_exit": bars_since_exit,
                 },
                 "llm_inference": inference_meta,
                 "thesis": {

@@ -177,6 +177,12 @@ def build_state_packet(
     open_position: dict[str, Any] | None,
     pending_setup: dict[str, Any] | None,
     pending_order: dict[str, Any] | None,
+    cooldown_active: bool,
+    exited_this_bar: bool,
+    same_day_stopout: bool,
+    last_exit_reason: str | None,
+    last_exit_date: str | None,
+    bars_since_exit: int | None,
 ) -> dict[str, Any]:
     location = context.get("location", {})
     liquidity = location.get("liquidity_map", {}) if isinstance(location, dict) else {}
@@ -203,6 +209,13 @@ def build_state_packet(
         "liquidity_path_state": str(liquidity.get("path_state", "unclear")),
         "high_flags": _high_severity_flags(context),
         "has_open_position": bool(open_position),
+        "pending_order_active": bool(pending_order),
+        "cooldown_active": cooldown_active,
+        "exited_this_bar": exited_this_bar,
+        "same_day_stopout": same_day_stopout,
+        "last_exit_reason": last_exit_reason or "",
+        "last_exit_date": last_exit_date or "",
+        "bars_since_exit": bars_since_exit if bars_since_exit is not None else -1,
     }
 
 
@@ -223,6 +236,9 @@ def worth_to_infer(
         "risk_actionable",
         "high_flags",
         "has_open_position",
+        "cooldown_active",
+        "exited_this_bar",
+        "same_day_stopout",
     }
     secondary_fields = {
         "daily_state",
@@ -235,6 +251,10 @@ def worth_to_infer(
         "liquidity_side",
         "liquidity_outcome",
         "liquidity_path_state",
+        "pending_order_active",
+        "last_exit_reason",
+        "last_exit_date",
+        "bars_since_exit",
     }
     packet_json = json.dumps(current_packet, sort_keys=True, separators=(",", ":"))
     decision_key = hashlib.sha256(packet_json.encode("utf-8")).hexdigest()
@@ -291,6 +311,12 @@ def build_prompt(
             "Respect position state.",
             "If position_state is flat, return only BUY or WAIT.",
             "If position_state is long, return only HOLD or EXIT.",
+            "If deterministic_reference.reason is high_severity_entry_blocker, default to WAIT unless there is a very explicit exceptional override supported by the packet.",
+            "If cooldown_active is true, do not issue BUY.",
+            "If exited_this_bar or same_day_stopout is true, treat the flat state as fresh. Do not carry forward a stale BUY thesis.",
+            "High-severity blockers outweigh marginal reversal quality.",
+            "If deterministic_reference.reason is watchlist_setup_strong_location, a BUY is allowed even when trigger_state is watchlist_only, but only when trend_bias is bullish, structure_status is trend_intact, location_state is supportive, and risk_actionable is true.",
+            "Do not reject a strong-location watchlist continuation solely because confirmation is mixed when the packet still shows supportive trend, supportive location, and valid risk.",
             "Return compact JSON matching the provided output schema.",
             "Keep thesis and risk_note short and specific to this bar.",
         ]
