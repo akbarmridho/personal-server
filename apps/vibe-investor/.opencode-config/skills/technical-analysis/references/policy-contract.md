@@ -234,6 +234,7 @@ Required in:
 |---|---|---:|---|
 | `primary_setup` | string | yes | `S1`, `S2`, `S3`, `S4`, `S5`, `NO_VALID_SETUP` |
 | `candidate_setups` | string[] | yes | one or more allowed setup families |
+| `candidate_evaluations` | object[] | yes | compact setup comparison trace; schema in section `T` |
 | `setup_side` | string | yes | `long`, `neutral` |
 | `setup_validity` | string | yes | `valid`, `watchlist_only`, `invalid` |
 | `setup_drivers` | string[] | yes | short machine-readable reasons |
@@ -377,3 +378,12 @@ Required in:
 | `severity` | string | yes | `low`, `medium`, `high`, `critical` |
 | `summary` | string | yes | short explanation |
 | `evidence_refs` | string[] | no | evidence ids or artifact refs |
+
+### T. `candidate_evaluation[]`
+
+| Field | Type | Required | Allowed values / notes |
+|---|---|---:|---|
+| `setup_id` | string | yes | `S1`, `S2`, `S3`, `S4`, `S5`, `NO_VALID_SETUP` |
+| `status` | string | yes | `valid`, `watchlist_only`, `invalid` |
+| `score` | integer | yes | deterministic relative ranking score |
+| `drivers` | string[] | yes | short machine-readable reasons for the status and rank |

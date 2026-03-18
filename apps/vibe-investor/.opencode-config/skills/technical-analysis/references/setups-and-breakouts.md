@@ -144,6 +144,7 @@ Rules:
 ## Trace Requirements
 
 - selected setup id
+- candidate setup comparison trace with rank drivers
 - setup acceptance or rejection reason
 - trigger state and trigger type
 - trigger evidence
