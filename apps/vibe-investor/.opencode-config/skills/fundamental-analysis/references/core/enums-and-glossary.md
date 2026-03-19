@@ -58,6 +58,19 @@ Single source of truth for shared verdicts, statuses, and labels used across fun
 - `WATCHLIST`: interesting but not ready for conviction because price, evidence, or risk still needs work
 - `AVOID`: quality, governance, solvency, or trap risk is too weak for current interest
 
+## Float Tightness
+
+- `AMPLE`
+- `ADEQUATE`
+- `TIGHT`
+- `EXTREMELY_TIGHT`
+
+## Minority Alignment
+
+- `FAVORABLE`
+- `MIXED`
+- `WEAK`
+
 ## IDX 2.0 Risk Score (0-12)
 
 Four dimensions scored 0-3 each:

@@ -61,8 +61,13 @@ Moat erosion signals:
 Checklist:
 
 - Control clarity, ultimate owner, and free float profile
+- Reported free float versus effective float
+- Float tightness and liquidity implications
 - Institutional and foreign holder context
+- Holder taxonomy and concentration quality
 - Recent holder changes and implications
+- Largest non-controller block and whether it is sticky or dangerous
+- Overhang / supply-risk events
 - Minority alignment behavior
 - Share pledge or encumbrance risk if explicitly disclosed
 
@@ -71,6 +76,7 @@ Important interpretation warning:
 - Custody or nominee names can be misread as active directional holders.
 - Validate custody vs active-holder interpretation before inferring active accumulation from holder names.
 - Use IDX-specific controller and holder interpretation, not promoter/FII/DII shorthand.
+- If effective float cannot be estimated honestly, use a range or a tightness label with uncertainty notes instead of fake precision.
 
 ## Management Quality
 

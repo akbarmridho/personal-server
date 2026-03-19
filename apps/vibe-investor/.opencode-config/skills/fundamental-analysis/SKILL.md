@@ -11,6 +11,7 @@ Use this skill to perform fundamental analysis for:
 - business and financial quality check
 - valuation check
 - filing-led review
+- ownership and shareholder-structure review
 - sector or mechanism checks when the lens remains fundamental
 
 This skill answers whether the business is worth owning, whether the financials are trustworthy, whether the price is reasonable, and what would break the view. It does not decide timing on its own.
@@ -49,7 +50,11 @@ Core source contract:
 - Investigate divergence across methods instead of averaging blindly.
 - Use conservative assumptions over management promotion.
 - Treat value-trap and manipulation diagnostics as hard filters, not side commentary.
-- For IDX ownership work, interpret controller, ultimate owner, free float, institutional and foreign holders, and custody-vs-active-holder context. Do not import promoter/FII/DII labels as-is.
+- For IDX ownership work, interpret controller, ultimate owner, reported free float, effective float, institutional and foreign holders, and custody-vs-active-holder context. Do not import promoter/FII/DII labels as-is.
+- Distinguish reported free float from effective float. If the effective float cannot be estimated defensibly, output a range or a categorical float-tightness state with uncertainty notes rather than fake precision.
+- Use a practical holder taxonomy: controller / affiliate, management / insider, strategic, domestic institution, foreign institution, passive / index, retail / others, nominee / custody / unclear, and treasury.
+- Treat concentration, overhang, and minority alignment as first-class ownership outputs, not side commentary.
+- Narrative hooks from ownership work are secondary outputs only. They can inform `narrative-analysis`, but this skill still owns structural interpretation, not story trading.
 - All verdict and status values must match `enums-and-glossary.md`.
 
 ## Deterministic vs Agent-Judgment Boundary
@@ -60,9 +65,17 @@ Core source contract:
 | Current ratio, DER, ICR, net gearing, cash-flow-to-debt | Deterministic | Computed from `get-stock-financials` |
 | OCF vs net profit, FCF, capex trend | Deterministic | Computed from financials |
 | Valuation methods and MoS | Deterministic | Computed from financials, price context, and explicit assumptions |
+| Controller identity and affiliate stake | Deterministic when disclosed, otherwise mixed | Extract from governance data and formal disclosures; aggregate affiliated holdings when defensible |
+| Reported free float | Deterministic | Compute from available governance/disclosure data using explicit exclusions when data supports it |
+| Concentration metrics (`top_3`, `top_5`, `HHI`) | Deterministic | Compute from holder weights when holder list quality is sufficient |
+| Overhang events explicitly disclosed | Deterministic | Tender offers, rights issues, placements, lock-ups, pledges, insider sales from filings or formal disclosures |
 | Business quality verdict | Agent judgment | Synthesize business model clarity, competitive position, and durability |
 | Financial quality verdict | Agent judgment | Synthesize statement quality, trend health, and cash confirmation |
 | Management and governance assessment | Agent judgment | Evaluate capital allocation, RPT quality, transparency, and holder alignment |
+| Effective float estimate / range | Mixed | Start from reported float, then adjust for sticky or unclear blocks only when the evidence supports it |
+| Holder-category classification | Mixed | Use house taxonomy, but mark uncertain classifications explicitly instead of forcing false precision |
+| Minority alignment assessment | Agent judgment | Weigh controller power, affiliate structure, holder diversity, RPT risk, and float tightness |
+| Ownership uncertainty | Agent judgment | State nominee ambiguity, missing beneficial-owner detail, or incomplete holder coverage clearly |
 | Value trap assessment | Agent judgment | Weigh cheapness against structural weakness and accounting quality |
 | Thesis posture | Agent judgment | Decide whether the name is actionable, watchlist-only, or avoid |
 
@@ -78,22 +91,30 @@ Always load:
 Reference sets by mode:
 
 - `FULL_REVIEW`
-  - `references/core/financial-statements-framework.md`
-  - `references/core/valuation-methods-framework.md`
-  - `references/core/company-quality-framework.md`
-  - `references/core/risk-assessment-framework.md`
-  - `references/core/filing-review-framework.md`
+- `references/core/financial-statements-framework.md`
+- `references/core/valuation-methods-framework.md`
+- `references/core/company-quality-framework.md`
+- `references/core/shareholder-structure-framework.md`
+- `references/core/risk-assessment-framework.md`
+- `references/core/filing-review-framework.md`
 - `QUALITY_CHECK`
   - `references/core/financial-statements-framework.md`
   - `references/core/company-quality-framework.md`
+  - `references/core/shareholder-structure-framework.md`
   - `references/core/risk-assessment-framework.md`
 - `VALUATION_ONLY`
   - `references/core/valuation-methods-framework.md`
   - `references/core/company-quality-framework.md`
 - `FILING_REVIEW`
   - `references/core/company-quality-framework.md`
+  - `references/core/shareholder-structure-framework.md` when control, dilution, float, or holder structure matters
   - `references/core/risk-assessment-framework.md`
   - `references/core/filing-review-framework.md`
+- `OWNERSHIP_REVIEW`
+  - `references/core/company-quality-framework.md`
+  - `references/core/shareholder-structure-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md` when formal disclosures materially drive the conclusion
 - `SECTOR_REVIEW`
   - `references/core/valuation-methods-framework.md`
   - `references/core/company-quality-framework.md`
@@ -142,6 +163,7 @@ Runtime workflow owner. Defines canonical analysis order, phase gates, and final
 - `QUALITY_CHECK` - business quality and financial quality review without a full valuation build
 - `VALUATION_ONLY` - valuation-focused work with enough business context to avoid category mistakes
 - `FILING_REVIEW` - disclosure-led review of annual report, notes, auditor remarks, public expose, or similar materials
+- `OWNERSHIP_REVIEW` - controller map, holder structure, float quality, concentration, overhang, and minority-alignment review
 - `SECTOR_REVIEW` - sector economics, industry structure, player-quality, and comparative fundamental review
 - `MECHANISM_REVIEW` - fundamentally relevant mechanism review such as dilution, asset-quality cleaning, funding path, or capital-structure events
 
@@ -155,6 +177,7 @@ If the user request is ambiguous, default to `FULL_REVIEW`.
 | `QUALITY_CHECK` | Produce explicit `business_quality`, `financial_quality`, `trap_risk`, and what would trigger a deeper valuation review |
 | `VALUATION_ONLY` | Anchor the business model first and stop if the company economics are too unstable for a credible method set |
 | `FILING_REVIEW` | State which filing or formal document was reviewed, why it is the correct primary disclosure, what changed, and what it changes |
+| `OWNERSHIP_REVIEW` | Produce explicit controller / affiliate map, holder taxonomy view, reported vs effective float view, concentration, overhang, minority alignment, and uncertainty notes |
 | `SECTOR_REVIEW` | Define sector boundary, demand drivers, value-chain logic, competition intensity, and strong-player vs weak-player traits using contextual evidence as first-class input |
 | `MECHANISM_REVIEW` | Define the mechanism, why it matters fundamentally, what evidence best captures it, and whether it strengthens or weakens quality, valuation, solvency, minority alignment, or funding risk |
 
@@ -200,6 +223,8 @@ For `SECTOR_REVIEW`, stop if the sector call is being made from one company and 
 
 For `MECHANISM_REVIEW`, stop if the mechanism is material but the evidence set does not include the document type that actually governs the mechanism.
 
+For `OWNERSHIP_REVIEW`, stop if the ownership call depends on unavailable holder/disclosure evidence and no uncertainty-bounded conclusion can be made honestly.
+
 | Phase | Core job | Stop / downgrade rule |
 |---|---|---|
 | `BUSINESS` | explain what the company does, how it makes money, and relevant mix | if the business cannot be explained clearly from evidence, lower confidence sharply |
@@ -208,7 +233,7 @@ For `MECHANISM_REVIEW`, stop if the mechanism is material but the evidence set d
 | `CAPITAL_EFFICIENCY` | test ROE, ROA, ROCE, and turnover quality | if returns are mainly leverage-driven or supported by a weak equity base, downgrade quality |
 | `BALANCE_SHEET` | test liquidity, leverage, borrowings, reserves, and working capital | if solvency or refinancing risk is unclear, do not label financial quality `CLEAN` |
 | `CASH_FLOW` | test OCF, FCF, CFO vs PAT, and capex burden | if cash does not validate profit over time, treat as a major quality warning |
-| `OWNERSHIP_GOVERNANCE` | test controller clarity, holder structure, management, capital allocation, and RPT behavior | if holder interpretation is ambiguous, do not infer active smart-money behavior |
+| `OWNERSHIP_GOVERNANCE` | test controller clarity, holder structure, reported vs effective float, concentration, overhang, management, capital allocation, and RPT behavior | if holder interpretation is ambiguous, do not infer active smart-money behavior; if effective float is unclear, output a range or tightness state plus uncertainty note |
 | `INDUSTRY_MOAT` | test industry cycle, structure, barriers, and advantage durability | if the industry structure is deteriorating, cap conviction; for `SECTOR_REVIEW`, this is a primary output |
 | `VALUATION` | use a method set that fits the business and produce a fair-value view | stop on false precision, heroic assumptions, guidance-only builds, or single-fragile-method dependence; for `SECTOR_REVIEW`, valuation may be comparative rather than intrinsic |
 | `RED_FLAGS` | test value-trap, manipulation, dilution, and weak-disclosure risk | multiple aligned red flags cannot be offset by cheapness alone |
@@ -229,6 +254,7 @@ Final result must include:
 - `confidence`
 - evidence trace with source class separation
 - key invalidation conditions
+- ownership structure summary when holder structure is material to the call
 
 The result must allow combinations such as strong business but expensive, or cheap but likely a trap.
 
@@ -251,6 +277,13 @@ The result must allow combinations such as strong business but expensive, or che
 - emphasize sector multiple ranges, method fit by sub-model, and what separates premium names from discount names
 - comparative valuation is acceptable when full intrinsic builds are not the point
 - do not force single-company target-price style outputs unless the request becomes company-specific
+
+### `OWNERSHIP_REVIEW`
+
+- prioritize controller clarity, holder taxonomy, float quality, concentration, overhang, and minority alignment over full valuation work
+- use float ranges or float-tightness states when effective float cannot be estimated precisely
+- emit secondary narrative hooks only when there is a clear ownership change or supply event backed by evidence
+- do not promise ownership-change history unless the data exists in the active evidence set
 
 ### `MECHANISM_REVIEW`
 

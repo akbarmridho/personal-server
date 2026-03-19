@@ -17,6 +17,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 #### FULL_REVIEW
 - Overview: subject, scope, business model
 - Quality: business quality, financial quality, key supporting metrics
+- Ownership / governance: controller, float quality, concentration, overhang, minority alignment
 - Industry / moat: structure, demand drivers, competitive edge or weakness
 - Valuation: methods used, fair-value range or comparative frame, why the method set fits
 - Red flags: major trap or accounting risks
@@ -44,6 +45,17 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 - Evidence trace
 - Investment view
 
+#### OWNERSHIP_REVIEW
+- Controller and affiliate map
+- Holder taxonomy and largest holders
+- Reported free float and effective float view
+- Float tightness and uncertainty
+- Concentration metrics
+- Overhang / supply-risk events
+- Minority alignment
+- Evidence trace
+- Conclusion
+
 #### SECTOR_REVIEW
 - Sector boundary and demand drivers
 - Industry economics and structure
@@ -59,6 +71,20 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 - Impact on quality, valuation, solvency, dilution, or minority alignment
 - Evidence trace
 - Conclusion
+
+### Ownership Structure Section
+
+Include when ownership is material to the call:
+
+- controller / affiliate summary
+- reported free float
+- effective float estimate or range
+- float tightness state
+- concentration (`top_3_pct`, `top_5_pct`, `HHI`) when available
+- overhang / supply-risk summary
+- minority alignment
+- ownership uncertainty notes
+- optional secondary narrative hooks only when strongly evidence-backed
 
 ### Evidence Trace
 - primary evidence sources and why they were primary
