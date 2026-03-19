@@ -38,7 +38,7 @@ type BrokerFlowResponse = {
   data?: BrokerFlowPayload;
 };
 
-const DEFAULT_TRADING_DAYS = 30;
+const DEFAULT_TRADING_DAYS = 60;
 
 export default tool({
   description:
@@ -65,7 +65,7 @@ export default tool({
       .int()
       .positive()
       .optional()
-      .describe("Optional number of trading days to fetch. Defaults to 30."),
+      .describe("Optional number of trading days to fetch. Defaults to 60."),
   },
   async execute(args, context) {
     const { symbol, output_path, as_of_date } = args;

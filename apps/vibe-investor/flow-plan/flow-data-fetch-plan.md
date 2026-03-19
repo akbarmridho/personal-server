@@ -262,7 +262,7 @@ Recommended behavior:
 - validate symbol
 - validate output path
 - optionally accept `as_of_date`
-- optionally accept `trading_days` with default `30`
+- optionally accept `trading_days` with default `60`
 - call the new `kb-backend` endpoint
 - write the normalized JSON payload to disk
 - return a concise summary including date range and number of trading days

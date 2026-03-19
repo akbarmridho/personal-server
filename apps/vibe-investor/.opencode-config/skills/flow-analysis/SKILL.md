@@ -1,12 +1,14 @@
 # Flow Analysis
 
-Build deterministic broker-flow context for Indonesian stocks from normalized daily broker summaries and daily OHLCV.
+Broker-flow analysis for Indonesian stocks using normalized daily broker summaries plus daily OHLCV.
+
+This skill turns raw broker-flow data into a deterministic `flow_context` packet first, then reasons from that packet. Do not reason directly from raw broker tables unless debugging the deterministic layer.
 
 ## Scope
 
 This skill owns:
 
-- gross-versus-net broker-flow reading discipline
+- gross-versus-net reading discipline
 - broker sponsor-quality features
 - accumulation versus distribution lean
 - concentration, persistence, anomaly, and trust features
@@ -22,14 +24,18 @@ This skill does not own:
 
 Those remain under `technical-analysis` and the parent workflow.
 
-## Required Inputs
+## Inputs
+
+Required dependencies:
 
 1. `fetch-broker-flow` output JSON
 2. `fetch-ohlcv` output JSON
 
-If either fetch fails, stop.
+If either fetch fails, stop. Do not improvise broker-flow analysis without both datasets.
 
-## Deterministic Builder
+## Deterministic Build
+
+Always build deterministic context before interpretation.
 
 Run:
 
@@ -46,26 +52,306 @@ Rules:
 
 - use the exact JSON produced by `fetch-broker-flow`
 - use the exact JSON produced by `fetch-ohlcv`
-- the builder produces deterministic `flow_context.json`
-- `30` trading days is the primary read
-- `60` trading days is the trust window when available
+- output must be a UTF-8 `.json` file
+- `60` fetched trading days provide:
+  - `30D` active read for current sponsor behavior and direction
+  - `60D` trust read for correlation and ticker usefulness
+- if fewer than `60` sessions are available, trust is downgraded; do not hide that
 
-## V1 Focus
+## Deterministic V1 Contract
 
-The first builder keeps scope narrow:
+The first packet is intentionally narrow.
 
-- `CADI`
-- broker-side `VWAP` deviation
-- `GVPR`
-- top buyer / seller share
-- `HHI`
-- persistence
-- overlap-based wash / anomaly risk
-- liquidity and market-cap trust regime
-- lead / confirm / warning timing context
+Core metrics:
 
-These stay out of v1 deterministic truth:
+- `coverage_buy_pct`
+- `coverage_sell_pct`
+- `net_flow_total_value`
+- `net_flow_recent_value`
+- `cadi_value`
+- `cadi_trend`
+- `cadi_slope_strength`
+- `buy_avg_vs_vwap_pct`
+- `sell_avg_vs_vwap_pct`
+- `buy_execution_quality`
+- `sell_execution_quality`
+- `bs_spread_pct`
+- `gvpr_buy_pct`
+- `gvpr_sell_pct`
+- `gvpr_pattern`
+- `top_buyer_share_pct`
+- `top_seller_share_pct`
+
+Advanced signals:
+
+- `persistence_score`
+- `persistence_state`
+- `buy_hhi`
+- `sell_hhi`
+- `concentration_asymmetry_state`
+- `flow_price_correlation_spearman`
+- `flow_price_correlation_state`
+- `divergence_state`
+- `wash_risk_pct`
+- `wash_risk_state`
+- `anomaly_risk_state`
+
+Trust and verdict:
+
+- `liquidity_profile`
+- `market_cap_profile`
+- `market_cap_value`
+- `ticker_flow_usefulness`
+- `trust_level`
+- `trust_rationale`
+- `verdict`
+- `conviction_pct`
+- `sponsor_quality`
+- `strongest_support_factors`
+- `strongest_caution_factors`
+- `timing_relation`
+- `signal_role`
+- `integration_summary`
+- `monitoring`
+
+## What Stays Out Of V1
+
+These are not base deterministic truth:
 
 - `MFI` without a defensible raw-contract formula
-- `SMT` as a base truth source
-- `Gini` as the primary concentration backbone under top-25 truncation
+- `SMT` as a source of truth
+- `Gini` as the primary concentration metric under top-25 truncation
+- raw broker tables rendered as analyst prose
+- Sankey or broker-relationship UI logic
+- TA-style entry, stop, or target decisions
+
+## Interpretation Order
+
+Always interpret in this order:
+
+1. `MODE`
+2. `INPUT_SCOPE`
+3. `GROSS_FIRST_READ`
+4. `CORE_METRICS`
+5. `ADVANCED_SIGNALS`
+6. `TRUST_AND_REGIME`
+7. `VERDICT`
+8. `INTEGRATION_HOOK`
+9. `MONITORING`
+
+### 1. `MODE`
+
+Use the same purpose modes as technical analysis:
+
+- `INITIAL`
+- `UPDATE`
+- `POSTMORTEM`
+
+### 2. `INPUT_SCOPE`
+
+State:
+
+- symbol
+- as-of date
+- actual trading-day window
+- whether today’s broker snapshot is included
+
+### 3. `GROSS_FIRST_READ`
+
+Hard rule:
+
+- read `gross` first
+- use net only as a derived compression layer
+
+Do not let net-only framing hide two-way broker activity.
+
+### 4. `CORE_METRICS`
+
+Answer:
+
+- is visible broker pressure net constructive or net distributive?
+- are buyers paying up or getting absorbed below VWAP?
+- is participation concentrated enough to matter?
+- is top-25 coverage strong enough to trust the visible picture?
+
+Interpretation rules:
+
+- rising `CADI` with positive recent net flow is constructive
+- buyers above VWAP can mean urgency; buyers below VWAP can mean patient absorption
+- `GVPR` and top-broker share are participation context, not standalone truth
+- low coverage means the visible broker picture is partial
+
+### 5. `ADVANCED_SIGNALS`
+
+These refine the read.
+
+Interpretation rules:
+
+- persistence upgrades conviction; it does not replace direction
+- `HHI` and top-k participation are the preferred concentration backbone
+- divergence is context only
+- wash/anomaly risk is a discount, not a conclusion
+
+### 6. `TRUST_AND_REGIME`
+
+This layer decides whether broker flow deserves weight on this ticker.
+
+Interpretation rules:
+
+- `30D` tells you what brokers are doing now
+- `60D` tells you whether broker-flow signals are generally trustworthy here
+- liquidity and market cap must influence trust
+- high anomaly risk or low coverage must discount trust
+
+### 7. `VERDICT`
+
+The verdict is:
+
+- `ACCUMULATION`
+- `DISTRIBUTION`
+- `NEUTRAL`
+
+It is not:
+
+- `BUY`
+- `HOLD`
+- `WAIT`
+- `EXIT`
+
+Treat it as broker-flow lean only.
+
+### 8. `INTEGRATION_HOOK`
+
+This is the bridge into parent synthesis.
+
+Use:
+
+- `lead`
+- `confirm`
+- `warning`
+- `unclear`
+
+Interpretation:
+
+- `lead`: flow improved before price fully confirmed
+- `confirm`: flow agrees with established price behavior
+- `warning`: flow deteriorated while price still looks stronger
+- `unclear`: timing relationship is mixed
+
+Do not re-derive TA setup families or invalidate TA ownership here.
+
+### 9. `MONITORING`
+
+Always end with:
+
+- what confirms the flow read
+- what weakens it
+- what invalidates it
+- what next review window matters
+
+## Output Contract
+
+Keep the final report smaller than the HTML product UI.
+
+Required sections:
+
+1. `Decision Summary`
+2. `Context`
+3. `Core Metrics`
+4. `Advanced Signals`
+5. `Trust / Regime`
+6. `Integration Hook`
+7. `Monitoring`
+
+### `Decision Summary`
+
+Required fields:
+
+- verdict
+- conviction
+- trust level
+- sponsor-quality lean
+- key caution
+- integration signal
+- next review trigger
+
+### `Context`
+
+Required fields:
+
+- symbol
+- as-of date
+- active window
+- today snapshot included or excluded
+- gross-first note
+
+### `Core Metrics`
+
+Summarize:
+
+- `CADI`
+- recent visible net flow
+- buy vs VWAP
+- sell vs VWAP
+- `GVPR`
+- top buyer / seller share
+- coverage
+
+### `Advanced Signals`
+
+Summarize only what matters:
+
+- persistence
+- concentration asymmetry
+- flow-price trust
+- divergence
+- wash or anomaly risk
+
+### `Trust / Regime`
+
+State:
+
+- liquidity bucket
+- market-cap bucket
+- ticker usefulness
+- trust rationale
+
+### `Integration Hook`
+
+State:
+
+- lead / confirm / warning / unclear
+- whether flow is aligned or contradictory to current price behavior
+- why the parent workflow should care
+
+### `Monitoring`
+
+State:
+
+- confirm-if
+- weaken-if
+- invalidate-if
+- next review window
+
+## Tone And Discipline
+
+- be explicit about what is deterministic versus heuristic
+- call out low coverage or high anomaly risk plainly
+- do not oversell broker-flow as a stand-alone trigger engine
+- keep flow verdict separate from technical execution
+
+## Parent Workflow Boundary
+
+Parent workflow decides how much authority flow gets for the symbol.
+
+Typical use:
+
+- `flow-analysis` builds the broker-flow state
+- `technical-analysis` builds the chart execution baseline
+- parent workflow decides whether flow is:
+  - confirming
+  - leading
+  - warning
+  - too weak to matter
+
+The parent, not this skill, decides the final multi-lens conclusion.

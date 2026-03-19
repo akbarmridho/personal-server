@@ -248,15 +248,25 @@ def _wash_component(
     sell_value = _to_float(sell_row.get("value"))
     if buy_value <= 0 or sell_value <= 0 or vwap_day <= 0 or market_value <= 0:
         return False, 0.0
-    volume_symmetry = 1.0 - abs(buy_value - sell_value) / (buy_value + sell_value)
-    price_symmetry = 1.0 - min(
-        abs(_to_float(buy_row.get("avg_price")) - _to_float(sell_row.get("avg_price")))
-        / vwap_day,
-        1.0,
-    )
-    flagged = volume_symmetry >= 0.90 and price_symmetry >= 0.99
     overlap_share = _safe_ratio(min(buy_value, sell_value), market_value)
-    risk_score = overlap_share * max(volume_symmetry, 0.0) * max(price_symmetry, 0.0)
+    volume_symmetry = 1.0 - abs(buy_value - sell_value) / (buy_value + sell_value)
+    price_gap_ratio = abs(
+        _to_float(buy_row.get("avg_price")) - _to_float(sell_row.get("avg_price"))
+    ) / vwap_day
+    buy_freq = _to_float(buy_row.get("frequency"))
+    sell_freq = _to_float(sell_row.get("frequency"))
+    freq_ratio = (
+        _safe_ratio(min(buy_freq, sell_freq), max(buy_freq, sell_freq))
+        if buy_freq > 0 and sell_freq > 0
+        else 0.0
+    )
+    flagged = (
+        overlap_share >= 0.03
+        and volume_symmetry >= 0.97
+        and price_gap_ratio <= 0.001
+        and freq_ratio >= 0.80
+    )
+    risk_score = overlap_share if flagged else 0.0
     return flagged, risk_score
 
 
