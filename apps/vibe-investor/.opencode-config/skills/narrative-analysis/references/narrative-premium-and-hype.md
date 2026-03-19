@@ -13,6 +13,8 @@ This entry is a compact reference for thinking about **how much "story" is price
 | **Base value** | What the business is worth without "special events" | Normalized earnings/cash flow, peer multiples |
 | **Narrative premium** | Extra price paid for a future story/catalyst | Re-rating, future optionality, forced-buyer events |
 
+Use available fundamental context, keystats, or explicit house research as the base-value anchor. This file helps judge premium over that anchor; it is not a standalone valuation engine.
+
 ## Certainty becomes expensive
 
 IDX narratives often follow this curve:
@@ -30,6 +32,8 @@ IDX narratives often follow this curve:
 | If the catalyst happens exactly as expected, will price still go up materially? | Narrative may be fully priced |
 | Is the story now official + repeated everywhere? | Late-stage/exit-liquidity risk rises |
 | Is participation/crowding expanding (SID/retail attention)? | Liquidity used for distribution |
+
+Crowding evidence is supporting only. Use it to strengthen or weaken a priced-in call, not to validate the story by itself.
 
 ## IDX-specific catalyst classes (where premium comes from)
 

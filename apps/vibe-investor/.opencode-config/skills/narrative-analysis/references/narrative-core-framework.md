@@ -16,19 +16,20 @@ Before story analysis, confirm business viability.
 | Revenue trajectory healthy? | Multi-year decline without recovery plan |
 | Revenue model clear? | Unclear monetization, paper-profit profile |
 
-## Step 2: Classify Narrative Type
+## Step 2: Classify Narrative Regime
 
-| Type | Description | Typical examples |
-|------|-------------|------------------|
-| Thematic play | Riding macro/sector theme | EV chain, data center, energy transition |
-| Earnings turnaround | Recovery from weak base | Margin expansion, debt reduction |
-| Corporate action | Structural event | M&A, spin-off, rights issue |
-| Sector rotation | Capital rotation across sectors | Rate-cut beneficiaries, commodities |
-| Policy beneficiary | Regulation-driven uplift | Incentives, tariff changes |
-| MSCI/index inclusion | Forced-buying narrative | MSCI review, LQ45 inclusion |
-| Conglomerate rerating | Group restructuring story | Asset spin-off, strategic pivot |
-| Dividend play | Payout-driven demand | High/special dividend cycle |
-| Speculative/hype | Story-first, weak numbers | Viral influencer campaign |
+Use the compact house taxonomy.
+
+| Regime | Description | Typical examples |
+|--------|-------------|------------------|
+| `THEME_OR_ROTATION` | Riding macro, sector, commodity, or factor rotation | EV chain, data center, energy transition, rate-cut beneficiaries |
+| `TURNAROUND` | Recovery from weak base | Margin expansion, debt reduction, utilization recovery |
+| `CORPORATE_ACTION` | Structural event | M&A, spin-off, rights issue, asset injection |
+| `POLICY_OR_INDEX_FLOW` | Regulation or forced-flow repricing | Incentives, tariff changes, MSCI review, LQ45 inclusion |
+| `RERATING_OR_YIELD` | Discount closure or payout-led demand | Conglomerate rerating, holdco discount, special dividend cycle |
+| `SPECULATIVE_HYPE` | Story-first, weakly anchored attention trade | Viral influencer campaign, rumor-led chase |
+
+Keep the taxonomy compact. Do not create custom categories unless the case truly cannot fit one of the house regimes.
 
 ## Step 3: Growth Excitement Test
 
@@ -54,13 +55,15 @@ Before story analysis, confirm business viability.
 | Control clarity | Strategic direction visibility |
 | Recent ownership shifts | Possible narrative regime change |
 
+Ownership concentration or shareholder shifts can support crowding assessment, but they do not validate the narrative without stronger evidence from filings, business reality, or catalyst path.
+
 ---
 
 # Catalyst Mapping Framework
 
 ## Catalyst Calendar
 
-Map known and potential catalysts with expected timing.
+Map known and potential catalysts as dossiers, not only a date list.
 
 | Catalyst type | Typical timing | Typical impact |
 |---------------|----------------|----------------|
@@ -81,6 +84,17 @@ Map known and potential catalysts with expected timing.
 - 1-3 months: best setup window if narrative is still under-owned.
 - >6 months: story can stale or be displaced by new narratives.
 
+## Catalyst Dossier Fields
+
+For each material catalyst, define:
+
+- `what`: exact event or milestone
+- `when`: expected timing or date range
+- `how_to_verify`: filing, formal release, regulated event, or other strong evidence path
+- `success_criteria`: what must be true for the catalyst to count as working
+- `probability`: low / medium / high or an equivalent structured judgment
+- `impact`: low / medium / high or an equivalent structured judgment
+
 ## Corporate Action Mechanics (IDX)
 
 When thesis depends on corporate actions, load the corresponding references:
@@ -91,6 +105,25 @@ When thesis depends on corporate actions, load the corresponding references:
 ---
 
 # Narrative Strength And Priced-In Tests
+
+## Narrative Stage
+
+Use one explicit stage:
+
+- `EARLY`: under-recognized, still building sponsorship
+- `BUILDING`: awareness and sponsorship are broadening
+- `LATE`: story is widely known and more of the upside may already be in price
+- `EXHAUSTED`: common knowledge, weak incremental upside, fragile on disappointment
+
+Stage should be judged separately from strength. A narrative can be strong and already late.
+
+## Durability
+
+Assess whether the story is likely to persist:
+
+- `LOW`: short-cycle, binary, or mostly hype
+- `MEDIUM`: meaningful but dependent on a few moving parts
+- `HIGH`: structurally supported by policy, business change, or durable market driver
 
 ## Strength Scoring Matrix (0-15)
 
@@ -120,10 +153,14 @@ A story is likely priced in when:
 - Research notes already consensus the same thesis.
 - Valuation already embeds expected catalyst outcome.
 
+Anchor the priced-in call to an available base-value context from fundamentals, internal research, or keystats. Narrative-analysis should judge premium over that anchor, not fabricate a standalone fair-value model.
+
 Core test:
 
 - If catalyst happens exactly as expected, is there still material upside?
 - If no, upside asymmetry is weak.
+
+Crowding, social spread, and broad repetition can strengthen a "priced-in" call, but they remain supporting evidence. They should not dominate the call when harder evidence disagrees.
 
 ---
 
@@ -131,17 +168,14 @@ Core test:
 
 ## What Breaks The Story
 
-| Narrative type | Typical failure trigger |
-|----------------|-------------------------|
-| Thematic play | Theme fades or demand assumptions fail |
-| Earnings turnaround | Next earnings disconfirm recovery |
-| Corporate action | Deal canceled/blocked or terms worsen |
-| Sector rotation | Macro regime shifts against the sector |
-| Policy beneficiary | Policy delayed/reversed/weaker than expected |
-| MSCI/index | Inclusion fails or expected flow does not materialize |
-| Conglomerate rerating | Strategic pivot execution breaks |
-| Dividend play | Payout below expectations |
-| Speculative/hype | No real business follow-through |
+| Narrative regime | Typical failure trigger |
+|------------------|-------------------------|
+| `THEME_OR_ROTATION` | Theme fades, cross-sector money rotates away, or demand assumptions fail |
+| `TURNAROUND` | Next earnings or operating evidence disconfirm recovery |
+| `CORPORATE_ACTION` | Deal is canceled, blocked, delayed, or terms worsen materially |
+| `POLICY_OR_INDEX_FLOW` | Policy is delayed/reversed/weaker than expected, or forced-flow event fails to materialize |
+| `RERATING_OR_YIELD` | Strategic rerating stalls, discount does not close, or payout disappoints |
+| `SPECULATIVE_HYPE` | No real business follow-through and attention decays |
 
 ## Failure Risk Score (0-3)
 
@@ -165,5 +199,7 @@ Core test:
 ## Failure Discipline
 
 - Define invalidation before acting.
+- Actively seek the strongest disconfirming evidence before finalizing the verdict.
 - If primary invalidation hits, downgrade verdict immediately.
 - Do not rely on social momentum after fundamental or governance failure.
+- Output explicit kill criteria rather than vague caution language.
