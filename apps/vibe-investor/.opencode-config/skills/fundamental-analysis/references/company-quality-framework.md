@@ -6,6 +6,7 @@ Baseline questions:
 
 - What does the company sell and to whom?
 - What drives revenue and margin?
+- What is the product, segment, and geographic mix when material?
 - Where are competitive constraints?
 - Is the business still structurally relevant?
 
@@ -59,15 +60,17 @@ Moat erosion signals:
 
 Checklist:
 
-- Control clarity and free float profile
+- Control clarity, ultimate owner, and free float profile
 - Institutional and foreign holder context
 - Recent holder changes and implications
 - Minority alignment behavior
+- Share pledge or encumbrance risk if explicitly disclosed
 
 Important interpretation warning:
 
 - Custody or nominee names can be misread as active directional holders.
 - Validate custody vs active-holder interpretation before inferring active accumulation from holder names.
+- Use IDX-specific controller and holder interpretation, not promoter/FII/DII shorthand.
 
 ## Management Quality
 
