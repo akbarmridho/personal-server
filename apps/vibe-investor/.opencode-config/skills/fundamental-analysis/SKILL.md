@@ -124,7 +124,6 @@ Archive-only curation source:
 Load sector or mechanism references only when thesis-critical:
 
 - `references/sectors/banking-sector.md`
-- `references/mechanisms/bank-ckpn-writeoff-overdue-diagnostics.md`
 - `references/sectors/sharia-banking-sector.md`
 - `references/sectors/coal-sector.md`
 - `references/sectors/construction-sector.md`
