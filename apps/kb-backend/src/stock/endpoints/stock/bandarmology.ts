@@ -2,7 +2,12 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import { checkSymbol } from "../../aggregator/companies.js";
-import { getMarketDetector } from "../../stockbit/market-detector.js";
+import {
+  getMarketDetector,
+  type MarketDetectorBoard,
+  type MarketDetectorInvestorType,
+  type MarketDetectorTransactionType,
+} from "../../stockbit/market-detector.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -17,6 +22,12 @@ const getClosestWorkingDay = (date: dayjs.Dayjs): dayjs.Dayjs => {
 export const getStockBandarmology = async (
   rawSymbol: string,
   period: "1d" | "1w" | "1m" | "3m" | "1y",
+  options: {
+    transactionType?: MarketDetectorTransactionType;
+    marketBoard?: MarketDetectorBoard;
+    investorType?: MarketDetectorInvestorType;
+    limit?: number;
+  } = {},
 ) => {
   const symbol = await checkSymbol(rawSymbol);
 
@@ -45,5 +56,9 @@ export const getStockBandarmology = async (
     symbol,
     from: from.toDate(),
     to: to.toDate(),
+    transactionType: options.transactionType,
+    marketBoard: options.marketBoard,
+    investorType: options.investorType,
+    limit: options.limit,
   });
 };

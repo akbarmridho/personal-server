@@ -28,9 +28,19 @@ Primary source for this plan:
 
 This source should remain in the `flow-plan` folder as the doctrine and UI reference for the new skill.
 
+Interpretation rule:
+
+- `idx-flow.html` is doctrine and product-language reference
+- the deterministic implementation should only adopt the parts that survive the actual raw data contract
+- product-specific composites or UI metrics should not be promoted into v1 deterministic truth without a defensible formula
+
 Companion human-workflow note:
 
 - `human-flow-analyst-workflow.md`
+
+Companion implementation note:
+
+- `flow-data-fetch-plan.md`
 
 ## Skill Boundary
 
@@ -104,14 +114,12 @@ The future `flow-analysis` skill should think in this order:
 1. `MODE`
 2. `INPUT_SCOPE`
 3. `GROSS_FIRST_READ`
-4. `BROKER_SUMMARY`
-5. `CORE_METRICS`
-6. `ADVANCED_SIGNALS`
-7. `BROKER_DISTRIBUTION`
-8. `TRUST_AND_REGIME`
-9. `VERDICT`
-10. `INTEGRATION_HOOK`
-11. `MONITORING`
+4. `CORE_METRICS`
+5. `ADVANCED_SIGNALS`
+6. `TRUST_AND_REGIME`
+7. `VERDICT`
+8. `INTEGRATION_HOOK`
+9. `MONITORING`
 
 ## Phase Meaning
 
@@ -151,34 +159,15 @@ Use `net` only as a secondary compression layer.
 
 The system should treat gross-first reading as mandatory because net can hide meaningful two-way activity.
 
-### 4. `BROKER_SUMMARY`
-
-This layer should answer:
-
-- who is actually active
-- whether activity is concentrated or noisy
-- whether one serious buyer or seller is dominating
-- whether the buy side is absorbing fragmented sellers or the reverse
-
-Core fields:
-
-- total lots
-- total value
-- top buyer share
-- top seller share
-- average buy price
-- average sell price
-- dominant broker list
-
-### 5. `CORE_METRICS`
+### 4. `CORE_METRICS`
 
 This layer should own:
 
 - `CADI`
 - broker-side `VWAP` execution-quality interpretation
 - `GVPR`
-- `MFI` as an internal verdict input
-- `Frequency` as an internal verdict input
+- top buyer / seller share
+- coverage quality from top-25 visibility
 - verdict factors derived from those metrics
 
 Core questions:
@@ -188,16 +177,20 @@ Core questions:
 - is participation concentrated enough to matter?
 
 `MFI` and `Frequency` should live here as verdict-computation inputs, not as separate analyst-facing phases.
+`MFI` should stay out of the first deterministic contract until it has a defensible computation from the actual broker-summary raw inputs.
+`Frequency` should also stay secondary until it proves stable and additive beyond value-based flow features.
 
-### 6. `ADVANCED_SIGNALS`
+The skill may still derive sponsor-quality and concentration features from daily broker-summary snapshots, but those raw tables should stay internal to deterministic preprocessing rather than become first-class LLM-facing report sections.
+
+### 5. `ADVANCED_SIGNALS`
 
 This layer should own:
 
-- `SMT`
 - flow divergence
 - flow-price correlation
 - broker persistence
 - concentration asymmetry
+- concentration strength via `HHI` and top-k participation
 - wash-risk or anomaly-risk checks when relevant
 
 These are not primary direction generators.
@@ -208,21 +201,10 @@ The underlying factor model should stay continuous rather than binary.
 Planning assumption:
 
 - factor scores should support smooth interpretation, such as a bounded negative-to-positive scale, instead of hard on-off flags
+- `SMT` may exist later as a product-layer composite, but it should not be treated as the base deterministic truth in v1
+- `Gini` should not be the primary concentration backbone in v1 under top-25 truncation
 
-### 7. `BROKER_DISTRIBUTION`
-
-This layer should visually confirm relationship structure.
-
-Questions:
-
-- who is feeding whom?
-- is one serious buyer absorbing fragmented sellers?
-- is one serious seller distributing into scattered buyers?
-- is the relationship structure concentrated enough to strengthen the read?
-
-This should stay a confirmation layer, not the primary direction layer.
-
-### 8. `TRUST_AND_REGIME`
+### 6. `TRUST_AND_REGIME`
 
 This layer should answer:
 
@@ -239,7 +221,13 @@ This is where:
 
 should affect confidence.
 
-### 9. `VERDICT`
+Window rule:
+
+- use `30` trading days as the active read for direction, sponsor quality, and current state
+- use `60` trading days as the trust and stability read for correlation and ticker usefulness
+- do not collapse those jobs into one window
+
+### 7. `VERDICT`
 
 This layer should produce:
 
@@ -263,7 +251,7 @@ not as:
 
 Verdict scoring should stay continuous under the hood even if the outward label is categorical.
 
-### 10. `INTEGRATION_HOOK`
+### 8. `INTEGRATION_HOOK`
 
 This layer should prepare the result for parent synthesis with technical analysis.
 
@@ -282,7 +270,7 @@ Lead-versus-confirm should follow these rules:
 - `warning`: technical structure still looks constructive but broker-flow deteriorates materially
 - `unclear`: timing relationship is ambiguous or both clocks shift together without clean precedence
 
-### 11. `MONITORING`
+### 9. `MONITORING`
 
 This layer should define:
 
@@ -303,6 +291,13 @@ These ideas from `idx-flow.html` should become first-class doctrine:
 - correlation and active regime should decide how much trust to give the skill
 - concentration and persistence matter more than one-off spikes
 
+Additional implementation rules from the research pass:
+
+- top-25 truncation must be treated explicitly through coverage awareness
+- `HHI` plus top-k participation is a safer deterministic concentration backbone than `Gini`
+- wash-risk stays a proxy and risk discount, not a claim of actual detected wash trading
+- divergence remains contextual and must not become a trigger
+
 ## Expected Output Shape
 
 The future output should be smaller than the HTML UI but keep the same logic.
@@ -316,7 +311,6 @@ Always required:
 - symbol
 - date range
 - gross-versus-net read note
-- broker summary conclusion
 - core metrics conclusion
 - advanced-signal conclusion
 - trust/regime conclusion
@@ -335,11 +329,17 @@ Recommended `Decision Summary` fields:
 - integration signal
 - next review trigger
 
+Internal deterministic defaults for v1:
+
+- `30D` primary window for CADI, persistence, VWAP execution, GVPR, and baseline verdict
+- `60D` trust window for correlation and ticker-usefulness assessment
+- `MFI` excluded from the first deterministic packet
+- `SMT` excluded as base truth and treated, at most, as later heuristic presentation
+
 Conditional:
 
 - persistence detail when it matters
 - divergence detail when present
-- broker-distribution note when relationship structure is especially meaningful
 - anomaly or wash-risk warning when relevant
 - supporting note for internal verdict inputs only when they materially affect conviction
 
@@ -347,8 +347,8 @@ Future template shape should be rewritten around the flow workflow:
 
 1. `Decision Summary`
 2. `Context`
-3. `Broker Summary And Core Metrics`
-4. `Trust And Verdict`
+3. `Core Metrics`
+4. `Advanced Signals, Trust And Verdict`
 5. `Integration And Monitoring`
 6. `Conditional Details`
 7. `Evidence`
@@ -370,7 +370,7 @@ But it should not be forced into the exact same backtest shape as `technical-ana
 
 Still, a large part of the skill remains deterministic and testable:
 
-- broker summary aggregation
+- daily broker-summary series normalization
 - top buyer and seller share
 - average buy and sell price
 - `CADI`
@@ -380,7 +380,8 @@ Still, a large part of the skill remains deterministic and testable:
 - concentration asymmetry
 - flow-price correlation
 - active regime labels
-- broker-distribution inputs
+
+For v1, keep raw broker-summary tables and broker-distribution views as preprocessing inputs, not as required LLM-facing sections.
 
 ### Recommended Evaluation Modes
 
@@ -517,14 +518,14 @@ Inside the future `flow-analysis` skill:
 - `references/workflow-spine.md`
 - `references/policy-contract.md`
 - `references/data-contract.md`
-- `references/broker-summary-and-gross-net.md`
+- `references/gross-net-and-core-metrics.md`
 - `references/core-metrics-and-verdict.md`
 - `references/advanced-signals-and-trust.md`
 - `references/integration-with-technical-analysis.md`
 - `references/output-report-template.md`
 - `references/enums-and-glossary.md`
 
-`broker-summary-and-gross-net.md` should also own broker-distribution interpretation so the future file set stays compact.
+`gross-net-and-core-metrics.md` should own the raw gross-first reading rule and the deterministic feature inputs derived from daily broker-summary data.
 
 ## Overlap Handling
 

@@ -14,6 +14,7 @@ import { getCompanies } from "./aggregator/companies.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";
 import { getIHSGOverview } from "./endpoints/ihsg/overview.js";
 import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
+import { getStockBrokerFlowRawSeries } from "./endpoints/stock/broker-flow-raw.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
@@ -184,6 +185,37 @@ export const setupStockRoutes = () =>
           summary: "Get stock bandarmology data",
           description:
             "Returns bandarmology (smart money) analysis including foreign/domestic flow, broker activity, and accumulation/distribution patterns",
+        },
+      },
+    )
+    .get(
+      "/stock/:symbol/broker-flow/raw",
+      async ({ params, query, set }) => {
+        try {
+          const symbol = params.symbol.trim().toUpperCase();
+          const data = await getStockBrokerFlowRawSeries(symbol, {
+            asOfDate: query.as_of_date,
+            tradingDays: query.trading_days,
+          });
+
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get raw broker flow data failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        params: t.Object({ symbol: t.String() }),
+        query: t.Object({
+          as_of_date: t.Optional(t.String()),
+          trading_days: t.Optional(t.String()),
+        }),
+        detail: {
+          tags: ["Stock Technical Analysis"],
+          summary: "Get raw daily broker-flow series",
+          description:
+            "Returns normalized daily broker-summary snapshots for the requested symbol using actual trading dates derived from daily OHLCV. Uses ALL investor, REGULAR market, and GROSS transaction mode. Optional as_of_date=YYYY-MM-DD truncates the visible window to that Jakarta calendar date. Optional trading_days controls the number of trading sessions returned, default 30 and maximum 60.",
         },
       },
     )

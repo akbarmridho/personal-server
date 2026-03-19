@@ -16,15 +16,17 @@ apps/vibe-investor/
 ├── src/
 │   ├── config-resolver.ts        # {env:...} and {file:...} resolution
 │   └── resolve-config.ts         # Resolver entrypoint
-├── .opencode-config/
-│   ├── tools/
-│   │   ├── fetch-ohlcv.ts        # Fetch 3yr OHLCV data for IDX stocks
-│   │   └── deep-doc-extract.ts   # Goal-based large-doc extraction via OpenRouter
-│   └── skills/                   # On-demand knowledge modules
-│       ├── technical-analysis/
-│       ├── fundamental-analysis/
-│       ├── narrative-analysis/
-│       └── portfolio-management/
+    ├── .opencode-config/
+    │   ├── tools/
+    │   │   ├── fetch-ohlcv.ts        # Fetch 3yr OHLCV data for IDX stocks
+    │   │   ├── fetch-broker-flow.ts  # Fetch daily broker-flow series for IDX stocks
+    │   │   └── deep-doc-extract.ts   # Goal-based large-doc extraction via OpenRouter
+    │   └── skills/                   # On-demand knowledge modules
+    │       ├── flow-analysis/
+    │       ├── technical-analysis/
+    │       ├── fundamental-analysis/
+    │       ├── narrative-analysis/
+    │       └── portfolio-management/
 ├── prompts/
 │   └── vibe-investor/
 │       └── main.md               # Base agent prompt
@@ -110,6 +112,7 @@ One `vibe-investor` agent with a lightweight base prompt. Deep domain knowledge 
 
 | Skill | Domain |
 |-------|--------|
+| `flow-analysis` | Broker flow, sponsor quality, trust regime, lead/confirm context |
 | `technical-analysis` | Wyckoff, S/R, price-volume, charting, execution |
 | `fundamental-analysis` | Financial health, valuation methods, moat, risk |
 | `narrative-analysis` | Catalysts, story, re-rating potential |
@@ -137,6 +140,12 @@ Filesystem-based memory using markdown files.
 ### fetch-ohlcv
 
 Fetches 3 years of daily OHLCV data for Indonesian stocks from kb.akbarmr.dev. Saves to file to avoid context window bloat.
+
+### fetch-broker-flow
+
+Fetches a normalized daily broker-flow series for Indonesian stocks from kb.akbarmr.dev. Saves to file to avoid context window bloat.
+
+Default broker-flow fetch window is `60` trading days so downstream builders can use a `30D` primary read and a `60D` trust window from the same raw payload.
 
 ### deep-doc-extract
 

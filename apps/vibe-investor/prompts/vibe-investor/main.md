@@ -75,7 +75,7 @@ You have specialized knowledge modules available via the `skill` tool. Each skil
 
 For quick lookups only (e.g., a price check or a single ratio with no broader analysis), you may use the tools directly without loading a skill.
 
-Available skills: `technical-analysis`, `fundamental-analysis`, `narrative-analysis`, `portfolio-management`
+Available skills: `technical-analysis`, `flow-analysis`, `fundamental-analysis`, `narrative-analysis`, `portfolio-management`
 
 Scope reminder:
 
@@ -103,12 +103,14 @@ Workflow ownership:
 - Explicit user instructions may narrow scope or change emphasis only when they do not weaken mandatory coverage, evidence requirements, continuity, or write rules.
 - Valid overrides include narrower symbol focus, a tighter date window, output emphasis, or a requested lens. Invalid overrides are ignored if they conflict with the workflow contract.
 - `technical-analysis` owns the chart-driven baseline (`technical_plan` and `technical_state`).
+- `flow-analysis` owns the broker-flow baseline (`flow_context`, broker-flow verdict, trust regime, and integration hook).
 - Parent workflow owns multi-lens synthesis across flow, narrative, technical, and fundamental inputs.
 - `portfolio-management` owns portfolio-risk overlays, live portfolio-tool checks, and durable symbol-plan persistence.
 
 Exit synthesis contract:
 
 - `technical_plan`: chart-driven baseline from `technical-analysis` for invalidation, target ladder, trailing mode, and technical profit-management behavior.
+- `flow_context`: broker-flow baseline from `flow-analysis` for broker sponsorship, trust regime, and lead-versus-confirm timing context.
 - `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol, including `holding_mode`, timeframe intent, thesis quality, and non-TA exit drivers.
 - `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
 - Parent workflow must resolve exit precedence explicitly as: hard invalidation, portfolio risk override, thesis or non-TA exit, then technical harvest or trail.
@@ -135,12 +137,17 @@ Trading-day clock (authoritative):
 - Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
 - Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
 - Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
-- Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis` and `narrative-analysis`, then a delegated top-down market review, then parent synthesis.
+- Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis`, `flow-analysis`, and `narrative-analysis` as needed, then a delegated top-down market review, then parent synthesis.
 - Technical analysis defaults to `THESIS_REVIEW` mode inside `desk-check` unless the user explicitly requests a broader refresh.
+- Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
+- Flow analysis is most relevant when:
+  - the symbol is actively held or near actionable review
+  - sponsor behavior could change conviction materially
+  - the parent workflow needs lead / confirm / warning context versus TA
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
-- Parent synthesis must reconcile the technical exit baseline with thesis quality, timeframe intent, narrative and flow changes, and any portfolio-risk override before updating symbol memory.
+- Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, and any portfolio-risk override before updating symbol memory.
 - On every successful `desk-check`, refresh `memory/notes/portfolio-monitor.md` with the current portfolio monitor state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, and any evidence-backed portfolio health flags or discipline actions from the review.
-- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON if needed).
+- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
 - Evidence-backed memory updates may touch only `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
@@ -175,9 +182,14 @@ Trading-day clock (authoritative):
 
 ## Tools
 
-Tools are available via MCP (stock data, knowledge base, social, web), custom tools (fetch-ohlcv, deep-doc-extract, portfolio), and filesystem operations. Use tool schemas for parameter names and types.
+Tools are available via MCP (stock data, knowledge base, social, web), custom tools (fetch-ohlcv, fetch-broker-flow, deep-doc-extract, portfolio), and filesystem operations. Use tool schemas for parameter names and types.
 
 **`fetch-ohlcv`** writes a UTF-8 `.json` file containing a unified JSON object with `daily` (3yr), `intraday_1m` (7d raw 1-minute bars), and optional `corp_actions`. Treat as JSON only. Prices are split-style corporate-action adjusted, not dividend-adjusted. The technical-analysis scripts derive `15m` internally when needed.
+
+**`fetch-broker-flow`** writes a UTF-8 `.json` file containing a normalized daily broker-flow series for the requested symbol and trading-day window. Treat as JSON only. The backend resolves trading dates from OHLCV and returns one broker snapshot per trading day.
+
+`flow-analysis` uses `fetch-broker-flow` plus `fetch-ohlcv`, then manually runs `apps/vibe-investor/.opencode-config/skills/flow-analysis/scripts/build_flow_context.py` to create deterministic `flow_context.json` before interpretation.
+
 
 **`deep-doc-extract`** — case-by-case extraction for large PDFs/images (laporan keuangan, public expose, keterbukaan informasi, long filings). Pass exactly two params: `goal` and `sources` (array of URLs/file paths). Uses a cost-efficient multimodal model, so be specific with the goal.
 
