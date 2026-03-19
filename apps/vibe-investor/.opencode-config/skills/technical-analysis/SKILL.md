@@ -293,7 +293,7 @@ When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved co
 
 #### Conditional
 
-`F13_VOLUME_CONFLUENCE_WEAK` | `F14_BREAKOUT_FILTER_WEAK` | `F15_MA_WHIPSAW` | `F16_PRICE_LIMIT_PROXIMITY`
+`F13_VOLUME_CONFLUENCE_WEAK` | `F14_BREAKOUT_FILTER_WEAK` | `F15_MA_WHIPSAW` | `F16_PRICE_LIMIT_PROXIMITY` | `F17_LIQUIDITY_WEAK`
 
 #### Severity: `low` | `medium` | `high` | `critical`
 
@@ -302,6 +302,7 @@ Severity guidance:
 - `F6_MA_BREAKDOWN`: `medium` when price loses `21EMA` only; `high` when price loses `50SMA` or is below both
 - `F3_WEAK_BREAKOUT`: treat more severely when continuation structure is no longer intact
 - `F16_PRICE_LIMIT_PROXIMITY`: use for either `close_near_*` or `intrabar_*_near_*` limit behavior; `medium` by default, escalate to `high` when the day finished near the limit and that bar is core to the breakout or downside-stress interpretation
+- `F17_LIQUIDITY_WEAK`: use 20-day average daily value buckets; `medium` for `low` liquidity (`Rp1B–10B`), `high` for `very_low` liquidity (`< Rp1B`); only the `high` tier should hard-block entries in deterministic policy
 
 Every red flag must include `flag_id`, `severity`, `why`. Include an overall risk summary with one short rationale.
 
@@ -399,7 +400,7 @@ Use when materially relevant: daily open, weekly open, monthly open, round-numbe
 
 ### Volume Profile (VPVR)
 
-Map institutional participation by price to strengthen zone quality.
+Map volume concentration by price to strengthen zone quality.
 
 Components:
 
@@ -418,9 +419,11 @@ Rules:
 
 Mapping: build at least one anchor profile on the active structure leg. Add one fixed-range profile on last major consolidation/distribution range. Convert key levels into zones with ATR-aware width.
 
-### Liquidity Draw And Sweep
+### Liquidity Draw And Level Excursion
 
-Direction, entry timing, and targets are framed by where liquidity is likely to be taken next.
+Direction, entry timing, and targets are framed by where obvious resting liquidity is likely to be challenged next.
+
+Compatibility note: runtime fields still use `sweep` naming for schema stability. In interpretation, read those fields as observable level excursions and their acceptance or rejection outcome, not as proof of intentional stop-hunting.
 
 Liquidity pools: swing highs/lows, clustered equal highs/lows, trendline stop clusters, range boundaries (external), internal reaction zones.
 
@@ -429,20 +432,20 @@ Liquidity pools: swing highs/lows, clustered equal highs/lows, trendline stop cl
 
 Alternation model (heuristic):
 
-1. Rejected external sweep → next draw often shifts to internal
-2. Accepted external sweep → may continue toward external-side objective
+1. Rejected external level excursion → next draw often shifts to internal
+2. Accepted external level excursion → may continue toward external-side objective
 3. After internal tag → depends on acceptance or rejection
 
 Rules:
 
 - `R-LIQ-01` Always identify current draw and opposing draw.
-- `R-LIQ-02` Sweep must be labeled acceptance or rejection.
-- `R-LIQ-03` Wick-only sweep without follow-through is not directional confirmation.
-- `R-LIQ-04` HTF sweep should pair with LTF execution trigger when available.
+- `R-LIQ-02` Level excursion must be labeled acceptance or rejection.
+- `R-LIQ-03` Wick-only excursion without follow-through is not directional confirmation.
+- `R-LIQ-04` HTF excursion should pair with LTF execution trigger when available.
 - `R-LIQ-05` If draw target is unclear, downgrade directional conviction.
 - `R-LIQ-06` Liquidity narrative cannot override invalidation and risk rules.
 
-HTF-LTF alignment: define HTF liquidity objective → wait for sweep signal and classify → shift to LTF for entry trigger → stop beyond sweep extreme or structural invalidation → target next mapped liquidity pool.
+HTF-LTF alignment: define HTF liquidity objective → wait for level excursion signal and classify it → shift to LTF for entry trigger → stop beyond the excursion extreme or structural invalidation → target next mapped liquidity pool.
 
 ### Practical Mapping Order
 
@@ -461,7 +464,7 @@ Select one setup family, demand the right trigger, confirm it, then convert into
 
 - `S1` breakout and retest continuation
 - `S2` pullback to demand in intact uptrend
-- `S3` sweep and reclaim reversal
+- `S3` excursion and reclaim reversal
 - `S4` range edge rotation
 - `S5` Wyckoff spring with reclaim
 - `NO_VALID_SETUP`
@@ -484,9 +487,9 @@ Use when daily regime supports continuation, resistance is meaningfully challeng
 
 Use when trend remains intact, price returns to meaningful support/demand, pullback quality is constructive. Needs: support hold, acceptable selling pressure, thesis aligned with daily structure.
 
-#### `S3` Sweep And Reclaim Reversal
+#### `S3` Excursion And Reclaim Reversal
 
-Use when sweep behavior is central, price takes liquidity and snaps back, reversal context is plausible. Needs: clear sweep, reclaim or rejection, confirmation that reclaim is holding.
+Use when level-excursion behavior is central, price briefly trades through a liquidity pocket and snaps back, and reversal context is plausible. Needs: clear excursion, reclaim or rejection, confirmation that reclaim is holding.
 
 #### `S4` Range Edge Rotation
 
@@ -494,7 +497,7 @@ Use when regime is balance, price is at range edge, edge reaction is clean. Need
 
 #### `S5` Wyckoff Spring With Reclaim
 
-Use when range/accumulation context is credible, support sweep behaves like a spring, reclaim is visible. Needs: spring-like sweep, reclaim of relevant level, follow-through strong enough to avoid trap failure.
+Use when range/accumulation context is credible, support-side excursion behaves like a spring, and reclaim is visible. Needs: spring-like excursion, reclaim of relevant level, follow-through strong enough to avoid trap failure.
 
 ### Trigger Rules
 

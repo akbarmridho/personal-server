@@ -1093,7 +1093,7 @@ def detect_wyckoff_spring(
     wyckoff_ctx: str,
     lookback: int = 10,
 ) -> dict[str, Any]:
-    """Detect Wyckoff spring: price sweeps below support then reclaims above it.
+    """Detect Wyckoff spring: price briefly trades below support then reclaims above it.
 
     A spring requires:
     1. Context is accumulation or balance-like (not markup/markdown).
@@ -1116,9 +1116,9 @@ def detect_wyckoff_spring(
     if tail.empty:
         return {"detected": False, "reason": "no_bars_after_support"}
 
-    swept_below = tail["low"].min() < support_level
-    if not swept_below:
-        return {"detected": False, "reason": "no_sweep_below_support"}
+    dipped_below = tail["low"].min() < support_level
+    if not dipped_below:
+        return {"detected": False, "reason": "no_excursion_below_support"}
 
     last_close = float(tail["close"].iloc[-1])
     reclaimed = last_close > support_level
@@ -1130,7 +1130,7 @@ def detect_wyckoff_spring(
         "reason": "ok",
         "support_level": support_level,
         "support_datetime": str(support_dt),
-        "sweep_low": float(tail["low"].min()),
+        "excursion_low": float(tail["low"].min()),
         "reclaim_close": last_close,
     }
 

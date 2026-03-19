@@ -711,11 +711,11 @@ def plot_structure_events(
     if sweep_events:
         legend_handles.append(
             Line2D([], [], marker="D", linestyle="None", markerfacecolor="#00c853",
-                   markeredgecolor="#111111", markersize=7, label="Sweep accepted"),
+                   markeredgecolor="#111111", markersize=7, label="Excursion accepted"),
         )
         legend_handles.append(
             Line2D([], [], marker="D", linestyle="None", markerfacecolor="#e53935",
-                   markeredgecolor="#111111", markersize=7, label="Sweep rejected"),
+                   markeredgecolor="#111111", markersize=7, label="Excursion rejected"),
         )
     ax.legend(handles=legend_handles, loc="upper left", fontsize=7, ncol=2, framealpha=0.9)
 
@@ -724,7 +724,7 @@ def plot_structure_events(
     if draws_list:
         info_parts.append(f"curr_draw={draws.get('current_draw')} | opp_draw={draws.get('opposing_draw')}")
     if sweep_label != "none":
-        info_parts.append(f"sweep={sweep_label} side={sweep_side or '?'} outcome={sweep_outcome} path={path_state}")
+        info_parts.append(f"excursion={sweep_label} side={sweep_side or '?'} outcome={sweep_outcome} path={path_state}")
     if info_parts:
         ax.text(
             1.02, 1.15, "\n".join(info_parts),

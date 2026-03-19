@@ -37,6 +37,7 @@ from ta_context_execution import (
     build_trigger_confirmation,
 )
 from ta_context_flags import (
+    average_daily_value_profile,
     build_red_flags,
     count_distribution_days,
     detect_ma_whipsaw,
@@ -239,6 +240,7 @@ def build_ta_context_result(
             else None
         ),
     )
+    liquidity_profile = average_daily_value_profile(daily, window=20)
     price_limit_proximity = (
         idx_price_limit_proximity(
             prev_close=float(prev_close),
@@ -346,6 +348,11 @@ def build_ta_context_result(
         position_state=position_state,
         risk_status=str(risk_map["risk_status"]),
         distribution_day_count=dist_days["count"],
+        liquidity_category=(
+            str(liquidity_profile["category"])
+            if isinstance(liquidity_profile, dict)
+            else None
+        ),
         price_limit_proximity=(
             str(price_limit_proximity["state"])
             if isinstance(price_limit_proximity, dict)

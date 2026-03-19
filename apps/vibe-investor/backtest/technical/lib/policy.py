@@ -10,6 +10,7 @@ ENTRY_BLOCKING_FLAGS = {
     "F3_WEAK_BREAKOUT",
     "F6_MA_BREAKDOWN",
     "F16_PRICE_LIMIT_PROXIMITY",
+    "F17_LIQUIDITY_WEAK",
 }
 EXIT_FLAGS = {"F1_STRUCTURE_BREAK", "F3_WEAK_BREAKOUT", "F6_MA_BREAKDOWN"}
 
@@ -165,6 +166,8 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
     if high_flags & ENTRY_BLOCKING_FLAGS:
         if "F16_PRICE_LIMIT_PROXIMITY" in high_flags:
             return PolicyDecision("WAIT", "price_limit_proximity_distorts_entry_bar", setup_id, False)
+        if "F17_LIQUIDITY_WEAK" in high_flags:
+            return PolicyDecision("WAIT", "very_low_liquidity", setup_id, False)
         return PolicyDecision("WAIT", "high_severity_entry_blocker", setup_id, False)
     if liquidity_alignment == "contradictory":
         return PolicyDecision("WAIT", "liquidity_contradicts_setup", setup_id, False)

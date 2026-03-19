@@ -8,6 +8,9 @@ import pandas as pd
 from ta_common import add_atr14, add_ma_stack, add_volume_features
 
 IDX_PRICE_LIMIT_PROXIMITY_THRESHOLD_PCT = 0.01
+HIGH_LIQUIDITY_ADTV = 50_000_000_000.0
+MEDIUM_LIQUIDITY_ADTV = 10_000_000_000.0
+LOW_LIQUIDITY_ADTV = 1_000_000_000.0
 
 
 def normalize_red_flags(red_flags: dict[str, Any]) -> list[dict[str, Any]]:
@@ -29,6 +32,40 @@ def count_distribution_days(df: pd.DataFrame, window: int = 20) -> dict[str, Any
         "dates": [str(value) for value in days["datetime"].tolist()]
         if "datetime" in days.columns
         else [],
+    }
+
+
+def average_daily_value_profile(
+    df: pd.DataFrame, window: int = 20,
+) -> dict[str, Any] | None:
+    if df.empty:
+        return None
+    x = df.tail(window).copy()
+    if "value" in x.columns:
+        value_series = pd.to_numeric(x["value"], errors="coerce")
+    else:
+        value_series = pd.Series(index=x.index, dtype=float)
+    if value_series.isna().all():
+        value_series = (
+            pd.to_numeric(x.get("close"), errors="coerce")
+            * pd.to_numeric(x.get("volume"), errors="coerce")
+        )
+    value_series = value_series.dropna()
+    if value_series.empty:
+        return None
+    avg_daily_value = float(value_series.mean())
+    if avg_daily_value > HIGH_LIQUIDITY_ADTV:
+        category = "high"
+    elif avg_daily_value >= MEDIUM_LIQUIDITY_ADTV:
+        category = "medium"
+    elif avg_daily_value >= LOW_LIQUIDITY_ADTV:
+        category = "low"
+    else:
+        category = "very_low"
+    return {
+        "avg_daily_value": round(avg_daily_value, 2),
+        "category": category,
+        "window": int(min(len(df), window)),
     }
 
 
@@ -111,6 +148,7 @@ def build_red_flags(
     position_state: str,
     risk_status: str,
     distribution_day_count: int,
+    liquidity_category: str | None = None,
     price_limit_proximity: str | None = None,
     price_limit_proximity_mode: str | None = None,
     breakout_displacement_state: str | None = None,
@@ -224,6 +262,22 @@ def build_red_flags(
                 "flag_id": "F12_BREAKOUT_STALLING",
                 "severity": "MEDIUM",
                 "why": "breakout_lacks_clean_displacement",
+            }
+        )
+    if liquidity_category == "very_low":
+        flags.append(
+            {
+                "flag_id": "F17_LIQUIDITY_WEAK",
+                "severity": "HIGH",
+                "why": "average_daily_value_very_low_below_1b",
+            }
+        )
+    elif liquidity_category == "low":
+        flags.append(
+            {
+                "flag_id": "F17_LIQUIDITY_WEAK",
+                "severity": "MEDIUM",
+                "why": "average_daily_value_low_1b_to_10b",
             }
         )
     if price_limit_proximity == "near_ara":
