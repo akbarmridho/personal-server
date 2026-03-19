@@ -7,6 +7,8 @@ import pandas as pd
 
 from ta_common import add_atr14, add_ma_stack, add_volume_features
 
+IDX_PRICE_LIMIT_PROXIMITY_THRESHOLD_PCT = 0.01
+
 
 def normalize_red_flags(red_flags: dict[str, Any]) -> list[dict[str, Any]]:
     return [
@@ -109,6 +111,8 @@ def build_red_flags(
     position_state: str,
     risk_status: str,
     distribution_day_count: int,
+    price_limit_proximity: str | None = None,
+    price_limit_proximity_mode: str | None = None,
     breakout_displacement_state: str | None = None,
     ma_whipsaw_flags: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
@@ -222,6 +226,38 @@ def build_red_flags(
                 "why": "breakout_lacks_clean_displacement",
             }
         )
+    if price_limit_proximity == "near_ara":
+        flags.append(
+            {
+                "flag_id": "F16_PRICE_LIMIT_PROXIMITY",
+                "severity": (
+                    "HIGH"
+                    if price_limit_proximity_mode == "close" and breakout_state == "valid_breakout"
+                    else "MEDIUM"
+                ),
+                "why": (
+                    "close_near_idx_upper_auto_rejection_limit"
+                    if price_limit_proximity_mode == "close"
+                    else "intrabar_high_near_idx_upper_auto_rejection_limit"
+                ),
+            }
+        )
+    elif price_limit_proximity == "near_arb":
+        flags.append(
+            {
+                "flag_id": "F16_PRICE_LIMIT_PROXIMITY",
+                "severity": (
+                    "HIGH"
+                    if price_limit_proximity_mode == "close" and position_state == "long"
+                    else "MEDIUM"
+                ),
+                "why": (
+                    "close_near_idx_lower_auto_rejection_limit"
+                    if price_limit_proximity_mode == "close"
+                    else "intrabar_low_near_idx_lower_auto_rejection_limit"
+                ),
+            }
+        )
     for flag in ma_whipsaw_flags or []:
         add_flag(
             flags,
@@ -256,6 +292,63 @@ def nearest_support_distance_pct(
         return None
     nearest = max(supports)
     return abs((last_close - nearest) / max(last_close, 1e-9))
+
+
+def idx_price_limit_proximity(
+    *,
+    prev_close: float,
+    last_high: float,
+    last_low: float,
+    last_close: float,
+) -> dict[str, Any] | None:
+    if prev_close <= 0:
+        return None
+    if prev_close <= 200:
+        ara_pct = 0.35
+    elif prev_close <= 5000:
+        ara_pct = 0.25
+    else:
+        ara_pct = 0.20
+    arb_pct = 0.15
+
+    upper_limit = float(prev_close) * (1.0 + ara_pct)
+    lower_limit = float(prev_close) * (1.0 - arb_pct)
+    close_near_upper = float(last_close) >= upper_limit * (
+        1.0 - IDX_PRICE_LIMIT_PROXIMITY_THRESHOLD_PCT
+    )
+    close_near_lower = float(last_close) <= lower_limit * (
+        1.0 + IDX_PRICE_LIMIT_PROXIMITY_THRESHOLD_PCT
+    )
+    intrabar_near_upper = (
+        float(last_high) >= upper_limit * (1.0 - IDX_PRICE_LIMIT_PROXIMITY_THRESHOLD_PCT)
+        and not close_near_upper
+    )
+    intrabar_near_lower = (
+        float(last_low) <= lower_limit * (1.0 + IDX_PRICE_LIMIT_PROXIMITY_THRESHOLD_PCT)
+        and not close_near_lower
+    )
+
+    if close_near_upper:
+        state = "near_ara"
+        mode = "close"
+    elif close_near_lower:
+        state = "near_arb"
+        mode = "close"
+    elif intrabar_near_upper and not intrabar_near_lower:
+        state = "near_ara"
+        mode = "intrabar"
+    elif intrabar_near_lower and not intrabar_near_upper:
+        state = "near_arb"
+        mode = "intrabar"
+    else:
+        return None
+
+    return {
+        "state": state,
+        "mode": mode,
+        "upper_limit": round(float(upper_limit), 4),
+        "lower_limit": round(float(lower_limit), 4),
+    }
 
 
 def enrich_red_flags(

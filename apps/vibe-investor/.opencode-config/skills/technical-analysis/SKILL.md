@@ -283,6 +283,7 @@ When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved co
 - Downgrade confidence when `15m` timing conflicts with daily thesis
 - Treat mid-range noise as weak location
 - Treat weak follow-through as veto or delay, not proof
+- Treat daily candles that finish near IDX auto-rejection limits, or that nearly hit those limits intrabar without finishing there, as mechanically distorted context rather than clean structural proof
 
 ### Red Flags
 
@@ -292,7 +293,7 @@ When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved co
 
 #### Conditional
 
-`F13_VOLUME_CONFLUENCE_WEAK` | `F14_BREAKOUT_FILTER_WEAK` | `F15_MA_WHIPSAW`
+`F13_VOLUME_CONFLUENCE_WEAK` | `F14_BREAKOUT_FILTER_WEAK` | `F15_MA_WHIPSAW` | `F16_PRICE_LIMIT_PROXIMITY`
 
 #### Severity: `low` | `medium` | `high` | `critical`
 
@@ -300,6 +301,7 @@ Severity guidance:
 
 - `F6_MA_BREAKDOWN`: `medium` when price loses `21EMA` only; `high` when price loses `50SMA` or is below both
 - `F3_WEAK_BREAKOUT`: treat more severely when continuation structure is no longer intact
+- `F16_PRICE_LIMIT_PROXIMITY`: use for either `close_near_*` or `intrabar_*_near_*` limit behavior; `medium` by default, escalate to `high` when the day finished near the limit and that bar is core to the breakout or downside-stress interpretation
 
 Every red flag must include `flag_id`, `severity`, `why`. Include an overall risk summary with one short rationale.
 

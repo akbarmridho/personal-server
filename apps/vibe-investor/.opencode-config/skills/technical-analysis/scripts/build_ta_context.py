@@ -41,6 +41,7 @@ from ta_context_flags import (
     count_distribution_days,
     detect_ma_whipsaw,
     enrich_red_flags,
+    idx_price_limit_proximity,
     normalize_red_flags,
 )
 from ta_context_location import (
@@ -238,6 +239,16 @@ def build_ta_context_result(
             else None
         ),
     )
+    price_limit_proximity = (
+        idx_price_limit_proximity(
+            prev_close=float(prev_close),
+            last_high=last_high,
+            last_low=last_low,
+            last_close=last_close,
+        )
+        if prev_close is not None
+        else None
+    )
     vp_base = vpvr_core(daily.tail(260))
     value_area = build_value_area(vp_base, last_close, prev_close)
 
@@ -335,6 +346,16 @@ def build_ta_context_result(
         position_state=position_state,
         risk_status=str(risk_map["risk_status"]),
         distribution_day_count=dist_days["count"],
+        price_limit_proximity=(
+            str(price_limit_proximity["state"])
+            if isinstance(price_limit_proximity, dict)
+            else None
+        ),
+        price_limit_proximity_mode=(
+            str(price_limit_proximity["mode"])
+            if isinstance(price_limit_proximity, dict)
+            else None
+        ),
         breakout_displacement_state=breakout_displacement_value,
         ma_whipsaw_flags=ma_whipsaw_flags,
     )

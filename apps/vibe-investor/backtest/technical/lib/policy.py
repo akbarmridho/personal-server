@@ -5,7 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-ENTRY_BLOCKING_FLAGS = {"F1_STRUCTURE_BREAK", "F3_WEAK_BREAKOUT", "F6_MA_BREAKDOWN"}
+ENTRY_BLOCKING_FLAGS = {
+    "F1_STRUCTURE_BREAK",
+    "F3_WEAK_BREAKOUT",
+    "F6_MA_BREAKDOWN",
+    "F16_PRICE_LIMIT_PROXIMITY",
+}
 EXIT_FLAGS = {"F1_STRUCTURE_BREAK", "F3_WEAK_BREAKOUT", "F6_MA_BREAKDOWN"}
 
 
@@ -38,6 +43,24 @@ def _flag_codes(context: dict[str, Any], severity: str | None = None) -> set[str
             continue
         codes.add(code)
     return codes
+
+
+def _flag_why_contains(
+    context: dict[str, Any], *, code: str, pattern: str, severity: str | None = None,
+) -> bool:
+    flags = context.get("red_flags", [])
+    if not isinstance(flags, list):
+        return False
+    for raw_flag in flags:
+        if not isinstance(raw_flag, dict):
+            continue
+        if str(raw_flag.get("code", "")) != code:
+            continue
+        if severity is not None and str(raw_flag.get("severity", "")).lower() != severity.lower():
+            continue
+        if pattern in str(raw_flag.get("summary", "")):
+            return True
+    return False
 
 
 def _strong_location(context: dict[str, Any]) -> bool:
@@ -140,6 +163,8 @@ def evaluate_flat_policy(context: dict[str, Any], cooldown_active: bool) -> Poli
     if trend_bias == "bearish" or structure_status == "damaged":
         return PolicyDecision("WAIT", "daily_thesis_not_supportive", setup_id, False)
     if high_flags & ENTRY_BLOCKING_FLAGS:
+        if "F16_PRICE_LIMIT_PROXIMITY" in high_flags:
+            return PolicyDecision("WAIT", "price_limit_proximity_distorts_entry_bar", setup_id, False)
         return PolicyDecision("WAIT", "high_severity_entry_blocker", setup_id, False)
     if liquidity_alignment == "contradictory":
         return PolicyDecision("WAIT", "liquidity_contradicts_setup", setup_id, False)
@@ -179,6 +204,13 @@ def evaluate_long_policy(context: dict[str, Any]) -> PolicyDecision:
 
     if high_flags & EXIT_FLAGS:
         return PolicyDecision("EXIT", "high_severity_exit_flag", setup_id, False)
+    if _flag_why_contains(
+        context,
+        code="F16_PRICE_LIMIT_PROXIMITY",
+        pattern="close_near_idx_lower_auto_rejection_limit",
+        severity="high",
+    ):
+        return PolicyDecision("EXIT", "close_near_lower_price_limit", setup_id, False)
     if exit_pressure == "hard_exit":
         return PolicyDecision("EXIT", "accepted_downside_sweep", setup_id, False)
     if trend_bias == "bearish":
