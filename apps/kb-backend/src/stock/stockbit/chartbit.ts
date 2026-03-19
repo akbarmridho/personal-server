@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
+import { KV } from "../../infrastructure/db/kv.js";
+import type { Json } from "../../infrastructure/db/types.js";
 import { dateToFormatted } from "../utils.js";
 import type { BaseStockbitResponse } from "./auth.js";
 import { stockbitGetJson } from "./client.js";
@@ -12,6 +14,8 @@ const JAKARTA_TIMEZONE = "Asia/Jakarta";
 const INTRADAY_WINDOW_DAYS = 7;
 const DAILY_WINDOW_YEARS = 3;
 const CORP_ACTION_FUTURE_END_DATE = "2037-01-01";
+const DAILY_CHARTBIT_CACHE_TTL_MS = 30 * 60 * 1_000;
+const DAILY_CHARTBIT_CACHE_VERSION = "v1";
 
 /**
  * Represents daily stock trading data (Chartbit format).
@@ -209,7 +213,7 @@ function parseJakartaDateTime(dateTime: string): dayjs.Dayjs {
   return dayjs.tz(dateTime, "YYYY-MM-DD HH:mm:ss", JAKARTA_TIMEZONE);
 }
 
-function resolveAsOfDate(asOfDate?: string): dayjs.Dayjs {
+export function resolveAsOfDate(asOfDate?: string): dayjs.Dayjs {
   const now = dayjs().tz(JAKARTA_TIMEZONE);
   if (!asOfDate) {
     return now;
@@ -387,17 +391,35 @@ export const getChartbitData = async (input: {
 }) => {
   const fromFormatted = dateToFormatted(input.from);
   const toFormatted = dateToFormatted(input.to);
+  const cacheKey = [
+    "stockbit",
+    "chartbit",
+    "daily",
+    DAILY_CHARTBIT_CACHE_VERSION,
+    input.symbol,
+    fromFormatted,
+    toFormatted,
+  ].join(":");
+  const expiresAt = new Date(Date.now() + DAILY_CHARTBIT_CACHE_TTL_MS);
 
   // somehow stockbit swap the from and to date filtering logic. not sure why they did this
-  const data = await stockbitGetJson<
-    BaseStockbitResponse<{
-      chartbit: ChartbitData[];
-    }>
-  >(
-    `https://exodus.stockbit.com/chartbit/${input.symbol}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
+  const cached = await KV.getOrSet(
+    cacheKey,
+    async () => {
+      const data = await stockbitGetJson<
+        BaseStockbitResponse<{
+          chartbit: ChartbitData[];
+        }>
+      >(
+        `https://exodus.stockbit.com/chartbit/${input.symbol}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
+      );
+
+      return data.data.chartbit as unknown as Json;
+    },
+    expiresAt,
   );
 
-  return data.data.chartbit;
+  return cached as unknown as ChartbitData[];
 };
 
 export const getUnifiedChartbitRawData = async (

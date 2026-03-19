@@ -32,6 +32,10 @@ Companion human-workflow note:
 
 - `human-flow-analyst-workflow.md`
 
+Companion implementation note:
+
+- `flow-data-fetch-plan.md`
+
 ## Skill Boundary
 
 `flow-analysis` should own:
@@ -104,14 +108,12 @@ The future `flow-analysis` skill should think in this order:
 1. `MODE`
 2. `INPUT_SCOPE`
 3. `GROSS_FIRST_READ`
-4. `BROKER_SUMMARY`
-5. `CORE_METRICS`
-6. `ADVANCED_SIGNALS`
-7. `BROKER_DISTRIBUTION`
-8. `TRUST_AND_REGIME`
-9. `VERDICT`
-10. `INTEGRATION_HOOK`
-11. `MONITORING`
+4. `CORE_METRICS`
+5. `ADVANCED_SIGNALS`
+6. `TRUST_AND_REGIME`
+7. `VERDICT`
+8. `INTEGRATION_HOOK`
+9. `MONITORING`
 
 ## Phase Meaning
 
@@ -151,26 +153,7 @@ Use `net` only as a secondary compression layer.
 
 The system should treat gross-first reading as mandatory because net can hide meaningful two-way activity.
 
-### 4. `BROKER_SUMMARY`
-
-This layer should answer:
-
-- who is actually active
-- whether activity is concentrated or noisy
-- whether one serious buyer or seller is dominating
-- whether the buy side is absorbing fragmented sellers or the reverse
-
-Core fields:
-
-- total lots
-- total value
-- top buyer share
-- top seller share
-- average buy price
-- average sell price
-- dominant broker list
-
-### 5. `CORE_METRICS`
+### 4. `CORE_METRICS`
 
 This layer should own:
 
@@ -189,7 +172,9 @@ Core questions:
 
 `MFI` and `Frequency` should live here as verdict-computation inputs, not as separate analyst-facing phases.
 
-### 6. `ADVANCED_SIGNALS`
+The skill may still derive sponsor-quality and concentration features from daily broker-summary snapshots, but those raw tables should stay internal to deterministic preprocessing rather than become first-class LLM-facing report sections.
+
+### 5. `ADVANCED_SIGNALS`
 
 This layer should own:
 
@@ -209,20 +194,7 @@ Planning assumption:
 
 - factor scores should support smooth interpretation, such as a bounded negative-to-positive scale, instead of hard on-off flags
 
-### 7. `BROKER_DISTRIBUTION`
-
-This layer should visually confirm relationship structure.
-
-Questions:
-
-- who is feeding whom?
-- is one serious buyer absorbing fragmented sellers?
-- is one serious seller distributing into scattered buyers?
-- is the relationship structure concentrated enough to strengthen the read?
-
-This should stay a confirmation layer, not the primary direction layer.
-
-### 8. `TRUST_AND_REGIME`
+### 6. `TRUST_AND_REGIME`
 
 This layer should answer:
 
@@ -239,7 +211,7 @@ This is where:
 
 should affect confidence.
 
-### 9. `VERDICT`
+### 7. `VERDICT`
 
 This layer should produce:
 
@@ -263,7 +235,7 @@ not as:
 
 Verdict scoring should stay continuous under the hood even if the outward label is categorical.
 
-### 10. `INTEGRATION_HOOK`
+### 8. `INTEGRATION_HOOK`
 
 This layer should prepare the result for parent synthesis with technical analysis.
 
@@ -282,7 +254,7 @@ Lead-versus-confirm should follow these rules:
 - `warning`: technical structure still looks constructive but broker-flow deteriorates materially
 - `unclear`: timing relationship is ambiguous or both clocks shift together without clean precedence
 
-### 11. `MONITORING`
+### 9. `MONITORING`
 
 This layer should define:
 
@@ -316,7 +288,6 @@ Always required:
 - symbol
 - date range
 - gross-versus-net read note
-- broker summary conclusion
 - core metrics conclusion
 - advanced-signal conclusion
 - trust/regime conclusion
@@ -339,7 +310,6 @@ Conditional:
 
 - persistence detail when it matters
 - divergence detail when present
-- broker-distribution note when relationship structure is especially meaningful
 - anomaly or wash-risk warning when relevant
 - supporting note for internal verdict inputs only when they materially affect conviction
 
@@ -347,8 +317,8 @@ Future template shape should be rewritten around the flow workflow:
 
 1. `Decision Summary`
 2. `Context`
-3. `Broker Summary And Core Metrics`
-4. `Trust And Verdict`
+3. `Core Metrics`
+4. `Advanced Signals, Trust And Verdict`
 5. `Integration And Monitoring`
 6. `Conditional Details`
 7. `Evidence`
@@ -370,7 +340,7 @@ But it should not be forced into the exact same backtest shape as `technical-ana
 
 Still, a large part of the skill remains deterministic and testable:
 
-- broker summary aggregation
+- daily broker-summary series normalization
 - top buyer and seller share
 - average buy and sell price
 - `CADI`
@@ -380,7 +350,8 @@ Still, a large part of the skill remains deterministic and testable:
 - concentration asymmetry
 - flow-price correlation
 - active regime labels
-- broker-distribution inputs
+
+For v1, keep raw broker-summary tables and broker-distribution views as preprocessing inputs, not as required LLM-facing sections.
 
 ### Recommended Evaluation Modes
 
@@ -517,14 +488,14 @@ Inside the future `flow-analysis` skill:
 - `references/workflow-spine.md`
 - `references/policy-contract.md`
 - `references/data-contract.md`
-- `references/broker-summary-and-gross-net.md`
+- `references/gross-net-and-core-metrics.md`
 - `references/core-metrics-and-verdict.md`
 - `references/advanced-signals-and-trust.md`
 - `references/integration-with-technical-analysis.md`
 - `references/output-report-template.md`
 - `references/enums-and-glossary.md`
 
-`broker-summary-and-gross-net.md` should also own broker-distribution interpretation so the future file set stays compact.
+`gross-net-and-core-metrics.md` should own the raw gross-first reading rule and the deterministic feature inputs derived from daily broker-summary data.
 
 ## Overlap Handling
 
