@@ -192,3 +192,27 @@ def evaluate_long_policy(context: dict[str, Any]) -> PolicyDecision:
     if not above_sma200 or (not above_sma50 and confirmation_state == "rejected"):
         return PolicyDecision("EXIT", "ma_posture_breakdown", setup_id, False)
     return PolicyDecision("HOLD", "thesis_still_intact", setup_id, False)
+
+
+def evaluate_long_trade_management(
+    *,
+    setup_id: str,
+    profit_state: str,
+    bars_since_entry: int,
+    bars_since_last_high: int,
+    max_sessions_pre_t1: int | None,
+    max_sessions_post_t1_no_new_high: int | None,
+) -> PolicyDecision | None:
+    if (
+        profit_state == "PRE_T1"
+        and max_sessions_pre_t1 is not None
+        and bars_since_entry >= int(max_sessions_pre_t1)
+    ):
+        return PolicyDecision("EXIT", "time_stop_pre_t1", setup_id, False)
+    if (
+        profit_state in {"POST_T1", "POST_T2", "RUNNER_ONLY"}
+        and max_sessions_post_t1_no_new_high is not None
+        and bars_since_last_high >= int(max_sessions_post_t1_no_new_high)
+    ):
+        return PolicyDecision("EXIT", "time_stop_post_t1_no_new_high", setup_id, False)
+    return None

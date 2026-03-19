@@ -24,16 +24,23 @@ from lib.strategies import (
     strategy_setup_id,
 )
 from lib.policy import PolicyDecision
+from lib.policy import evaluate_long_trade_management
 from lib.execution import (
     ClosedTrade,
     OpenPosition,
     PendingOrder,
     PendingSetup,
+    active_target_levels,
     close_position,
     open_position_from_context,
     open_position_plain,
     pending_setup_expired,
     process_intrabar_exit,
+    process_intrabar_stop,
+    process_partial_exits,
+    remaining_position_size,
+    update_trailing_stop,
+    update_position_counters,
 )
 from lib.context import build_daily_context, ensure_skill_path
 from lib.report import build_report
@@ -66,6 +73,40 @@ from ta_common import load_ohlcv  # type: ignore[import-not-found]
 
 def _bar_trade_date(bar: pd.Series) -> str:
     return pd.Timestamp(bar["datetime"]).date().isoformat()
+
+
+def _context_for_position_state(
+    *,
+    contexts: dict[str, dict[str, dict[str, Any]]],
+    payloads: dict[str, dict[str, Any]],
+    scenario_id: str,
+    contexts_dir: Path,
+    symbol: str,
+    modules: str,
+    min_rr_required: float,
+    trade_date: str,
+    position_state: str,
+) -> dict[str, Any]:
+    desired_state = "long" if position_state == "long" else "flat"
+    state_contexts = contexts.setdefault(trade_date, {})
+    cached = state_contexts.get(desired_state)
+    if cached is not None:
+        return cached
+    payload = payloads.get(trade_date)
+    if payload is None:
+        raise KeyError(f"missing cached history payload for {trade_date}")
+    _, built_state, result = _build_single_context(
+        scenario_id=scenario_id,
+        trade_date=trade_date,
+        day_history_payload=payload,
+        contexts_dir=contexts_dir,
+        symbol=symbol,
+        modules=modules,
+        position_state=desired_state,
+        min_rr_required=min_rr_required,
+    )
+    state_contexts[built_state] = result
+    return result
 
 
 def _history_visible(history: pd.DataFrame, bar: pd.Series) -> pd.DataFrame:
@@ -237,11 +278,11 @@ def _summarize_strategy(
 def _build_single_context(
     *, scenario_id: str, trade_date: str, day_history_payload: dict[str, Any],
     contexts_dir: Path, symbol: str, modules: str, position_state: str, min_rr_required: float,
-) -> tuple[str, dict[str, Any]]:
+) -> tuple[str, str, dict[str, Any]]:
     """Build context for a single bar. Designed to run in a thread."""
     with tempfile.TemporaryDirectory(prefix=f"{scenario_id}-{trade_date}-") as tempdir:
         snapshot_path = Path(tempdir) / "snapshot.json"
-        context_path = contexts_dir / f"{trade_date}.json"
+        context_path = contexts_dir / f"{trade_date}.{position_state}.json"
         with snapshot_path.open("w", encoding="utf-8") as f:
             json.dump(day_history_payload, f, indent=2)
         result = build_daily_context(
@@ -249,14 +290,14 @@ def _build_single_context(
             symbol=symbol, modules=modules, position_state=position_state,
             min_rr_required=min_rr_required,
         )
-    return trade_date, result
+    return trade_date, position_state, result
 
 
 def _build_contexts(
     *, scenario: BacktestScenario, history: pd.DataFrame, window: pd.DataFrame,
     contexts_dir: Path, modules: str, min_rr_required: float,
-) -> dict[str, dict[str, Any]]:
-    # Pre-compute payloads (cheap) then build contexts in parallel (expensive subprocess per bar)
+) -> tuple[dict[str, dict[str, dict[str, Any]]], dict[str, dict[str, Any]]]:
+    # Pre-compute payloads (cheap) then build flat contexts in parallel.
     bar_jobs: list[tuple[str, dict[str, Any]]] = []
     for _, bar in window.iterrows():
         trade_date = _bar_trade_date(bar)
@@ -265,7 +306,10 @@ def _build_contexts(
             raise ValueError(f"scenario {scenario.id}: empty visible history on {trade_date}")
         bar_jobs.append((trade_date, _daily_slice_to_payload(day_history)))
 
-    contexts: dict[str, dict[str, Any]] = {}
+    payloads = {trade_date: payload for trade_date, payload in bar_jobs}
+    contexts: dict[str, dict[str, dict[str, Any]]] = {
+        trade_date: {} for trade_date, _ in bar_jobs
+    }
     max_workers = min(len(bar_jobs), os.cpu_count() or 4)
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         futures = {
@@ -273,15 +317,20 @@ def _build_contexts(
                 _build_single_context,
                 scenario_id=scenario.id, trade_date=td, day_history_payload=payload,
                 contexts_dir=contexts_dir, symbol=scenario.symbol,
-                modules=modules, position_state=scenario.initial_position.state,
+                modules=modules, position_state="flat",
                 min_rr_required=min_rr_required,
             ): td
             for td, payload in bar_jobs
         }
         for future in as_completed(futures):
-            td, result = future.result()
-            contexts[td] = result
-    return contexts
+            td, position_state, result = future.result()
+            state_contexts = contexts.setdefault(td, {})
+            state_contexts[position_state] = result
+    return contexts, payloads
+
+
+def _context_path_for_state(trade_date: str, position_state: str) -> str:
+    return str(Path("contexts") / f"{trade_date}.{position_state}.json")
 
 
 # ---------------------------------------------------------------------------
@@ -300,6 +349,7 @@ def _open_entry_position(
     pos = open_position_from_context(
         entry_date=entry_date, entry_price=entry_price,
         size=size, setup_id=setup_id, context=context, source=source,
+        enable_trade_management=(strategy_name == "ablation"),
     )
     # Ablation relies on policy exits, not static targets
     if strategy_name == "ablation":
@@ -314,7 +364,12 @@ def _open_entry_position(
 def _simulate_strategy(
     *, strategy_name: str, scenario: BacktestScenario,
     history: pd.DataFrame, window: pd.DataFrame,
-    contexts: dict[str, dict[str, Any]], actual_summary: dict[str, Any] | None,
+    contexts: dict[str, dict[str, dict[str, Any]]],
+    payloads: dict[str, dict[str, Any]],
+    contexts_dir: Path,
+    modules: str,
+    min_rr_required: float,
+    actual_summary: dict[str, Any] | None,
 ) -> dict[str, Any]:
     daily_logs: list[dict[str, Any]] = []
     trades: list[ClosedTrade] = []
@@ -328,7 +383,17 @@ def _simulate_strategy(
 
     if scenario.initial_position.state == "long":
         first_day = _bar_trade_date(window.iloc[0])
-        init_context = contexts[first_day]
+        init_context = _context_for_position_state(
+            contexts=contexts,
+            payloads=payloads,
+            scenario_id=scenario.id,
+            contexts_dir=contexts_dir,
+            symbol=scenario.symbol,
+            modules=modules,
+            min_rr_required=min_rr_required,
+            trade_date=first_day,
+            position_state="long",
+        )
         open_position = _open_entry_position(
             strategy_name=strategy_name,
             entry_date=scenario.initial_position.entry_date or scenario.window_start_date,
@@ -340,11 +405,21 @@ def _simulate_strategy(
 
     for index, (_, bar) in enumerate(window.iterrows()):
         trade_date = _bar_trade_date(bar)
-        context = contexts[trade_date]
         history_visible = _history_visible(history, bar)
+        intrabar_partials: list[dict[str, Any]] = []
 
         if pending_order is not None and pending_order.intended_entry_date == trade_date:
-            signal_context = contexts[pending_order.signal_date]
+            signal_context = _context_for_position_state(
+                contexts=contexts,
+                payloads=payloads,
+                scenario_id=scenario.id,
+                contexts_dir=contexts_dir,
+                symbol=scenario.symbol,
+                modules=modules,
+                min_rr_required=min_rr_required,
+                trade_date=pending_order.signal_date,
+                position_state="flat",
+            )
             open_position = _open_entry_position(
                 strategy_name=strategy_name, entry_date=trade_date,
                 entry_price=float(bar["open"]), size=float(scenario.initial_position.size),
@@ -353,17 +428,55 @@ def _simulate_strategy(
             has_ever_entered = True
             pending_order = None
 
+        current_position_state = "long" if open_position is not None else "flat"
+        context = _context_for_position_state(
+            contexts=contexts,
+            payloads=payloads,
+            scenario_id=scenario.id,
+            contexts_dir=contexts_dir,
+            symbol=scenario.symbol,
+            modules=modules,
+            min_rr_required=min_rr_required,
+            trade_date=trade_date,
+            position_state=current_position_state,
+        )
+
         if open_position is not None:
-            closed_trade, exit_type = process_intrabar_exit(
-                open_position, trade_date=trade_date,
-                open_price=float(bar["open"]), high_price=float(bar["high"]), low_price=float(bar["low"]),
-            )
+            if strategy_name == "ablation":
+                update_position_counters(open_position, high_price=float(bar["high"]))
+                closed_trade, exit_type = process_intrabar_stop(
+                    open_position,
+                    trade_date=trade_date,
+                    open_price=float(bar["open"]),
+                    high_price=float(bar["high"]),
+                    low_price=float(bar["low"]),
+                    active_targets=active_target_levels(open_position),
+                )
+            else:
+                closed_trade, exit_type = process_intrabar_exit(
+                    open_position, trade_date=trade_date,
+                    open_price=float(bar["open"]), high_price=float(bar["high"]), low_price=float(bar["low"]),
+                )
             if closed_trade is not None:
                 trades.append(closed_trade)
                 open_position = None
                 last_exit_index = index
                 last_exit_was_stop = exit_type in {"stop_hit", "stop_and_target_same_bar"}
                 consecutive_exit_flag_bars = 0
+            elif strategy_name == "ablation":
+                partial_trades = process_partial_exits(
+                    open_position,
+                    trade_date=trade_date,
+                    open_price=float(bar["open"]),
+                    high_price=float(bar["high"]),
+                )
+                if partial_trades:
+                    trades.extend(partial_trades)
+                    intrabar_partials = [asdict(trade) for trade in partial_trades]
+                    if remaining_position_size(open_position) <= 0:
+                        open_position = None
+                        last_exit_index = index
+                        last_exit_was_stop = False
 
         expired_setup = None
         if pending_setup is not None:
@@ -412,9 +525,22 @@ def _simulate_strategy(
                         reason=decision.reason, setup_id=decision.setup_id,
                     )
         else:
-            decision = evaluate_strategy_long(
-                strategy_name=strategy_name, context=context, history_visible=history_visible,
-            )
+            if strategy_name == "ablation":
+                trade_management_decision = evaluate_long_trade_management(
+                    setup_id=open_position.setup_id,
+                    profit_state=open_position.profit_state,
+                    bars_since_entry=open_position.bars_since_entry,
+                    bars_since_last_high=open_position.bars_since_last_high,
+                    max_sessions_pre_t1=open_position.time_stop_pre_t1,
+                    max_sessions_post_t1_no_new_high=open_position.time_stop_post_t1_no_new_high,
+                )
+                decision = trade_management_decision or evaluate_strategy_long(
+                    strategy_name=strategy_name, context=context, history_visible=history_visible,
+                )
+            else:
+                decision = evaluate_strategy_long(
+                    strategy_name=strategy_name, context=context, history_visible=history_visible,
+                )
             # Ablation: require 3 consecutive bars with high_severity_exit_flag before exiting
             if strategy_name == "ablation" and decision.action == "EXIT" and decision.reason == "high_severity_exit_flag":
                 consecutive_exit_flag_bars += 1
@@ -423,12 +549,16 @@ def _simulate_strategy(
             else:
                 consecutive_exit_flag_bars = 0
 
+            if strategy_name == "ablation" and decision.action != "EXIT":
+                update_trailing_stop(open_position, context)
+
             if decision.action == "EXIT" and index + 1 < len(window):
                 next_bar = window.iloc[index + 1]
                 closed_trade = close_position(
                     open_position, exit_date=_bar_trade_date(next_bar),
                     exit_price=float(next_bar["open"]),
                     exit_reason=f"policy_exit:{decision.reason}",
+                    size=remaining_position_size(open_position),
                 )
                 trades.append(closed_trade)
                 open_position = None
@@ -444,11 +574,15 @@ def _simulate_strategy(
             },
             "action": decision.action, "action_reason": decision.reason,
             "setup_id": decision.setup_id,
-            "context_path": str(Path("contexts") / f"{trade_date}.json"),
+            "context_path": _context_path_for_state(
+                trade_date,
+                "long" if open_position is not None else "flat",
+            ),
             "pending_setup": _asdict_or_none(pending_setup),
             "expired_setup": expired_setup,
             "pending_order": asdict(pending_order) if pending_order is not None else None,
             "position_state_end_of_day": "long" if open_position is not None else "flat",
+            "partial_fills": intrabar_partials,
             "thesis": {
                 "trend_bias": context.get("daily_thesis", {}).get("trend_bias"),
                 "structure_status": context.get("daily_thesis", {}).get("structure_status"),
@@ -468,6 +602,7 @@ def _simulate_strategy(
         trades.append(close_position(
             open_position, exit_date=_bar_trade_date(last_bar),
             exit_price=float(last_bar["close"]), exit_reason="end_of_window_close",
+            size=remaining_position_size(open_position),
         ))
         open_position = None
 
@@ -491,7 +626,11 @@ def _simulate_llm_ablation(
     scenario_dir: Path,
     history: pd.DataFrame,
     window: pd.DataFrame,
-    contexts: dict[str, dict[str, Any]],
+    contexts: dict[str, dict[str, dict[str, Any]]],
+    payloads: dict[str, dict[str, Any]],
+    contexts_dir: Path,
+    modules: str,
+    min_rr_required: float,
     actual_summary: dict[str, Any] | None,
 ) -> dict[str, Any]:
     if llm_mode not in {"llm_dry_run", "llm_hybrid"}:
@@ -523,7 +662,17 @@ def _simulate_llm_ablation(
 
     if scenario.initial_position.state == "long":
         first_day = _bar_trade_date(window.iloc[0])
-        init_context = contexts[first_day]
+        init_context = _context_for_position_state(
+            contexts=contexts,
+            payloads=payloads,
+            scenario_id=scenario.id,
+            contexts_dir=contexts_dir,
+            symbol=scenario.symbol,
+            modules=modules,
+            min_rr_required=min_rr_required,
+            trade_date=first_day,
+            position_state="long",
+        )
         open_position = _open_entry_position(
             strategy_name="ablation",
             entry_date=scenario.initial_position.entry_date or scenario.window_start_date,
@@ -536,12 +685,22 @@ def _simulate_llm_ablation(
 
     for index, (_, bar) in enumerate(window.iterrows()):
         trade_date = _bar_trade_date(bar)
-        context = contexts[trade_date]
         history_visible = _history_visible(history, bar)
         exited_this_bar = False
+        intrabar_partials: list[dict[str, Any]] = []
 
         if pending_order is not None and pending_order.intended_entry_date == trade_date:
-            signal_context = contexts[pending_order.signal_date]
+            signal_context = _context_for_position_state(
+                contexts=contexts,
+                payloads=payloads,
+                scenario_id=scenario.id,
+                contexts_dir=contexts_dir,
+                symbol=scenario.symbol,
+                modules=modules,
+                min_rr_required=min_rr_required,
+                trade_date=pending_order.signal_date,
+                position_state="flat",
+            )
             open_position = _open_entry_position(
                 strategy_name="ablation",
                 entry_date=trade_date,
@@ -554,13 +713,28 @@ def _simulate_llm_ablation(
             has_ever_entered = True
             pending_order = None
 
+        current_position_state = "long" if open_position is not None else "flat"
+        context = _context_for_position_state(
+            contexts=contexts,
+            payloads=payloads,
+            scenario_id=scenario.id,
+            contexts_dir=contexts_dir,
+            symbol=scenario.symbol,
+            modules=modules,
+            min_rr_required=min_rr_required,
+            trade_date=trade_date,
+            position_state=current_position_state,
+        )
+
         if open_position is not None:
-            closed_trade, exit_type = process_intrabar_exit(
+            update_position_counters(open_position, high_price=float(bar["high"]))
+            closed_trade, exit_type = process_intrabar_stop(
                 open_position,
                 trade_date=trade_date,
                 open_price=float(bar["open"]),
                 high_price=float(bar["high"]),
                 low_price=float(bar["low"]),
+                active_targets=active_target_levels(open_position),
             )
             if closed_trade is not None:
                 trades.append(closed_trade)
@@ -571,6 +745,23 @@ def _simulate_llm_ablation(
                 last_exit_was_stop = exit_type in {"stop_hit", "stop_and_target_same_bar"}
                 consecutive_exit_flag_bars = 0
                 exited_this_bar = True
+            else:
+                partial_trades = process_partial_exits(
+                    open_position,
+                    trade_date=trade_date,
+                    open_price=float(bar["open"]),
+                    high_price=float(bar["high"]),
+                )
+                if partial_trades:
+                    trades.extend(partial_trades)
+                    intrabar_partials = [asdict(trade) for trade in partial_trades]
+                    if remaining_position_size(open_position) <= 0:
+                        open_position = None
+                        last_exit_index = index
+                        last_exit_date = trade_date
+                        last_exit_reason = "all_tranches_filled"
+                        last_exit_was_stop = False
+                        exited_this_bar = True
 
         expired_setup = None
         if pending_setup is not None:
@@ -597,7 +788,15 @@ def _simulate_llm_ablation(
                 has_ever_entered=has_ever_entered,
             )
         else:
-            deterministic_decision = evaluate_strategy_long(
+            trade_management_decision = evaluate_long_trade_management(
+                setup_id=open_position.setup_id,
+                profit_state=open_position.profit_state,
+                bars_since_entry=open_position.bars_since_entry,
+                bars_since_last_high=open_position.bars_since_last_high,
+                max_sessions_pre_t1=open_position.time_stop_pre_t1,
+                max_sessions_post_t1_no_new_high=open_position.time_stop_post_t1_no_new_high,
+            )
+            deterministic_decision = trade_management_decision or evaluate_strategy_long(
                 strategy_name="ablation",
                 context=context,
                 history_visible=history_visible,
@@ -613,6 +812,9 @@ def _simulate_llm_ablation(
                     )
             else:
                 consecutive_exit_flag_bars = 0
+
+            if deterministic_decision.action != "EXIT":
+                update_trailing_stop(open_position, context)
 
         current_packet = build_state_packet(
             context=context,
@@ -712,6 +914,13 @@ def _simulate_llm_ablation(
                     ):
                         effective_decision = deterministic_decision
                         decision_source = "deterministic_fallback_entry_blocked"
+                    elif (
+                        position_state == "long"
+                        and deterministic_decision.reason in {"time_stop_pre_t1", "time_stop_post_t1_no_new_high"}
+                        and llm_policy.action != "EXIT"
+                    ):
+                        effective_decision = deterministic_decision
+                        decision_source = "deterministic_fallback_time_stop"
                     else:
                         effective_decision = llm_policy
                         decision_source = "llm_inferred"
@@ -779,6 +988,7 @@ def _simulate_llm_ablation(
                     exit_date=_bar_trade_date(next_bar),
                     exit_price=float(next_bar["open"]),
                     exit_reason=f"policy_exit:{effective_decision.reason}",
+                    size=remaining_position_size(open_position),
                 )
                 trades.append(closed_trade)
                 open_position = None
@@ -801,11 +1011,15 @@ def _simulate_llm_ablation(
                 "action": effective_decision.action,
                 "action_reason": effective_decision.reason,
                 "setup_id": effective_decision.setup_id,
-                "context_path": str(Path("contexts") / f"{trade_date}.json"),
+                "context_path": _context_path_for_state(
+                    trade_date,
+                    "long" if open_position is not None else "flat",
+                ),
                 "pending_setup": _asdict_or_none(pending_setup),
                 "expired_setup": expired_setup,
                 "pending_order": asdict(pending_order) if pending_order is not None else None,
                 "position_state_end_of_day": "long" if open_position is not None else "flat",
+                "partial_fills": intrabar_partials,
                 "decision_source": decision_source,
                 "gate": {
                     "infer": gate.infer,
@@ -861,6 +1075,7 @@ def _simulate_llm_ablation(
                 exit_date=_bar_trade_date(last_bar),
                 exit_price=float(last_bar["close"]),
                 exit_reason="end_of_window_close",
+                size=remaining_position_size(open_position),
             )
         )
         open_position = None
@@ -963,7 +1178,7 @@ def run_scenario(
     contexts_dir = scenario_dir / "contexts"
     scenario_dir.mkdir(parents=True, exist_ok=True)
     contexts_dir.mkdir(parents=True, exist_ok=True)
-    contexts = _build_contexts(
+    contexts, payloads = _build_contexts(
         scenario=scenario, history=history, window=window,
         contexts_dir=contexts_dir, modules=modules, min_rr_required=min_rr_required,
     )
@@ -973,6 +1188,10 @@ def run_scenario(
         history=history,
         window=window,
         contexts=contexts,
+        payloads=payloads,
+        contexts_dir=contexts_dir,
+        modules=modules,
+        min_rr_required=min_rr_required,
         actual_summary=actual_summary,
     )
     selected_ablation = deterministic_ablation
@@ -986,6 +1205,10 @@ def run_scenario(
             history=history,
             window=window,
             contexts=contexts,
+            payloads=payloads,
+            contexts_dir=contexts_dir,
+            modules=modules,
+            min_rr_required=min_rr_required,
             actual_summary=actual_summary,
         )
     strategy_results = {"ablation": selected_ablation}
@@ -999,6 +1222,10 @@ def run_scenario(
                 history=history,
                 window=window,
                 contexts=contexts,
+                payloads=payloads,
+                contexts_dir=contexts_dir,
+                modules=modules,
+                min_rr_required=min_rr_required,
                 actual_summary=actual_summary,
             )
     result = {

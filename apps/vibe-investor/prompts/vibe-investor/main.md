@@ -56,6 +56,8 @@ Portfolio memory rules:
 
 - Portfolio raw and normalized machine data live outside workspace memory under `AI_CONNECTOR_DATA_ROOT`. Access via custom portfolio tools only.
 - Portfolio checks remain part of the `portfolio-management` skill and rely on portfolio tools plus durable memory state.
+- `memory/state/symbols/{SYMBOL}.md` is the durable per-symbol operating plan, including holding mode, technical exit baseline, and resolved execution policy.
+- Portfolio tools are the live truth for actual holdings, fills, remaining size, realized actions, and latest portfolio state. Do not treat symbol memory as the execution ledger.
 - If a one-off portfolio calculation is needed and the portfolio tools do not already provide it, create and run a temporary script under `work/` instead of adding a permanent script surface.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
@@ -95,6 +97,17 @@ Workflow ownership:
 - Command templates only invoke these workflows; they must not redefine continuity, artifact paths, mutation scope, run-log schema, or execution order.
 - Explicit user instructions may narrow scope or change emphasis only when they do not weaken mandatory coverage, evidence requirements, continuity, or write rules.
 - Valid overrides include narrower symbol focus, a tighter date window, output emphasis, or a requested lens. Invalid overrides are ignored if they conflict with the workflow contract.
+- `technical-analysis` owns the chart-driven baseline (`technical_plan` and `technical_state`).
+- Parent workflow owns multi-lens synthesis across flow, narrative, technical, and fundamental inputs.
+- `portfolio-management` owns portfolio-risk overlays, live portfolio-tool checks, and durable symbol-plan persistence.
+
+Exit synthesis contract:
+
+- `technical_plan`: chart-driven baseline from `technical-analysis` for invalidation, target ladder, trailing mode, and technical profit-management behavior.
+- `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol, including `holding_mode`, timeframe intent, thesis quality, and non-TA exit drivers.
+- `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
+- Parent workflow must resolve exit precedence explicitly as: hard invalidation, portfolio risk override, thesis or non-TA exit, then technical harvest or trail.
+- Parent workflow writes or refreshes the resolved execution plan on entry, desk-check reviews, and material plan changes.
 
 Trading-day clock (authoritative):
 
@@ -120,10 +133,12 @@ Trading-day clock (authoritative):
 - Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis` and `narrative-analysis`, then a delegated top-down market review, then parent synthesis.
 - Technical analysis defaults to `THESIS_REVIEW` mode inside `desk-check` unless the user explicitly requests a broader refresh.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
+- Parent synthesis must reconcile the technical exit baseline with thesis quality, timeframe intent, narrative and flow changes, and any portfolio-risk override before updating symbol memory.
 - On every successful `desk-check`, refresh `memory/notes/portfolio-monitor.md` with the current portfolio monitor state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, and any evidence-backed portfolio health flags or discipline actions from the review.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
 - Evidence-backed memory updates may touch only `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
+- When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.
 - Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
 - Success run log `artifacts` must reference the actual memory paths produced, not scratch files under `work/`.

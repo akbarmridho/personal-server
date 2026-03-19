@@ -11,6 +11,10 @@ from ta_common import (
 )
 from ta_context_location import is_meaningful_location, near_zone
 
+DEFAULT_TIME_STOP_PRE_T1 = 15
+DEFAULT_TIME_STOP_POST_T1 = 10
+DEFAULT_ATR_TRAIL_MULTIPLIER = 2.0
+
 
 def build_intraday_timing(
     intraday_15m: pd.DataFrame, intraday_1m: pd.DataFrame, daily_bias: str
@@ -685,3 +689,328 @@ def build_risk_map(
         resistances=resistances,
         min_rr_required=min_rr_required,
     )
+
+
+def _entry_reference(close_price: float, risk_map: dict[str, Any]) -> float:
+    entry_zone = risk_map.get("entry_zone", {})
+    if isinstance(entry_zone, dict):
+        mid = entry_zone.get("mid")
+        if isinstance(mid, (int, float)):
+            return max(close_price, float(mid))
+    return float(close_price)
+
+
+def _trail_mode_for_context(state: str, regime: str, setup_id: str, maturity: str) -> str:
+    if maturity == "degrading":
+        return "ATR"
+    if state == "balance" or regime == "range_rotation" or setup_id == "S4":
+        return "ZONE"
+    if regime == "trend_continuation" and setup_id in {"S1", "S2"}:
+        return "MA" if maturity == "mature" else "STRUCTURE"
+    if regime == "trend_continuation" and setup_id in {"S3", "S5"}:
+        return "STRUCTURE"
+    return "STRUCTURE"
+
+
+def _partial_sizes_for_setup(setup_id: str) -> list[float]:
+    if setup_id in {"S3", "S5"}:
+        return [40.0, 30.0, 30.0]
+    if setup_id == "S4":
+        return [50.0, 30.0, 20.0]
+    return [25.0, 25.0, 50.0]
+
+
+def _target_level(price_candidates: list[float], floor_price: float) -> float | None:
+    valid = [float(price) for price in price_candidates if float(price) > floor_price]
+    return min(valid) if valid else None
+
+
+def _build_partial_plan(
+    *,
+    setup_id: str,
+    entry_price: float,
+    stop_level: float | None,
+    target_ladder: list[Any],
+) -> list[dict[str, Any]]:
+    if stop_level is None or stop_level >= entry_price:
+        return []
+    structure_targets = [
+        float(target) for target in target_ladder if isinstance(target, (int, float))
+    ]
+    one_r = entry_price + (entry_price - stop_level)
+    two_r = entry_price + ((entry_price - stop_level) * 2.0)
+
+    first_structure_target = _target_level(
+        [structure_targets[0]] if structure_targets else [one_r],
+        floor_price=entry_price,
+    )
+    # T1 is intentionally conservative: take the first structural objective or 1R, whichever comes first.
+    t1_level = _target_level(
+        [value for value in [first_structure_target, one_r] if value is not None],
+        floor_price=entry_price,
+    )
+    t1_floor = t1_level if t1_level is not None else entry_price
+
+    t2_candidates: list[float] = [two_r]
+    if len(structure_targets) >= 2:
+        t2_candidates.append(structure_targets[1])
+    elif structure_targets:
+        t2_candidates.append(max(structure_targets[0], two_r))
+    t2_level = _target_level(t2_candidates, floor_price=t1_floor)
+
+    t3_level = None
+    if len(structure_targets) >= 3:
+        t3_level = _target_level([structure_targets[2]], floor_price=t2_level or t1_floor)
+
+    t1_size, t2_size, t3_size = _partial_sizes_for_setup(setup_id)
+    partial_plan = [
+        {"target_id": "T1", "size_pct": t1_size, "level": round(float(t1_level), 4)}
+    ]
+    if t2_level is not None:
+        partial_plan.append(
+            {"target_id": "T2", "size_pct": t2_size, "level": round(float(t2_level), 4)}
+        )
+    partial_plan.append(
+        {
+            "target_id": "T3",
+            "size_pct": t3_size,
+            "level": round(float(t3_level), 4) if t3_level is not None else None,
+        }
+    )
+    return partial_plan
+
+
+def _trail_anchor(
+    *,
+    trail_mode: str,
+    close_price: float,
+    ema21: float,
+    atr14: float,
+    supports: list[dict[str, Any]],
+    daily: pd.DataFrame,
+) -> tuple[float, str]:
+    if trail_mode == "ATR":
+        anchor = close_price - (atr14 * DEFAULT_ATR_TRAIL_MULTIPLIER)
+        return float(anchor), "atr"
+    if trail_mode == "MA":
+        return float(ema21), "ma21"
+    if trail_mode == "ZONE" and supports:
+        zone = supports[0]
+        low = zone.get("low", zone.get("mid", close_price))
+        return float(low), "demand_zone"
+    swing_lows = daily[daily["swing_low"].notna()] if "swing_low" in daily.columns else pd.DataFrame()
+    if not swing_lows.empty:
+        anchor = float(swing_lows["swing_low"].iloc[-1])
+        return anchor, "swing_low"
+    if supports:
+        zone = supports[0]
+        low = zone.get("low", zone.get("mid", close_price))
+        return float(low), "demand_zone"
+    return float(close_price - (atr14 * DEFAULT_ATR_TRAIL_MULTIPLIER)), "atr"
+
+
+def _wyckoff_distribution_risk(
+    current_cycle_phase: str,
+    maturity: str,
+    wyckoff_history: list[dict[str, Any]],
+) -> bool:
+    if current_cycle_phase == "distribution":
+        return True
+    if maturity == "degrading":
+        return True
+    for segment in reversed(wyckoff_history[-2:]):
+        events = segment.get("events", []) if isinstance(segment, dict) else []
+        if not isinstance(events, list):
+            continue
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+            if str(event.get("type", "")) in {"UTAD", "SOW", "LPSY"}:
+                return True
+    return False
+
+
+def _profit_exit_signals(
+    *,
+    value_acceptance_state: str,
+    current_cycle_phase: str,
+    maturity: str,
+    structure_status: str,
+    wyckoff_history: list[dict[str, Any]],
+) -> list[str]:
+    signals: list[str] = []
+    if value_acceptance_state == "failed_acceptance_back_inside":
+        signals.append("value_acceptance_failure")
+    if _wyckoff_distribution_risk(
+        current_cycle_phase=current_cycle_phase,
+        maturity=maturity,
+        wyckoff_history=wyckoff_history,
+    ):
+        signals.append("wyckoff_distribution_risk")
+    if structure_status in {"transitioning", "damaged"}:
+        signals.append("structure_damage")
+    return signals
+
+
+def _phase_exit_urgency(maturity: str) -> str:
+    if maturity == "degrading":
+        return "high"
+    if maturity == "mature":
+        return "moderate"
+    return "low"
+
+
+def _prior_trade_management(prior_thesis: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(prior_thesis, dict):
+        return None
+    prior_trade = prior_thesis.get("prior_trade_management")
+    if isinstance(prior_trade, dict):
+        return prior_trade
+    trade = prior_thesis.get("trade_management")
+    return trade if isinstance(trade, dict) else None
+
+
+def _technical_state(
+    *,
+    position_state: str,
+    close_price: float,
+    entry_price: float,
+    trail_anchor_price: float,
+    trail_anchor_type: str,
+    partial_plan: list[dict[str, Any]],
+    value_acceptance_state: str,
+    current_cycle_phase: str,
+    maturity: str,
+    structure_status: str,
+    wyckoff_history: list[dict[str, Any]],
+    prior_thesis: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if position_state != "long":
+        return None
+    prior_trade = _prior_trade_management(prior_thesis)
+    prior_state = (
+        prior_trade.get("technical_state", {})
+        if isinstance(prior_trade, dict)
+        else {}
+    )
+    target_levels = {
+        str(item.get("target_id")): item.get("level")
+        for item in partial_plan
+        if isinstance(item, dict)
+    }
+    if str(prior_state.get("profit_state", "")) in {
+        "PRE_T1",
+        "POST_T1",
+        "POST_T2",
+        "RUNNER_ONLY",
+    }:
+        profit_state = str(prior_state["profit_state"])
+    else:
+        t1 = target_levels.get("T1")
+        t2 = target_levels.get("T2")
+        if isinstance(t2, (int, float)) and close_price >= float(t2):
+            profit_state = "POST_T2"
+        elif isinstance(t1, (int, float)) and close_price >= float(t1):
+            profit_state = "POST_T1"
+        else:
+            profit_state = "PRE_T1"
+
+    effective_anchor = float(trail_anchor_price)
+    if profit_state in {"POST_T1", "POST_T2", "RUNNER_ONLY"}:
+        effective_anchor = max(effective_anchor, entry_price)
+
+    return {
+        "profit_state": profit_state,
+        "active_trail_anchor_price": round(float(effective_anchor), 4),
+        "active_trail_anchor_type": trail_anchor_type,
+        "profit_exit_signals": _profit_exit_signals(
+            value_acceptance_state=value_acceptance_state,
+            current_cycle_phase=current_cycle_phase,
+            maturity=maturity,
+            structure_status=structure_status,
+            wyckoff_history=wyckoff_history,
+        ),
+        "phase_exit_urgency": _phase_exit_urgency(maturity),
+    }
+
+
+def build_trade_management(
+    *,
+    setup_id: str,
+    position_state: str,
+    close_price: float,
+    atr14: float,
+    ema21: float,
+    state: str,
+    regime: str,
+    structure_status: str,
+    current_cycle_phase: str,
+    maturity: str,
+    wyckoff_history: list[dict[str, Any]],
+    value_acceptance_state: str,
+    supports: list[dict[str, Any]],
+    daily: pd.DataFrame,
+    risk_map: dict[str, Any],
+    prior_thesis: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    if setup_id == "NO_VALID_SETUP":
+        return None
+    should_emit_plan = bool(risk_map.get("actionable", False)) or position_state == "long"
+    if not should_emit_plan:
+        return None
+
+    entry_price = _entry_reference(close_price, risk_map)
+    stop_level = (
+        float(risk_map["stop_level"])
+        if isinstance(risk_map.get("stop_level"), (int, float))
+        else None
+    )
+    target_ladder = (
+        list(risk_map.get("target_ladder", []))
+        if isinstance(risk_map.get("target_ladder"), list)
+        else []
+    )
+    trail_mode = _trail_mode_for_context(state, regime, setup_id, maturity)
+    trail_anchor_price, trail_anchor_type = _trail_anchor(
+        trail_mode=trail_mode,
+        close_price=close_price,
+        ema21=ema21,
+        atr14=atr14,
+        supports=supports,
+        daily=daily,
+    )
+    partial_plan = _build_partial_plan(
+        setup_id=setup_id,
+        entry_price=entry_price,
+        stop_level=stop_level,
+        target_ladder=target_ladder,
+    )
+
+    result: dict[str, Any] = {
+        "technical_plan": {
+            "trail_mode": trail_mode,
+            "trail_anchor_type": trail_anchor_type,
+            "partial_plan": partial_plan,
+            "time_stop": {
+                "max_sessions_pre_t1": DEFAULT_TIME_STOP_PRE_T1,
+                "max_sessions_post_t1_no_new_high": DEFAULT_TIME_STOP_POST_T1,
+            },
+        }
+    }
+    technical_state = _technical_state(
+        position_state=position_state,
+        close_price=close_price,
+        entry_price=entry_price,
+        trail_anchor_price=trail_anchor_price,
+        trail_anchor_type=trail_anchor_type,
+        partial_plan=partial_plan,
+        value_acceptance_state=value_acceptance_state,
+        current_cycle_phase=current_cycle_phase,
+        maturity=maturity,
+        structure_status=structure_status,
+        wyckoff_history=wyckoff_history,
+        prior_thesis=prior_thesis,
+    )
+    if technical_state is not None:
+        result["technical_state"] = technical_state
+    return result

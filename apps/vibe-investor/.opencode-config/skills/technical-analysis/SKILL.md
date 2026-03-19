@@ -558,6 +558,28 @@ Use stop as thesis invalidation, not arbitrary percentage.
 - Trailing logic becomes explicit after first target.
 - In price discovery, prefer structural trailing over arbitrary top calls.
 
+### Take-Profit And Trade Management
+
+- `R-TP-01` Every actionable `BUY` must include a technical trade-management plan at entry.
+- `R-TP-02` Technical targets come from structure/value zones and R-multiples, not oscillators.
+- `R-TP-03` Partial sizing defaults by setup family:
+  - `S1`/`S2`: `25 / 25 / 50`
+  - `S3`/`S5`: `40 / 30 / 30`
+  - `S4`: `50 / 30 / 20`
+- `R-TP-04` Trail mode is selected deterministically from state/regime, setup family, and Wyckoff maturity.
+- `R-TP-05` Stop may tighten, never loosen.
+- `R-TP-06` After `T1`, the remaining position must be protected at materially lower risk.
+- `R-TP-07` Failed value acceptance, structure damage, and Wyckoff distribution risk can accelerate harvest or exit urgency.
+- `R-TP-08` A stale winner must have a time-stop path, even when the thresholds are still conservative defaults.
+- `R-TP-09` Discovery mode defaults to trailing over arbitrary top calls.
+- `R-TP-10` Re-add is a fresh entry and must still respect `R-RISK-08`.
+
+Trade-management contract:
+
+- `trade_management.technical_plan` is present when `risk_map.actionable = true` or `analysis.position_state = long`.
+- `trade_management.technical_state` is present only when `analysis.position_state = long`.
+- Technical trade management is the chart-driven baseline. Final multi-lens execution policy may further tighten or reinterpret it in the parent workflow.
+
 #### Optional Entry Refinement
 
 Allowed only after base structural plan is valid: local `15m` acceptance/rejection behavior, adaptive MA when valid period available. If unavailable, keep base plan. Do not downgrade solely because refinement is absent.
@@ -571,7 +593,7 @@ All required: valid setup family, meaningful location, valid trigger, confirmati
 Top-level shape:
 
 ```json
-{ "analysis": {}, "prior_thesis": {}, "daily_thesis": {}, "intraday_timing": {}, "location": {}, "setup": {}, "trigger_confirmation": {}, "risk_map": {}, "red_flags": [] }
+{ "analysis": {}, "prior_thesis": {}, "daily_thesis": {}, "intraday_timing": {}, "location": {}, "setup": {}, "trigger_confirmation": {}, "risk_map": {}, "trade_management": {}, "red_flags": [] }
 ```
 
 Rules: required sections must always be present except `prior_thesis` (required for `UPDATE`/`POSTMORTEM`). Omit inactive optional fields instead of placeholder nulls.
@@ -600,6 +622,7 @@ Rules: required sections must always be present except `prior_thesis` (required 
 - `invalidation_level`: number
 - `key_levels`: number[]
 - `prior_thesis_status` (optional): `intact` | `improving` | `degrading` | `invalidated`
+- `prior_trade_management` (optional): object carrying prior technical trade-management snapshot when available
 
 ### `daily_thesis`
 
@@ -673,6 +696,20 @@ Rules: required sections must always be present except `prior_thesis` (required 
 - `risk_status`: `valid` | `insufficient_rr` | `poor_location` | `no_clear_invalidation` | `no_clear_path` | `wait`
 - `stale_setup_condition`: string
 
+### `trade_management` (optional)
+
+- `technical_plan`: object
+  - `trail_mode`: `STRUCTURE` | `ZONE` | `MA` | `ATR`
+  - `trail_anchor_type`: `swing_low` | `demand_zone` | `ma21` | `atr`
+  - `partial_plan`: object[] { `target_id`: `T1` | `T2` | `T3`, `size_pct`: number, `level`: number | null }
+  - `time_stop`: object { `max_sessions_pre_t1`: integer, `max_sessions_post_t1_no_new_high`: integer }
+- `technical_state` (conditional, only when `analysis.position_state = long`): object
+  - `profit_state`: `PRE_T1` | `POST_T1` | `POST_T2` | `RUNNER_ONLY`
+  - `active_trail_anchor_price`: number
+  - `active_trail_anchor_type`: `swing_low` | `demand_zone` | `ma21` | `atr`
+  - `profit_exit_signals`: string[]
+  - `phase_exit_urgency`: `low` | `moderate` | `high`
+
 ### `red_flags[]`
 
 - `code`: string
@@ -737,6 +774,7 @@ Use this structure for every technical analysis output:
 - **C. State And Location**: state, regime, bias, Wyckoff (cycle phase, schematic phase, maturity, confidence), key S/R zones, baseline MA posture, value-area context, liquidity map, location summary
 - **D. Setup And Trigger**: selected setup family, validity, trigger state/type/level, confirmation state, participation quality, latest structure event, breakout quality note
 - **E. Risk And Decision**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR, red flags summary, final action rationale
-- **F. Delta And Monitoring**: previous thesis snapshot (UPDATE/POSTMORTEM), thesis status and review reason (UPDATE), delta log (UPDATE), failure point and handling improvement (POSTMORTEM), monitoring triggers, stale setup condition
-- **G. Adaptive MA**: selected period and chart mode when available
-- **H. Evidence**: workflow trace, evidence ledger, chart artifact references from manifest
+- **F. Trade Management**: technical partial plan, trail mode, time-stop baseline, active profit state and exit-urgency context when long
+- **G. Delta And Monitoring**: previous thesis snapshot (UPDATE/POSTMORTEM), thesis status and review reason (UPDATE), delta log (UPDATE), failure point and handling improvement (POSTMORTEM), monitoring triggers, stale setup condition
+- **H. Adaptive MA**: selected period and chart mode when available
+- **I. Evidence**: workflow trace, evidence ledger, chart artifact references from manifest

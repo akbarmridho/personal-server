@@ -33,6 +33,7 @@ from ta_context_execution import (
     build_disabled_intraday_timing,
     build_intraday_timing,
     build_risk_map,
+    build_trade_management,
     build_trigger_confirmation,
 )
 from ta_context_flags import (
@@ -303,6 +304,24 @@ def build_ta_context_result(
         min_rr_required=min_rr_required,
         breakout=breakout_snapshot_value,
     )
+    trade_management = build_trade_management(
+        setup_id=setup_id,
+        position_state=position_state,
+        close_price=last_close,
+        atr14=float(last.get("ATR14", 0.0) or 0.0),
+        ema21=float(last.get("EMA21", last_close)),
+        state=state,
+        regime=str(regime["regime"]),
+        structure_status=normalized_structure,
+        current_cycle_phase=str(wyckoff_state["current_cycle_phase"]),
+        maturity=str(wyckoff_state["wyckoff_current_maturity"]),
+        wyckoff_history=list(wyckoff_state["wyckoff_history"]),
+        value_acceptance_state=str(value_area["acceptance_state"]),
+        supports=supports,
+        daily=daily,
+        risk_map=risk_map,
+        prior_thesis=prior_thesis,
+    )
 
     max_touches = max((level["touches"] for level in levels), default=0)
     red_flags = build_red_flags(
@@ -487,6 +506,8 @@ def build_ta_context_result(
         "risk_map": risk_map,
         "red_flags": normalize_red_flags(enriched_red_flags),
     }
+    if trade_management is not None:
+        result["trade_management"] = trade_management
 
     if purpose_mode == "UPDATE":
         result["analysis"]["thesis_status"] = str(thesis_status)
