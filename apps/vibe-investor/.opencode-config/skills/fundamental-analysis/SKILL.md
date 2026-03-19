@@ -114,7 +114,7 @@ Load sector or mechanism references only when thesis-critical:
 - `references/sectors/oil-gas-sector.md`
 - `references/sectors/property-sector.md`
 - `references/sectors/retail-consumer-sector.md`
-- `references/playbooks/indonesia-gold-playbook.md`
+- `references/sectors/indonesia-gold-playbook.md`
 
 ## Workflow Spine
 
@@ -133,29 +133,14 @@ If the user request is ambiguous, default to `FULL_REVIEW`.
 
 ### Mode Requirements
 
-#### `FULL_REVIEW`
-
-Must use `get-stock-profile`, `get-stock-keystats`, `get-stock-financials`, `get-stock-governance`, and official filing retrieval via `list-filing` -> `get-filing`.
-
-#### `QUALITY_CHECK`
-
-Must produce explicit `business_quality`, `financial_quality`, `trap_risk`, and what would trigger a deeper valuation review.
-
-#### `VALUATION_ONLY`
-
-Must still anchor the business model first with `get-stock-profile`. Stop if the company economics are too unstable for a credible valuation method set.
-
-#### `FILING_REVIEW`
-
-Must state exactly which filing or document was reviewed, why it is the correct primary disclosure, what changed, and whether it changes business quality, financial quality, valuation, or risk.
-
-#### `SECTOR_REVIEW`
-
-Must define the sector boundary, demand drivers, value-chain logic, competition intensity, and what separates stronger from weaker players. Use contextual documents as first-class evidence and add company-specific or filing evidence only where needed to support sector conclusions.
-
-#### `MECHANISM_REVIEW`
-
-Must define the mechanism under review, why it matters fundamentally, what evidence best captures it, and whether the mechanism strengthens or weakens quality, valuation, solvency, minority alignment, or funding risk.
+| Mode | Minimum requirement |
+|---|---|
+| `FULL_REVIEW` | Use `get-stock-profile`, `get-stock-keystats`, `get-stock-financials`, `get-stock-governance`, and official filing retrieval when the claim depends on audited or formal disclosure evidence |
+| `QUALITY_CHECK` | Produce explicit `business_quality`, `financial_quality`, `trap_risk`, and what would trigger a deeper valuation review |
+| `VALUATION_ONLY` | Anchor the business model first and stop if the company economics are too unstable for a credible method set |
+| `FILING_REVIEW` | State which filing or formal document was reviewed, why it is the correct primary disclosure, what changed, and what it changes |
+| `SECTOR_REVIEW` | Define sector boundary, demand drivers, value-chain logic, competition intensity, and strong-player vs weak-player traits using contextual evidence as first-class input |
+| `MECHANISM_REVIEW` | Define the mechanism, why it matters fundamentally, what evidence best captures it, and whether it strengthens or weakens quality, valuation, solvency, minority alignment, or funding risk |
 
 ### Canonical Phase Order
 
@@ -199,160 +184,20 @@ For `SECTOR_REVIEW`, stop if the sector call is being made from one company and 
 
 For `MECHANISM_REVIEW`, stop if the mechanism is material but the evidence set does not include the document type that actually governs the mechanism.
 
-#### 3. BUSINESS
-
-Answer:
-
-- what the company does
-- how it makes money
-- product, segment, and geographic mix when material
-- whether the business is simple enough to understand and structurally relevant
-
-Stop: if the business model cannot be explained clearly from available evidence, lower confidence sharply and avoid strong conclusions.
-
-#### 4. REVENUE
-
-Assess:
-
-- sales growth quality
-- segment growth and mix shift
-- geographic exposure when material
-- price, volume, and pricing-power context where available
-
-Stop: if reported growth cannot be reconciled with segment mix, end-demand context, or working-capital evidence, elevate red-flag risk.
-
-If apparent growth depends mainly on acquisitions, accounting presentation changes, or channel-stuffing signals, do not label it high-quality growth.
-
-#### 5. PROFITABILITY
-
-Assess:
-
-- gross, operating, EBITDA, and net profit trend when meaningful for the sector
-- margin durability
-- one-off distortion risk
-
-Stop: if profit quality depends materially on one-offs, do not treat the margin profile as durable.
-
-#### 6. CAPITAL_EFFICIENCY
-
-Assess:
-
-- ROE
-- ROA
-- ROCE when meaningful
-- asset turnover
-
-Stop: if return ratios look strong only because of leverage, buybacks against weak economics, or a tiny equity base, downgrade quality.
-
-#### 7. BALANCE_SHEET
-
-Assess:
-
-- liquidity
-- leverage
-- borrowings trend
-- reserves or retained-earnings buildup
-- working-capital quality
-
-Stop: if solvency or refinancing risk is unclear, do not label financial quality as `CLEAN`.
-
-#### 8. CASH_FLOW
-
-Assess:
-
-- OCF trend
-- FCF trend
-- CFO vs PAT alignment
-- capex intensity and reinvestment burden
-
-Stop: if cash generation fails to validate accounting profit over time, treat as a major quality warning.
-
-#### 9. OWNERSHIP_GOVERNANCE
-
-Assess:
-
-- controller and ultimate-owner clarity
-- free-float and holder structure
-- institutional and foreign-holder context
-- custody-vs-active-holder interpretation
-- management quality, capital allocation, RPT behavior, and governance record
-
-Stop: if holder interpretation is ambiguous, do not infer smart-money accumulation from nominee or custody names.
-
-#### 10. INDUSTRY_MOAT
-
-Assess:
-
-- industry cycle and tailwinds
-- competitive intensity
-- barriers to entry
-- brand, cost, distribution, network, or regulatory advantages
-
-Stop: if the company is good but the industry structure is deteriorating, cap conviction.
-
-For `SECTOR_REVIEW`, this phase becomes a primary output rather than a supporting one. It must compare at least leader quality, industry economics, and structural pressure points across the reviewed sector scope.
-
-#### 11. VALUATION
-
-Use 2-3 methods when the mode requires valuation. Select methods that fit the business.
-
-Must produce:
-
-- method set used
-- fair-value range
-- margin of safety
-- `valuation_verdict`
-
-Stop: if the business model does not support a credible method set, state that directly and avoid false precision.
-
-Stop also if valuation depends mainly on management guidance, heroic terminal assumptions, or a single fragile method.
-
-For `SECTOR_REVIEW`, valuation may be comparative rather than intrinsic. Use peer framing when sector structure is the primary question.
-
-#### 12. RED_FLAGS
-
-Check:
-
-- value-trap pattern
-- manipulation signals
-- dilution and funding risk
-- weak disclosures or accounting-quality concerns
-
-Must produce explicit `trap_risk`.
-
-If multiple red flags point in the same direction, do not offset them with valuation cheapness alone.
-
-#### 13. EVIDENCE_TRACE
-
-When official evidence is in scope, select and review the strongest relevant disclosure using `references/core/filing-review-framework.md` and `list-filing` -> `get-filing`.
-
-When contextual evidence is in scope, add internal research or transcript-like materials through `search-documents` / `get-document`.
-
-Must separate:
-
-- what is directly supported by official filings
-- what is supported by contextual research
-- what is supported by reported news or analysis documents
-- what remains inference
-
-Stop: if a filing-led conclusion materially depends on management commentary that is not supported by the filing.
-
-Escalate risk if auditor language, notes-to-accounts detail, or capital-raise disclosures conflict with the headline story.
-
-Do not force official filings to be the primary evidence when the question is sector structure, peer positioning, or externally reported developments. In those cases, contextual documents can lead, but the evidence trace must say so explicitly.
-
-#### 14. THESIS
-
-Synthesize:
-
-- why the business is attractive or not
-- why the current price is attractive or not
-- major risks
-- what would change the view
-
-Keep this section inside the fundamental lens. Do not expand into narrative-owned catalyst scoring or priced-in story analysis.
-
-Stop: if the thesis depends more on expected storytelling than on business, cash-flow, or balance-sheet improvement, keep posture conservative and note that the remaining upside case is not fundamentally owned.
+| Phase | Core job | Stop / downgrade rule |
+|---|---|---|
+| `BUSINESS` | explain what the company does, how it makes money, and relevant mix | if the business cannot be explained clearly from evidence, lower confidence sharply |
+| `REVENUE` | test growth quality, mix shift, and pricing-power context | if growth cannot be reconciled with segment mix, demand context, or working-capital evidence, elevate red-flag risk; acquisition-led or channel-stuffing-style growth is not high-quality growth |
+| `PROFITABILITY` | test margin durability and one-off distortion | if profit quality depends materially on one-offs, do not treat margins as durable |
+| `CAPITAL_EFFICIENCY` | test ROE, ROA, ROCE, and turnover quality | if returns are mainly leverage-driven or supported by a weak equity base, downgrade quality |
+| `BALANCE_SHEET` | test liquidity, leverage, borrowings, reserves, and working capital | if solvency or refinancing risk is unclear, do not label financial quality `CLEAN` |
+| `CASH_FLOW` | test OCF, FCF, CFO vs PAT, and capex burden | if cash does not validate profit over time, treat as a major quality warning |
+| `OWNERSHIP_GOVERNANCE` | test controller clarity, holder structure, management, capital allocation, and RPT behavior | if holder interpretation is ambiguous, do not infer active smart-money behavior |
+| `INDUSTRY_MOAT` | test industry cycle, structure, barriers, and advantage durability | if the industry structure is deteriorating, cap conviction; for `SECTOR_REVIEW`, this is a primary output |
+| `VALUATION` | use a method set that fits the business and produce a fair-value view | stop on false precision, heroic assumptions, guidance-only builds, or single-fragile-method dependence; for `SECTOR_REVIEW`, valuation may be comparative rather than intrinsic |
+| `RED_FLAGS` | test value-trap, manipulation, dilution, and weak-disclosure risk | multiple aligned red flags cannot be offset by cheapness alone |
+| `EVIDENCE_TRACE` | separate filing-backed claims, contextual-document claims, news-backed claims, and inference | if a filing-led conclusion depends on unsupported commentary, stop; contextual documents can lead when the task is sectoral, mechanism-led, or about externally reported developments |
+| `THESIS` | synthesize why the asset, sector, or mechanism is attractive or not, plus risks and invalidation | keep the section inside the fundamental lens; if the case depends more on storytelling than economics, keep posture conservative |
 
 #### 15. RESULT
 

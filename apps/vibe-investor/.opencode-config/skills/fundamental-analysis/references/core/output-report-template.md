@@ -1,9 +1,9 @@
 # Output Report Template
 
-Use this structure for final fundamental outputs.
+Use this file as an output contract, not a sample report. Keep outputs concise and mode-aware.
 
 ```markdown
-## Fundamental Analysis: {SYMBOL}
+## Fundamental Analysis: {SUBJECT}
 
 **Business Quality:** {STRONG / ADEQUATE / WEAK}
 **Financial Quality:** {CLEAN / MIXED / STRESSED}
@@ -12,85 +12,60 @@ Use this structure for final fundamental outputs.
 **Thesis Posture:** {ACTIONABLE / WATCHLIST / AVOID}
 **Confidence:** {HIGH / MEDIUM / LOW}
 
-### A. Company Overview
-- Ticker, date, sector, price, market cap
-- Business model summary (1-2 sentences)
+### Required Sections By Mode
 
-### B. Business Understanding
-- What the company does
-- How it makes money
-- Product, segment, and geographic mix when material
-- Industry position and structural relevance
+#### FULL_REVIEW
+- Overview: subject, scope, business model
+- Quality: business quality, financial quality, key supporting metrics
+- Industry / moat: structure, demand drivers, competitive edge or weakness
+- Valuation: methods used, fair-value range or comparative frame, why the method set fits
+- Red flags: major trap or accounting risks
+- Evidence trace
+- Investment view: posture, major risks, invalidation conditions
 
-### C. Revenue And Profitability
-| Area | Key read | Trend | Notes |
-|------|----------|-------|-------|
-| Revenue growth | X | Improving/Stable/Weakening | Segment or geographic mix if material |
-| Operating profit | X | ... | Margin driver or pressure |
-| Net profit | X | ... | One-off distortion or quality note |
-| Pricing power | X | ... | Price vs volume context |
+#### QUALITY_CHECK
+- Overview
+- Quality
+- Red flags
+- Evidence trace
+- Investment view
 
-### D. Return And Capital Efficiency
-| Metric | Current | Trend | Interpretation |
-|--------|---------|-------|----------------|
-| ROE | X | Improving/Stable/Weakening | ... |
-| ROA | X | ... | ... |
-| ROCE | X | ... | ... |
-| Asset Turnover | X | ... | ... |
+#### VALUATION_ONLY
+- Overview
+- Valuation
+- Key reasons the method set is valid or invalid
+- Evidence trace
+- Investment view
 
-### E. Balance Sheet And Cash Flow
-| Area | Status | Key metric | Trend |
-|------|--------|------------|-------|
-| Liquidity | HEALTHY/WARNING/DANGER | Current Ratio / Quick Ratio | Improving/Stable/Weakening |
-| Solvency | ... | DER / ICR / Net Gearing | ... |
-| Borrowings | ... | Debt trend | ... |
-| Working Capital | ... | DSO / DIO / DPO or equivalent | ... |
-| Cash Conversion | ... | CFO vs PAT | ... |
-| Free Cash Flow | ... | FCF / Capex trend | ... |
+#### FILING_REVIEW
+- Disclosure reviewed and why it was primary
+- Key findings
+- Impact on quality, valuation, solvency, or governance
+- Evidence trace
+- Investment view
 
-### F. Ownership, Governance, And Management
-- Controller and ultimate-owner context
-- Free float, institutional or foreign holders, and custody interpretation when material
-- Management quality and capital allocation
-- Governance, disclosure, and related-party risk
+#### SECTOR_REVIEW
+- Sector boundary and demand drivers
+- Industry economics and structure
+- Strong-player vs weak-player traits
+- Comparative valuation frame
+- Key risks
+- Evidence trace
+- Conclusion
 
-### G. Industry Position And Competitive Advantage
-- Industry cycle and demand drivers
-- Competitive intensity
-- Moat assessment: WIDE/NARROW/NONE
-- Why this advantage is durable or fragile
+#### MECHANISM_REVIEW
+- Mechanism under review and why it matters
+- Economic and governance implications
+- Impact on quality, valuation, solvency, dilution, or minority alignment
+- Evidence trace
+- Conclusion
 
-### H. Valuation Assessment
-| Method | Intrinsic value | MoS | Signal |
-|--------|------------------|-----|--------|
-| Method 1 | Rp X | X% | UNDERVALUED/FAIR/OVERVALUED |
-| Method 2 | Rp X | X% | ... |
-| Method 3 | Rp X | X% | ... |
-
-Consensus fair-value range: {Rp X - Rp Y}
-
-### I. Red Flags
-- Value trap check: PASS/WARNING/FAIL
-- Manipulation risk: PASS/WARNING/FAIL
-- IDX 2.0 risk score: {X/12}
-- Altman Z context
-- Top 3 risk factors
-
-### J. Evidence Trace
-- Primary evidence sources used and why they were primary
-- What is directly supported by filings
-- What is supported by internal analysis or research documents
-- What is supported by reported news documents
-- What remains inference
-- If filings were not primary, explain why that is appropriate for this task
-- Notes to accounts, auditor remarks, public expose, concall, or management-guidance read if covered
-- What changed because of this evidence
-
-### K. Investment View
-- Why own, why wait, or why avoid
-- Key fundamental triggers or evidence milestones
-- Major risks
-- 2-3 specific invalidation or confirmation triggers
+### Evidence Trace
+- primary evidence sources and why they were primary
+- what is filing-backed
+- what is backed by internal analysis or research documents
+- what is backed by reported news documents
+- what remains inference
 ```
 
 ## Caveat
