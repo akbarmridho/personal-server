@@ -28,6 +28,12 @@ Primary source for this plan:
 
 This source should remain in the `flow-plan` folder as the doctrine and UI reference for the new skill.
 
+Interpretation rule:
+
+- `idx-flow.html` is doctrine and product-language reference
+- the deterministic implementation should only adopt the parts that survive the actual raw data contract
+- product-specific composites or UI metrics should not be promoted into v1 deterministic truth without a defensible formula
+
 Companion human-workflow note:
 
 - `human-flow-analyst-workflow.md`
@@ -160,8 +166,8 @@ This layer should own:
 - `CADI`
 - broker-side `VWAP` execution-quality interpretation
 - `GVPR`
-- `MFI` as an internal verdict input
-- `Frequency` as an internal verdict input
+- top buyer / seller share
+- coverage quality from top-25 visibility
 - verdict factors derived from those metrics
 
 Core questions:
@@ -171,6 +177,8 @@ Core questions:
 - is participation concentrated enough to matter?
 
 `MFI` and `Frequency` should live here as verdict-computation inputs, not as separate analyst-facing phases.
+`MFI` should stay out of the first deterministic contract until it has a defensible computation from the actual broker-summary raw inputs.
+`Frequency` should also stay secondary until it proves stable and additive beyond value-based flow features.
 
 The skill may still derive sponsor-quality and concentration features from daily broker-summary snapshots, but those raw tables should stay internal to deterministic preprocessing rather than become first-class LLM-facing report sections.
 
@@ -178,11 +186,11 @@ The skill may still derive sponsor-quality and concentration features from daily
 
 This layer should own:
 
-- `SMT`
 - flow divergence
 - flow-price correlation
 - broker persistence
 - concentration asymmetry
+- concentration strength via `HHI` and top-k participation
 - wash-risk or anomaly-risk checks when relevant
 
 These are not primary direction generators.
@@ -193,6 +201,8 @@ The underlying factor model should stay continuous rather than binary.
 Planning assumption:
 
 - factor scores should support smooth interpretation, such as a bounded negative-to-positive scale, instead of hard on-off flags
+- `SMT` may exist later as a product-layer composite, but it should not be treated as the base deterministic truth in v1
+- `Gini` should not be the primary concentration backbone in v1 under top-25 truncation
 
 ### 6. `TRUST_AND_REGIME`
 
@@ -210,6 +220,12 @@ This is where:
 - active regime
 
 should affect confidence.
+
+Window rule:
+
+- use `30` trading days as the active read for direction, sponsor quality, and current state
+- use `60` trading days as the trust and stability read for correlation and ticker usefulness
+- do not collapse those jobs into one window
 
 ### 7. `VERDICT`
 
@@ -275,6 +291,13 @@ These ideas from `idx-flow.html` should become first-class doctrine:
 - correlation and active regime should decide how much trust to give the skill
 - concentration and persistence matter more than one-off spikes
 
+Additional implementation rules from the research pass:
+
+- top-25 truncation must be treated explicitly through coverage awareness
+- `HHI` plus top-k participation is a safer deterministic concentration backbone than `Gini`
+- wash-risk stays a proxy and risk discount, not a claim of actual detected wash trading
+- divergence remains contextual and must not become a trigger
+
 ## Expected Output Shape
 
 The future output should be smaller than the HTML UI but keep the same logic.
@@ -305,6 +328,13 @@ Recommended `Decision Summary` fields:
 - key caution
 - integration signal
 - next review trigger
+
+Internal deterministic defaults for v1:
+
+- `30D` primary window for CADI, persistence, VWAP execution, GVPR, and baseline verdict
+- `60D` trust window for correlation and ticker-usefulness assessment
+- `MFI` excluded from the first deterministic packet
+- `SMT` excluded as base truth and treated, at most, as later heuristic presentation
 
 Conditional:
 

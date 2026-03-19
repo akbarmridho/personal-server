@@ -38,6 +38,8 @@ type BrokerFlowSeriesDay = {
 
 export type BrokerFlowRawSeriesResponse = {
   symbol: string;
+  today_snapshot_included: boolean;
+  today_snapshot_ready_after_wib: "19:00";
   window: {
     requested_trading_days: number;
     actual_trading_days: number;
@@ -218,9 +220,12 @@ export const getStockBrokerFlowRawSeries = async (
       return normalizeSnapshotDay(date, snapshot);
     }),
   );
+  const todayJakarta = dayjs().tz(JAKARTA_TIMEZONE).format("YYYY-MM-DD");
 
   return {
     symbol,
+    today_snapshot_included: tradingDates.includes(todayJakarta),
+    today_snapshot_ready_after_wib: "19:00",
     window: {
       requested_trading_days: tradingDays,
       actual_trading_days: snapshots.length,
