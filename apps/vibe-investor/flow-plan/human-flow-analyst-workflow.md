@@ -59,7 +59,7 @@ This matters because flow reads are very sensitive to date windows and whether t
 Within `UPDATE`, the analyst should still record:
 
 - `flow_status`: `intact`, `improving`, `degrading`, or `invalidated`
-- `review_reason`: `routine`, `contradiction`, `sponsor_shift`, `regime_change`, or `verdict_flip`
+- `review_reason`: `routine`, `contradiction`, `sponsor_shift`, or `regime_change`
 
 ### 2. Check Input Window And Snapshot
 
@@ -73,7 +73,7 @@ Human checks:
 
 - selected symbol
 - selected date or range
-- whether the read is single-day or multi-day
+- whether the read uses the intended multi-day broker-flow window
 - whether the snapshot is recent enough for the decision being made
 
 This is important because a stale or mismatched window can distort every conclusion after it.

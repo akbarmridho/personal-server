@@ -82,6 +82,12 @@ Core metrics:
 - `top_buyer_share_pct`
 - `top_seller_share_pct`
 
+Semantics:
+
+- `coverage_*` measures visible top-25 side value as a share of total market value
+- `buy_avg_vs_vwap_pct`, `sell_avg_vs_vwap_pct`, `gvpr_*`, and `top_*_share_pct` are selected-period aggregate metrics over the primary 30-session window
+- `gvpr_*` and `top_*_share_pct` are anchored to total market value over that window, matching the source doctrine
+
 Advanced signals:
 
 - `persistence_score`
@@ -89,6 +95,8 @@ Advanced signals:
 - `buy_hhi`
 - `sell_hhi`
 - `concentration_asymmetry_state`
+- `frequency_score`
+- `frequency_profile`
 - `flow_price_correlation_spearman`
 - `flow_price_correlation_state`
 - `divergence_state`
@@ -103,6 +111,7 @@ Trust and verdict:
 - `market_cap_value`
 - `ticker_flow_usefulness`
 - `trust_level`
+- `verdict_weight_profile`
 - `trust_rationale`
 - `verdict`
 - `conviction_pct`
@@ -114,11 +123,21 @@ Trust and verdict:
 - `integration_summary`
 - `monitoring`
 
+Historical series:
+
+- `history.active_30d`
+- `history.trust_60d`
+
+Conditional update fields:
+
+- `update_context.flow_status`
+- `update_context.review_reason`
+
 ## What Stays Out Of V1
 
 These are not base deterministic truth:
 
-- `MFI` without a defensible raw-contract formula
+- `MFI` without a defensible raw-contract formula, even though it remains part of the source-truth verdict stack
 - `SMT` as a source of truth
 - `Gini` as the primary concentration metric under top-25 truncation
 - raw broker tables rendered as analyst prose
@@ -155,6 +174,7 @@ State:
 - as-of date
 - actual trading-day window
 - whether today’s broker snapshot is included
+- v1 is always a multi-day read; do not present single-day mode
 
 ### 3. `GROSS_FIRST_READ`
 
@@ -177,7 +197,7 @@ Answer:
 Interpretation rules:
 
 - rising `CADI` with positive recent net flow is constructive
-- buyers above VWAP can mean urgency; buyers below VWAP can mean patient absorption
+- selected-period buy-vs-VWAP is the verdict input; daily execution path still lives in `history`
 - `GVPR` and top-broker share are participation context, not standalone truth
 - low coverage means the visible broker picture is partial
 
@@ -189,6 +209,7 @@ Interpretation rules:
 
 - persistence upgrades conviction; it does not replace direction
 - `HHI` and top-k participation are the preferred concentration backbone
+- `Frequency Profile` is included because raw broker frequency exists in the source data
 - divergence is context only
 - wash/anomaly risk is a discount, not a conclusion
 
@@ -202,6 +223,7 @@ Interpretation rules:
 - `60D` tells you whether broker-flow signals are generally trustworthy here
 - liquidity and market cap must influence trust
 - high anomaly risk or low coverage must discount trust
+- `verdict_weight_profile` explains how factor weighting changes by ticker regime
 
 ### 7. `VERDICT`
 
@@ -249,6 +271,11 @@ Always end with:
 - what invalidates it
 - what next review window matters
 
+When `purpose_mode = UPDATE`, also state:
+
+- `flow_status`
+- `review_reason`
+
 ## Output Contract
 
 Keep the final report smaller than the HTML product UI.
@@ -284,6 +311,7 @@ Required fields:
 - active window
 - today snapshot included or excluded
 - gross-first note
+- compact history availability for `30D` and `60D`
 
 ### `Core Metrics`
 
@@ -296,6 +324,8 @@ Summarize:
 - `GVPR`
 - top buyer / seller share
 - coverage
+
+If needed for inspection, refer to the compact historical block instead of re-reading raw broker rows.
 
 ### `Advanced Signals`
 

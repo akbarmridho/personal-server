@@ -68,14 +68,18 @@ Optional later:
 {
   "analysis": {},
   "window": {},
+  "history": {},
   "core_metrics": {},
   "advanced_signals": {},
   "trust_regime": {},
   "baseline_verdict": {},
   "integration_hook": {},
-  "monitoring": {}
+  "monitoring": {},
+  "update_context": {}
 }
 ```
+
+`update_context` is conditional and should be emitted only when `purpose_mode = UPDATE`.
 
 ## Top-Level Sections
 
@@ -90,7 +94,7 @@ Required fields:
 - `symbol`: string
 - `as_of_date`: `YYYY-MM-DD`
 - `purpose_mode`: `INITIAL` | `UPDATE` | `POSTMORTEM`
-- `window_mode`: `single_day` | `multi_day`
+- `window_mode`: `multi_day`
 - `trading_days`: integer
 
 ### `window`
@@ -148,8 +152,40 @@ Notes:
 
 - this is the first layer that answers: who is accumulating, who is distributing, and are they paying up or getting favorable execution
 - `coverage_*` is a first-class internal quality metric because top-25 broker data is truncated by design
+- `buy_avg_vs_vwap_pct`, `sell_avg_vs_vwap_pct`, `gvpr_*`, and `top_*_share_pct` should be computed from selected-period aggregates over the 30-session primary window
+- `coverage_*`, `gvpr_*`, and `top_*_share_pct` use total market value over the relevant window as the denominator
 - `MFI` is not part of the v1 deterministic packet until it has a defensible formula from the actual raw contract
-- `Frequency` can be added later if it becomes stable and genuinely useful in the deterministic packet
+- `Frequency Profile` is part of the v1 packet because raw broker frequency is available and the source doctrine uses it in verdict scoring
+
+### `history`
+
+Purpose:
+
+- preserve a compact historical trail for human review, debugging, and future chart generation without leaking raw broker tables back into the packet
+
+Required fields:
+
+- `active_30d`:
+  - `dates`: string[]
+  - `price_close_series`: number[]
+  - `cadi_series`: number[]
+  - `net_flow_ratio_series`: number[]
+  - `gvpr_buy_series`: number[]
+  - `gvpr_sell_series`: number[]
+  - `buy_hhi_series`: number[]
+  - `sell_hhi_series`: number[]
+  - `wash_risk_series`: number[]
+- `trust_60d`:
+  - `dates`: string[]
+  - `price_close_series`: number[]
+  - `cadi_series`: number[]
+
+Notes:
+
+- this block is intentionally compact
+- do not duplicate raw broker rows here
+- `active_30d` exists to make the primary read inspectable
+- `trust_60d` exists to make the slower trust relationship inspectable
 
 ### `advanced_signals`
 
@@ -164,6 +200,8 @@ Required fields:
 - `buy_hhi`: number
 - `sell_hhi`: number
 - `concentration_asymmetry_state`: `buy_heavy` | `sell_heavy` | `balanced`
+- `frequency_score`: number
+- `frequency_profile`: `buy_heavy` | `sell_heavy` | `moderate` | `balanced`
 - `flow_price_correlation_spearman`: number
 - `flow_price_correlation_state`: `strong` | `moderate` | `weak` | `minimal`
 - `divergence_state`: `bullish_divergence` | `bearish_divergence` | `none` | `unclear`
@@ -192,6 +230,7 @@ Required fields:
 - `market_cap_value`: number
 - `ticker_flow_usefulness`: `lead_capable` | `support_only` | `secondary` | `unreliable`
 - `trust_level`: `high` | `medium` | `low`
+- `verdict_weight_profile`: `blue_chip_high_liquidity` | `mid_cap_moderate` | `low_liquidity_small_cap` | `institutional_driven`
 - `trust_rationale`: string[]
 
 Notes:
@@ -263,35 +302,52 @@ Required fields:
 - `next_review_window`: `next_session` | `3_sessions` | `5_sessions` | `10_sessions`
 - `status_drift`: `improving` | `stalling` | `degrading` | `stable`
 
+### `update_context`
+
+Purpose:
+
+- add update-specific review state without pretending the base deterministic packet always has prior-run comparisons
+
+Conditional fields:
+
+- emit only when `purpose_mode = UPDATE`
+
+Required fields:
+
+- `flow_status`: `intact` | `improving` | `degrading` | `invalidated`
+- `review_reason`: `routine` | `contradiction` | `sponsor_shift` | `regime_change`
+
 ## Minimal V1 Computation Set
 
 The first implementation should compute only the stable subset:
 
 1. `window`
-2. `coverage_buy_pct`
-3. `coverage_sell_pct`
-4. `net_flow_total_value`
-5. `cadi_value`
-6. `cadi_trend`
-7. `buy_avg_vs_vwap_pct`
-8. `sell_avg_vs_vwap_pct`
-9. `bs_spread_pct`
-10. `gvpr_buy_pct`
-11. `gvpr_sell_pct`
-12. `top_buyer_share_pct`
-13. `top_seller_share_pct`
-14. `persistence_score`
-15. `buy_hhi`
-16. `sell_hhi`
-17. `flow_price_correlation_spearman`
-18. `divergence_state`
-19. `wash_risk_pct`
-20. `liquidity_profile`
-21. `market_cap_profile`
-22. `trust_level`
-23. `baseline_verdict`
-24. `integration_hook`
-25. `monitoring`
+2. `history.active_30d`
+3. `history.trust_60d`
+4. `coverage_buy_pct`
+5. `coverage_sell_pct`
+6. `net_flow_total_value`
+7. `cadi_value`
+8. `cadi_trend`
+9. `buy_avg_vs_vwap_pct`
+10. `sell_avg_vs_vwap_pct`
+11. `bs_spread_pct`
+12. `gvpr_buy_pct`
+13. `gvpr_sell_pct`
+14. `top_buyer_share_pct`
+15. `top_seller_share_pct`
+16. `persistence_score`
+17. `buy_hhi`
+18. `sell_hhi`
+19. `flow_price_correlation_spearman`
+20. `divergence_state`
+21. `wash_risk_pct`
+22. `liquidity_profile`
+23. `market_cap_profile`
+24. `trust_level`
+25. `baseline_verdict`
+26. `integration_hook`
+27. `monitoring`
 
 Everything else can be layered in later if the deterministic signal proves stable.
 
@@ -301,7 +357,7 @@ Do not put these in the first packet:
 
 - raw broker tables rendered as prose
 - broker distribution visualization output
-- `MFI` without a defensible formula from the real raw contract
+- `MFI` without a defensible formula from the real raw contract, even though it is still needed for close parity with `idx-flow.html`
 - `SMT` as a black-box source of truth
 - `Gini` as a primary concentration metric under top-25 truncation
 - named chart setups

@@ -89,6 +89,50 @@ def _weighted_average_price(rows: list[dict[str, Any]]) -> float:
     return _safe_ratio(weighted_sum, total_lots)
 
 
+def _aggregate_rows(rows_by_day: list[list[dict[str, Any]]]) -> list[dict[str, Any]]:
+    by_broker: dict[str, dict[str, Any]] = {}
+    for rows in rows_by_day:
+        for row in rows:
+            broker = str(row.get("broker", "")).strip().upper()
+            if not broker:
+                continue
+            current = by_broker.setdefault(
+                broker,
+                {
+                    "broker": broker,
+                    "value": 0.0,
+                    "lots": 0.0,
+                    "frequency": 0.0,
+                    "_weighted_price_sum": 0.0,
+                },
+            )
+            value = _to_float(row.get("value"))
+            lots = _to_float(row.get("lots"))
+            frequency = _to_float(row.get("frequency"))
+            avg_price = _to_float(row.get("avg_price"))
+            current["value"] += value
+            current["lots"] += lots
+            current["frequency"] += frequency
+            if lots > 0 and avg_price > 0:
+                current["_weighted_price_sum"] += avg_price * lots
+
+    out: list[dict[str, Any]] = []
+    for broker, item in by_broker.items():
+        lots = _to_float(item.get("lots"))
+        out.append(
+            {
+                "broker": broker,
+                "value": round(_to_float(item.get("value"))),
+                "lots": round(lots),
+                "frequency": round(_to_float(item.get("frequency"))),
+                "avg_price": _safe_ratio(_to_float(item.get("_weighted_price_sum")), lots)
+                if lots > 0
+                else 0.0,
+            }
+        )
+    return out
+
+
 def _series_slope(values: list[float]) -> float:
     if len(values) < 2:
         return 0.0
@@ -238,6 +282,12 @@ def _hhi_from_rows(rows: list[dict[str, Any]]) -> float:
     )
 
 
+def _window_vwap(days: list[dict[str, Any]]) -> float:
+    total_value = sum(_to_float(day.get("market_value")) for day in days)
+    total_volume = sum(_to_float(day.get("market_volume")) for day in days)
+    return _safe_ratio(total_value, total_volume)
+
+
 def _wash_component(
     buy_row: dict[str, Any],
     sell_row: dict[str, Any],
@@ -320,12 +370,11 @@ def _daily_metrics(
     )[:CADI_TOP_BROKERS]
     cadi_increment = _safe_ratio(sum(value for _broker, value in dominant_brokers), market_value)
 
-    buy_coverage = _safe_ratio(
-        sum(_to_float(row.get("value")) for row in buy_rows), market_value
-    )
-    sell_coverage = _safe_ratio(
-        sum(_to_float(row.get("value")) for row in sell_rows), market_value
-    )
+    visible_buy_value = sum(_to_float(row.get("value")) for row in buy_rows)
+    visible_sell_value = sum(_to_float(row.get("value")) for row in sell_rows)
+
+    buy_coverage = _safe_ratio(visible_buy_value, market_value)
+    sell_coverage = _safe_ratio(visible_sell_value, market_value)
 
     buy_avg_px = _weighted_average_price(buy_rows)
     sell_avg_px = _weighted_average_price(sell_rows)
@@ -339,14 +388,19 @@ def _daily_metrics(
         "date": date,
         "close": close,
         "market_value": market_value,
+        "market_volume": market_volume,
         "market_cap_close": market_cap_close,
         "coverage_buy": buy_coverage,
         "coverage_sell": sell_coverage,
         "buy_avg_vs_vwap_pct": buy_dev,
         "sell_avg_vs_vwap_pct": sell_dev,
         "bs_spread_pct": buy_dev - sell_dev,
-        "top_buyer_share_pct": _safe_ratio(buy_top_values[0] if buy_top_values else 0.0, market_value),
-        "top_seller_share_pct": _safe_ratio(sell_top_values[0] if sell_top_values else 0.0, market_value),
+        "top_buyer_share_pct": _safe_ratio(
+            buy_top_values[0] if buy_top_values else 0.0, market_value
+        ),
+        "top_seller_share_pct": _safe_ratio(
+            sell_top_values[0] if sell_top_values else 0.0, market_value
+        ),
         "gvpr_buy_pct": _safe_ratio(sum(buy_top_values[:GVPR_TOP_BROKERS]), market_value),
         "gvpr_sell_pct": _safe_ratio(sum(sell_top_values[:GVPR_TOP_BROKERS]), market_value),
         "buy_hhi": _hhi_from_rows(buy_rows),
@@ -357,6 +411,8 @@ def _daily_metrics(
         "overlap_count": len(overlapping),
         "sanitized_net_by_broker": sanitized_net_by_broker,
         "visible_gross_by_broker": visible_gross_by_broker,
+        "buy_rows": buy_rows,
+        "sell_rows": sell_rows,
     }
 
 
@@ -452,6 +508,27 @@ def _concentration_state(avg_buy_hhi: float, avg_sell_hhi: float, avg_gvpr_buy: 
     if avg_sell_hhi - avg_buy_hhi >= 250 and avg_gvpr_sell - avg_gvpr_buy >= 0.02:
         return "sell_heavy"
     return "balanced"
+
+
+def _frequency_profile(
+    buy_rows: list[dict[str, Any]], sell_rows: list[dict[str, Any]]
+) -> tuple[float, str]:
+    buy_value = sum(_to_float(row.get("value")) for row in buy_rows)
+    sell_value = sum(_to_float(row.get("value")) for row in sell_rows)
+    buy_freq = sum(_to_float(row.get("frequency")) for row in buy_rows)
+    sell_freq = sum(_to_float(row.get("frequency")) for row in sell_rows)
+    buy_ticket_value = _safe_ratio(buy_value, buy_freq)
+    sell_ticket_value = _safe_ratio(sell_value, sell_freq)
+    score = _clip(
+        math.log((_safe_ratio(buy_ticket_value + 1.0, sell_ticket_value + 1.0))), -1.0, 1.0
+    )
+    if score >= 0.18:
+        return score, "buy_heavy"
+    if score <= -0.18:
+        return score, "sell_heavy"
+    if max(buy_ticket_value, sell_ticket_value) > 0:
+        return score, "moderate"
+    return 0.0, "balanced"
 
 
 def _divergence_state(primary_days: list[dict[str, Any]]) -> str:
@@ -569,41 +646,109 @@ def _trust_regime(
     return trust_level, usefulness, rationale
 
 
+def _verdict_weight_profile(
+    *,
+    liquidity_profile: str,
+    market_cap_profile: str,
+    persistence_score: float,
+    gvpr_buy_pct: float,
+    gvpr_sell_pct: float,
+    buy_hhi: float,
+    sell_hhi: float,
+) -> tuple[str, dict[str, float]]:
+    institutional_driven = (
+        abs(persistence_score) >= 25
+        and max(gvpr_buy_pct, gvpr_sell_pct) >= 0.55
+        and max(buy_hhi, sell_hhi) >= 1500
+    )
+
+    if institutional_driven:
+        return "institutional_driven", {
+            "cadi": 0.28,
+            "persistence": 0.26,
+            "execution": 0.14,
+            "gvpr": 0.18,
+            "concentration": 0.08,
+            "frequency": 0.06,
+        }
+    if market_cap_profile == "large" and liquidity_profile == "high":
+        return "blue_chip_high_liquidity", {
+            "cadi": 0.30,
+            "persistence": 0.22,
+            "execution": 0.16,
+            "gvpr": 0.16,
+            "concentration": 0.08,
+            "frequency": 0.08,
+        }
+    if liquidity_profile in {"low", "very_low"} or market_cap_profile in {"small", "micro"}:
+        return "low_liquidity_small_cap", {
+            "cadi": 0.18,
+            "persistence": 0.16,
+            "execution": 0.12,
+            "gvpr": 0.22,
+            "concentration": 0.18,
+            "frequency": 0.14,
+        }
+    return "mid_cap_moderate", {
+        "cadi": 0.24,
+        "persistence": 0.20,
+        "execution": 0.16,
+        "gvpr": 0.18,
+        "concentration": 0.12,
+        "frequency": 0.10,
+    }
+
+
 def _baseline_verdict(
     *,
     cadi_value: float,
-    recent_net_ratio: float,
     persistence_score: float,
-    execution_bias: float,
+    buy_vwap_dev: float,
+    gvpr_bias: float,
     concentration_bias: float,
+    frequency_score: float,
     divergence_state: str,
     trust_level: str,
     cadi_trend: str,
     avg_coverage: float,
     wash_risk_state: str,
     correlation_state: str,
+    weight_profile: dict[str, float],
 ) -> tuple[str, float, str, list[str], list[str]]:
-    divergence_bias = 0.15 if divergence_state == "bullish_divergence" else -0.15 if divergence_state == "bearish_divergence" else 0.0
-    trust_bias = 0.10 if trust_level == "high" else 0.0
+    divergence_bias = (
+        0.08
+        if divergence_state == "bullish_divergence"
+        else -0.08
+        if divergence_state == "bearish_divergence"
+        else 0.0
+    )
+    trust_bias = 0.05 if trust_level == "high" else 0.0
+    cadi_component = _clip(cadi_value, -1.0, 1.0)
+    persistence_component = _clip(persistence_score / 100.0, -1.0, 1.0)
+    execution_component = _clip(buy_vwap_dev / 0.01, -1.0, 1.0)
+    gvpr_component = _clip(gvpr_bias * 8.0, -1.0, 1.0)
+    concentration_component = _clip(concentration_bias, -1.0, 1.0)
+    frequency_component = _clip(frequency_score, -1.0, 1.0)
     score = (
-        _clip(cadi_value, -1.0, 1.0) * 0.30
-        + _clip(recent_net_ratio * 2.0, -1.0, 1.0) * 0.25
-        + _clip(persistence_score / 100.0, -1.0, 1.0) * 0.20
-        + _clip(execution_bias * 50.0, -1.0, 1.0) * 0.15
-        + _clip(concentration_bias, -1.0, 1.0) * 0.10
+        cadi_component * weight_profile["cadi"]
+        + persistence_component * weight_profile["persistence"]
+        + execution_component * weight_profile["execution"]
+        + gvpr_component * weight_profile["gvpr"]
+        + concentration_component * weight_profile["concentration"]
+        + frequency_component * weight_profile["frequency"]
         + divergence_bias
         + trust_bias
     )
     score = _clip(score, -1.0, 1.0)
 
-    if score >= 0.12:
+    if score >= 0.06:
         verdict = "ACCUMULATION"
-    elif score <= -0.12:
+    elif score <= -0.06:
         verdict = "DISTRIBUTION"
     else:
         verdict = "NEUTRAL"
 
-    conviction_pct = round(min(abs(score) * 100.0, 100.0), 2)
+    conviction_pct = round(min(50.0 + abs(score) * 50.0, 100.0), 2)
 
     if abs(persistence_score) >= 35 and abs(concentration_bias) >= 0.20 and trust_level != "low":
         sponsor_quality = "strong"
@@ -622,20 +767,25 @@ def _baseline_verdict(
     elif cadi_trend == "falling":
         caution_factors.append("CADI is falling over the 30-session primary window")
 
-    if recent_net_ratio > 0:
-        support_factors.append("recent visible net flow remains positive")
-    elif recent_net_ratio < 0:
-        caution_factors.append("recent visible net flow remains negative")
-
     if persistence_score >= 12:
         support_factors.append("buy-side persistence is stronger than sell-side persistence")
     elif persistence_score <= -12:
         caution_factors.append("sell-side persistence is stronger than buy-side persistence")
 
-    if execution_bias > 0.0025:
+    if buy_vwap_dev > 0.0025:
         support_factors.append("buyers are paying above session VWAP")
-    elif execution_bias < -0.0025:
-        caution_factors.append("sellers are getting cleaner execution than buyers")
+    elif buy_vwap_dev < -0.0025:
+        caution_factors.append("buyers are still executing below selected-period VWAP")
+
+    if gvpr_bias >= 0.03:
+        support_factors.append("buy-side participation concentration is stronger than sell-side")
+    elif gvpr_bias <= -0.03:
+        caution_factors.append("sell-side participation concentration is stronger than buy-side")
+
+    if frequency_score >= 0.18:
+        support_factors.append("buy-side ticket size profile looks more institutional")
+    elif frequency_score <= -0.18:
+        caution_factors.append("sell-side ticket size profile looks more institutional")
 
     if avg_coverage < LOW_COVERAGE_THRESHOLD:
         caution_factors.append("top-25 broker coverage is partial")
@@ -698,6 +848,42 @@ def _integration_hook(
     }, normalized_price_slope
 
 
+def _update_context(
+    *,
+    verdict: str,
+    divergence_state: str,
+    cadi_trend: str,
+    status_drift: str,
+    persistence_state: str,
+) -> dict[str, str]:
+    if verdict == "NEUTRAL":
+        flow_status = "invalidated"
+    elif status_drift == "improving":
+        flow_status = "improving"
+    elif status_drift == "degrading":
+        flow_status = "degrading"
+    else:
+        flow_status = "intact"
+
+    if divergence_state in {"bullish_divergence", "bearish_divergence"}:
+        review_reason = "contradiction"
+    elif (
+        verdict == "ACCUMULATION" and persistence_state in {"sell_persistence", "strong_sell_persistence"}
+    ) or (
+        verdict == "DISTRIBUTION" and persistence_state in {"buy_persistence", "strong_buy_persistence"}
+    ):
+        review_reason = "sponsor_shift"
+    elif cadi_trend == "flat" and status_drift in {"degrading", "stalling"}:
+        review_reason = "regime_change"
+    else:
+        review_reason = "routine"
+
+    return {
+        "flow_status": flow_status,
+        "review_reason": review_reason,
+    }
+
+
 def _monitoring(
     verdict: str,
     cadi_trend: str,
@@ -758,6 +944,13 @@ def _monitoring(
 
     if wash_risk_state == "high" or avg_coverage < LOW_COVERAGE_THRESHOLD:
         next_review = "next_session"
+    elif (
+        verdict == "NEUTRAL"
+        and cadi_trend == "flat"
+        and abs(recent_net_ratio) < 0.0005
+        and abs(normalized_price_slope) < 0.001
+    ):
+        next_review = "10_sessions"
     elif verdict == "NEUTRAL" or abs(normalized_price_slope) < 0.001:
         next_review = "3_sessions"
     else:
@@ -778,6 +971,48 @@ def _monitoring(
         "invalidate_if": invalidate_if,
         "next_review_window": next_review,
         "status_drift": status_drift,
+    }
+
+
+def _history_block(days: list[dict[str, Any]]) -> dict[str, Any]:
+    cadi_running = 0.0
+    dates: list[str] = []
+    price_close_series: list[float] = []
+    cadi_series: list[float] = []
+    net_flow_ratio_series: list[float] = []
+    gvpr_buy_series: list[float] = []
+    gvpr_sell_series: list[float] = []
+    buy_hhi_series: list[float] = []
+    sell_hhi_series: list[float] = []
+    wash_risk_series: list[float] = []
+
+    for day in days:
+        cadi_running += float(day["cadi_increment"])
+        dates.append(str(day["date"]))
+        price_close_series.append(round(float(day["close"]), 6))
+        cadi_series.append(round(cadi_running, 6))
+        net_flow_ratio_series.append(
+            round(
+                _safe_ratio(float(day["net_flow_visible_value"]), float(day["market_value"])),
+                6,
+            )
+        )
+        gvpr_buy_series.append(round(float(day["gvpr_buy_pct"]), 6))
+        gvpr_sell_series.append(round(float(day["gvpr_sell_pct"]), 6))
+        buy_hhi_series.append(round(float(day["buy_hhi"]), 2))
+        sell_hhi_series.append(round(float(day["sell_hhi"]), 2))
+        wash_risk_series.append(round(float(day["wash_risk_pct"]), 2))
+
+    return {
+        "dates": dates,
+        "price_close_series": price_close_series,
+        "cadi_series": cadi_series,
+        "net_flow_ratio_series": net_flow_ratio_series,
+        "gvpr_buy_series": gvpr_buy_series,
+        "gvpr_sell_series": gvpr_sell_series,
+        "buy_hhi_series": buy_hhi_series,
+        "sell_hhi_series": sell_hhi_series,
+        "wash_risk_series": wash_risk_series,
     }
 
 
@@ -839,15 +1074,6 @@ def build_flow_context_result(
     avg_coverage_buy = float(pd.Series([day["coverage_buy"] for day in primary_days]).mean())
     avg_coverage_sell = float(pd.Series([day["coverage_sell"] for day in primary_days]).mean())
     avg_coverage = min(avg_coverage_buy, avg_coverage_sell)
-    avg_buy_dev = float(pd.Series([day["buy_avg_vs_vwap_pct"] for day in primary_days]).mean())
-    avg_sell_dev = float(pd.Series([day["sell_avg_vs_vwap_pct"] for day in primary_days]).mean())
-    avg_bs_spread = float(pd.Series([day["bs_spread_pct"] for day in primary_days]).mean())
-    avg_gvpr_buy = float(pd.Series([day["gvpr_buy_pct"] for day in primary_days]).mean())
-    avg_gvpr_sell = float(pd.Series([day["gvpr_sell_pct"] for day in primary_days]).mean())
-    avg_buy_hhi = float(pd.Series([day["buy_hhi"] for day in primary_days]).mean())
-    avg_sell_hhi = float(pd.Series([day["sell_hhi"] for day in primary_days]).mean())
-    avg_top_buyer_share = float(pd.Series([day["top_buyer_share_pct"] for day in recent_days]).mean())
-    avg_top_seller_share = float(pd.Series([day["top_seller_share_pct"] for day in recent_days]).mean())
     avg_wash_risk = float(pd.Series([day["wash_risk_pct"] for day in primary_days]).mean())
 
     net_flow_total_value = float(sum(day["net_flow_visible_value"] for day in primary_days))
@@ -855,6 +1081,45 @@ def build_flow_context_result(
     recent_net_value = float(sum(day["net_flow_visible_value"] for day in recent_days))
     total_market_value_recent = float(sum(day["market_value"] for day in recent_days))
     recent_net_ratio = _safe_ratio(recent_net_value, total_market_value_recent)
+
+    primary_buy_rows = _aggregate_rows([day["buy_rows"] for day in primary_days])
+    primary_sell_rows = _aggregate_rows([day["sell_rows"] for day in primary_days])
+    primary_window_vwap = _window_vwap(primary_days)
+    primary_buy_avg_px = _weighted_average_price(primary_buy_rows)
+    primary_sell_avg_px = _weighted_average_price(primary_sell_rows)
+    avg_buy_dev = (
+        _safe_ratio(primary_buy_avg_px, primary_window_vwap) - 1.0
+        if primary_buy_avg_px > 0 and primary_window_vwap > 0
+        else 0.0
+    )
+    avg_sell_dev = (
+        _safe_ratio(primary_sell_avg_px, primary_window_vwap) - 1.0
+        if primary_sell_avg_px > 0 and primary_window_vwap > 0
+        else 0.0
+    )
+    avg_bs_spread = avg_buy_dev - avg_sell_dev
+
+    primary_buy_values = sorted(
+        (_to_float(row.get("value")) for row in primary_buy_rows), reverse=True
+    )
+    primary_sell_values = sorted(
+        (_to_float(row.get("value")) for row in primary_sell_rows), reverse=True
+    )
+    avg_gvpr_buy = _safe_ratio(
+        sum(primary_buy_values[:GVPR_TOP_BROKERS]), total_market_value_primary
+    )
+    avg_gvpr_sell = _safe_ratio(
+        sum(primary_sell_values[:GVPR_TOP_BROKERS]), total_market_value_primary
+    )
+    avg_buy_hhi = _hhi_from_rows(primary_buy_rows)
+    avg_sell_hhi = _hhi_from_rows(primary_sell_rows)
+    avg_top_buyer_share = _safe_ratio(
+        primary_buy_values[0] if primary_buy_values else 0.0, total_market_value_primary
+    )
+    avg_top_seller_share = _safe_ratio(
+        primary_sell_values[0] if primary_sell_values else 0.0, total_market_value_primary
+    )
+    frequency_score, frequency_profile = _frequency_profile(primary_buy_rows, primary_sell_rows)
 
     persistence_score, persistence_state = _persistence(primary_days)
     concentration_state = _concentration_state(
@@ -895,7 +1160,15 @@ def build_flow_context_result(
         trust_window_days=len(trust_days),
     )
 
-    execution_bias = avg_buy_dev - avg_sell_dev
+    weight_profile_name, weight_profile = _verdict_weight_profile(
+        liquidity_profile=liquidity_profile,
+        market_cap_profile=market_cap_profile,
+        persistence_score=persistence_score,
+        gvpr_buy_pct=avg_gvpr_buy,
+        gvpr_sell_pct=avg_gvpr_sell,
+        buy_hhi=avg_buy_hhi,
+        sell_hhi=avg_sell_hhi,
+    )
     concentration_bias = _clip(
         ((avg_gvpr_buy - avg_gvpr_sell) * 4.0) + ((avg_buy_hhi - avg_sell_hhi) / 2000.0),
         -1.0,
@@ -904,16 +1177,18 @@ def build_flow_context_result(
     verdict, conviction_pct, sponsor_quality, support_factors, caution_factors = (
         _baseline_verdict(
             cadi_value=float(primary_cadi_series[-1]) if primary_cadi_series else 0.0,
-            recent_net_ratio=recent_net_ratio,
             persistence_score=persistence_score,
-            execution_bias=execution_bias,
+            buy_vwap_dev=avg_buy_dev,
+            gvpr_bias=avg_gvpr_buy - avg_gvpr_sell,
             concentration_bias=concentration_bias,
+            frequency_score=frequency_score,
             divergence_state=divergence_state,
             trust_level=trust_level,
             cadi_trend=cadi_trend,
             avg_coverage=avg_coverage,
             wash_risk_state=wash_risk_state,
             correlation_state=correlation_state,
+            weight_profile=weight_profile,
         )
     )
 
@@ -943,7 +1218,7 @@ def build_flow_context_result(
             "symbol": symbol,
             "as_of_date": as_of_date,
             "purpose_mode": purpose_mode,
-            "window_mode": "multi_day" if actual_trading_days > 1 else "single_day",
+            "window_mode": "multi_day",
             "trading_days": actual_trading_days,
         },
         "window": {
@@ -955,6 +1230,14 @@ def build_flow_context_result(
             "trust_window_trading_days": TRUST_WINDOW_DAYS,
             "today_snapshot_included": bool(broker_flow.get("today_snapshot_included", False)),
             "today_snapshot_ready_after_wib": "19:00",
+        },
+        "history": {
+            "active_30d": _history_block(primary_days),
+            "trust_60d": {
+                "dates": [str(day["date"]) for day in trust_days],
+                "price_close_series": [round(float(day["close"]), 6) for day in trust_days],
+                "cadi_series": [round(value, 6) for value in cadi_series],
+            },
         },
         "core_metrics": {
             "gross_read_note": "gross_primary_net_secondary",
@@ -975,6 +1258,8 @@ def build_flow_context_result(
                 if avg_bs_spread >= 0.003
                 else "widening_sell_pressure"
                 if avg_bs_spread <= -0.003
+                else "mixed"
+                if max(abs(avg_buy_dev), abs(avg_sell_dev)) >= 0.003
                 else "stable"
             ),
             "gvpr_buy_pct": round(avg_gvpr_buy, 6),
@@ -984,6 +1269,8 @@ def build_flow_context_result(
                 if avg_gvpr_buy - avg_gvpr_sell >= 0.03
                 else "sell_dominant"
                 if avg_gvpr_sell - avg_gvpr_buy >= 0.03
+                else "mixed"
+                if avg_gvpr_buy >= 0.4 and avg_gvpr_sell >= 0.4
                 else "balanced"
             ),
             "top_buyer_share_pct": round(avg_top_buyer_share, 6),
@@ -995,6 +1282,8 @@ def build_flow_context_result(
             "buy_hhi": round(avg_buy_hhi, 2),
             "sell_hhi": round(avg_sell_hhi, 2),
             "concentration_asymmetry_state": concentration_state,
+            "frequency_score": round(frequency_score, 6),
+            "frequency_profile": frequency_profile,
             "flow_price_correlation_spearman": round(flow_price_correlation, 6),
             "flow_price_correlation_state": correlation_state,
             "divergence_state": divergence_state,
@@ -1008,6 +1297,7 @@ def build_flow_context_result(
             "market_cap_value": round(latest_market_cap, 2),
             "ticker_flow_usefulness": ticker_flow_usefulness,
             "trust_level": trust_level,
+            "verdict_weight_profile": weight_profile_name,
             "trust_rationale": trust_rationale[:5],
         },
         "baseline_verdict": {
@@ -1019,6 +1309,17 @@ def build_flow_context_result(
         },
         "integration_hook": integration_hook,
         "monitoring": monitoring,
+        **(
+            {"update_context": _update_context(
+                verdict=verdict,
+                divergence_state=divergence_state,
+                cadi_trend=cadi_trend,
+                status_drift=str(monitoring["status_drift"]),
+                persistence_state=persistence_state,
+            )}
+            if purpose_mode == "UPDATE"
+            else {}
+        ),
     }
 
 

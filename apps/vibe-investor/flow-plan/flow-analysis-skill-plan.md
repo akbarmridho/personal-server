@@ -136,7 +136,9 @@ This keeps parent orchestration simple.
 Within `UPDATE`, the flow contract should still carry:
 
 - `flow_status`: `intact`, `improving`, `degrading`, or `invalidated`
-- `review_reason`: `routine`, `contradiction`, `sponsor_shift`, `regime_change`, or `verdict_flip`
+- `review_reason`: `routine`, `contradiction`, `sponsor_shift`, or `regime_change`
+
+In v1 these should be emitted inside a dedicated `update_context` block, only when `purpose_mode = UPDATE`.
 
 ### 2. `INPUT_SCOPE`
 
@@ -145,7 +147,7 @@ Confirm:
 - selected symbol
 - selected date or range
 - snapshot freshness when available
-- whether the read is single-day or multi-day
+- that the read uses a multi-day broker-flow window
 
 ### 3. `GROSS_FIRST_READ`
 
@@ -177,8 +179,8 @@ Core questions:
 - is participation concentrated enough to matter?
 
 `MFI` and `Frequency` should live here as verdict-computation inputs, not as separate analyst-facing phases.
-`MFI` should stay out of the first deterministic contract until it has a defensible computation from the actual broker-summary raw inputs.
-`Frequency` should also stay secondary until it proves stable and additive beyond value-based flow features.
+`MFI` should stay out of the first deterministic contract until it has a defensible computation from the actual broker-summary raw inputs, even though it is still required for close parity with `idx-flow.html`.
+`Frequency` should be included in the deterministic verdict stack because raw broker frequency already exists in the source data.
 
 The skill may still derive sponsor-quality and concentration features from daily broker-summary snapshots, but those raw tables should stay internal to deterministic preprocessing rather than become first-class LLM-facing report sections.
 
@@ -331,7 +333,7 @@ Recommended `Decision Summary` fields:
 
 Internal deterministic defaults for v1:
 
-- `30D` primary window for CADI, persistence, VWAP execution, GVPR, and baseline verdict
+- `30D` primary window for selected-period CADI, persistence, VWAP execution, GVPR, concentration, frequency, and baseline verdict
 - `60D` trust window for correlation and ticker-usefulness assessment
 - `MFI` excluded from the first deterministic packet
 - `SMT` excluded as base truth and treated, at most, as later heuristic presentation
