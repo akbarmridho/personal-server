@@ -76,15 +76,19 @@ Consensus fair-value range: {Rp X - Rp Y}
 - Altman Z context
 - Top 3 risk factors
 
-### J. Official Evidence Review
-- Latest annual-report or filing reviewed
-- Notes to accounts or auditor remarks that matter
-- Public expose, concall, or management-guidance read if covered
+### J. Evidence Trace
+- Primary evidence sources used and why they were primary
+- What is directly supported by filings
+- What is supported by internal analysis or research documents
+- What is supported by reported news documents
+- What remains inference
+- If filings were not primary, explain why that is appropriate for this task
+- Notes to accounts, auditor remarks, public expose, concall, or management-guidance read if covered
 - What changed because of this evidence
 
 ### K. Investment View
 - Why own, why wait, or why avoid
-- Key triggers
+- Key fundamental triggers or evidence milestones
 - Major risks
 - 2-3 specific invalidation or confirmation triggers
 ```

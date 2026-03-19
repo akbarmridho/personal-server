@@ -11,8 +11,11 @@ Use this skill to perform fundamental analysis for:
 - business and financial quality check
 - valuation check
 - filing-led review
+- sector or mechanism checks when the lens remains fundamental
 
 This skill answers whether the business is worth owning, whether the financials are trustworthy, whether the price is reasonable, and what would break the view. It does not decide timing on its own.
+
+Keep the boundary with `narrative-analysis` strict. This skill does not own catalyst-story framing, hype-cycle interpretation, priced-in narrative judgment, speculative premium analysis, or crowd-attention reads except where they directly change fundamental risk, funding risk, or valuation assumptions.
 
 ## Required Data And Fail-Fast
 
@@ -24,14 +27,16 @@ Use these sources according to the active mode.
 | `get-stock-keystats` | Ratio snapshot, market cap, valuation context, price anchor | Stop |
 | `get-stock-financials` | Income statement, balance sheet, cash flow, trend work | Stop |
 | `get-stock-governance` | Ownership, board/management, insider context | Stop |
-| `list-filing` + `get-filing` | Official annual-report, financial-statement, and disclosure review | Stop when official evidence is required by mode |
-| `search-documents`, `list-documents`, `get-document` | Internal research, concall/public-expose summaries, contextual evidence | Stop only when this evidence was explicitly requested or selected as required scope |
+| `list-filing` + `get-filing` | Official annual-report, financial-statement, and disclosure review | Stop when official evidence is required by mode or question |
+| `search-documents`, `list-documents`, `get-document` | Internal research, analysis, news, concall/public-expose summaries, and contextual evidence | Stop when contextual evidence is required by mode or question |
 
 Core source contract:
 
 - Call `get-stock-profile({ symbol })` once early in the run before deeper analysis.
 - Use `list-filing` -> `get-filing` as the official filing path.
-- Use `search-documents`, `list-documents`, and `get-document` for research and contextual evidence, not as the primary filing path.
+- Use `search-documents`, `list-documents`, and `get-document` for research and contextual evidence.
+- Do not force every conclusion through filings. Analysis and news documents can be primary evidence when the task is sectoral, mechanism-led, or about externally reported developments.
+- Do not treat contextual documents as a substitute for filings when the claim is specifically about accounting quality, audited numbers, disclosure quality, or formal capital-structure terms.
 - If any required source for the selected mode fails, stop and report dependency failure.
 
 ## Core Runtime Rules
@@ -67,38 +72,49 @@ Use this file as the runtime owner. Do not load all references by default.
 
 Always load:
 
-- `references/enums-and-glossary.md`
-- `references/output-report-template.md`
+- `references/core/enums-and-glossary.md`
+- `references/core/output-report-template.md`
 
 Reference sets by mode:
 
 - `FULL_REVIEW`
-  - `references/financial-statements-framework.md`
-  - `references/valuation-methods-framework.md`
-  - `references/company-quality-framework.md`
-  - `references/risk-assessment-framework.md`
+  - `references/core/financial-statements-framework.md`
+  - `references/core/valuation-methods-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md`
 - `QUALITY_CHECK`
-  - `references/financial-statements-framework.md`
-  - `references/company-quality-framework.md`
-  - `references/risk-assessment-framework.md`
+  - `references/core/financial-statements-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
 - `VALUATION_ONLY`
-  - `references/valuation-methods-framework.md`
-  - `references/company-quality-framework.md`
+  - `references/core/valuation-methods-framework.md`
+  - `references/core/company-quality-framework.md`
 - `FILING_REVIEW`
-  - `references/company-quality-framework.md`
-  - `references/risk-assessment-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md`
+- `SECTOR_REVIEW`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - sector-specific references selected for the sector under review
+- `MECHANISM_REVIEW`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md` when formal disclosures matter
+  - mechanism-specific references selected for the mechanism under review
 
 Load sector or mechanism references only when thesis-critical:
 
-- `references/banking-sector.md`
-- `references/bank-ckpn-writeoff-overdue-diagnostics.md`
-- `references/sharia-banking-sector.md`
-- `references/coal-sector.md`
-- `references/construction-sector.md`
-- `references/oil-gas-sector.md`
-- `references/property-sector.md`
-- `references/retail-consumer-sector.md`
-- `references/indonesia-gold-playbook.md`
+- `references/sectors/banking-sector.md`
+- `references/mechanisms/bank-ckpn-writeoff-overdue-diagnostics.md`
+- `references/sectors/sharia-banking-sector.md`
+- `references/sectors/coal-sector.md`
+- `references/sectors/construction-sector.md`
+- `references/sectors/oil-gas-sector.md`
+- `references/sectors/property-sector.md`
+- `references/sectors/retail-consumer-sector.md`
+- `references/playbooks/indonesia-gold-playbook.md`
 
 ## Workflow Spine
 
@@ -110,6 +126,8 @@ Runtime workflow owner. Defines canonical analysis order, phase gates, and final
 - `QUALITY_CHECK` - business quality and financial quality review without a full valuation build
 - `VALUATION_ONLY` - valuation-focused work with enough business context to avoid category mistakes
 - `FILING_REVIEW` - disclosure-led review of annual report, notes, auditor remarks, public expose, or similar materials
+- `SECTOR_REVIEW` - sector economics, industry structure, player-quality, and comparative fundamental review
+- `MECHANISM_REVIEW` - fundamentally relevant mechanism review such as dilution, asset-quality cleaning, funding path, or capital-structure events
 
 If the user request is ambiguous, default to `FULL_REVIEW`.
 
@@ -129,11 +147,19 @@ Must still anchor the business model first with `get-stock-profile`. Stop if the
 
 #### `FILING_REVIEW`
 
-Must state exactly which filing or document was reviewed, what changed, and whether it changes business quality, financial quality, valuation, or risk.
+Must state exactly which filing or document was reviewed, why it is the correct primary disclosure, what changed, and whether it changes business quality, financial quality, valuation, or risk.
+
+#### `SECTOR_REVIEW`
+
+Must define the sector boundary, demand drivers, value-chain logic, competition intensity, and what separates stronger from weaker players. Use contextual documents as first-class evidence and add company-specific or filing evidence only where needed to support sector conclusions.
+
+#### `MECHANISM_REVIEW`
+
+Must define the mechanism under review, why it matters fundamentally, what evidence best captures it, and whether the mechanism strengthens or weakens quality, valuation, solvency, minority alignment, or funding risk.
 
 ### Canonical Phase Order
 
-`MODE` -> `DATA` -> `BUSINESS` -> `REVENUE` -> `PROFITABILITY` -> `CAPITAL_EFFICIENCY` -> `BALANCE_SHEET` -> `CASH_FLOW` -> `OWNERSHIP_GOVERNANCE` -> `INDUSTRY_MOAT` -> `VALUATION` -> `RED_FLAGS` -> `OFFICIAL_EVIDENCE` -> `THESIS` -> `RESULT`
+`MODE` -> `DATA` -> `BUSINESS` -> `REVENUE` -> `PROFITABILITY` -> `CAPITAL_EFFICIENCY` -> `BALANCE_SHEET` -> `CASH_FLOW` -> `OWNERSHIP_GOVERNANCE` -> `INDUSTRY_MOAT` -> `VALUATION` -> `RED_FLAGS` -> `EVIDENCE_TRACE` -> `THESIS` -> `RESULT`
 
 ### Phase Contracts
 
@@ -167,6 +193,12 @@ Context route when required:
 
 Stop: if a required source for the selected mode fails or returns unusable coverage.
 
+For `FILING_REVIEW`, stop if the selected disclosure is not the strongest available official source for the question and no reason is given.
+
+For `SECTOR_REVIEW`, stop if the sector call is being made from one company and one document only.
+
+For `MECHANISM_REVIEW`, stop if the mechanism is material but the evidence set does not include the document type that actually governs the mechanism.
+
 #### 3. BUSINESS
 
 Answer:
@@ -188,6 +220,8 @@ Assess:
 - price, volume, and pricing-power context where available
 
 Stop: if reported growth cannot be reconciled with segment mix, end-demand context, or working-capital evidence, elevate red-flag risk.
+
+If apparent growth depends mainly on acquisitions, accounting presentation changes, or channel-stuffing signals, do not label it high-quality growth.
 
 #### 5. PROFITABILITY
 
@@ -256,6 +290,8 @@ Assess:
 
 Stop: if the company is good but the industry structure is deteriorating, cap conviction.
 
+For `SECTOR_REVIEW`, this phase becomes a primary output rather than a supporting one. It must compare at least leader quality, industry economics, and structural pressure points across the reviewed sector scope.
+
 #### 11. VALUATION
 
 Use 2-3 methods when the mode requires valuation. Select methods that fit the business.
@@ -269,6 +305,10 @@ Must produce:
 
 Stop: if the business model does not support a credible method set, state that directly and avoid false precision.
 
+Stop also if valuation depends mainly on management guidance, heroic terminal assumptions, or a single fragile method.
+
+For `SECTOR_REVIEW`, valuation may be comparative rather than intrinsic. Use peer framing when sector structure is the primary question.
+
 #### 12. RED_FLAGS
 
 Check:
@@ -280,9 +320,11 @@ Check:
 
 Must produce explicit `trap_risk`.
 
-#### 13. OFFICIAL_EVIDENCE
+If multiple red flags point in the same direction, do not offset them with valuation cheapness alone.
 
-When official evidence is in scope, review the latest relevant annual-report, audited statements, notes, auditor remarks, public expose, or similar disclosures from `list-filing` -> `get-filing`.
+#### 13. EVIDENCE_TRACE
+
+When official evidence is in scope, select and review the strongest relevant disclosure using `references/core/filing-review-framework.md` and `list-filing` -> `get-filing`.
 
 When contextual evidence is in scope, add internal research or transcript-like materials through `search-documents` / `get-document`.
 
@@ -290,7 +332,14 @@ Must separate:
 
 - what is directly supported by official filings
 - what is supported by contextual research
+- what is supported by reported news or analysis documents
 - what remains inference
+
+Stop: if a filing-led conclusion materially depends on management commentary that is not supported by the filing.
+
+Escalate risk if auditor language, notes-to-accounts detail, or capital-raise disclosures conflict with the headline story.
+
+Do not force official filings to be the primary evidence when the question is sector structure, peer positioning, or externally reported developments. In those cases, contextual documents can lead, but the evidence trace must say so explicitly.
 
 #### 14. THESIS
 
@@ -298,13 +347,16 @@ Synthesize:
 
 - why the business is attractive or not
 - why the current price is attractive or not
-- key triggers
 - major risks
 - what would change the view
 
+Keep this section inside the fundamental lens. Do not expand into narrative-owned catalyst scoring or priced-in story analysis.
+
+Stop: if the thesis depends more on expected storytelling than on business, cash-flow, or balance-sheet improvement, keep posture conservative and note that the remaining upside case is not fundamentally owned.
+
 #### 15. RESULT
 
-Produce output per `references/output-report-template.md`.
+Produce output per `references/core/output-report-template.md`.
 
 Final result must include:
 
@@ -314,6 +366,7 @@ Final result must include:
 - `trap_risk`
 - `thesis_posture`
 - `confidence`
+- evidence trace with source class separation
 - key invalidation conditions
 
 The result must allow combinations such as strong business but expensive, or cheap but likely a trap.
