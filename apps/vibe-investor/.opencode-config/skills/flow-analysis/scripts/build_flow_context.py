@@ -162,6 +162,35 @@ def _rolling_chunks(values: list[float], size: int) -> list[float]:
     return values[-size:]
 
 
+def _money_flow_index(days: list[dict[str, Any]], period: int = 14) -> float:
+    if len(days) < period + 1:
+        return 50.0
+    typical_prices: list[float] = []
+    raw_money_flows: list[float] = []
+    for day in days:
+        high = _to_float(day.get("high"))
+        low = _to_float(day.get("low"))
+        close = _to_float(day.get("close"))
+        volume = _to_float(day.get("market_volume"))
+        typical_price = (high + low + close) / 3.0
+        typical_prices.append(typical_price)
+        raw_money_flows.append(typical_price * volume)
+
+    positive_flow = 0.0
+    negative_flow = 0.0
+    for idx in range(len(days) - period, len(days)):
+        prev_idx = idx - 1
+        if typical_prices[idx] > typical_prices[prev_idx]:
+            positive_flow += raw_money_flows[idx]
+        elif typical_prices[idx] < typical_prices[prev_idx]:
+            negative_flow += raw_money_flows[idx]
+
+    if negative_flow <= 0:
+        return 100.0 if positive_flow > 0 else 50.0
+    ratio = positive_flow / negative_flow
+    return 100.0 - (100.0 / (1.0 + ratio))
+
+
 def _longest_streak(signs: list[int], target: int) -> int:
     best = 0
     current = 0
@@ -531,6 +560,18 @@ def _frequency_profile(
     return 0.0, "balanced"
 
 
+def _mfi_state(mfi_value: float) -> str:
+    if mfi_value <= 20:
+        return "extreme_bullish"
+    if mfi_value < 40:
+        return "bullish"
+    if mfi_value <= 60:
+        return "neutral"
+    if mfi_value < 80:
+        return "bearish"
+    return "extreme_bearish"
+
+
 def _divergence_state(primary_days: list[dict[str, Any]]) -> str:
     if len(primary_days) < 5:
         return "unclear"
@@ -664,38 +705,46 @@ def _verdict_weight_profile(
 
     if institutional_driven:
         return "institutional_driven", {
-            "cadi": 0.28,
-            "persistence": 0.26,
-            "execution": 0.14,
-            "gvpr": 0.18,
-            "concentration": 0.08,
-            "frequency": 0.06,
+            "cadi": 0.18,
+            "mfi": 0.08,
+            "persistence": 0.25,
+            "execution": 0.10,
+            "gvpr": 0.10,
+            "concentration": 0.10,
+            "frequency": 0.11,
+            "correlation": 0.08,
         }
     if market_cap_profile == "large" and liquidity_profile == "high":
         return "blue_chip_high_liquidity", {
-            "cadi": 0.30,
-            "persistence": 0.22,
-            "execution": 0.16,
-            "gvpr": 0.16,
-            "concentration": 0.08,
-            "frequency": 0.08,
+            "cadi": 0.18,
+            "mfi": 0.11,
+            "persistence": 0.20,
+            "execution": 0.09,
+            "gvpr": 0.09,
+            "concentration": 0.10,
+            "frequency": 0.14,
+            "correlation": 0.08,
         }
     if liquidity_profile in {"low", "very_low"} or market_cap_profile in {"small", "micro"}:
         return "low_liquidity_small_cap", {
-            "cadi": 0.18,
+            "cadi": 0.14,
+            "mfi": 0.10,
             "persistence": 0.16,
-            "execution": 0.12,
-            "gvpr": 0.22,
-            "concentration": 0.18,
+            "execution": 0.09,
+            "gvpr": 0.15,
+            "concentration": 0.16,
             "frequency": 0.14,
+            "correlation": 0.06,
         }
     return "mid_cap_moderate", {
-        "cadi": 0.24,
+        "cadi": 0.17,
+        "mfi": 0.10,
         "persistence": 0.20,
-        "execution": 0.16,
-        "gvpr": 0.18,
+        "execution": 0.09,
+        "gvpr": 0.10,
         "concentration": 0.12,
-        "frequency": 0.10,
+        "frequency": 0.14,
+        "correlation": 0.08,
     }
 
 
@@ -703,10 +752,12 @@ def _baseline_verdict(
     *,
     cadi_value: float,
     persistence_score: float,
+    mfi_value: float,
     buy_vwap_dev: float,
     gvpr_bias: float,
     concentration_bias: float,
     frequency_score: float,
+    correlation_value: float,
     divergence_state: str,
     trust_level: str,
     cadi_trend: str,
@@ -722,15 +773,17 @@ def _baseline_verdict(
         if divergence_state == "bearish_divergence"
         else 0.0
     )
-    trust_bias = 0.05 if trust_level == "high" else 0.0
+    trust_bias = 0.0
     cadi_component = _clip(cadi_value, -1.0, 1.0)
     persistence_component = _clip(persistence_score / 100.0, -1.0, 1.0)
+    mfi_component = _clip((50.0 - mfi_value) / 50.0, -1.0, 1.0)
     execution_component = _clip(buy_vwap_dev / 0.01, -1.0, 1.0)
     gvpr_component = _clip(gvpr_bias * 8.0, -1.0, 1.0)
     concentration_component = _clip(concentration_bias, -1.0, 1.0)
     frequency_component = _clip(frequency_score, -1.0, 1.0)
     score = (
         cadi_component * weight_profile["cadi"]
+        + mfi_component * weight_profile["mfi"]
         + persistence_component * weight_profile["persistence"]
         + execution_component * weight_profile["execution"]
         + gvpr_component * weight_profile["gvpr"]
@@ -766,6 +819,11 @@ def _baseline_verdict(
         support_factors.append("CADI is rising over the 30-session primary window")
     elif cadi_trend == "falling":
         caution_factors.append("CADI is falling over the 30-session primary window")
+
+    if mfi_value < 40:
+        support_factors.append("MFI is below 40, which supports a bullish exhaustion read")
+    elif mfi_value > 60:
+        caution_factors.append("MFI is above 60, which adds bearish pressure")
 
     if persistence_score >= 12:
         support_factors.append("buy-side persistence is stronger than sell-side persistence")
@@ -1070,6 +1128,8 @@ def build_flow_context_result(
     cadi_trend, cadi_slope_strength = _trend_strength_from_slope(
         cadi_slope, primary_cadi_series
     )
+    mfi_value = _money_flow_index(primary_days)
+    mfi_state = _mfi_state(mfi_value)
 
     avg_coverage_buy = float(pd.Series([day["coverage_buy"] for day in primary_days]).mean())
     avg_coverage_sell = float(pd.Series([day["coverage_sell"] for day in primary_days]).mean())
@@ -1178,10 +1238,12 @@ def build_flow_context_result(
         _baseline_verdict(
             cadi_value=float(primary_cadi_series[-1]) if primary_cadi_series else 0.0,
             persistence_score=persistence_score,
+            mfi_value=mfi_value,
             buy_vwap_dev=avg_buy_dev,
             gvpr_bias=avg_gvpr_buy - avg_gvpr_sell,
             concentration_bias=concentration_bias,
             frequency_score=frequency_score,
+            correlation_value=flow_price_correlation,
             divergence_state=divergence_state,
             trust_level=trust_level,
             cadi_trend=cadi_trend,
@@ -1282,6 +1344,8 @@ def build_flow_context_result(
             "buy_hhi": round(avg_buy_hhi, 2),
             "sell_hhi": round(avg_sell_hhi, 2),
             "concentration_asymmetry_state": concentration_state,
+            "mfi_value": round(mfi_value, 2),
+            "mfi_state": mfi_state,
             "frequency_score": round(frequency_score, 6),
             "frequency_profile": frequency_profile,
             "flow_price_correlation_spearman": round(flow_price_correlation, 6),

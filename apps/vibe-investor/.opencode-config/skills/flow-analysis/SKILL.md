@@ -95,6 +95,8 @@ Advanced signals:
 - `buy_hhi`
 - `sell_hhi`
 - `concentration_asymmetry_state`
+- `mfi_value`
+- `mfi_state`
 - `frequency_score`
 - `frequency_profile`
 - `flow_price_correlation_spearman`
@@ -137,7 +139,6 @@ Conditional update fields:
 
 These are not base deterministic truth:
 
-- `MFI` without a defensible raw-contract formula, even though it remains part of the source-truth verdict stack
 - `SMT` as a source of truth
 - `Gini` as the primary concentration metric under top-25 truncation
 - raw broker tables rendered as analyst prose
