@@ -95,14 +95,31 @@ Reference sets by mode:
   - `references/core/risk-assessment-framework.md`
   - `references/core/filing-review-framework.md`
 - `SECTOR_REVIEW`
+  - `references/core/valuation-methods-framework.md`
   - `references/core/company-quality-framework.md`
   - `references/core/risk-assessment-framework.md`
   - sector-specific references selected for the sector under review
 - `MECHANISM_REVIEW`
+  - `references/core/valuation-methods-framework.md`
   - `references/core/company-quality-framework.md`
   - `references/core/risk-assessment-framework.md`
   - `references/core/filing-review-framework.md` when formal disclosures matter
   - mechanism-specific references selected for the mechanism under review
+
+Archive-only curation source:
+
+- `references/core/valuation-book-doctrine.md`
+  - doctrine hub for valuation curation
+- `references/core/valuation-method-selection.md`
+  - deeper curation note for method fit and exclusions
+- `references/core/valuation-assumption-discipline.md`
+  - deeper curation note for assumption quality and hard failure cases
+- `references/core/valuation-sector-fit.md`
+  - deeper curation note for sector and model-specific valuation fit
+- `references/core/valuation-reconciliation-rules.md`
+  - deeper curation note for handling divergence across methods
+- `valuation-book-extract/`
+  - source archive only for valuation curation work
 
 Load sector or mechanism references only when thesis-critical:
 
@@ -215,6 +232,38 @@ Final result must include:
 - key invalidation conditions
 
 The result must allow combinations such as strong business but expensive, or cheap but likely a trap.
+
+## Mode-Aware Valuation Behavior
+
+### `FULL_REVIEW`
+
+- choose a primary method and at least one secondary check when the business model allows it
+- explain why the primary method best matches the business economics
+- if methods diverge, explain the source before giving a verdict
+
+### `VALUATION_ONLY`
+
+- anchor the business model first to avoid category mistakes
+- use the smallest credible method set, usually one primary method plus one sanity check
+- stop if the economics are too unstable for a defensible valuation range
+
+### `SECTOR_REVIEW`
+
+- emphasize sector multiple ranges, method fit by sub-model, and what separates premium names from discount names
+- comparative valuation is acceptable when full intrinsic builds are not the point
+- do not force single-company target-price style outputs unless the request becomes company-specific
+
+### `MECHANISM_REVIEW`
+
+- use mechanism-fit math first: dilution, rights issue economics, SOTP, NAV, recap, LBO, or post-event capital structure
+- value the mechanism's impact on minority holders, solvency, and per-share economics
+- use trading multiples only as a secondary context after event math is clear
+
+### `FILING_REVIEW`
+
+- valuation is conditional and evidence-led
+- only update valuation if the filing changes earnings power, asset value, capital structure, payout capacity, or risk assumptions
+- state exactly which assumption changed and which valuation method is affected
 
 ## Execution Defaults
 
