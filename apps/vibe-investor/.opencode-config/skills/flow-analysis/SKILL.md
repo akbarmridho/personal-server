@@ -1,8 +1,7 @@
-# Flow Analysis
-
-Broker-flow analysis for Indonesian stocks using normalized daily broker summaries plus daily OHLCV.
-
-This skill turns raw broker-flow data into a deterministic `flow_context` packet first, then reasons from that packet. Do not reason directly from raw broker tables unless debugging the deterministic layer.
+---
+name: flow-analysis
+description: Broker-flow analysis helper for IDX stocks that derives sponsor quality, accumulation or distribution lean, trust regime, and flow-to-price context from daily broker summaries plus OHLCV.
+---
 
 ## Scope
 
@@ -40,7 +39,7 @@ Always build deterministic context before interpretation.
 Run:
 
 ```bash
-python3 apps/vibe-investor/.opencode-config/skills/flow-analysis/scripts/build_flow_context.py \
+python scripts/build_flow_context.py \
   --broker-flow {FETCH_BROKER_FLOW_OUTPUT_PATH} \
   --ohlcv {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
@@ -58,9 +57,9 @@ Rules:
   - `60D` trust read for correlation and ticker usefulness
 - if fewer than `60` sessions are available, trust is downgraded; do not hide that
 
-## Deterministic V1 Contract
+## Deterministic Contract
 
-The first packet is intentionally narrow.
+The deterministic packet is intentionally narrow.
 
 Core metrics:
 
@@ -135,16 +134,6 @@ Conditional update fields:
 - `update_context.flow_status`
 - `update_context.review_reason`
 
-## What Stays Out Of V1
-
-These are not base deterministic truth:
-
-- `SMT` as a source of truth
-- `Gini` as the primary concentration metric under top-25 truncation
-- raw broker tables rendered as analyst prose
-- Sankey or broker-relationship UI logic
-- TA-style entry, stop, or target decisions
-
 ## Interpretation Order
 
 Always interpret in this order:
@@ -175,7 +164,7 @@ State:
 - as-of date
 - actual trading-day window
 - whether today’s broker snapshot is included
-- v1 is always a multi-day read; do not present single-day mode
+- this is always a multi-day read; do not present single-day mode
 
 ### 3. `GROSS_FIRST_READ`
 
@@ -370,19 +359,3 @@ State:
 - call out low coverage or high anomaly risk plainly
 - do not oversell broker-flow as a stand-alone trigger engine
 - keep flow verdict separate from technical execution
-
-## Parent Workflow Boundary
-
-Parent workflow decides how much authority flow gets for the symbol.
-
-Typical use:
-
-- `flow-analysis` builds the broker-flow state
-- `technical-analysis` builds the chart execution baseline
-- parent workflow decides whether flow is:
-  - confirming
-  - leading
-  - warning
-  - too weak to matter
-
-The parent, not this skill, decides the final multi-lens conclusion.
