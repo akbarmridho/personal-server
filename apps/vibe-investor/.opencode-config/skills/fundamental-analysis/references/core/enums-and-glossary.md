@@ -16,6 +16,18 @@ Single source of truth for shared verdicts, statuses, and labels used across fun
 - `MEDIUM`
 - `LOW`
 
+## Business Quality
+
+- `STRONG`
+- `ADEQUATE`
+- `WEAK`
+
+## Financial Quality
+
+- `CLEAN`
+- `MIXED`
+- `STRESSED`
+
 ## Financial Health Status
 
 - `HEALTHY`
@@ -39,6 +51,12 @@ Single source of truth for shared verdicts, statuses, and labels used across fun
 - `PASS`: no material concern detected
 - `WARNING`: concern present but not disqualifying
 - `FAIL`: material risk that should block or heavily discount the thesis
+
+## Thesis Posture
+
+- `ACTIONABLE`: quality and valuation are strong enough to justify active interest
+- `WATCHLIST`: interesting but not ready for conviction because price, evidence, or risk still needs work
+- `AVOID`: quality, governance, solvency, or trap risk is too weak for current interest
 
 ## IDX 2.0 Risk Score (0-12)
 

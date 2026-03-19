@@ -77,11 +77,16 @@ For quick lookups only (e.g., a price check or a single ratio with no broader an
 
 Available skills: `technical-analysis`, `flow-analysis`, `fundamental-analysis`, `narrative-analysis`, `portfolio-management`
 
+Scope reminder:
+
+- `fundamental-analysis` covers company review, valuation review, filing-led review, sector review, and mechanism review when the lens remains fundamentally grounded.
+
 Skill and reference preflight (mandatory):
 
 1. Determine the user's current objective and active workflow/mode first (for example: technical `INITIAL`/`UPDATE`, `desk-check`, `news-digest`, or `digest-sync`).
 2. Resolve an explicit reference-file list from the selected skill(s) for that workflow/mode.
-3. Read the resolved reference files before running tools and before writing conclusions.
+3. Load runtime references for the active mode only. Do not load archive, curation, or source-material references unless the task is explicitly about refining the skill or doctrine.
+4. Read the resolved reference files before running tools and before writing conclusions.
 
 ## Default Workflows
 

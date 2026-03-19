@@ -1,135 +1,274 @@
 ---
 name: fundamental-analysis
-description: Fundamental analysis for IDX stocks, including financial health checks, multi-method valuation, company quality assessment, sector context, and risk scoring.
+description: Fundamental-analysis helper for IDX stocks used to assess business quality, financial quality, valuation, governance, and value-trap risk with an explicit workflow spine.
 ---
 
-## How To Use This Skill
+## Scope
 
-Use this file as the entrypoint. Do not load all references by default.
+Use this skill to perform fundamental analysis for:
 
-1. Classify the request (full fundamental review, valuation-only, risk check, or sector deep-dive).
-2. Resolve an explicit reference-file list for the selected workflow.
-3. Read the selected reference files before running the analysis.
-4. Collect required MCP data in parallel.
-5. Execute sequential analysis phases.
-6. Return a structured verdict with confidence and invalidation conditions.
+- full company review
+- business and financial quality check
+- valuation check
+- filing-led review
+- sector or mechanism checks when the lens remains fundamental
 
-## Concepts And School Of Thought
+This skill answers whether the business is worth owning, whether the financials are trustworthy, whether the price is reasonable, and what would break the view. It does not decide timing on its own.
 
-- Start with earnings quality, solvency, and cash conversion; accounting profit without cash confirmation is treated as low quality.
-- Build valuation through 2-3 methods (EPS/ROE-PBV/DCF/DDM/NAV as relevant), then trust the overlap range instead of a single-model point estimate.
-- Evaluate company quality via moat durability, governance behavior, ownership alignment, and management capital-allocation discipline.
-- Route assumptions through sector mechanics when thesis-critical (banking, commodities, property, consumer, gold, and others) to avoid cross-sector misreads.
-- Treat value-trap and manipulation diagnostics as hard risk filters, not optional commentary.
-- Use conservative assumptions and downside-first framing, because IDX timing can still be dominated by flow and narrative even when fundamentals look strong.
+Keep the boundary with `narrative-analysis` strict. This skill does not own catalyst-story framing, hype-cycle interpretation, priced-in narrative judgment, speculative premium analysis, or crowd-attention reads except where they directly change fundamental risk, funding risk, or valuation assumptions.
 
-## Reference Index And Topic Ownership
+## Required Data And Fail-Fast
 
-| File | Topics |
-|------|--------|
-| [enums-and-glossary.md](references/enums-and-glossary.md) | Shared verdicts, statuses, labels, risk score interpretation |
-| [financial-statements-framework.md](references/financial-statements-framework.md) | Balance sheet, income statement, cash flow checks, advanced ratios, trend requirements |
-| [valuation-methods-framework.md](references/valuation-methods-framework.md) | MoS, EPS discounted, equity growth, ROE-PBV, DCF, DDM, NAV, cross-validation |
-| [company-quality-framework.md](references/company-quality-framework.md) | Business model, moat, industry lifecycle, pricing power, ownership/governance, management, growth story |
-| [risk-assessment-framework.md](references/risk-assessment-framework.md) | Value trap detection, manipulation signals, IDX 2.0 risk score, Altman Z, pre-buy checklist |
-| [output-report-template.md](references/output-report-template.md) | Final report structure and section contract |
-| [banking-sector.md](references/banking-sector.md) | CASA, NIM, NPL, LDR, CAR, BOPO, funding structure, bank valuation |
-| [bank-ckpn-writeoff-overdue-diagnostics.md](references/bank-ckpn-writeoff-overdue-diagnostics.md) | CKPN vs write-off mechanics, kolektibilitas, improvement-vs-cleaning diagnostics |
-| [sharia-banking-sector.md](references/sharia-banking-sector.md) | Sharia contracts (murabahah, ijarah, mudharabah, musyarakah), FDR, NPF, PSR, DPS governance |
-| [coal-sector.md](references/coal-sector.md) | Strip ratio, GAR/NAR, HBA/ICI/Newcastle, DMO, permits, player taxonomy |
-| [construction-sector.md](references/construction-sector.md) | New contracts, order book, burn rate, DER norms, turnkey vs progress payment, BUMN Karya lessons |
-| [oil-gas-sector.md](references/oil-gas-sector.md) | Value chain, PSC basics, benchmarks (ICP/MOPS/Brent), IDX proxy mapping, narrative proxies |
-| [property-sector.md](references/property-sector.md) | Landbank, PSAK 72 revenue lag, adjusted DER, NAV valuation, historical NAV discount |
-| [retail-consumer-sector.md](references/retail-consumer-sector.md) | CCC, DIO/DSO/DPO, SSSG, margin-vs-volume, seasonality |
-| [indonesia-gold-playbook.md](references/indonesia-gold-playbook.md) | Gold value chain, mining vs trading model, reserves/resources, production/cash cost data, refinery capacity |
-| This file (SKILL.md) | Workflow, data sources, operating rules, deterministic-vs-judgment boundary |
-
-Reference boundary:
-
-- References provide doctrine, sector/mechanism checks, and templates only.
-- Workflow execution and output requirements are owned by this skill.
-
-## Data Sources And Fail-Fast
+Use these sources according to the active mode.
 
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
-| `get-stock-keystats` | Ratios, key stats, price context | Stop |
-| `get-stock-financials` | Income statement, balance sheet, cash flow (quarterly/annual) | Stop |
-| `get-stock-governance` | Ownership, management, insider context | Stop |
-| `search-documents`, `list-documents`, `get-document` | Filings, research, disclosures | Stop |
+| `get-stock-profile` | Company identity, business model, segment context, industry anchor | Stop |
+| `get-stock-keystats` | Ratio snapshot, market cap, valuation context, price anchor | Stop |
+| `get-stock-financials` | Income statement, balance sheet, cash flow, trend work | Stop |
+| `get-stock-governance` | Ownership, board/management, insider context | Stop |
+| `list-filing` + `get-filing` | Official annual-report, financial-statement, and disclosure review | Stop when official evidence is required by mode or question |
+| `search-documents`, `list-documents`, `get-document` | Internal research, analysis, news, concall/public-expose summaries, and contextual evidence | Stop when contextual evidence is required by mode or question |
 
-Stop: if fetch fails, stop the task and report dependency failure.
+Core source contract:
 
-## Operating Rules
+- Call `get-stock-profile({ symbol })` once early in the run before deeper analysis.
+- Use `list-filing` -> `get-filing` as the official filing path.
+- Use `search-documents`, `list-documents`, and `get-document` for research and contextual evidence.
+- Do not force every conclusion through filings. Analysis and news documents can be primary evidence when the task is sectoral, mechanism-led, or about externally reported developments.
+- Do not treat contextual documents as a substitute for filings when the claim is specifically about accounting quality, audited numbers, disclosure quality, or formal capital-structure terms.
+- If any required source for the selected mode fails, stop and report dependency failure.
 
-- Fundamentals are required but not sufficient in IDX. Keep conclusions explicit about where non-fundamental factors may dominate timing.
-- Use 2-3 valuation methods minimum, then cross-check for divergence.
-- Distinguish accounting profit from cash generation before issuing a verdict.
-- Minimum 3-year trend view; prefer 5-10 years for cyclical businesses.
-- Favor conservative assumptions over promotional guidance.
-- Always include top risks and what would change the assessment.
+## Core Runtime Rules
+
+- Fundamentals are required but not sufficient in IDX. State clearly when timing can still be dominated by flow, narrative, or liquidity.
+- Start with business model and earnings quality before valuation.
+- Distinguish accounting profit from cash generation before calling a business high quality.
+- Use a minimum 3-year trend view; prefer 5-10 years for cyclical businesses.
+- Use 2-3 valuation methods for `FULL_REVIEW` and `VALUATION_ONLY` unless the business model cleanly rules methods out.
+- Investigate divergence across methods instead of averaging blindly.
+- Use conservative assumptions over management promotion.
+- Treat value-trap and manipulation diagnostics as hard filters, not side commentary.
+- For IDX ownership work, interpret controller, ultimate owner, free float, institutional and foreign holders, and custody-vs-active-holder context. Do not import promoter/FII/DII labels as-is.
 - All verdict and status values must match `enums-and-glossary.md`.
 
 ## Deterministic vs Agent-Judgment Boundary
 
 | Check | Type | How |
 |-------|------|-----|
-| Current ratio, DER, ICR | Deterministic | Computed from `get-stock-financials` |
-| OCF/Net Profit divergence | Deterministic | Computed from financials |
-| Altman Z-Score | Deterministic | Computed from financials |
-| Valuation methods (EPS discounted, DCF, etc.) | Deterministic | Computed from financials + assumptions |
-| MoS calculation | Deterministic | (IV - Price) / IV |
-| IDX 2.0 risk score components | Agent judgment | Synthesize flow, narrative, liquidity, dilution risk |
-| Moat assessment | Agent judgment | Evaluate competitive position, margin durability, market share |
-| Value trap vs genuine value | Agent judgment | Weigh earnings quality, trend, and structural position |
-| Thesis quality and conviction | Agent judgment | Synthesize all inputs into overall view |
-| Management quality assessment | Agent judgment | Evaluate capital allocation, RPT quality, transparency |
+| Revenue growth, margin trend, ROE/ROA/ROCE, asset turnover | Deterministic | Computed from `get-stock-financials` and `get-stock-keystats` |
+| Current ratio, DER, ICR, net gearing, cash-flow-to-debt | Deterministic | Computed from `get-stock-financials` |
+| OCF vs net profit, FCF, capex trend | Deterministic | Computed from financials |
+| Valuation methods and MoS | Deterministic | Computed from financials, price context, and explicit assumptions |
+| Business quality verdict | Agent judgment | Synthesize business model clarity, competitive position, and durability |
+| Financial quality verdict | Agent judgment | Synthesize statement quality, trend health, and cash confirmation |
+| Management and governance assessment | Agent judgment | Evaluate capital allocation, RPT quality, transparency, and holder alignment |
+| Value trap assessment | Agent judgment | Weigh cheapness against structural weakness and accounting quality |
+| Thesis posture | Agent judgment | Decide whether the name is actionable, watchlist-only, or avoid |
 
-## Sector And Mechanism Routing
+## Reference Routing
 
-Use this routing when sector or mechanism detail is thesis-critical.
+Use this file as the runtime owner. Do not load all references by default.
 
-1. Identify the exact sector or mechanism required by the thesis.
-2. Load only the matching specialized references.
-3. Apply sector/mechanism-specific checks before final verdict.
+Always load:
 
-Routing defaults:
+- `references/core/enums-and-glossary.md`
+- `references/core/output-report-template.md`
 
-- Holder interpretation and custody-vs-active checks: `company-quality-framework.md`
-- Bank asset-quality mechanics: `bank-ckpn-writeoff-overdue-diagnostics.md`
-- Sector deep dives: banking, sharia-banking, coal, construction, oil-gas, property, retail-consumer, gold playbook references
+Reference sets by mode:
 
-## Workflow
+- `FULL_REVIEW`
+  - `references/core/financial-statements-framework.md`
+  - `references/core/valuation-methods-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md`
+- `QUALITY_CHECK`
+  - `references/core/financial-statements-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+- `VALUATION_ONLY`
+  - `references/core/valuation-methods-framework.md`
+  - `references/core/company-quality-framework.md`
+- `FILING_REVIEW`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md`
+- `SECTOR_REVIEW`
+  - `references/core/valuation-methods-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - sector-specific references selected for the sector under review
+- `MECHANISM_REVIEW`
+  - `references/core/valuation-methods-framework.md`
+  - `references/core/company-quality-framework.md`
+  - `references/core/risk-assessment-framework.md`
+  - `references/core/filing-review-framework.md` when formal disclosures matter
+  - mechanism-specific references selected for the mechanism under review
 
-### Phase 1: Parallel Data Collection
+Archive-only curation source:
 
-Run in parallel:
+- `references/core/valuation-book-doctrine.md`
+  - doctrine hub for valuation curation
+- `references/core/valuation-method-selection.md`
+  - deeper curation note for method fit and exclusions
+- `references/core/valuation-assumption-discipline.md`
+  - deeper curation note for assumption quality and hard failure cases
+- `references/core/valuation-sector-fit.md`
+  - deeper curation note for sector and model-specific valuation fit
+- `references/core/valuation-reconciliation-rules.md`
+  - deeper curation note for handling divergence across methods
+- `valuation-book-extract/`
+  - source archive only for valuation curation work
+
+Load sector or mechanism references only when thesis-critical:
+
+- `references/sectors/banking-sector.md`
+- `references/mechanisms/bank-ckpn-writeoff-overdue-diagnostics.md`
+- `references/sectors/sharia-banking-sector.md`
+- `references/sectors/coal-sector.md`
+- `references/sectors/construction-sector.md`
+- `references/sectors/oil-gas-sector.md`
+- `references/sectors/property-sector.md`
+- `references/sectors/retail-consumer-sector.md`
+- `references/sectors/indonesia-gold-playbook.md`
+
+## Workflow Spine
+
+Runtime workflow owner. Defines canonical analysis order, phase gates, and final output requirements.
+
+### Purpose Mode
+
+- `FULL_REVIEW` - full business, financial, valuation, risk, and official-evidence review
+- `QUALITY_CHECK` - business quality and financial quality review without a full valuation build
+- `VALUATION_ONLY` - valuation-focused work with enough business context to avoid category mistakes
+- `FILING_REVIEW` - disclosure-led review of annual report, notes, auditor remarks, public expose, or similar materials
+- `SECTOR_REVIEW` - sector economics, industry structure, player-quality, and comparative fundamental review
+- `MECHANISM_REVIEW` - fundamentally relevant mechanism review such as dilution, asset-quality cleaning, funding path, or capital-structure events
+
+If the user request is ambiguous, default to `FULL_REVIEW`.
+
+### Mode Requirements
+
+| Mode | Minimum requirement |
+|---|---|
+| `FULL_REVIEW` | Use `get-stock-profile`, `get-stock-keystats`, `get-stock-financials`, `get-stock-governance`, and official filing retrieval when the claim depends on audited or formal disclosure evidence |
+| `QUALITY_CHECK` | Produce explicit `business_quality`, `financial_quality`, `trap_risk`, and what would trigger a deeper valuation review |
+| `VALUATION_ONLY` | Anchor the business model first and stop if the company economics are too unstable for a credible method set |
+| `FILING_REVIEW` | State which filing or formal document was reviewed, why it is the correct primary disclosure, what changed, and what it changes |
+| `SECTOR_REVIEW` | Define sector boundary, demand drivers, value-chain logic, competition intensity, and strong-player vs weak-player traits using contextual evidence as first-class input |
+| `MECHANISM_REVIEW` | Define the mechanism, why it matters fundamentally, what evidence best captures it, and whether it strengthens or weakens quality, valuation, solvency, minority alignment, or funding risk |
+
+### Canonical Phase Order
+
+`MODE` -> `DATA` -> `BUSINESS` -> `REVENUE` -> `PROFITABILITY` -> `CAPITAL_EFFICIENCY` -> `BALANCE_SHEET` -> `CASH_FLOW` -> `OWNERSHIP_GOVERNANCE` -> `INDUSTRY_MOAT` -> `VALUATION` -> `RED_FLAGS` -> `EVIDENCE_TRACE` -> `THESIS` -> `RESULT`
+
+### Phase Contracts
+
+#### 1. MODE
+
+Define the job and scope. Output: `purpose_mode`, `analysis_scope`, `required_evidence`.
+
+#### 2. DATA
+
+Fetch required sources in parallel where possible.
+
+Required early anchor:
+
+- `get-stock-profile({ symbol })`
+
+Core parallel set:
 
 - `get-stock-keystats`
-- `get-stock-financials` (income-statement, balance-sheet, cash-flow as needed)
+- `get-stock-financials`
 - `get-stock-governance`
-- `search-documents` (if filings/research context is relevant)
 
-### Phase 2: Sequential Analysis
+Official evidence route when required:
 
-1. Financial statements health check (load `financial-statements-framework.md`).
-2. Valuation with 2-3 methods minimum (load `valuation-methods-framework.md`).
-3. Company quality and moat assessment (load `company-quality-framework.md`).
-4. Risk assessment and trap detection (load `risk-assessment-framework.md`).
-5. Sector-specific context check (load matching sector reference if thesis-critical).
+- `list-filing`
+- `get-filing`
 
-### Phase 3: Synthesis
+Context route when required:
 
-Produce output per `output-report-template.md`:
+- `search-documents` or `list-documents`
+- `get-document`
 
-- Fair-value range
-- Margin of safety view
-- Fundamental verdict: `UNDERVALUED`, `FAIR`, or `OVERVALUED`
-- Confidence level and key invalidation conditions
+Stop: if a required source for the selected mode fails or returns unusable coverage.
+
+For `FILING_REVIEW`, stop if the selected disclosure is not the strongest available official source for the question and no reason is given.
+
+For `SECTOR_REVIEW`, stop if the sector call is being made from one company and one document only.
+
+For `MECHANISM_REVIEW`, stop if the mechanism is material but the evidence set does not include the document type that actually governs the mechanism.
+
+| Phase | Core job | Stop / downgrade rule |
+|---|---|---|
+| `BUSINESS` | explain what the company does, how it makes money, and relevant mix | if the business cannot be explained clearly from evidence, lower confidence sharply |
+| `REVENUE` | test growth quality, mix shift, and pricing-power context | if growth cannot be reconciled with segment mix, demand context, or working-capital evidence, elevate red-flag risk; acquisition-led or channel-stuffing-style growth is not high-quality growth |
+| `PROFITABILITY` | test margin durability and one-off distortion | if profit quality depends materially on one-offs, do not treat margins as durable |
+| `CAPITAL_EFFICIENCY` | test ROE, ROA, ROCE, and turnover quality | if returns are mainly leverage-driven or supported by a weak equity base, downgrade quality |
+| `BALANCE_SHEET` | test liquidity, leverage, borrowings, reserves, and working capital | if solvency or refinancing risk is unclear, do not label financial quality `CLEAN` |
+| `CASH_FLOW` | test OCF, FCF, CFO vs PAT, and capex burden | if cash does not validate profit over time, treat as a major quality warning |
+| `OWNERSHIP_GOVERNANCE` | test controller clarity, holder structure, management, capital allocation, and RPT behavior | if holder interpretation is ambiguous, do not infer active smart-money behavior |
+| `INDUSTRY_MOAT` | test industry cycle, structure, barriers, and advantage durability | if the industry structure is deteriorating, cap conviction; for `SECTOR_REVIEW`, this is a primary output |
+| `VALUATION` | use a method set that fits the business and produce a fair-value view | stop on false precision, heroic assumptions, guidance-only builds, or single-fragile-method dependence; for `SECTOR_REVIEW`, valuation may be comparative rather than intrinsic |
+| `RED_FLAGS` | test value-trap, manipulation, dilution, and weak-disclosure risk | multiple aligned red flags cannot be offset by cheapness alone |
+| `EVIDENCE_TRACE` | separate filing-backed claims, contextual-document claims, news-backed claims, and inference | if a filing-led conclusion depends on unsupported commentary, stop; contextual documents can lead when the task is sectoral, mechanism-led, or about externally reported developments |
+| `THESIS` | synthesize why the asset, sector, or mechanism is attractive or not, plus risks and invalidation | keep the section inside the fundamental lens; if the case depends more on storytelling than economics, keep posture conservative |
+
+#### 15. RESULT
+
+Produce output per `references/core/output-report-template.md`.
+
+Final result must include:
+
+- `business_quality`
+- `financial_quality`
+- `valuation_verdict`
+- `trap_risk`
+- `thesis_posture`
+- `confidence`
+- evidence trace with source class separation
+- key invalidation conditions
+
+The result must allow combinations such as strong business but expensive, or cheap but likely a trap.
+
+## Mode-Aware Valuation Behavior
+
+### `FULL_REVIEW`
+
+- choose a primary method and at least one secondary check when the business model allows it
+- explain why the primary method best matches the business economics
+- if methods diverge, explain the source before giving a verdict
+
+### `VALUATION_ONLY`
+
+- anchor the business model first to avoid category mistakes
+- use the smallest credible method set, usually one primary method plus one sanity check
+- stop if the economics are too unstable for a defensible valuation range
+
+### `SECTOR_REVIEW`
+
+- emphasize sector multiple ranges, method fit by sub-model, and what separates premium names from discount names
+- comparative valuation is acceptable when full intrinsic builds are not the point
+- do not force single-company target-price style outputs unless the request becomes company-specific
+
+### `MECHANISM_REVIEW`
+
+- use mechanism-fit math first: dilution, rights issue economics, SOTP, NAV, recap, LBO, or post-event capital structure
+- value the mechanism's impact on minority holders, solvency, and per-share economics
+- use trading multiples only as a secondary context after event math is clear
+
+### `FILING_REVIEW`
+
+- valuation is conditional and evidence-led
+- only update valuation if the filing changes earnings power, asset value, capital structure, payout capacity, or risk assumptions
+- state exactly which assumption changed and which valuation method is affected
 
 ## Execution Defaults
 
-- For a full analysis, fetch all required data sources in parallel.
-- Use fail-fast behavior: if required data retrieval fails, stop and report the missing dependency.
-- Load sector references only when the sector is thesis-critical, not by default.
-- All output verdicts and statuses must use values from `enums-and-glossary.md`.
+- For `FULL_REVIEW`, fetch the required core sources in parallel, then fetch official evidence.
+- Load sector references only when the thesis materially depends on sector mechanics.
+- Prefer annual plus quarterly statement views when the tool provides both.
+- Reuse fetched data; do not re-query the same symbol without reason.
+- If evidence is mixed, lower confidence and keep the final posture conservative.
