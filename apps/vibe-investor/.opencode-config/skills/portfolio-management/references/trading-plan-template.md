@@ -10,8 +10,10 @@ Define the required structure for per-symbol trading plans. Every position must 
 # {SYMBOL} - Trading Plan
 
 **Date**: {YYYY-MM-DD}
+**Last Reviewed**: {YYYY-MM-DD}
 **Category**: {CORE / VALUE / GROWTH / SPECULATIVE}
 **Timeframe**: {SWING / POSITION / LONG_TERM}
+**Review Cadence**: {WEEKLY / MONTHLY / QUARTERLY}
 
 ## Thesis
 {1-2 sentences: why this stock, what is the edge}
@@ -57,7 +59,7 @@ Define the required structure for per-symbol trading plans. Every position must 
 - Thesis
 - Invalidation
 - Position size and stop loss
-- Timeframe and review cadence
+- Timeframe, `Last Reviewed`, and review cadence
 - Progress checkpoint and failure action
 - Trade-management policy (`Holding mode` + `Final exit precedence`)
 

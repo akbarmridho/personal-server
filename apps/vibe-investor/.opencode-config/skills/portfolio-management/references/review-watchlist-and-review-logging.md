@@ -9,15 +9,17 @@ Define review cadence, watchlist management process, and retained review-summary
 ### Daily (Quick Check)
 
 - Check stop loss levels and triggered invalidations.
+- Check whether any progress checkpoint date has passed and whether the required checkpoint condition was met.
 - Scan news/filings for held positions.
 - Check flow changes on key positions.
-- Review current P&L and exposure from the portfolio tools.
+- Review current P&L, exposure, and current `portfolio_heat` from the portfolio tools.
 
 ### Weekly
 
 - Review all open positions: thesis intact or broken.
 - Check sizing compliance against 50:30:10 constraints.
 - Check rolling correlation changes among top holdings.
+- Check for stale plans that have not been reviewed within their expected cadence.
 - Update watchlist and trigger status.
 - Record weekly portfolio heat and action items in the retained review summary.
 
@@ -41,9 +43,25 @@ Track a small leader basket (from your active/watchlist universe) and count fres
 - When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
 - Record the signal and resulting action in the retained review summary.
 
+## Plan Staleness Discipline
+
+Each symbol plan should carry an explicit review cadence and last-reviewed date.
+
+Practical thresholds:
+
+- `SWING`: stale after 7 calendar days without review
+- `POSITION`: stale after 30 calendar days without review
+- `LONG_TERM`: stale after 90 calendar days without review
+
+If a plan is stale:
+
+- flag `PM-W10`
+- downgrade confidence in the stored plan
+- require refresh before allowing aggressive adds
+
 ## Watchlist Management
 
-Watchlist statuses use enums from `enums-and-glossary.md`.
+Watchlist statuses use the labels defined in `SKILL.md`.
 
 | Status | Criteria | Action |
 |--------|----------|--------|
@@ -69,6 +87,8 @@ Watchlist statuses use enums from `enums-and-glossary.md`.
 ## Market Context
 - IHSG: {level} ({change%})
 - Key news: {1-2 headlines}
+- Regime aggression state: {AGGRESSIVE / NORMAL / DEFENSIVE / CAPITAL_PRESERVATION}
+- Current portfolio heat: {X%}
 
 ## Actions Taken
 - {action 1}
@@ -87,6 +107,8 @@ Watchlist statuses use enums from `enums-and-glossary.md`.
 ## Key Observations
 - {insight 1}
 - {insight 2}
+- Checkpoint failures: {symbols or none}
+- Stale plans: {symbols or none}
 
 ## Next Actions
 - {next checks and actions}

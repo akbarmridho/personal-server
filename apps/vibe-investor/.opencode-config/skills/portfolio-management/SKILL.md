@@ -24,23 +24,142 @@ Tool source of truth:
 ## Concepts And School Of Thought
 
 - Treat portfolio management as a risk operating system: capital preservation first, return second.
-- Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, and correlation clustering).
+- Use explicit risk budgets, not only raw target weights: `risk_per_trade`, `portfolio_heat`, and hard caps are first-class controls.
+- Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, theme clustering, and correlation clustering).
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
-- Apply regime gate before new longs; if breadth/market structure weakens, reduce aggression and protect cash.
+- Apply a regime-sensitive aggression ladder before new longs; if breadth/market structure weakens, reduce aggression, slow adds, and protect cash.
+- Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
+- Portfolio management does not own raw symbol exits. It owns portfolio-level overrides when heat, concentration, liquidity, or regime require action beyond the symbol-level baseline.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
 - Use memory files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated.
 - Consume technical exit doctrine from `technical-analysis`; this skill does not redefine raw chart-level TP rules.
+- Keep the durable symbol plan separate from live portfolio truth. Store the intended operating plan in memory; store actual holdings, fills, remaining size, and P/L in portfolio tools.
+
+## Shared Labels And Health Flags
+
+Shared labels used by this skill:
+
+- Stock categories: `CORE`, `VALUE`, `GROWTH`, `SPECULATIVE`
+- Watchlist statuses: `WATCHING`, `READY`, `ACTIVE`, `REMOVED`
+- Conviction: `HIGH`, `MEDIUM`, `LOW`
+- Fundamental valuation: `UNDERVALUED`, `FAIR`, `OVERVALUED`
+- Correlation role: `DIVERSIFIER`, `NEUTRAL`, `CONCENTRATOR`
+- Timeframe: `SWING`, `POSITION`, `LONG_TERM`
+- Regime aggression state: `AGGRESSIVE`, `NORMAL`, `DEFENSIVE`, `CAPITAL_PRESERVATION`
+
+Portfolio health flags:
+
+- `PM-W01` Single position exceeds 30% weight
+- `PM-W02` Speculative allocation exceeds 10%
+- `PM-W03` Less than 50% in MoS >30% positions
+- `PM-W04` Sector limit breached (>2 per sector)
+- `PM-W05` Portfolio heat exceeds 6%
+- `PM-W06` Correlation clustering (`corr > 0.75`) between large holdings
+- `PM-W07` Position size exceeds 5% of ADTV
+- `PM-W08` Portfolio flat/red while IHSG at new highs
+- `PM-W09` Multiple leaders invalidated in the same review window
+- `PM-W10` Thesis stale (no review within cadence)
+
+Health flag metadata:
+
+| Flag | Meaning | Severity | Source type |
+|------|---------|----------|-------------|
+| `PM-W01` | Single position exceeds 30% weight | `HIGH` | deterministic |
+| `PM-W02` | Speculative allocation exceeds 10% | `HIGH` | deterministic |
+| `PM-W03` | Less than 50% in MoS >30% positions | `MEDIUM` | deterministic |
+| `PM-W04` | Sector limit breached (>2 per sector) | `MEDIUM` | deterministic |
+| `PM-W05` | Portfolio heat exceeds 6% | `HIGH` | deterministic |
+| `PM-W06` | Correlation clustering (`corr > 0.75`) between large holdings | `MEDIUM` | deterministic |
+| `PM-W07` | Position size exceeds 5% of ADTV | `HIGH` | deterministic |
+| `PM-W08` | Portfolio flat/red while IHSG at new highs | `HIGH` | agent judgment |
+| `PM-W09` | Multiple leaders invalidated in the same review window | `HIGH` | agent judgment |
+| `PM-W10` | Thesis stale (no review within cadence) | `MEDIUM` | deterministic |
+
+## Risk Budgets And Sizing Doctrine
+
+Use explicit risk budgets before target weights.
+
+Core controls:
+
+- `risk_per_trade`: default 1% of portfolio equity, scaled down when conviction, liquidity, or stop quality is weak
+- `portfolio_heat`: max 5-6% total open risk across live positions
+- hard caps: no sizing rule may override concentration, liquidity, or heat caps
+
+Within those guardrails, conviction can change the size. Outside them, the trade must be reduced or skipped.
+
+Diversification by capital size:
+
+| Capital Range | Max Stocks | Allocation |
+|---------------|------------|------------|
+| < Rp 100M | 5 | 2 core + 3 value |
+| Rp 100M - 1B | 10 | 4 core + 6 value |
+| > Rp 1B | 15 | 6 core + 9 value |
+
+The 50:30:10 rule:
+
+| Rule | Constraint | Rationale |
+|------|------------|-----------|
+| 50% Minimum | >=50% of portfolio in stocks with MoS >30% | Keeps most capital in undervalued positions |
+| 30% Maximum | No single stock >30% of portfolio | Prevents attachment and concentration |
+| 10% Maximum | Speculative/high-risk stocks <=10% total | Contains downside from risky bets |
+| Sector Limit | <=2 stocks per sector | Enforces true diversification |
+
+Correlation-aware diversification:
+
+- Corr > 0.75 with an existing large holding: reduce target size or skip
+- Corr 0.40-0.75: allow with reduced size and explicit portfolio role
+- Corr < 0.40: strongest diversification benefit
+- In broad risk-off periods, assume correlations rise toward 1.0 and increase cash buffer
+
+Theme and cluster concentration:
+
+- Sector limits alone are not enough
+- Also check whether the name adds to an already crowded theme, macro driver, or factor cluster
+- If the same driver is already crowded, reduce size, trim elsewhere first, or skip
+
+Liquidity-based sizing:
+
+| Position size vs ADTV | Liquidity risk |
+|------------------------|----------------|
+| <= 1% of ADTV | Low |
+| 1-5% of ADTV | Medium (needs staged exits) |
+| > 5% of ADTV | High (assume slippage + long exit time) |
+
+If size is too large relative to liquidity, prefer smaller size, staged exits, or skip.
+
+1% risk rule:
+
+```text
+Position Size = (Portfolio x 1%) / (Entry Price - Stop Loss)
+```
+
+- max portfolio heat: 5-6% total open risk
+- conviction scaling: high conviction 1.5%, low conviction 0.5%
+- conviction scaling only applies after liquidity, concentration, and heat constraints pass
+
+Holding-mode sizing posture:
+
+- `TACTICAL`: smallest default size, fastest trim discipline, strongest demand for easy exits and clean invalidation
+- `HYBRID`: middle posture; respect both opportunity and staying power
+- `THESIS`: can tolerate more patience, but still must fit liquidity, concentration, and heat budgets
+
+Holding mode changes posture, not hard limits.
+
+Hard-loss fallback:
+
+- Primary stop should come from thesis/structure invalidation
+- If no clean invalidation level exists, use a fallback cap
+- Default fallback cap: 7-8% from entry
+- If volatility/liquidity is unusually high, reduce size instead of widening risk
+- Never let fallback cap override a tighter, higher-quality technical invalidation
 
 ## Reference Index And Topic Ownership
 
 | File | Topics |
 |------|--------|
-| [enums-and-glossary.md](references/enums-and-glossary.md) | Shared statuses, labels, portfolio health flags |
-| [position-sizing-and-diversification.md](references/position-sizing-and-diversification.md) | 1% risk rule, portfolio heat, 50:30:10, concentration caps, correlation sizing, liquidity/ADTV sizing, hard-loss fallback |
-| [entry-exit-and-rebalancing-playbook.md](references/entry-exit-and-rebalancing-playbook.md) | Entry strategies (DCA, lump sum, scaling), exit strategies (profit taking, cut loss, early exit), rebalancing protocol |
 | [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md` |
 | [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates |
-| This file (SKILL.md) | Market regime gate, capital preservation principles, operating rules |
+| This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, market regime gate, mixed-signal arbitration, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
 
 Reference boundary:
 
@@ -77,11 +196,15 @@ Stop: if fetch fails, stop the task and report dependency failure.
 - Capital preservation is first priority; upside is secondary. A 50% loss requires 100% gain to recover.
 - No thesis, no hold. If invalidation is hit, exit.
 - Do not average down after thesis break.
+- Every new position must fit an explicit `risk_per_trade` budget and the current `portfolio_heat` budget.
 - Position size must be liquidity-aware before entry.
-- Keep portfolio heat controlled (max 5-6%); avoid hidden concentration via high correlation.
+- Keep portfolio heat controlled (max 5-6%); avoid hidden concentration via high correlation, common theme exposure, and clustered factor bets.
+- Use `holding_mode` to scale allowable patience and size, but never to bypass hard risk caps.
+- Rebalance bands are review guides for trim/add discipline, not a license to build optimizer-style research-implied weights.
 - Use only machine-verifiable rules for decisions (tool data + memory state), not discretionary outside context.
 - If risk process is violated, fix process first before taking new exposure.
 - Use `portfolio_state` and symbol-trade tools as live position truth; use symbol memory for the latest intended plan and exit policy.
+- Use durable symbol memory for the operating plan only. Do not write live lots, execution timestamps, running P/L, or temporary execution state into the symbol plan.
 
 ## Market Regime Gate
 
@@ -89,22 +212,87 @@ Before any new long exposure, check market regime.
 
 Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/notes/watchlist.md`.
 
-- `PASS`: market proxy structure constructive, most leaders not in fresh breakdown. Normal sizing allowed.
-- `FAIL`: broad weakness, leader breakdowns clustering. No aggressive new longs; pilot size or cash only.
+Resolve one aggression state:
+
+- `AGGRESSIVE`: broad structure constructive, leader breadth healthy, and no fresh breakdown clustering. Normal-to-high conviction sizing allowed inside all hard caps.
+- `NORMAL`: mixed but acceptable structure. Base sizing allowed, but adds should remain selective.
+- `DEFENSIVE`: weakening structure or growing breakdown cluster. Reduce aggression, tighten sizing, prefer trims over fresh expansion.
+- `CAPITAL_PRESERVATION`: broad weakness, leader breakdowns clustering, or regime quality clearly poor. No aggressive new longs; pilot size or cash only.
+
+The regime gate controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
+
+## Mixed-Signal Arbitration
+
+When lenses disagree, apply this hierarchy:
+
+1. hard invalidation from the active symbol-level baseline
+2. portfolio override when heat, liquidity, concentration, or regime requires de-risking
+3. parent-workflow synthesis across thesis quality, timeframe intent, flow, narrative, and fundamentals
+4. discretionary adds or trims inside the remaining risk budget
+
+Practical implications:
+
+- PM may block or reduce adds even when symbol-level lenses remain constructive.
+- PM may force trims when portfolio constraints are breached.
+- PM does not replace the raw symbol-level exit engine owned by other lenses.
+- If conflict remains ambiguous after hard rules and portfolio overrides, prefer the safer sizing path.
+
+## Entry, Exit, And Rebalance Doctrine
+
+Entry discipline:
+
+- Prefer entries during drawdowns when weakness is temporary and the long-term thesis remains valid
+- Avoid discount entries when decline is driven by permanent impairment
+
+Entry posture options:
+
+- `DCA`: best for core/stable stocks
+- `Lump Sum`: best for value stocks with confirmed momentum
+- `Scale Down`: only on fundamentally sound businesses and only when thesis remains valid
+- `Scale Up`: only if the prior tranche is green and thesis/structure remain valid
+
+Pyramid discipline:
+
+- Add only if the prior tranche is green and thesis/structure remains valid
+- Do not add to losing positions
+- After adding, tighten risk so aggregate trade does not violate portfolio heat limits
+
+Exit doctrine:
+
+- Profit taking can be staged as price approaches intrinsic value
+- Early exits are acceptable when better opportunity needs cash, portfolio cash is too low, market outlook worsens, or sizing limits are breached
+- Cut-loss framework distinguishes permanent fundamental change/governance violation from temporary noise
+- Portfolio-management consumes symbol-level exits and may add portfolio overrides; it does not replace the raw exit engine owned by other lenses
+
+Rebalancing protocol:
+
+- Baseline cadence: quarterly, monthly only for highly active books
+- Drift trigger: rebalance when weight deviates >20% from target
+- Event trigger: rebalance/replace when thesis breaks, governance risk appears, or liquidity deteriorates
+- Use rebalance bands as trim/add guidance, not as an optimizer-style target engine
+- Trim outperformers and add underweights only if thesis remains valid
+- If thesis breaks, replace the name; do not mechanically top up losers
+- Prefer replacements with lower correlation to current core holdings and acceptable liquidity
+- Skip tiny rebalance trades with no material risk impact
 
 ## Deterministic vs Agent-Judgment Boundary
 
 | Check | Type | How |
 |-------|------|-----|
 | Position weight vs 30% cap | Deterministic | Tool data: position value / total portfolio |
+| Risk per trade vs budget | Deterministic | Entry, stop, and intended size versus portfolio equity |
 | Portfolio heat calculation | Deterministic | Sum of (risk per trade) across open positions |
 | Correlation between holdings | Deterministic | `fetch-ohlcv` rolling correlation |
 | ADTV liquidity check | Deterministic | Position size vs ADTV from tool data |
+| Holding-mode sizing posture | Mixed | Deterministic ceiling by `holding_mode`, adjusted by judgment for conviction and quality |
 | 50:30:10 compliance | Deterministic | Category weights from memory + tool data |
 | Sector concentration | Deterministic | Count per sector from memory |
+| Theme or cluster concentration | Mixed | Deterministic grouping when obvious; agent judgment when theme linkage is qualitative |
 | Thesis stale check | Deterministic | Last review date vs cadence |
-| Regime gate pass/fail | Agent judgment | Interpret market proxy structure + leader breadth |
+| Checkpoint failure | Deterministic | `Progress checkpoint date` passed without required condition being met |
+| Regime aggression state | Agent judgment | Interpret market proxy structure, leader breadth, and breakdown clustering |
 | Thesis quality assessment | Agent judgment | Synthesize fundamentals, narrative, flow |
+| Portfolio override decision | Agent judgment | Decide whether heat, liquidity, concentration, or regime requires trimming despite symbol thesis remaining intact |
 | Cut-loss vs hold decision | Agent judgment | Evaluate whether decline is permanent impairment or noise |
 
 ## Common Workflows
@@ -112,50 +300,49 @@ Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/notes/watch
 ### New Position Entry
 
 1. Check regime gate (this file).
-2. Load `position-sizing-and-diversification.md`.
-3. Validate sizing against portfolio constraints (50:30:10, correlation, heat, ADTV liquidity).
+2. Map the symbol to `holding_mode` from the trading plan (`TACTICAL`, `THESIS`, or `HYBRID`) and apply the corresponding sizing posture.
+3. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, 50:30:10, theme/correlation clustering, and ADTV liquidity).
 4. Load `trading-plan-template.md`, fill all required fields including `Holding mode` and final exit precedence.
 5. Write plan to `memory/state/symbols/{SYMBOL}.md`.
 6. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
 
-Checklist: regime gate checked, sizing validated, liquidity cleared, resolved execution policy written, memory files updated.
+Checklist: regime aggression state resolved, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated.
 
 ### Desk Check Review
 
 1. Load `review-watchlist-and-review-logging.md` for cadence checklist.
-2. Load `position-sizing-and-diversification.md` for constraint checks.
-3. Call `portfolio_state` for holdings input and compact summary. If missing or malformed, stop.
-4. Use `portfolio_trade_history` with `view: "events"` plus a tight `limit` when recent operator behavior matters for the review window.
-5. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
-6. For each position: check thesis status, stop levels, invalidation quality, resolved execution policy, and sizing compliance from `portfolio_state`, symbol memory, and trade-history context.
-7. Check portfolio-level: concentration, sizing flags, and recent action context from the tool outputs.
+2. Call `portfolio_state` for holdings input and compact summary. If missing or malformed, stop.
+3. Use `portfolio_trade_history` with `view: "events"` plus a tight `limit` when recent operator behavior matters for the review window.
+4. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
+5. For each position: check thesis status, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, and checkpoint status from `portfolio_state`, symbol memory, and trade-history context.
+6. Check whether any `Progress checkpoint date` has passed and evaluate the stored checkpoint failure action.
+7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, and recent action context from the tool outputs.
 8. Extend coverage to watchlist symbols required by the active workflow contract.
-9. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, and other resolved execution-policy fields.
-10. Prepare the updated portfolio-monitor state for the parent workflow: `Last updated`, open-book classification, active monitoring rules, current focus, and active portfolio health flags or discipline actions backed by the review evidence.
+9. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, rebalance-band notes, `Last Reviewed`, and other resolved execution-policy fields.
+10. Prepare the updated portfolio-monitor state for the parent workflow: `Last updated`, current `portfolio_heat`, open-book classification, active monitoring rules, current focus, and active portfolio health flags or discipline actions backed by the review evidence.
 11. Return portfolio findings, portfolio-monitor update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, sizing compliance checked, resolved execution-policy drift checked, portfolio-monitor update content prepared, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.
-2. Load `entry-exit-and-rebalancing-playbook.md` for exit framework.
+2. Confirm whether the exit is coming from the symbol-level baseline (`technical_plan` / thesis invalidation) or from a portfolio override (heat, concentration, liquidity, regime).
 3. Execute exit, update `memory/state/symbols/{SYMBOL}.md` with close details and any final execution-policy outcome that matters for future review.
 4. Update `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
 5. Post-exit: evaluate process quality, not outcome.
 
-Checklist: exit reason documented, symbol/watchlist memory updated where needed, process review noted.
+Checklist: exit source documented (symbol baseline vs portfolio override), symbol/watchlist memory updated where needed, process review noted.
 
 ### Rebalance Check
 
-1. Load `entry-exit-and-rebalancing-playbook.md` (rebalancing protocol section).
-2. Load `position-sizing-and-diversification.md` for target weights.
-3. Check drift triggers (>20% deviation from target).
-4. Check event triggers (thesis break, governance, liquidity).
-5. For replacements: check correlation with remaining holdings.
-6. Skip tiny trades with no material risk impact.
+1. Check drift triggers (>20% deviation from target or beyond the intended holding-mode band).
+2. Check event triggers (thesis break, governance, liquidity, or regime deterioration).
+3. For replacements: check correlation with remaining holdings.
+4. Check hidden clustering before replacing one name with another similar driver.
+5. Skip tiny trades with no material risk impact.
 
-Checklist: drift measured, event triggers checked, replacement correlation validated, transaction cost considered.
+Checklist: drift measured, holding-mode band reviewed, event triggers checked, hidden clustering reviewed, replacement correlation validated, transaction cost considered.
 
 ## Execution Defaults
 
@@ -164,6 +351,9 @@ Checklist: drift measured, event triggers checked, replacement correlation valid
 - Prefer portfolio tools first. Use temporary scripts in `work/` only for one-off calculations that the current tool surface does not provide.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - Keep symbol-memory trade-management fields aligned with the parent workflow's resolved execution plan; do not let raw TA output bypass that synthesis layer.
-- When constraints conflict (conviction vs liquidity, valuation vs correlation), prefer the safer sizing path.
+- When constraints conflict (`conviction` vs liquidity, thesis quality vs hidden clustering, valuation vs correlation), prefer the safer sizing path.
+- Treat `risk_per_trade`, `portfolio_heat`, liquidity caps, and concentration caps as hard guardrails before discretionary conviction scaling.
+- Treat portfolio overrides as a separate layer after symbol-level analysis: PM can force trims or reduced aggression, but it should not redefine the raw symbol-level exit engine owned by other lenses.
+- Use rebalance bands to guide trim/add decisions during reviews, not to create optimizer-style target weights unsupported by the current tool surface.
 - Check regime gate before any new long exposure.
-- Flag any portfolio health warnings from `enums-and-glossary.md` (PM-W01 through PM-W10) when detected during any workflow.
+- Flag any portfolio health warnings (`PM-W01` through `PM-W10`) when detected during any workflow.
