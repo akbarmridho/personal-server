@@ -4,6 +4,7 @@ import { algoResearchCrawl } from "../data-modules/algoresearch/crawl.js";
 import { algoresearchIngest } from "../data-modules/algoresearch/ingest.js";
 import { algoresearchScrape } from "../data-modules/algoresearch/scrape.js";
 import { generalNewsKGCrawl } from "../data-modules/general-news/crawl.js";
+import { stockbitNewsStreamCrawl } from "../data-modules/general-news/crawl-stockbit-stream.js";
 import { generalNewsIngest } from "../data-modules/general-news/ingest.js";
 import { goldenArticleCrawl } from "../data-modules/golden-article/crawl.js";
 import { goldenArticleIngest } from "../data-modules/golden-article/ingest.js";
@@ -149,4 +150,5 @@ export const inngestFunctions: InngestFunction.Like[] = [
   phintracoTelegramIngest,
   generalNewsIngest,
   generalNewsKGCrawl,
+  stockbitNewsStreamCrawl,
 ];

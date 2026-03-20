@@ -6,6 +6,7 @@ import {
 import { runGoldenArticleTaskAtStartup } from "./golden-article/intercept.js";
 import { env } from "./infrastructure/env.js";
 import { runStockbitTaskAtStartup } from "./stockbit/intercept.js";
+import { runStockbitNewsStreamTriggerAtStartup } from "./stockbit/intercept-stream.js";
 import { runStockbitPortfolioCaptureTaskAtStartup } from "./stockbit/portfolio-capture.js";
 import { logger } from "./utils/logger.js";
 
@@ -26,9 +27,15 @@ await ensureAutomationBrowserReady().catch((error) => {
   logger.error({ err: error }, "browser readiness check failed");
 });
 
-void runGoldenArticleTaskAtStartup();
-void runStockbitTaskAtStartup();
-void runStockbitPortfolioCaptureTaskAtStartup();
+await Promise.allSettled([
+  runGoldenArticleTaskAtStartup(),
+  runStockbitTaskAtStartup().then(() =>
+    Promise.all([
+      runStockbitNewsStreamTriggerAtStartup(),
+      runStockbitPortfolioCaptureTaskAtStartup(),
+    ]),
+  ),
+]);
 
 const shutdown = async () => {
   logger.info("Shutdown signal received, closing proxy server");

@@ -27,6 +27,10 @@ export const generalNewsIngest = inngest.createFunction(
   {
     id: "general-news-ingest",
     concurrency: 2,
+    throttle: {
+      limit: 20,
+      period: "1m",
+    },
   },
   { event: "data/general-news" },
   async ({ event, step }) => {

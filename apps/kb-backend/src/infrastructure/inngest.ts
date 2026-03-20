@@ -3,6 +3,7 @@ import type {
   ArticleContent,
   ArticleInfo,
 } from "../data-modules/algoresearch/types.js";
+import type { StockbitNewsStreamCrawlEvent } from "../data-modules/general-news/crawl-stockbit-stream.js";
 import type { GeneralNewsEvent } from "../data-modules/general-news/ingest.js";
 import type { RawGoldenArticlePayload } from "../data-modules/golden-article/crawl.js";
 import type { GoldenArticleEvent } from "../data-modules/golden-article/ingest.js";
@@ -153,6 +154,9 @@ type Events = {
   };
   "data/general-news": {
     data: GeneralNewsEvent;
+  };
+  "stockbit-news-stream-crawl": {
+    data: StockbitNewsStreamCrawlEvent;
   };
   "notify/discord-kb-ingestion": {
     data: {
