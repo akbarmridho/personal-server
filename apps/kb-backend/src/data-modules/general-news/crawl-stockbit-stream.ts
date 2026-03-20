@@ -17,7 +17,7 @@ dayjs.extend(customParseFormat);
 
 const keystoneKey = "data-modules.general-news.stockbit-stream";
 const STOCKBIT_NEWS_STREAM_URL =
-  "https://exodus.stockbit.com/stream/v3?category=STREAM_CATEGORY_NEWS&last_stream_id=0&limit=100";
+  "https://exodus.stockbit.com/stream/v3?category=STREAM_CATEGORY_NEWS&last_stream_id=0&limit=40";
 
 interface Keystone {
   latestStreamId: number;
@@ -92,7 +92,11 @@ export const stockbitNewsStreamCrawl = inngest.createFunction(
 
     if (stream.length === 0) {
       logger.info("Stockbit news stream returned no items");
-      return { success: true, emitted: 0, latestStreamId: latestState?.latestStreamId ?? 0 };
+      return {
+        success: true,
+        emitted: 0,
+        latestStreamId: latestState?.latestStreamId ?? 0,
+      };
     }
 
     const freshItems = await step.run("filter-new-items", async () => {
