@@ -41,6 +41,9 @@ export const SAMUEL_COMPANY_REPORTS_CRAWL_CRON = "TZ=Asia/Jakarta 55 19 * * *";
 export const PHINTRACO_COMPANY_UPDATE_CRAWL_CRON =
   "TZ=Asia/Jakarta 5 20 * * 1-5";
 
+// daily at 20.05
+export const PHINTRACO_TELEGRAM_CRAWL_CRON = "TZ=Asia/Jakarta 20 5 * * *";
+
 // daily at 20.10 from monday to friday
 export const HP_MARKET_UPDATE_CRAWL_CRON = "TZ=Asia/Jakarta 10 20 * * 1-5";
 

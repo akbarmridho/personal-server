@@ -30,7 +30,9 @@ import { groundedNewsRumourScrape } from "../data-modules/llm-grounding/web-scra
 import { documentManualIngest } from "../data-modules/manual/ingest.js";
 import { pdfManualIngest } from "../data-modules/manual/pdf-ingest.js";
 import { phintracoCompanyUpdateCrawlDummy } from "../data-modules/phintraco/crawl-company.js";
+import { phintracoTelegramCrawl } from "../data-modules/phintraco/crawl-telegram.js";
 import { phintracoCompanyUpdateIngest } from "../data-modules/phintraco/ingest-company.js";
+import { phintracoTelegramIngest } from "../data-modules/phintraco/ingest-telegram.js";
 import { updateCompanies } from "../data-modules/profiles/companies.js";
 import { samuelMorningBriefCrawl } from "../data-modules/samuel-sekuritas/crawl-brief.js";
 import { samuelCompanyReportsCrawl } from "../data-modules/samuel-sekuritas/crawl-company.js";
@@ -143,6 +145,8 @@ export const inngestFunctions: InngestFunction.Like[] = [
   goldenArticleIngest,
   phintracoCompanyUpdateCrawlDummy,
   phintracoCompanyUpdateIngest,
+  phintracoTelegramCrawl,
+  phintracoTelegramIngest,
   generalNewsIngest,
   generalNewsKGCrawl,
 ];

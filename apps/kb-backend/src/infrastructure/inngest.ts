@@ -6,6 +6,7 @@ import type {
 import type { GeneralNewsEvent } from "../data-modules/general-news/ingest.js";
 import type { RawGoldenArticlePayload } from "../data-modules/golden-article/crawl.js";
 import type { GoldenArticleEvent } from "../data-modules/golden-article/ingest.js";
+import type { PhintracoTelegramIngestEvent } from "../data-modules/phintraco/ingest-telegram.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
 import type { FilingEventData } from "../data-modules/stockbit-filing/ingest.js";
 import type { YoutubeVideoEntry } from "../data-modules/youtube/crawl.js";
@@ -146,6 +147,9 @@ type Events = {
       pdfUrl: string;
       date: string;
     };
+  };
+  "data/phintraco-telegram-ingest": {
+    data: PhintracoTelegramIngestEvent;
   };
   "data/general-news": {
     data: GeneralNewsEvent;
