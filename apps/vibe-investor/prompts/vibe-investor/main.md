@@ -19,8 +19,12 @@ workdir/
 │   │   ├── ihsg.md               # IHSG regime map and key levels
 │   │   ├── macro.md              # Macro and geopolitical context affecting IDX
 │   │   ├── portfolio-monitor.md  # Open-book classification and monitoring rules
-│   │   ├── thesis.md             # Thesis index (active + inactive)
-│   │   └── watchlist.md          # Stocks under observation
+│   │   ├── thesis.md             # Human-readable thesis summary view
+│   │   └── watchlist.md          # Human-readable watchlist summary view
+│   ├── registry/                 # Derived machine-readable current-state view
+│   │   ├── state.json
+│   │   ├── symbols.json
+│   │   └── theses.json
 │   ├── runs/
 │   │   └── {DATE}/
 │   │       └── {TIME}_{WORKFLOW}.json  # Successful top-level workflow logs
@@ -61,13 +65,22 @@ Portfolio memory rules:
 - If a one-off portfolio calculation is needed and the portfolio tools do not already provide it, create and run a temporary script under `work/` instead of adding a permanent script surface.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
-- Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`. Each row should include `Type` (`THESIS` or `SUBTHESIS`), `Parent` (blank for top-level theses), and a link to the per-thesis file.
+- `memory/notes/watchlist.md` and `memory/notes/thesis.md` are human-readable summary views. Keep them aligned with durable state, but do not treat them as the authoritative machine state.
+- `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` are derived current-state files for fast lookup. Refresh them after any workflow that mutates symbol, thesis, or watchlist state.
+- Durable machine state lives in `memory/state/symbols/{SYMBOL}.md` and `memory/state/theses/{THESIS_ID}/thesis.md`.
+- Keep thesis summary in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`. Each row should include `Type` (`THESIS` or `SUBTHESIS`), `Parent` (blank for top-level theses), and a link to the per-thesis file.
 - Store each thesis or subthesis in `memory/state/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
 - Use flat storage under `memory/state/theses/`. Parent-child relationships are expressed in file metadata, not by nested thesis folders.
 - Use `type: THESIS` for an umbrella thesis and `type: SUBTHESIS` for a narrower mechanism, comparison, or expression that belongs under a larger thesis.
 - Use `parent_thesis_id` only for `SUBTHESIS`.
 - When a new idea is mostly a narrower expression of an existing umbrella thesis, create a `SUBTHESIS` under that parent instead of creating a separate top-level thesis.
 - Keep only real symbols in `memory/state/symbols/`.
+- New durable symbol plans must begin with YAML frontmatter containing at least: `id`, `scope: symbol`, `symbol`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, and `tags`.
+- New durable thesis files must begin with YAML frontmatter containing at least: `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, and `tags`.
+- When updating an older durable symbol or thesis file that lacks the required frontmatter, add the frontmatter during that write instead of preserving mixed formats.
+- Use a small, strict frontmatter schema. Do not invent ad hoc keys when an existing field can express the state.
+- For new durable analysis notes, frontmatter is recommended when the file is meant to be queried later; keep it minimal and only include fields needed for retrieval.
+- For local filesystem retrieval, prefer `rg` for content search and `rg --files` for file discovery. Use `jq` for inspecting `memory/registry/*.json`. If available, `fd` and `fzf` are useful accelerators but not required.
 
 By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check` and `digest-sync`, memory file updates are part of execution and should be written during the workflow.
 
@@ -156,6 +169,7 @@ Trading-day clock (authoritative):
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
 - Evidence-backed memory updates may touch only `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
+- After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.
 - Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
 - Success run log `artifacts` must reference the actual memory paths produced, not scratch files under `work/`.
@@ -182,6 +196,7 @@ Trading-day clock (authoritative):
 - Write a retained sync summary to `memory/analysis/market/{TRADING_DAY}/digest_sync.md`.
 - If evidence is ambiguous, record `Needs Verification` in `digest_sync.md` and do not change thesis/watchlist state.
 - Link memory changes to the digest path and supporting document URLs.
+- After memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
 - Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_digest-sync.json` after memory updates succeed.
 - `digest-sync` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 

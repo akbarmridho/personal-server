@@ -21,18 +21,26 @@ Prefer `SUBTHESIS` when the new idea is mostly:
 
 Use a separate top-level `THESIS` only when the idea has its own durable driver set, invalidation, and lifecycle independent of an existing parent.
 
+When an older thesis file is edited, add the frontmatter during that write instead of leaving mixed formats behind.
+
 Suggested thesis-file structure:
 
 ```markdown
+---
+id: {thesis-id}
+scope: thesis
+title: {Title}
+type: {THESIS | SUBTHESIS}
+parent_thesis_id: {parent-thesis-id or blank}
+status: {ACTIVE | INACTIVE}
+symbols: [{SYMBOL}, ...]
+last_updated: {YYYY-MM-DD}
+tags: [{tag}, ...]
+---
+
 # {Title}
 
-- thesis_id: {thesis-id}
-- type: {THESIS | SUBTHESIS}
-- parent_thesis_id: {parent-thesis-id or blank}
-- status: {ACTIVE | INACTIVE}
 - scope: {umbrella | mechanism | comparison | sector-slice | other}
-- symbols: [{SYMBOL}, ...]
-- last_updated: {YYYY-MM-DD}
 
 ## Summary
 

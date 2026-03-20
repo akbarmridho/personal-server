@@ -45,8 +45,12 @@ $OPENCODE_CWD/
 │   │   ├── ihsg.md               # IHSG regime map and key levels
 │   │   ├── macro.md              # Macro and geopolitical context affecting IDX
 │   │   ├── portfolio-monitor.md  # Open-book classification and monitoring rules
-│   │   ├── thesis.md             # Thesis index
-│   │   └── watchlist.md          # Stocks under observation
+│   │   ├── thesis.md             # Human-readable thesis summary view
+│   │   └── watchlist.md          # Human-readable watchlist summary view
+│   ├── registry/
+│   │   ├── state.json            # Derived current-state summary
+│   │   ├── symbols.json          # Derived symbol registry
+│   │   └── theses.json           # Derived thesis registry
 │   ├── runs/                     # Successful workflow run logs
 │   ├── state/
 │   │   ├── symbols/{SYMBOL}.md   # Trading plan, thesis, key levels
@@ -105,6 +109,25 @@ pnpm cli          # CLI mode
 pnpm web          # Web UI mode
 ```
 
+### Optional CLI Tooling
+
+Recommended for faster local memory and file operations:
+
+```bash
+# macOS
+brew install ripgrep jq fzf fd
+
+# Ubuntu / Debian
+sudo apt install ripgrep jq fzf fd-find
+```
+
+Notes:
+
+- `rg` is the default fast search tool for memory recall.
+- `jq` is useful for inspecting `memory/registry/*.json`.
+- `fzf` is optional for interactive selection.
+- On some Debian-based systems, `fd-find` installs the binary as `fdfind` instead of `fd`.
+
 ## Architecture
 
 ### Single Agent + On-Demand Skills
@@ -129,12 +152,27 @@ Filesystem-based memory using markdown files.
 - **`memory/notes/ihsg.md`** — Current IHSG regime map and key levels
 - **`memory/notes/macro.md`** — Geopolitical and macro conditions affecting IDX
 - **`memory/notes/portfolio-monitor.md`** — Current open-book classification and monitoring rules
-- **`memory/notes/`** — Thesis index, watchlist, and market context notes
+- **`memory/notes/watchlist.md`** — Human-readable watchlist summary view
+- **`memory/notes/thesis.md`** — Human-readable thesis summary view
+- **`memory/registry/`** — Derived machine-readable current-state files for fast lookup
 - **`memory/runs/`** — One JSON log per successful top-level workflow run
-- **`memory/state/symbols/`** — Per-symbol trading plans, theses, key levels
-- **`memory/state/theses/`** — Per-thesis durable state and lifecycle updates, including top-level theses and subtheses stored flat with parent metadata
+- **`memory/state/symbols/`** — Authoritative durable per-symbol plans; add strict YAML frontmatter to new files
+- **`memory/state/theses/`** — Authoritative durable per-thesis state, including top-level theses and subtheses stored flat with parent metadata
 - **`memory/analysis/`** — Dated analysis outputs organized by symbol
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
+
+Source-of-truth split:
+
+- Portfolio tools own live holdings, fills, and realized actions.
+- `memory/state/symbols/` and `memory/state/theses/` own durable symbol/thesis state.
+- `memory/notes/watchlist.md` and `memory/notes/thesis.md` remain useful as readable dashboards, but they are not the authoritative machine state.
+- `memory/registry/*.json` is derived from durable memory and should be refreshed after workflows that mutate watchlist, symbol, or thesis state.
+
+Recommended local CLI tools for memory work:
+
+- `rg` for fast content recall across memory
+- `jq` for inspecting registry JSON
+- optional: `fzf` for interactive file/result selection
 
 ## Custom Tools
 

@@ -18,7 +18,10 @@ Last updated:
 - Market context: `notes/ihsg.md`
 - Macro context: `notes/macro.md`
 - Portfolio monitor: `notes/portfolio-monitor.md`
-- Thesis index: `notes/thesis.md`
+- Thesis summary view: `notes/thesis.md`
 - Thesis contract: `state/theses/README.md`
-- Watchlist: `notes/watchlist.md`
+- Symbol plan contract: `state/symbols/README.md`
+- Watchlist summary view: `notes/watchlist.md`
+- Registry contract: `registry/README.md`
+- Registry snapshot: `registry/state.json`
 - Run logs: `runs/`

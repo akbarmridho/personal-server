@@ -27,6 +27,7 @@ echo ""
 # Create directory structure
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
+mkdir -p "$OPENCODE_CWD/memory/registry"
 mkdir -p "$OPENCODE_CWD/memory/runs"
 mkdir -p "$OPENCODE_CWD/memory/state/symbols"
 mkdir -p "$OPENCODE_CWD/memory/state/theses"
@@ -43,6 +44,11 @@ for f in \
   notes/portfolio-monitor.md \
   notes/watchlist.md \
   notes/thesis.md \
+  registry/README.md \
+  registry/state.json \
+  registry/symbols.json \
+  registry/theses.json \
+  state/symbols/README.md \
   state/theses/README.md \
   runs/README.md
 do
@@ -72,9 +78,15 @@ echo "  │   │   ├── macro.md"
 echo "  │   │   ├── portfolio-monitor.md"
 echo "  │   │   ├── thesis.md"
 echo "  │   │   └── watchlist.md"
+echo "  │   ├── registry/"
+echo "  │   │   ├── README.md"
+echo "  │   │   ├── state.json"
+echo "  │   │   ├── symbols.json"
+echo "  │   │   └── theses.json"
 echo "  │   ├── runs/"
 echo "  │   ├── state/"
 echo "  │   │   ├── symbols/"
+echo "  │   │   │   └── README.md"
 echo "  │   │   └── theses/"
 echo "  │   │       └── README.md"
 echo "  │   ├── analysis/"

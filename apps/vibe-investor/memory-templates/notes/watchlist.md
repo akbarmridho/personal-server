@@ -2,6 +2,13 @@
 
 Last updated:
 
+This file is a human-readable summary view.
+
+Source of truth:
+
+- durable symbol plans: `../state/symbols/*.md`
+- derived machine-readable view: `../registry/symbols.json`
+
 ## Status Enum
 
 - `WATCHING` - thesis interesting but not actionable yet

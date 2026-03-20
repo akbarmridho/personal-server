@@ -1,0 +1,30 @@
+# Symbol Memory Contract
+
+Use `memory/state/symbols/{SYMBOL}.md` for durable per-symbol operating plans.
+
+New symbol plans should start with YAML frontmatter:
+
+```yaml
+---
+id: {symbol-lowercase}
+scope: symbol
+symbol: {SYMBOL}
+watchlist_status: {WATCHING | READY | ACTIVE | REMOVED}
+trade_classification: {THESIS | TACTICAL | SPECULATION}
+holding_mode: {TACTICAL | THESIS | HYBRID}
+thesis_id: {thesis-id}
+last_reviewed: {YYYY-MM-DD}
+next_review: {YYYY-MM-DD}
+leader: {true | false}
+tags: [{tag}, ...]
+---
+```
+
+Rules:
+
+- Keep the schema small and strict.
+- When an older symbol plan is edited, add the frontmatter during that write instead of leaving mixed formats behind.
+- `watchlist_status` is the durable watchlist label for the symbol.
+- Use `leader: true` only for active leadership names that matter to breadth/regime checks.
+- Body content still owns narrative explanation, levels, invalidation, and execution details.
+- Do not store live fills, current P/L, or temporary execution state here.

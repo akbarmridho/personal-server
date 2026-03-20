@@ -31,7 +31,7 @@ Tool source of truth:
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level overrides when heat, concentration, liquidity, or regime require action beyond the symbol-level baseline.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
-- Use memory files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated.
+- Use durable state files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated and the derived registry is refreshed.
 - Consume technical exit doctrine from `technical-analysis`; this skill does not redefine raw chart-level TP rules.
 - Keep the durable symbol plan separate from live portfolio truth. Store the intended operating plan in memory; store actual holdings, fills, remaining size, and P/L in portfolio tools.
 
@@ -196,7 +196,8 @@ Stop: if fetch fails, stop the task and report dependency failure.
 | File | Purpose |
 |------|---------|
 | `memory/notes/portfolio-monitor.md` | Current open-book classification, active monitor rules, health flags, and next portfolio-level focus |
-| `memory/notes/watchlist.md` | Status-driven symbols registry and trigger conditions |
+| `memory/notes/watchlist.md` | Human-readable watchlist summary view |
+| `memory/registry/symbols.json` | Derived current-state symbol registry for fast watchlist and leader lookup |
 | `memory/state/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing, and resolved execution policy |
 | `memory/runs/{DATE}/{TIME}_desk-check.json` | Successful desk-check continuity log written by the parent workflow |
 | `memory/analysis/symbols/{SYMBOL}/{DATE}/` | Supporting analysis artifacts |
@@ -221,7 +222,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 Before any new long exposure, check market regime.
 
-Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/notes/watchlist.md`.
+Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/registry/symbols.json` (fallback: `memory/notes/watchlist.md` when registry is missing or stale).
 
 Resolve one aggression state:
 
@@ -316,8 +317,9 @@ Rebalancing protocol:
 4. Load `trading-plan-template.md`, fill all required fields including `Holding mode` and final exit precedence.
 5. Write plan to `memory/state/symbols/{SYMBOL}.md`.
 6. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
+7. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 
-Checklist: regime aggression state resolved, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated.
+Checklist: regime aggression state resolved, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
 
 ### Desk Check Review
 
@@ -331,9 +333,10 @@ Checklist: regime aggression state resolved, `holding_mode` posture applied, siz
 8. Extend coverage to watchlist symbols required by the active workflow contract.
 9. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, rebalance-band notes, `Last Reviewed`, and other resolved execution-policy fields.
 10. Prepare the updated portfolio-monitor state for the parent workflow: `Last updated`, current `portfolio_heat`, open-book classification, active monitoring rules, current focus, and active portfolio health flags or discipline actions backed by the review evidence.
-11. Return portfolio findings, portfolio-monitor update content, watchlist changes, and any required follow-up actions to the parent workflow.
+11. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
+12. Return portfolio findings, portfolio-monitor update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
@@ -341,9 +344,10 @@ Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat`
 2. Confirm whether the exit is coming from the symbol-level baseline (`technical_plan` / thesis invalidation) or from a portfolio override (heat, concentration, liquidity, regime).
 3. Execute exit, update `memory/state/symbols/{SYMBOL}.md` with close details and any final execution-policy outcome that matters for future review.
 4. Update `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
-5. Post-exit: evaluate process quality, not outcome.
+5. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
+6. Post-exit: evaluate process quality, not outcome.
 
-Checklist: exit source documented (symbol baseline vs portfolio override), symbol/watchlist memory updated where needed, process review noted.
+Checklist: exit source documented (symbol baseline vs portfolio override), symbol/watchlist memory updated where needed, registry refreshed, process review noted.
 
 ### Rebalance Check
 
