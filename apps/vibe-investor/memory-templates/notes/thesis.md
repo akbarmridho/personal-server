@@ -2,12 +2,14 @@
 
 Last updated:
 
+Hierarchy rule: use `Type = THESIS` for umbrella views and `Type = SUBTHESIS` for narrower expressions linked by `Parent`.
+
 ## ACTIVE
 
-| ID | Title | Scope | Status | Last Update | File |
-|---|---|---|---|---|---|
+| ID | Type | Parent | Title | Scope | Symbols | Status | Last Update | File |
+|---|---|---|---|---|---|---|---|---|
 
 ## INACTIVE
 
-| ID | Title | Scope | Status | Closed On | File |
-|---|---|---|---|---|---|
+| ID | Type | Parent | Title | Scope | Symbols | Status | Closed On | File |
+|---|---|---|---|---|---|---|---|---|

@@ -132,7 +132,7 @@ Filesystem-based memory using markdown files.
 - **`memory/notes/`** — Thesis index, watchlist, and market context notes
 - **`memory/runs/`** — One JSON log per successful top-level workflow run
 - **`memory/state/symbols/`** — Per-symbol trading plans, theses, key levels
-- **`memory/state/theses/`** — Per-thesis durable state and lifecycle updates
+- **`memory/state/theses/`** — Per-thesis durable state and lifecycle updates, including top-level theses and subtheses stored flat with parent metadata
 - **`memory/analysis/`** — Dated analysis outputs organized by symbol
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 

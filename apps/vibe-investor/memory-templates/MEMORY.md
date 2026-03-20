@@ -19,5 +19,6 @@ Last updated:
 - Macro context: `notes/macro.md`
 - Portfolio monitor: `notes/portfolio-monitor.md`
 - Thesis index: `notes/thesis.md`
+- Thesis contract: `state/theses/README.md`
 - Watchlist: `notes/watchlist.md`
 - Run logs: `runs/`

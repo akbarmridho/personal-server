@@ -43,6 +43,7 @@ for f in \
   notes/portfolio-monitor.md \
   notes/watchlist.md \
   notes/thesis.md \
+  state/theses/README.md \
   runs/README.md
 do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
@@ -75,6 +76,7 @@ echo "  │   ├── runs/"
 echo "  │   ├── state/"
 echo "  │   │   ├── symbols/"
 echo "  │   │   └── theses/"
+echo "  │   │       └── README.md"
 echo "  │   ├── analysis/"
 echo "  │   │   ├── symbols/"
 echo "  │   │   ├── market/"

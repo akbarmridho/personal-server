@@ -61,8 +61,12 @@ Portfolio memory rules:
 - If a one-off portfolio calculation is needed and the portfolio tools do not already provide it, create and run a temporary script under `work/` instead of adding a permanent script surface.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
-- Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`, each linking to per-thesis files.
-- Store each thesis in `memory/state/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
+- Keep thesis index in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`. Each row should include `Type` (`THESIS` or `SUBTHESIS`), `Parent` (blank for top-level theses), and a link to the per-thesis file.
+- Store each thesis or subthesis in `memory/state/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
+- Use flat storage under `memory/state/theses/`. Parent-child relationships are expressed in file metadata, not by nested thesis folders.
+- Use `type: THESIS` for an umbrella thesis and `type: SUBTHESIS` for a narrower mechanism, comparison, or expression that belongs under a larger thesis.
+- Use `parent_thesis_id` only for `SUBTHESIS`.
+- When a new idea is mostly a narrower expression of an existing umbrella thesis, create a `SUBTHESIS` under that parent instead of creating a separate top-level thesis.
 - Keep only real symbols in `memory/state/symbols/`.
 
 By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check` and `digest-sync`, memory file updates are part of execution and should be written during the workflow.
