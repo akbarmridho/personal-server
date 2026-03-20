@@ -138,7 +138,7 @@ Trading-day clock (authoritative):
 - Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
 - Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
 - Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis`, `flow-analysis`, and `narrative-analysis` as needed, then a delegated top-down market review, then parent synthesis.
-- Technical analysis defaults to `THESIS_REVIEW` mode inside `desk-check` unless the user explicitly requests a broader refresh.
+- Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when:
   - the symbol is actively held or near actionable review
@@ -195,7 +195,7 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 
 **Portfolio tools** (read-only): `portfolio_state`, `portfolio_trade_history`, `portfolio_symbol_trade_journey`. Data comes from connector-owned normalized files under `AI_CONNECTOR_DATA_ROOT`.
 
-- `portfolio_state`: latest portfolio snapshot with optional positions, weights, and compact summary fields such as concentration and recent actions.
+- `portfolio_state`: latest portfolio snapshot with optional positions, weights, and compact summary fields such as position count, cash ratio, top positions, and recent actions.
 - `portfolio_trade_history`: trade ledger access with filters and `view` modes. Use `view: "events"` for raw rows and recent ledger slices, and `view: "realized_stats"` for aggregate realized analytics with optional `group_by`.
 - `portfolio_symbol_trade_journey`: one-symbol deep context combining normalized trade lifecycle, realized summary, latest action, and current holding state from the latest snapshot.
 

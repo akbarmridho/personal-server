@@ -88,6 +88,7 @@ brew install ghostscript
 
 # 1. Install
 pnpm install
+pip install -r requirements.txt
 
 # 2. Configure
 cp .env.example .env
@@ -158,7 +159,7 @@ The tool sends these sources directly to OpenRouter Gemini Flash Lite via AI SDK
 
 ### portfolio_state
 
-Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`, with optional compact summary fields such as concentration and a recent-actions preview.
+Reads the latest normalized portfolio snapshot from `AI_CONNECTOR_DATA_ROOT`, with optional compact summary fields such as position count, cash ratio, top positions, and a recent-actions preview.
 
 ### portfolio_trade_history
 

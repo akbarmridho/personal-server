@@ -50,7 +50,7 @@ Do not skip chart generation. Do not skip chart reading.
 ### Context Build
 
 ```bash
-python scripts/build_ta_context.py \
+python3 scripts/build_ta_context.py \
   --input {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --outdir work \
@@ -62,7 +62,7 @@ python scripts/build_ta_context.py \
 ### Chart Build
 
 ```bash
-python scripts/generate_ta_charts.py \
+python3 scripts/generate_ta_charts.py \
   --input {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --outdir work \

@@ -15,7 +15,7 @@ Use this file as the entrypoint. Do not load every reference by default.
 
 Tool source of truth:
 
-- Use `portfolio_state` as the source of truth for current holdings, cash, equity, and compact portfolio summary fields such as concentration and recent actions.
+- Use `portfolio_state` as the source of truth for current holdings, cash, equity, and compact portfolio summary fields such as position count, cash ratio, top positions, and recent actions.
 - Use `portfolio_trade_history` for raw trade rows and realized analytics depending on `view`.
 - Use `portfolio_symbol_trade_journey` for symbol-level lifecycle review, current-position context, and postmortem setup.
 - Use symbol memory as the durable operating plan, not as the live execution ledger.
@@ -170,7 +170,7 @@ Reference boundary:
 
 | Source | Used for | If unavailable |
 |--------|----------|----------------|
-| `portfolio_state` | Current holdings, cash, equity, unrealized state, concentration summary, recent actions | Stop |
+| `portfolio_state` | Current holdings, cash, equity, unrealized state, position count, cash ratio, top positions, recent actions | Stop |
 | `portfolio_trade_history` | Raw trade rows, realized history slices, and aggregate realized analytics | Stop |
 | `portfolio_symbol_trade_journey` | Symbol-level lifecycle review, current-position context, and postmortem setup | Stop |
 | `get-stock-financials` | Dividend checks, fundamental monitoring | Stop |

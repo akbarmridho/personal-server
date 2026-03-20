@@ -44,8 +44,8 @@ Use commands in OpenCode TUI with `/command-name`.
 
 `/ta`
 
-- Modes auto-select from context: `INITIAL`, `UPDATE`, `THESIS_REVIEW`, `POSTMORTEM`
-- Default lens: `UNIFIED`
+- Modes auto-select from context: `INITIAL`, `UPDATE`, `POSTMORTEM`
+- Inside `desk-check`, technical review defaults to `UPDATE` when prior plan context exists and `INITIAL` otherwise
 
 ## Data Sources
 

@@ -39,7 +39,7 @@ Always build deterministic context before interpretation.
 Run:
 
 ```bash
-python scripts/build_flow_context.py \
+python3 scripts/build_flow_context.py \
   --broker-flow {FETCH_BROKER_FLOW_OUTPUT_PATH} \
   --ohlcv {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
@@ -59,69 +59,70 @@ Rules:
 
 ## Deterministic Contract
 
-The deterministic packet is intentionally narrow.
+The deterministic packet is intentionally narrow and grouped by section.
 
 Core metrics:
 
-- `coverage_buy_pct`
-- `coverage_sell_pct`
-- `net_flow_total_value`
-- `net_flow_recent_value`
-- `cadi_value`
-- `cadi_trend`
-- `cadi_slope_strength`
-- `buy_avg_vs_vwap_pct`
-- `sell_avg_vs_vwap_pct`
-- `buy_execution_quality`
-- `sell_execution_quality`
-- `bs_spread_pct`
-- `gvpr_buy_pct`
-- `gvpr_sell_pct`
-- `gvpr_pattern`
-- `top_buyer_share_pct`
-- `top_seller_share_pct`
+- `core_metrics.coverage_buy_pct`
+- `core_metrics.coverage_sell_pct`
+- `core_metrics.net_flow_total_value`
+- `core_metrics.net_flow_recent_value`
+- `core_metrics.cadi_value`
+- `core_metrics.cadi_trend`
+- `core_metrics.cadi_slope_strength`
+- `core_metrics.buy_avg_vs_vwap_pct`
+- `core_metrics.sell_avg_vs_vwap_pct`
+- `core_metrics.buy_execution_quality`
+- `core_metrics.sell_execution_quality`
+- `core_metrics.bs_spread_pct`
+- `core_metrics.gvpr_buy_pct`
+- `core_metrics.gvpr_sell_pct`
+- `core_metrics.gvpr_pattern`
+- `core_metrics.top_buyer_share_pct`
+- `core_metrics.top_seller_share_pct`
 
 Semantics:
 
-- `coverage_*` measures visible top-25 side value as a share of total market value
-- `buy_avg_vs_vwap_pct`, `sell_avg_vs_vwap_pct`, `gvpr_*`, and `top_*_share_pct` are selected-period aggregate metrics over the primary 30-session window
-- `gvpr_*` and `top_*_share_pct` are anchored to total market value over that window, matching the source doctrine
+- `core_metrics.coverage_*` measures visible top-25 side value as a share of total market value
+- `core_metrics.buy_avg_vs_vwap_pct`, `core_metrics.sell_avg_vs_vwap_pct`, `core_metrics.gvpr_*`, and `core_metrics.top_*_share_pct` are selected-period aggregate metrics over the primary 30-session window
+- `core_metrics.gvpr_*` and `core_metrics.top_*_share_pct` are anchored to total market value over that window, matching the source doctrine
 
 Advanced signals:
 
-- `persistence_score`
-- `persistence_state`
-- `buy_hhi`
-- `sell_hhi`
-- `concentration_asymmetry_state`
-- `mfi_value`
-- `mfi_state`
-- `frequency_score`
-- `frequency_profile`
-- `flow_price_correlation_spearman`
-- `flow_price_correlation_state`
-- `divergence_state`
-- `wash_risk_pct`
-- `wash_risk_state`
-- `anomaly_risk_state`
+- `advanced_signals.persistence_score`
+- `advanced_signals.persistence_state`
+- `advanced_signals.buy_hhi`
+- `advanced_signals.sell_hhi`
+- `advanced_signals.concentration_asymmetry_state`
+- `advanced_signals.mfi_value`
+- `advanced_signals.mfi_state`
+- `advanced_signals.frequency_score`
+- `advanced_signals.frequency_profile`
+- `advanced_signals.flow_price_correlation_spearman`
+- `advanced_signals.flow_price_correlation_state`
+- `advanced_signals.divergence_state`
+- `advanced_signals.wash_risk_pct`
+- `advanced_signals.wash_risk_state`
+- `advanced_signals.anomaly_risk_state`
 
 Trust and verdict:
 
-- `liquidity_profile`
-- `market_cap_profile`
-- `market_cap_value`
-- `ticker_flow_usefulness`
-- `trust_level`
-- `verdict_weight_profile`
-- `trust_rationale`
-- `verdict`
-- `conviction_pct`
-- `sponsor_quality`
-- `strongest_support_factors`
-- `strongest_caution_factors`
-- `timing_relation`
-- `signal_role`
-- `integration_summary`
+- `trust_regime.liquidity_profile`
+- `trust_regime.market_cap_profile`
+- `trust_regime.market_cap_value`
+- `trust_regime.ticker_flow_usefulness`
+- `trust_regime.trust_level`
+- `trust_regime.verdict_weight_profile`
+- `trust_regime.trust_rationale`
+- `baseline_verdict.verdict`
+- `baseline_verdict.conviction_pct`
+- `baseline_verdict.sponsor_quality`
+- `baseline_verdict.strongest_support_factors`
+- `baseline_verdict.strongest_caution_factors`
+- `integration_hook.timing_relation`
+- `integration_hook.price_structure_alignment`
+- `integration_hook.signal_role`
+- `integration_hook.integration_summary`
 - `monitoring`
 
 Historical series:
@@ -284,36 +285,36 @@ Required sections:
 
 Required fields:
 
-- verdict
-- conviction
-- trust level
-- sponsor-quality lean
-- key caution
-- integration signal
-- next review trigger
+- `baseline_verdict.verdict`
+- `baseline_verdict.conviction_pct`
+- `trust_regime.trust_level`
+- `baseline_verdict.sponsor_quality`
+- `baseline_verdict.strongest_caution_factors`
+- `integration_hook.timing_relation`
+- `monitoring.next_review_window`
 
 ### `Context`
 
 Required fields:
 
-- symbol
-- as-of date
-- active window
-- today snapshot included or excluded
-- gross-first note
+- `analysis.symbol`
+- `analysis.as_of_date`
+- `window.from` / `window.to`
+- `window.today_snapshot_included`
+- `core_metrics.gross_read_note`
 - compact history availability for `30D` and `60D`
 
 ### `Core Metrics`
 
 Summarize:
 
-- `CADI`
-- recent visible net flow
-- buy vs VWAP
-- sell vs VWAP
-- `GVPR`
-- top buyer / seller share
-- coverage
+- `core_metrics.cadi_value`
+- `core_metrics.net_flow_recent_value`
+- `core_metrics.buy_avg_vs_vwap_pct`
+- `core_metrics.sell_avg_vs_vwap_pct`
+- `core_metrics.gvpr_buy_pct` / `core_metrics.gvpr_sell_pct`
+- `core_metrics.top_buyer_share_pct` / `core_metrics.top_seller_share_pct`
+- `core_metrics.coverage_buy_pct` / `core_metrics.coverage_sell_pct`
 
 If needed for inspection, refer to the compact historical block instead of re-reading raw broker rows.
 
@@ -321,37 +322,37 @@ If needed for inspection, refer to the compact historical block instead of re-re
 
 Summarize only what matters:
 
-- persistence
-- concentration asymmetry
-- flow-price trust
-- divergence
-- wash or anomaly risk
+- `advanced_signals.persistence_state`
+- `advanced_signals.concentration_asymmetry_state`
+- `advanced_signals.flow_price_correlation_state`
+- `advanced_signals.divergence_state`
+- `advanced_signals.wash_risk_state` / `advanced_signals.anomaly_risk_state`
 
 ### `Trust / Regime`
 
 State:
 
-- liquidity bucket
-- market-cap bucket
-- ticker usefulness
-- trust rationale
+- `trust_regime.liquidity_profile`
+- `trust_regime.market_cap_profile`
+- `trust_regime.ticker_flow_usefulness`
+- `trust_regime.trust_rationale`
 
 ### `Integration Hook`
 
 State:
 
-- lead / confirm / warning / unclear
-- whether flow is aligned or contradictory to current price behavior
-- why the parent workflow should care
+- `integration_hook.timing_relation`
+- `integration_hook.price_structure_alignment`
+- `integration_hook.integration_summary`
 
 ### `Monitoring`
 
 State:
 
-- confirm-if
-- weaken-if
-- invalidate-if
-- next review window
+- `monitoring.confirm_if`
+- `monitoring.weaken_if`
+- `monitoring.invalidate_if`
+- `monitoring.next_review_window`
 
 ## Tone And Discipline
 
