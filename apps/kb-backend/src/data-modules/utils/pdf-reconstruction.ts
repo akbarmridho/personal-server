@@ -57,7 +57,7 @@ export async function reconstructPdfWithLLM({
 }): Promise<PdfReconstruction> {
   const response = await generateObject({
     model: openrouter("google/gemini-3-flash-preview", {
-      models: ["openai/gpt-5-mini"],
+      models: ["openai/gpt-5.4-mini"],
     }),
     schema: PdfReconstructionSchema,
     messages: [

@@ -41,6 +41,8 @@ Produce these when the evidence supports them:
 - effective float estimate or range
 - float tightness state
 - concentration metrics: `top_3_pct`, `top_5_pct`, `HHI`
+- holding-composition shift when the governance payload shows a material local / foreign or holder-base change
+- entity cross-holdings when a named holder materially affects controller or affiliate interpretation
 - largest non-controller block when relevant
 - overhang / supply-risk events
 - minority alignment
@@ -128,6 +130,7 @@ Flag ambiguity when:
 - holder list coverage is incomplete
 - controller relationship is suspected but not proven
 - effective float depends on assumptions rather than disclosed facts
+- entity-level holdings are incomplete or based only on one public snapshot
 
 Do not infer active smart-money behavior from holder names alone.
 

@@ -15,7 +15,7 @@ import { getStockProfile as getStockbitProfile } from "../../stockbit/profile.js
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const PRIMARY_MODEL = "openai/gpt-5-mini";
+const PRIMARY_MODEL = "openai/gpt-5.4-mini";
 const FALLBACK_MODEL = "x-ai/grok-4.1-fast";
 const CACHE_PREFIX = "stock.profile.enriched";
 const CACHE_TTL_MONTHS = 6;
@@ -93,6 +93,10 @@ export interface EnrichedStockProfile {
   subsector: string;
   listing_date: string;
   priceOverview: Record<string, number>;
+  subsidiaries: Array<{
+    company: string;
+    types: string[];
+  }>;
 }
 
 const buildStockbitContextForPrompt = (
@@ -199,6 +203,7 @@ ${JSON.stringify(stockbitContext, null, 2)}`;
     subsector: normalizeSector(companyReport.sub_sector),
     listing_date: companyReport.listing_date,
     priceOverview,
+    subsidiaries: stockbitContext.subsidiaries,
   };
 
   await KV.set(

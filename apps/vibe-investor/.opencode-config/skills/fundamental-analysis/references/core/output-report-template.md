@@ -49,8 +49,10 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 - Controller and affiliate map
 - Holder taxonomy and largest holders
 - Reported free float and effective float view
+- Holding-composition history and ownership-base shift when material
 - Float tightness and uncertainty
 - Concentration metrics
+- Entity cross-holdings when thesis-critical
 - Overhang / supply-risk events
 - Minority alignment
 - Evidence trace
@@ -81,6 +83,8 @@ Include when ownership is material to the call:
 - effective float estimate or range
 - float tightness state
 - concentration (`top_3_pct`, `top_5_pct`, `HHI`) when available
+- holding-composition shift when material and directly evidenced
+- entity cross-holdings when controller or affiliate interpretation depends on them
 - overhang / supply-risk summary
 - minority alignment
 - ownership uncertainty notes

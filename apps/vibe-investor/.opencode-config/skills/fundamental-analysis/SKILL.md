@@ -27,7 +27,8 @@ Use these sources according to the active mode.
 | `get-stock-profile` | Company identity, business model, segment context, industry anchor | Stop |
 | `get-stock-keystats` | Ratio snapshot, market cap, valuation context, price anchor | Stop |
 | `get-stock-financials` | Income statement, balance sheet, cash flow, trend work | Stop |
-| `get-stock-governance` | Ownership, board/management, insider context | Stop |
+| `get-stock-governance` | Ownership, board/management, insider context, holder structure, holding-composition history | Stop |
+| `get-shareholder-entity` | Cross-issuer holdings for a named holder entity | Stop when controller-network, affiliate, or cross-holding evidence is required by mode or question |
 | `list-filing` + `get-filing` | Official annual-report, financial-statement, and disclosure review | Stop when official evidence is required by mode or question |
 | `search-documents`, `list-documents`, `get-document` | Internal research, analysis, news, concall/public-expose summaries, and contextual evidence | Stop when contextual evidence is required by mode or question |
 
@@ -36,6 +37,7 @@ Core source contract:
 - Call `get-stock-profile({ symbol })` once early in the run before deeper analysis.
 - Use `list-filing` -> `get-filing` as the official filing path.
 - Use `search-documents`, `list-documents`, and `get-document` for research and contextual evidence.
+- Use `get-shareholder-entity({ entity_name })` only when a named holder materially enters the ownership conclusion and the symbol-level governance payload is not enough.
 - Do not force every conclusion through filings. Analysis and news documents can be primary evidence when the task is sectoral, mechanism-led, or about externally reported developments.
 - Do not treat contextual documents as a substitute for filings when the claim is specifically about accounting quality, audited numbers, disclosure quality, or formal capital-structure terms.
 - If any required source for the selected mode fails, stop and report dependency failure.
@@ -66,8 +68,10 @@ Core source contract:
 | OCF vs net profit, FCF, capex trend | Deterministic | Computed from financials |
 | Valuation methods and MoS | Deterministic | Computed from financials, price context, and explicit assumptions |
 | Controller identity and affiliate stake | Deterministic when disclosed, otherwise mixed | Extract from governance data and formal disclosures; aggregate affiliated holdings when defensible |
+| Cross-holdings for a named holder entity | Deterministic | Use `get-shareholder-entity` when a specific holder materially matters |
 | Reported free float | Deterministic | Compute from available governance/disclosure data using explicit exclusions when data supports it |
 | Concentration metrics (`top_3`, `top_5`, `HHI`) | Deterministic | Compute from holder weights when holder list quality is sufficient |
+| Holder-base shift | Deterministic | Read holding-composition history from `get-stock-governance`; describe only shifts directly evidenced by the returned series |
 | Overhang events explicitly disclosed | Deterministic | Tender offers, rights issues, placements, lock-ups, pledges, insider sales from filings or formal disclosures |
 | Business quality verdict | Agent judgment | Synthesize business model clarity, competitive position, and durability |
 | Financial quality verdict | Agent judgment | Synthesize statement quality, trend health, and cash confirmation |
@@ -114,6 +118,7 @@ Reference sets by mode:
   - `references/core/company-quality-framework.md`
   - `references/core/shareholder-structure-framework.md`
   - `references/core/risk-assessment-framework.md`
+  - use `get-shareholder-entity` when holder-network or affiliate evidence is thesis-critical
   - `references/core/filing-review-framework.md` when formal disclosures materially drive the conclusion
 - `SECTOR_REVIEW`
   - `references/core/valuation-methods-framework.md`
@@ -281,6 +286,8 @@ The result must allow combinations such as strong business but expensive, or che
 ### `OWNERSHIP_REVIEW`
 
 - prioritize controller clarity, holder taxonomy, float quality, concentration, overhang, and minority alignment over full valuation work
+- use `get-shareholder-entity` only when one or more named holders materially affect controller, affiliate, or cross-holding interpretation
+- use holding-composition history from `get-stock-governance` when ownership-base shifts matter structurally
 - use float ranges or float-tightness states when effective float cannot be estimated precisely
 - emit secondary narrative hooks only when there is a clear ownership change or supply event backed by evidence
 - do not promise ownership-change history unless the data exists in the active evidence set

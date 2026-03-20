@@ -218,6 +218,7 @@ When to use which stock MCP tool:
 - `get-stock-keystats`: quick ratio/valuation/fundamental snapshot.
 - `get-stock-financials`: statement tables for trend analysis (income/balance/cashflow).
 - `get-stock-governance`: management and ownership structure.
+- `get-shareholder-entity`: cross-issuer holdings for a named holder entity, used for controller-network, affiliate, and cross-holding investigation.
 - `list-filing`: official filing index for a symbol (use `report_type`/`keyword`/`last_stream_id` as needed).
 - `get-filing`: filing detail + attachment URLs. Use `filing_id` from `list-filing` result `id`.
 - `list-documents`: broad filtered listing from internal knowledge base.
@@ -244,6 +245,9 @@ Reliable call patterns:
   - Start `get-stock-keystats({ symbol })`
   - Add targeted `get-stock-financials` calls (by statement/report mode)
   - Add `get-stock-governance` if ownership/management risk is relevant
+- Ownership deep dive:
+  - Start `get-stock-governance({ symbol })`
+  - Add `get-shareholder-entity({ entity_name })` only when a named holder materially affects controller, affiliate, or cross-holding interpretation
 
 For `search-documents` and `list-documents`:
 

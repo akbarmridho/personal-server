@@ -21,6 +21,19 @@ const DROP_HEADER_KEYS = new Set([
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
+type StockbitJsonRequestOptions = {
+  url: string;
+  method?: "GET" | "POST";
+  json?: unknown;
+  authorizationOverride?: string;
+};
+
+type StockbitPublicTextRequestOptions = {
+  url: string;
+  method?: "GET";
+  headers?: Record<string, string>;
+};
+
 export class StockbitHttpError extends Error {
   statusCode?: number;
 
@@ -38,9 +51,22 @@ export class StockbitHttpError extends Error {
 }
 
 export async function stockbitGetJson<T>(url: string): Promise<T> {
+  return stockbitRequestJson<T>({ url, method: "GET" });
+}
+
+export async function stockbitPostJson<T>(
+  url: string,
+  json?: unknown,
+): Promise<T> {
+  return stockbitRequestJson<T>({ url, method: "POST", json });
+}
+
+export async function stockbitRequestJson<T>(
+  options: StockbitJsonRequestOptions,
+): Promise<T> {
   const profile = await stockbitAuth.getOrThrow();
   const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
-  const headers = buildReplayHeaders(profile);
+  const headers = buildReplayHeaders(profile, options.authorizationOverride);
   const agent = new http2wrapper.proxies.Http2OverHttp({
     proxyOptions: {
       url: proxyUrl,
@@ -48,24 +74,38 @@ export async function stockbitGetJson<T>(url: string): Promise<T> {
   });
 
   try {
-    return await got
-      .get(url, {
-        http2: true,
-        retry: {
-          limit: 0,
-        },
-        timeout: {
-          request: REQUEST_TIMEOUT_MS,
-        },
-        headers,
-        agent: {
-          http2: agent,
-        },
-      })
-      .json<T>();
+    const client = got.extend({
+      http2: true,
+      retry: {
+        limit: 0,
+      },
+      timeout: {
+        request: REQUEST_TIMEOUT_MS,
+      },
+      headers,
+      agent: {
+        http2: agent,
+      },
+    });
+
+    return await client(options.url, {
+      method: options.method || "GET",
+      json: options.json,
+    }).json<T>();
   } catch (error) {
-    throw toStockbitHttpError(error, url);
+    throw toStockbitHttpError(error, options.url);
   }
+}
+
+export async function stockbitPublicGetText(
+  url: string,
+  headers?: Record<string, string>,
+): Promise<string> {
+  return stockbitRequestText({
+    url,
+    method: "GET",
+    headers,
+  });
 }
 
 export function getStockbitStatusCode(error: unknown): number | undefined {
@@ -78,31 +118,71 @@ export function getStockbitStatusCode(error: unknown): number | undefined {
 
 function buildReplayHeaders(
   profile: StockbitClientProfile,
+  authorizationOverride?: string,
 ): Record<string, string> {
-  const output: Record<string, string> = {};
+  const output = sanitizeHeaders(profile.headers);
 
-  for (const [key, value] of Object.entries(profile.headers)) {
-    const lowerKey = key.toLowerCase();
-    if (DROP_HEADER_KEYS.has(lowerKey) || lowerKey.startsWith(":")) {
-      continue;
-    }
-
-    output[key] = value;
-  }
-
-  const authorization = getAuthorizationHeaderValue(profile.headers);
+  const authorization =
+    authorizationOverride ?? getAuthorizationHeaderValue(profile.headers);
   if (!authorization) {
     throw new StockbitHttpError(
       "Stockbit profile is missing authorization header",
     );
   }
 
-  if (
-    !Object.keys(output).some(
-      (headerKey) => headerKey.toLowerCase() === "authorization",
-    )
-  ) {
-    output.authorization = authorization;
+  output.authorization = authorization;
+
+  return output;
+}
+
+async function stockbitRequestText(
+  options: StockbitPublicTextRequestOptions,
+): Promise<string> {
+  const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
+  const headers = sanitizeHeaders(options.headers ?? {});
+  const agent = new http2wrapper.proxies.Http2OverHttp({
+    proxyOptions: {
+      url: proxyUrl,
+    },
+  });
+
+  try {
+    const client = got.extend({
+      http2: true,
+      retry: {
+        limit: 0,
+      },
+      timeout: {
+        request: REQUEST_TIMEOUT_MS,
+      },
+      headers,
+      agent: {
+        http2: agent,
+      },
+    });
+
+    return await client(options.url, {
+      method: options.method || "GET",
+    }).text();
+  } catch (error) {
+    throw toStockbitHttpError(error, options.url);
+  }
+}
+
+function sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  const output: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(headers)) {
+    const lowerKey = key.toLowerCase();
+    if (
+      DROP_HEADER_KEYS.has(lowerKey) ||
+      lowerKey.startsWith(":") ||
+      lowerKey === "authorization"
+    ) {
+      continue;
+    }
+
+    output[key] = value;
   }
 
   return output;

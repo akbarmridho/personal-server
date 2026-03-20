@@ -6,11 +6,14 @@ import { supportedSubsectors } from "../data-modules/profiles/sector.js";
 import { env } from "../infrastructure/env.js";
 import { knowledgeService } from "../infrastructure/knowledge-service.js";
 import { logger } from "../utils/logger.js";
+import { getCompanyReport } from "./aggregator/company-report.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
 import { getCompanyFundamental } from "./endpoints/stock/fundamental.js";
+import { getStockGovernanceReport } from "./endpoints/stock/governance-report.js";
 import { getStockManagement } from "./endpoints/stock/management.js";
 import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockProfileReport } from "./endpoints/stock/profile.js";
+import { getShareholderEntityHoldings } from "./endpoints/stock/shareholder-entity.js";
 import { getFiling, listFilings } from "./stockbit/filing.js";
 
 // why yaml instead of json?
@@ -285,23 +288,75 @@ export const setupStockMcp = async () => {
   server.addTool({
     name: "get-stock-governance",
     description:
-      "Returns governance data for a specific stock symbol including management, major shareholders, holders above 1%, beneficial owners, and insider activity.",
+      "Returns governance data for a specific stock symbol including management, holders above 1%, holder type labels, beneficial owners, shareholder count trend, holding composition history, insider activity, and a cached grounded governance report.",
     parameters: z.object({ symbol: SymbolSchema }),
     execute: async (args) => {
       const symbol = normalizeAndValidateSymbol(args.symbol);
       logger.info({ symbol }, "Executing get-stock-governance");
       try {
-        const [management, ownership] = await Promise.all([
+        const [companyReport, management, ownership] = await Promise.all([
+          getCompanyReport({ symbol }),
           getStockManagement(symbol),
           getStockOwnership(symbol),
         ]);
 
-        const data = { management, ownership };
+        const governance_report = await getStockGovernanceReport({
+          symbol,
+          companyName: companyReport.company_name,
+          management,
+          ownership,
+        });
+
+        const data = { management, ownership, governance_report };
 
         logger.info({ symbol }, "Get governance completed");
         return { type: "text", text: yaml.dump(data) };
       } catch (error) {
         logger.error({ error, symbol }, "Get governance failed");
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-shareholder-entity",
+    description:
+      "Returns normalized cross-issuer holdings for a shareholder entity based on Stockbit's public shareholding CSV snapshot. Best for investigating controller networks, cross-holdings, and related entities.",
+    parameters: z.object({
+      entity_name: z
+        .string()
+        .describe(
+          "Shareholder entity name. Matching is case-insensitive after normalization and removes common company suffix noise like PT, TBK, LTD, and CORPORATION.",
+        ),
+    }),
+    execute: async (args) => {
+      logger.info(
+        { entityName: args.entity_name },
+        "Executing get-shareholder-entity",
+      );
+      try {
+        const data = await getShareholderEntityHoldings(args.entity_name);
+        logger.info(
+          {
+            entityName: args.entity_name,
+            holdingsCount: data.summary.holdings_count,
+          },
+          "Get shareholder entity completed",
+        );
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error(
+          { error, entityName: args.entity_name },
+          "Get shareholder entity failed",
+        );
         return {
           content: [
             {

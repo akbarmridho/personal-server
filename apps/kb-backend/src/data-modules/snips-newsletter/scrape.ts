@@ -14,7 +14,7 @@ async function extractImageContent(
   for (let i = 0; i < retries; i++) {
     const { text } = await generateText({
       model: openrouter("google/gemini-3.1-flash-lite-preview", {
-        models: ["openai/gpt-5-mini"],
+        models: ["openai/gpt-5.4-mini"],
       }),
       messages: [
         {
