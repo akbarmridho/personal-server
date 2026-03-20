@@ -84,6 +84,7 @@ Available skills: `technical-analysis`, `flow-analysis`, `fundamental-analysis`,
 Scope reminder:
 
 - `fundamental-analysis` covers company review, valuation review, filing-led review, sector review, and mechanism review when the lens remains fundamentally grounded.
+- For any buy, add, hold-escalation, re-entry, postmortem, or portfolio-review recommendation, load `portfolio-management` and apply its default portfolio doctrine before endorsing action.
 
 Skill and reference preflight (mandatory):
 

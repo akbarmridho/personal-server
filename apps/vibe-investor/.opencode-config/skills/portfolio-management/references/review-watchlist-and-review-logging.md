@@ -4,6 +4,27 @@
 
 Define review cadence, watchlist management process, and retained review-summary structure for consistent portfolio operations.
 
+## Review Discipline
+
+### Benchmark And Style Discipline
+
+- During reviews, compare portfolio behavior against `IHSG` and relevant sector leaders.
+- Watch for frustration-driven style drift.
+- If the investor is rotating styles without a framework, say it explicitly.
+
+### Re-Entry Discipline
+
+- After a major loss, do not endorse re-entry unless thesis, sponsorship, and structure have all reset.
+- Re-entry must be treated as a new trade, not emotional continuation of the old one.
+
+### Postmortem Upgrade Loop
+
+Use postmortems as system upgrades, not blame sessions.
+
+- Extract repeated behavioral mistakes.
+- Convert them into operating rules.
+- Improve both the human decision process and the assistant workflow from those findings.
+
 ## Review Cadence
 
 ### Daily (Quick Check)
@@ -20,6 +41,8 @@ Define review cadence, watchlist management process, and retained review-summary
 - Check sizing compliance against 50:30:10 constraints.
 - Check rolling correlation changes among top holdings.
 - Check for stale plans that have not been reviewed within their expected cadence.
+- Compare portfolio behavior versus `IHSG` and relevant sector leaders.
+- Check whether any active tactical trades demand more monitoring than the investor is realistically providing.
 - Update watchlist and trigger status.
 - Record weekly portfolio heat and action items in the retained review summary.
 
@@ -29,6 +52,7 @@ Define review cadence, watchlist management process, and retained review-summary
 - Sector allocation and concentration check.
 - Rebalance check: cadence, drift, thesis validity.
 - Strategy quality review: what worked and what failed.
+- Review whether style drift, attention mismatch, or repeated re-entry mistakes are recurring.
 - Capture durable lessons in long-term memory.
 
 ## Portfolio Health Red Flag
@@ -109,6 +133,8 @@ Watchlist statuses use the labels defined in `SKILL.md`.
 - {insight 2}
 - Checkpoint failures: {symbols or none}
 - Stale plans: {symbols or none}
+- Style drift: {none or what changed}
+- Re-entry discipline issues: {symbols or none}
 
 ## Next Actions
 - {next checks and actions}

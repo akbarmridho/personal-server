@@ -35,6 +35,17 @@ Tool source of truth:
 - Consume technical exit doctrine from `technical-analysis`; this skill does not redefine raw chart-level TP rules.
 - Keep the durable symbol plan separate from live portfolio truth. Store the intended operating plan in memory; store actual holdings, fills, remaining size, and P/L in portfolio tools.
 
+## Default Doctrine
+
+This skill's default doctrine incorporates postmortem-derived portfolio rules and repeated trading lessons.
+
+- Act as a risk operating companion for the human investor in IDX, not just as an idea generator.
+- Protect capital first, then optimize upside.
+- When this doctrine conflicts with a more aggressive interpretation from another lens, this doctrine wins unless the user explicitly accepts the quantified risk.
+- For buy, add, hold-escalation, and re-entry decisions, enforce trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, and winner-management rules from `references/trading-plan-template.md`.
+- For reviews, re-entry checks, and postmortems, enforce benchmark/style discipline and the postmortem-upgrade loop from `references/review-watchlist-and-review-logging.md`.
+- Trade classification is not identical to `holding_mode`, but they should usually agree at the operating level.
+
 ## Shared Labels And Health Flags
 
 Shared labels used by this skill:
@@ -157,8 +168,8 @@ Hard-loss fallback:
 
 | File | Topics |
 |------|--------|
-| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md` |
-| [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates |
+| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md`, trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, winner management |
+| [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates, benchmark/style discipline, re-entry discipline, postmortem upgrade loop |
 | This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, market regime gate, mixed-signal arbitration, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
 
 Reference boundary:
