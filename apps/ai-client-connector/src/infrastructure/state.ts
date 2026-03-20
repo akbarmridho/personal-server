@@ -5,6 +5,7 @@ import { env } from "./env.js";
 
 type AppState = {
   goldenArticleLastSuccessAt?: string;
+  stockbitNewsStreamLastSuccessAt?: string;
 };
 
 export async function getGoldenArticleLastSuccessAt(): Promise<
@@ -22,6 +23,24 @@ export async function setGoldenArticleLastSuccessAt(
   await writeState({
     ...state,
     goldenArticleLastSuccessAt: value,
+  });
+}
+
+export async function getStockbitNewsStreamLastSuccessAt(): Promise<
+  string | undefined
+> {
+  const state = await readState();
+  return state.stockbitNewsStreamLastSuccessAt;
+}
+
+export async function setStockbitNewsStreamLastSuccessAt(
+  value: string,
+): Promise<void> {
+  const state = await readState();
+
+  await writeState({
+    ...state,
+    stockbitNewsStreamLastSuccessAt: value,
   });
 }
 
