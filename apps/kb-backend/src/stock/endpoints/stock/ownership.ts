@@ -18,6 +18,21 @@ const parsePercentage = (value: unknown) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const cleanShareholderRow = (item: Record<string, any>) => {
+  const typeCode =
+    typeof item?.type === "string" ? item.type.trim().toUpperCase() : "";
+
+  return {
+    name: item?.name ?? "",
+    percentage: item?.percentage ?? "",
+    value: item?.value ?? "",
+    type_code: typeCode || null,
+    type_label: typeCode ? getHolderTypeLabel(typeCode) : null,
+    location: item?.location || null,
+    domicile: item?.domicile || null,
+  };
+};
+
 export const getStockOwnership = async (rawSymbol: string) => {
   const symbol = await checkSymbol(rawSymbol);
 
@@ -28,16 +43,8 @@ export const getStockOwnership = async (rawSymbol: string) => {
   ]);
 
   const shareholderRows =
-    companyProfile.shareholder_one_percent?.shareholder?.map((item) => {
-      const typeCode =
-        typeof item?.type === "string" ? item.type.trim().toUpperCase() : "";
-
-      return {
-        ...item,
-        type_code: typeCode || null,
-        type_label: typeCode ? getHolderTypeLabel(typeCode) : null,
-      };
-    }) ?? [];
+    companyProfile.shareholder_one_percent?.shareholder?.map(cleanShareholderRow) ??
+    [];
 
   const disclosedAboveOnePercentPct = shareholderRows.reduce(
     (sum, item) => sum + parsePercentage(item.percentage),

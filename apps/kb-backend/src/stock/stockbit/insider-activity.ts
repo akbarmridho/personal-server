@@ -11,8 +11,8 @@ export interface InsiderTransaction {
   /** Stock symbol, e.g., "BMRI" */
   symbol: string;
 
-  /** Action type, e.g., "buy" or "sell" */
-  action: "buy" | "sell" | "unspecified";
+  /** Action type, normalized from the raw Stockbit enum */
+  action: string;
 
   /** Number of shares changed (positive = buy, negative = sell) */
   change_shares: number;
@@ -42,7 +42,7 @@ export interface InsiderTransaction {
 function transformInsiderData(movements: any[]): InsiderTransaction[] {
   if (!movements) return [];
 
-  return movements.map((item) => {
+  const normalized = movements.map((item) => {
     // Convert numbers safely
     const toNumber = (val) =>
       typeof val === "string"
@@ -51,12 +51,7 @@ function transformInsiderData(movements: any[]): InsiderTransaction[] {
 
     // Parse and normalize fields
     const date = normalizeDate(item.date);
-    const action =
-      item.action_type === "ACTION_TYPE_BUY"
-        ? "buy"
-        : item.action_type === "ACTION_TYPE_SELL"
-          ? "sell"
-          : item.action_type;
+    const action = normalizeAction(item.action_type);
 
     return {
       date,
@@ -72,6 +67,34 @@ function transformInsiderData(movements: any[]): InsiderTransaction[] {
       source: item.data_source?.label?.replace("Sumber: ", "") || "",
     };
   });
+
+  const deduped = new Map<string, InsiderTransaction>();
+
+  for (const item of normalized) {
+    const key = [
+      item.date,
+      item.name,
+      item.symbol,
+      item.action,
+      item.change_shares,
+      item.prev_shares,
+      item.curr_shares,
+    ].join("|");
+
+    const existing = deduped.get(key);
+    if (!existing) {
+      deduped.set(key, item);
+      continue;
+    }
+
+    deduped.set(key, {
+      ...existing,
+      price: existing.price ?? item.price,
+      source: [existing.source, item.source].filter(Boolean).join(", "),
+    });
+  }
+
+  return Array.from(deduped.values());
 }
 
 /**
@@ -96,6 +119,15 @@ function normalizeDate(dateStr) {
   };
   const isoYear = year.length === 2 ? `20${year}` : year;
   return `${isoYear}-${monthMap[mon]}-${day.padStart(2, "0")}`;
+}
+
+function normalizeAction(actionType: unknown): string {
+  if (typeof actionType !== "string" || actionType.trim().length === 0) {
+    return "unspecified";
+  }
+
+  const normalized = actionType.replace(/^ACTION_TYPE_/, "").toLowerCase();
+  return normalized || "unspecified";
 }
 
 export const getInsiderActivity = async (input: {
