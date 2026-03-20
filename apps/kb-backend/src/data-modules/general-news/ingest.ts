@@ -28,7 +28,7 @@ export const generalNewsIngest = inngest.createFunction(
     id: "general-news-ingest",
     concurrency: 2,
     throttle: {
-      limit: 20,
+      limit: 5,
       period: "1m",
     },
   },
