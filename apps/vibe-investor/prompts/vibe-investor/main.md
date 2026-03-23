@@ -210,6 +210,16 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 
 **`fetch-ohlcv`** writes a UTF-8 `.json` file containing a unified JSON object with `daily` (3yr), `intraday_1m` (7d raw 1-minute bars), and optional `corp_actions`. Treat as JSON only. Prices are split-style corporate-action adjusted, not dividend-adjusted. The technical-analysis scripts derive `15m` internally when needed.
 
+`fetch-ohlcv` also serves non-stock price data using special symbols. Only `daily[]` is meaningful for these — no `corp_actions` or intraday. Do not call stock-specific tools (`get-stock-profile`, `get-stock-keystats`, etc.) on non-stock symbols.
+
+Commodity symbols: `ALUMINIUM`, `BRENT`, `COAL-NEWCASTLE` (Newcastle Coal), `COPPER`, `CPO` (Palm Oil), `GAS` (Natural Gas), `NICKEL`, `OIL` (Crude Oil), `RUBBER`, `SILVER`, `TIN`, `XAU` (Gold), `ZINC-COMMODITIES`. Prices are in each commodity's standard trading currency (e.g., USD for oil/gold, MYR for CPO) — the data does not include a currency field, so treat values as relative trend context rather than absolute cross-commodity comparison.
+
+Index symbols: `IHSG`, `NIKKEI`, `SP500`, `DAX`, `FTSE` (FTSE 100), `KLCI` (Kuala Lumpur Composite), `ASX` (S&P/ASX 200), `STI` (Singapore Straits Times), `SHANGHAI` (Shanghai Composite), `DOW30`, `KOSPI`, `HANGSENG`, `CAC40`. Values are index points.
+
+Currency symbols: `USDIDR`, `EURIDR`, `JPYIDR`, `CNYIDR`, `AUDIDR`, `GBPIDR`, `HKDIDR`, `MYRIDR`, `SGDIDR`, `USDJPY`, `AUDUSD`, `EURUSD`, `GBPUSD`, `USDSGD`. Values are exchange rates where the first currency is the base: `USDIDR` = 1 USD in IDR, `EURUSD` = 1 EUR in USD.
+
+Use commodity symbols for sector context (coal price for coal miners, CPO for plantation stocks, nickel for nickel plays). Use index symbols for top-down market context and cross-market regime reads — `IHSG` is the primary IDX benchmark. Use currency symbols for macro context (USDIDR for rupiah strength, CNYIDR for China trade flow).
+
 **`fetch-broker-flow`** writes a UTF-8 `.json` file containing a normalized daily broker-flow series for the requested symbol and trading-day window. Treat as JSON only. The backend resolves trading dates from OHLCV and returns one broker snapshot per trading day.
 
 `flow-analysis` uses `fetch-broker-flow` plus `fetch-ohlcv`, then manually runs `apps/vibe-investor/.opencode-config/skills/flow-analysis/scripts/build_flow_context.py` to create deterministic `flow_context.json` before interpretation.
@@ -232,8 +242,9 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 
 Parameter casing (mixed conventions across tools):
 
-- Symbols: uppercase 4-letter (e.g., `BBCA`, `TLKM`).
-- For each real ticker that materially enters the discussion scope from user input, memory, retrieved documents, or delegated workflow context, call `get-stock-profile({ symbol })` once early in the run to anchor company identity, business model, and segment context before deeper analysis. Reuse that result and only call the profile tool again if the first attempt failed or the symbol enters scope later.
+- Stock symbols: uppercase 4-letter (e.g., `BBCA`, `TLKM`).
+- Non-stock symbols (commodities, indexes, currencies): uppercase, may contain hyphens (e.g., `COAL-NEWCASTLE`, `ZINC-COMMODITIES`, `IHSG`, `SP500`, `USDIDR`). Full lists are documented under `fetch-ohlcv`.
+- For each real stock ticker that materially enters the discussion scope from user input, memory, retrieved documents, or delegated workflow context, call `get-stock-profile({ symbol })` once early in the run to anchor company identity, business model, and segment context before deeper analysis. Reuse that result and only call the profile tool again if the first attempt failed or the symbol enters scope later. Do not call `get-stock-profile` or other stock-specific tools on non-stock symbols.
 
 When to use which stock MCP tool:
 
