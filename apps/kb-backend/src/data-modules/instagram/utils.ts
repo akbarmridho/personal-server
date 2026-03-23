@@ -50,17 +50,19 @@ export async function fetchPosts(
 
   const { items } = await client.dataset(run.defaultDatasetId).listItems();
 
-  return items.map((item: any) => ({
-    id: String(item.id),
-    caption: item.caption ?? "",
-    url: item.url ?? "",
-    timestamp: item.timestamp ?? "",
-    images: item.images ?? [],
-    displayUrl: item.displayUrl ?? "",
-    alt: item.alt ?? "",
-    ownerUsername: item.ownerUsername ?? "",
-    ownerFullName: item.ownerFullName ?? "",
-  }));
+  return items
+    .filter((item: any) => item.type !== "Video")
+    .map((item: any) => ({
+      id: String(item.id),
+      caption: item.caption ?? "",
+      url: item.url ?? "",
+      timestamp: item.timestamp ?? "",
+      images: item.images ?? [],
+      displayUrl: item.displayUrl ?? "",
+      alt: item.alt ?? "",
+      ownerUsername: item.ownerUsername ?? "",
+      ownerFullName: item.ownerFullName ?? "",
+    }));
 }
 
 export async function filterNewPosts(
