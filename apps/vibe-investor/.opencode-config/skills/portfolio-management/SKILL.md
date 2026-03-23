@@ -28,6 +28,7 @@ Tool source of truth:
 - Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, theme clustering, and correlation clustering).
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
 - Apply a regime-sensitive aggression ladder before new longs; if breadth/market structure weakens, reduce aggression, slow adds, and protect cash.
+- Use a two-tier IHSG cash-floor ladder (EMA21/SMA50/SMA200) as a regime overlay: base floors set minimum cash, escalated floors apply when broader red flags confirm trouble.
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level overrides when heat, concentration, liquidity, or regime require action beyond the symbol-level baseline.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
@@ -70,6 +71,7 @@ Portfolio health flags:
 - `PM-W08` Portfolio flat/red while IHSG at new highs
 - `PM-W09` Multiple leaders invalidated in the same review window
 - `PM-W10` Thesis stale (no review within cadence)
+- `PM-W11` Cash ratio below IHSG regime cash floor
 
 Health flag metadata:
 
@@ -85,6 +87,7 @@ Health flag metadata:
 | `PM-W08` | Portfolio flat/red while IHSG at new highs | `HIGH` | agent judgment |
 | `PM-W09` | Multiple leaders invalidated in the same review window | `HIGH` | agent judgment |
 | `PM-W10` | Thesis stale (no review within cadence) | `MEDIUM` | deterministic |
+| `PM-W11` | Cash ratio below IHSG regime cash floor | `HIGH` | deterministic |
 
 ## Risk Budgets And Sizing Doctrine
 
@@ -233,6 +236,20 @@ Resolve one aggression state:
 
 The regime gate controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
 
+IHSG cash overlay:
+
+- Use IHSG moving averages (EMA21, SMA50, SMA200) as a regime-based cash overlay, not as a standalone trading signal.
+- Resolve the current IHSG moving-average state from the active market-context evidence before portfolio conclusions.
+- Base cash floor ladder:
+  - IHSG below EMA21: keep at least 30% cash and reduce new-risk aggression.
+  - IHSG below SMA50: keep at least 50% cash and treat the tape as damaged.
+  - IHSG below SMA200: keep at least 70% cash and operate in capital-preservation mode.
+- Escalated cash floor: when the base floor is active and additional red flags are present (multiple portfolio health warnings, clustering leader breakdowns, negative narrative/news flow, or deteriorating stock-level setups across the book), escalate the floor by +10pp to 40% / 60% / 80% respectively.
+- Apply the highest active floor only. If IHSG is below SMA200 with red flags, the operative minimum cash floor is 80%.
+- Treat this as a floor, not an exact target. Holding more cash is allowed.
+- Exception trades are allowed only when stock-level structure, flow, and invalidation are strong enough to justify them, and they still must fit hard portfolio caps.
+- During `desk-check` and before any new long/add recommendation, compare `portfolio_state.cash_ratio` against the active cash floor (base or escalated), carry any shortfall into the portfolio findings and monitor update, and state whether the escalated floor applies.
+
 ## Mixed-Signal Arbitration
 
 When lenses disagree, apply this hierarchy:
@@ -302,6 +319,7 @@ Rebalancing protocol:
 | Theme or cluster concentration | Mixed | Deterministic grouping when obvious; agent judgment when theme linkage is qualitative |
 | Thesis stale check | Deterministic | Last review date vs cadence |
 | Checkpoint failure | Deterministic | `Progress checkpoint date` passed without required condition being met |
+| IHSG cash floor vs current cash ratio | Deterministic | Apply the highest active IHSG cash floor (base 30/50/70 keyed to EMA21/SMA50/SMA200, or escalated 40/60/80) and compare it with `portfolio_state.cash_ratio` |
 | Regime aggression state | Agent judgment | Interpret market proxy structure, leader breadth, and breakdown clustering |
 | Thesis quality assessment | Agent judgment | Synthesize fundamentals, narrative, flow |
 | Portfolio override decision | Agent judgment | Decide whether heat, liquidity, concentration, or regime requires trimming despite symbol thesis remaining intact |
@@ -312,14 +330,15 @@ Rebalancing protocol:
 ### New Position Entry
 
 1. Check regime gate (this file).
-2. Map the symbol to `holding_mode` from the trading plan (`TACTICAL`, `THESIS`, or `HYBRID`) and apply the corresponding sizing posture.
-3. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, 50:30:10, theme/correlation clustering, and ADTV liquidity).
-4. Load `trading-plan-template.md`, fill all required fields including `Holding mode` and final exit precedence.
-5. Write plan to `memory/state/symbols/{SYMBOL}.md`.
-6. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
-7. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
+2. Check the active IHSG cash floor and confirm current `portfolio_state.cash_ratio` is compatible with any planned new exposure.
+3. Map the symbol to `holding_mode` from the trading plan (`TACTICAL`, `THESIS`, or `HYBRID`) and apply the corresponding sizing posture.
+4. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, 50:30:10, theme/correlation clustering, and ADTV liquidity).
+5. Load `trading-plan-template.md`, fill all required fields including `Holding mode` and final exit precedence.
+6. Write plan to `memory/state/symbols/{SYMBOL}.md`.
+7. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
+8. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 
-Checklist: regime aggression state resolved, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
+Checklist: regime aggression state resolved, IHSG cash floor checked against current cash ratio, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
 
 ### Desk Check Review
 
@@ -329,14 +348,14 @@ Checklist: regime aggression state resolved, `holding_mode` posture applied, siz
 4. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
 5. For each position: check thesis status, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, and checkpoint status from `portfolio_state`, symbol memory, and trade-history context.
 6. Check whether any `Progress checkpoint date` has passed and evaluate the stored checkpoint failure action.
-7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, and recent action context from the tool outputs.
+7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, and recent action context from the tool outputs.
 8. Extend coverage to watchlist symbols required by the active workflow contract.
 9. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, rebalance-band notes, `Last Reviewed`, and other resolved execution-policy fields.
 10. Prepare the updated portfolio-monitor state for the parent workflow: `Last updated`, current `portfolio_heat`, open-book classification, active monitoring rules, current focus, and active portfolio health flags or discipline actions backed by the review evidence.
 11. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
 12. Return portfolio findings, portfolio-monitor update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
@@ -371,4 +390,5 @@ Checklist: drift measured, holding-mode band reviewed, event triggers checked, h
 - Treat portfolio overrides as a separate layer after symbol-level analysis: PM can force trims or reduced aggression, but it should not redefine the raw symbol-level exit engine owned by other lenses.
 - Use rebalance bands to guide trim/add decisions during reviews, not to create optimizer-style target weights unsupported by the current tool surface.
 - Check regime gate before any new long exposure.
-- Flag any portfolio health warnings (`PM-W01` through `PM-W10`) when detected during any workflow.
+- Enforce the active IHSG cash floor before endorsing fresh risk, and flag a shortfall when `portfolio_state.cash_ratio` is below that floor.
+- Flag any portfolio health warnings (`PM-W01` through `PM-W11`) when detected during any workflow.

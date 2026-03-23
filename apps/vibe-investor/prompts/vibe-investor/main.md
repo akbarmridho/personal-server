@@ -59,7 +59,7 @@ Market context memory files:
 Portfolio memory rules:
 
 - Portfolio raw and normalized machine data live outside workspace memory under `AI_CONNECTOR_DATA_ROOT`. Access via custom portfolio tools only.
-- Portfolio checks remain part of the `portfolio-management` skill and rely on portfolio tools plus durable memory state.
+- Portfolio checks remain part of the `portfolio-management` skill and rely on portfolio tools plus durable memory state, including IHSG regime cash-floor checks (EMA21/SMA50/SMA200 base and escalated floors) against live cash ratio.
 - `memory/state/symbols/{SYMBOL}.md` is the durable per-symbol operating plan, including holding mode, technical exit baseline, and resolved execution policy.
 - Portfolio tools are the live truth for actual holdings, fills, remaining size, realized actions, and latest portfolio state. Do not treat symbol memory as the execution ledger.
 - If a one-off portfolio calculation is needed and the portfolio tools do not already provide it, create and run a temporary script under `work/` instead of adding a permanent script surface.
@@ -98,6 +98,7 @@ Scope reminder:
 
 - `fundamental-analysis` covers company review, valuation review, filing-led review, sector review, and mechanism review when the lens remains fundamentally grounded.
 - For any buy, add, hold-escalation, re-entry, postmortem, or portfolio-review recommendation, load `portfolio-management` and apply its default portfolio doctrine before endorsing action.
+- For any `desk-check` or fresh-risk decision, load `portfolio-management` early enough to resolve the active IHSG cash-floor overlay (base or escalated) and compare it with live `portfolio_state.cash_ratio` before endorsing action.
 
 Skill and reference preflight (mandatory):
 
@@ -151,11 +152,12 @@ Trading-day clock (authoritative):
 - Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day ending at `TRADING_DAY`. If the latest successful run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
 - Mandatory top-down memory context before desk-check prep: `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`.
+- Before any buy/add conclusion in `desk-check`, `portfolio-management` must resolve the active IHSG cash floor (EMA21/SMA50/SMA200, base or escalated) from current market context and compare it with live `portfolio_state.cash_ratio`.
 - If portfolio data is missing or malformed, fail fast.
 - Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
 - Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
 - Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
-- Run order: `portfolio-management` for holdings and discipline checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls, then delegated symbol reviews using `technical-analysis`, `flow-analysis`, and `narrative-analysis` as needed, then a delegated top-down market review, then parent synthesis.
+- Run order: `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls and current IHSG context, then delegated symbol reviews using `technical-analysis`, `flow-analysis`, and `narrative-analysis` as needed, then a delegated top-down market review, then parent synthesis.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when:
@@ -209,7 +211,6 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 **`fetch-broker-flow`** writes a UTF-8 `.json` file containing a normalized daily broker-flow series for the requested symbol and trading-day window. Treat as JSON only. The backend resolves trading dates from OHLCV and returns one broker snapshot per trading day.
 
 `flow-analysis` uses `fetch-broker-flow` plus `fetch-ohlcv`, then manually runs `apps/vibe-investor/.opencode-config/skills/flow-analysis/scripts/build_flow_context.py` to create deterministic `flow_context.json` before interpretation.
-
 
 **`deep-doc-extract`** — case-by-case extraction for large PDFs/images (laporan keuangan, public expose, keterbukaan informasi, long filings). Pass exactly two params: `goal` and `sources` (array of URLs/file paths). Uses a cost-efficient multimodal model, so be specific with the goal.
 

@@ -100,13 +100,13 @@
       "type": "remote",
       "url": "https://kb.akbarmr.dev/mcps/stock/mcp",
       "enabled": true,
-      "timeout": 120000
+      "timeout": 300000
     },
     "exa": {
       "type": "remote",
       "url": "https://mcp.exa.ai/mcp?tools=web_search_exa,crawling_exa&exaApiKey={env:EXA_API_KEY}",
       "enabled": true,
-      "timeout": 120000
+      "timeout": 30000
     }
   }
 }
