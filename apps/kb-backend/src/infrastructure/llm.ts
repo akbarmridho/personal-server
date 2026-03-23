@@ -6,11 +6,16 @@ import type { LanguageModel } from "ai";
  * GPT-5.4-nano cost $0.2 per run.
  * GPT-5.4-mini cost $0.35 per run.
  * Grok-4.1-fast cost $0.1 per run.
+ * Sonar Reasoning Pro cost $0.75 per run.
  *
  * In the end, I'd prioritize gpt series good quality and cost efficiency.
  */
 export const searchModel: LanguageModel = openrouter("openai/gpt-5.4-nano", {
-  models: ["x-ai/grok-4.1-fast", "openai/gpt-5.4-mini"],
+  models: [
+    "x-ai/grok-4.1-fast",
+    "perplexity/sonar-reasoning-pro",
+    "openai/gpt-5.4-mini",
+  ],
   reasoning: { effort: "medium" },
   plugins: [{ id: "web" }],
 });
