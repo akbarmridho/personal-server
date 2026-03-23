@@ -5,19 +5,46 @@ export const defaultGroundedNewsQueries = [
   "Cross-asset and cross-market signals with likely spillover into IDX sentiment and positioning",
 ];
 
+export interface PreviousReport {
+  date: string;
+  content: string;
+  source: string;
+}
+
 export interface GroundedNewsPromptParams {
   todayDate: string;
   daysOld: number;
   queries: string[];
+  previousReports?: PreviousReport[];
 }
 
 function formatQueries(queries: string[]) {
   return queries.map((query, index) => `${index + 1}. "${query}"`).join("\n");
 }
 
+export function formatPreviousReports(reports: PreviousReport[]): string {
+  if (reports.length === 0) return "";
+
+  const sections = reports.map(
+    (r) => `### Report from ${r.date} (${r.source})\n\n${r.content}`,
+  );
+
+  return `
+## Previous Reports (Already Published)
+
+The following reports were already published in recent runs. **Do NOT repeat events, facts, or items that already appear below.** Only include genuinely new developments, updates with materially new information (e.g., revised figures, new official statements), or follow-up events that meaningfully advance a previously reported story.
+
+${sections.join("\n\n---\n\n")}
+`;
+}
+
 export function buildGroundedNewsSystemPrompt(
   params: GroundedNewsPromptParams,
 ) {
+  const previousReportsBlock = formatPreviousReports(
+    params.previousReports ?? [],
+  );
+
   return `
 You are a **Web-Grounded Market Intelligence Analyst** focused on Indonesian equities (IDX).
 
@@ -27,10 +54,11 @@ Search window: last ${params.daysOld} days
 ## Focus Queries
 
 ${formatQueries(params.queries)}
+${previousReportsBlock}
 
 ## Your Task
 
-Use web-grounded search results to produce one consolidated **latest news and events report** relevant to IDX context.
+Use web-grounded search results to produce one consolidated **latest news and events report** relevant to IDX context. Exclude any event or fact already covered in the previous reports above unless there is a material update.
 
 ## Evidence Rules
 

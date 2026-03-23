@@ -7,6 +7,7 @@ import { knowledgeService } from "../../infrastructure/knowledge-service.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { GROUNDED_NEWS_RUMOUR_SCRAPE_CRON } from "../schedule.js";
 import { tagMetadata } from "../utils/tagging.js";
+import { fetchPreviousReports } from "./previous-reports.js";
 import { defaultGroundedNewsQueries } from "./web-prompt.js";
 import { searchGroundedNews } from "./web-search.js";
 
@@ -38,10 +39,15 @@ export const groundedNewsRumourScrape = inngest.createFunction(
   },
   { cron: GROUNDED_NEWS_RUMOUR_SCRAPE_CRON },
   async ({ step }) => {
+    const previousReports = await step.run("fetch-previous-reports", async () =>
+      fetchPreviousReports(),
+    );
+
     const scraped = await step.run("scrape", async () => {
       return await searchGroundedNews({
         daysOld: 4,
         queries: defaultGroundedNewsQueries,
+        previousReports,
       });
     });
 

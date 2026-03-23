@@ -8,6 +8,7 @@ import { logger } from "../../utils/logger.js";
 import {
   buildGroundedNewsSystemPrompt,
   buildGroundedNewsUserPrompt,
+  type PreviousReport,
 } from "./web-prompt.js";
 
 dayjs.extend(utc);
@@ -18,6 +19,7 @@ const WEB_GROUNDED_MODEL = "openai/gpt-5.4:online";
 export interface GroundedNewsSearchParams {
   queries: string[];
   daysOld?: number;
+  previousReports?: PreviousReport[];
 }
 
 function extractUrlsFromText(text: string): string[] {
@@ -68,6 +70,7 @@ export const searchGroundedNews = async (params: GroundedNewsSearchParams) => {
           todayDate,
           daysOld,
           queries: params.queries,
+          previousReports: params.previousReports,
         }),
       },
       {

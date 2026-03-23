@@ -453,6 +453,14 @@ def build_ta_context_result(
         breakout=breakout_result,
     )
 
+    # Price change overview (1d, 7d, 30d, 90d)
+    price_changes: dict[str, Any] = {}
+    for label, lookback in [("1d", 1), ("7d", 7), ("30d", 30), ("90d", 90)]:
+        if len(daily) > lookback:
+            ref = float(daily.iloc[-(lookback + 1)]["close"])
+            pct = round((last_close - ref) / ref * 100, 2)
+            price_changes[label] = {"from": ref, "to": last_close, "pct": pct}
+
     analysis_payload: dict[str, Any] = {
         "symbol": symbol,
         "as_of_date": str(daily["datetime"].iloc[-1].date()),
@@ -461,6 +469,7 @@ def build_ta_context_result(
         "position_state": position_state,
         "daily_timeframe": "1d",
         "min_rr_required": float(min_rr_required),
+        "price_changes": price_changes,
     }
     if timeframe_mode == "daily_only":
         analysis_payload["timeframe_mode"] = "daily_only"

@@ -614,6 +614,7 @@ Rules: required sections must always be present except `prior_thesis` (required 
 - `intraday_timeframe`: `15m`
 - `intraday_source_timeframe`: `1m`
 - `min_rr_required`: number, positive decimal
+- `price_changes`: object { `1d`, `7d`, `30d`, `90d` optional: object { `from`: number, `to`: number, `pct`: number } } — recent price performance overview; keys omitted when insufficient daily history
 - `thesis_status` (conditional, `UPDATE`): `intact` | `improving` | `degrading` | `invalidated`
 - `review_reason` (conditional, `UPDATE`): `routine` | `contradiction` | `level_break` | `regime_change` | `trigger_failure`
 

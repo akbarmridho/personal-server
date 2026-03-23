@@ -7,6 +7,7 @@ import { knowledgeService } from "../../infrastructure/knowledge-service.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { TWITTER_RUMOUR_SCRAPE_CRON } from "../schedule.js";
 import { tagMetadata } from "../utils/tagging.js";
+import { fetchPreviousReports } from "./previous-reports.js";
 import { defaultTwitterDigestQueries } from "./twitter-prompt.js";
 import { searchTwitter } from "./twitter-search.js";
 
@@ -38,10 +39,15 @@ export const twitterRumourScrape = inngest.createFunction(
   },
   { cron: TWITTER_RUMOUR_SCRAPE_CRON },
   async ({ step }) => {
+    const previousReports = await step.run("fetch-previous-reports", async () =>
+      fetchPreviousReports(),
+    );
+
     const data = await step.run("scrape", async () => {
       const { result } = await searchTwitter({
         daysOld: 4,
         queries: defaultTwitterDigestQueries,
+        previousReports,
       });
 
       return result;

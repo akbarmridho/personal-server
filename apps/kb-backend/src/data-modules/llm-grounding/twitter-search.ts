@@ -12,10 +12,12 @@ import {
   buildTwitterSearchSystemPrompt,
   buildTwitterSearchUserPrompt,
 } from "./twitter-prompt.js";
+import type { PreviousReport } from "./web-prompt.js";
 
 export interface TwitterSearchParams {
   queries: string[];
   daysOld?: number;
+  previousReports?: PreviousReport[];
 }
 
 export const searchTwitter = async (params: TwitterSearchParams) => {
@@ -46,6 +48,7 @@ export const searchTwitter = async (params: TwitterSearchParams) => {
           todayDate,
           daysOld,
           queries: params.queries,
+          previousReports: params.previousReports,
         }),
       },
       {

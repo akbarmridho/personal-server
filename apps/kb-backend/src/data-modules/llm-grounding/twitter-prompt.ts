@@ -25,10 +25,13 @@ export const defaultTwitterDigestQueries = [
   "Corporate action chatter in IDX: rights issues, dividends, buybacks, mergers, and management changes",
 ];
 
+import { formatPreviousReports, type PreviousReport } from "./web-prompt.js";
+
 export interface TwitterPromptParams {
   todayDate: string;
   daysOld: number;
   queries: string[];
+  previousReports?: PreviousReport[];
 }
 
 function formatQueries(queries: string[]) {
@@ -36,7 +39,12 @@ function formatQueries(queries: string[]) {
 }
 
 export function buildTwitterSearchSystemPrompt(params: TwitterPromptParams) {
-  const seedSweepQuery = goldenHandles.map((handle) => `from:${handle}`).join(" OR ");
+  const seedSweepQuery = goldenHandles
+    .map((handle) => `from:${handle}`)
+    .join(" OR ");
+  const previousReportsBlock = formatPreviousReports(
+    params.previousReports ?? [],
+  );
 
   return `
 You are a **Twitter Search Agent** for Indonesian stock market research.
@@ -47,6 +55,7 @@ Search window: Last ${params.daysOld} days
 ## Focus Queries
 
 ${formatQueries(params.queries)}
+${previousReportsBlock}
 
 ## Seed Accounts (Reference Pointers)
 
@@ -56,7 +65,7 @@ Treat the seed accounts above as **starting pointers, not an exclusive whitelist
 
 ## Your Task
 
-Search X (Twitter) for the focus queries and produce one cohesive market discussion report.
+Search X (Twitter) for the focus queries and produce one cohesive market discussion report. Exclude any event or fact already covered in the previous reports above unless there is a material update.
 
 ## Search Strategy
 
