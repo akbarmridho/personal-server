@@ -31,6 +31,7 @@ export const generalNewsIngest = inngest.createFunction(
       limit: 5,
       period: "1m",
     },
+    retries: 2,
   },
   { event: "data/general-news" },
   async ({ event, step }) => {
