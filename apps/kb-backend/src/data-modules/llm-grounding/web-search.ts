@@ -1,9 +1,9 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import normalizeUrl from "normalize-url";
+import { searchModel } from "../../infrastructure/llm.js";
 import { logger } from "../../utils/logger.js";
 import {
   buildGroundedNewsSystemPrompt,
@@ -13,8 +13,6 @@ import {
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const WEB_GROUNDED_MODEL = "openai/gpt-5.4:online";
 
 export interface GroundedNewsSearchParams {
   queries: string[];
@@ -53,16 +51,7 @@ export const searchGroundedNews = async (params: GroundedNewsSearchParams) => {
   const daysOld = params.daysOld ?? 4;
 
   const { text } = await generateText({
-    model: openrouter(WEB_GROUNDED_MODEL, {
-      reasoning: {
-        effort: "high",
-      },
-      extraBody: {
-        web_search_options: {
-          search_context_size: "high",
-        },
-      },
-    }),
+    model: searchModel,
     messages: [
       {
         role: "system",
@@ -97,7 +86,6 @@ export const searchGroundedNews = async (params: GroundedNewsSearchParams) => {
       queries: params.queries,
       resultLength: report.length,
       sourceCount: urls.length,
-      model: WEB_GROUNDED_MODEL,
     },
     "Grounded news search completed",
   );

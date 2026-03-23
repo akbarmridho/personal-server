@@ -1,4 +1,3 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import { NonRetriableError } from "inngest";
 import { v5 as uuidv5 } from "uuid";
@@ -7,6 +6,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
+import { pdfModel } from "../../infrastructure/llm.js";
 import {
   getStockbitStatusCode,
   stockbitGetJson,
@@ -112,9 +112,7 @@ export const stockbitAnnouncementIngest = inngest.createFunction(
       try {
         // Use Vercel AI SDK with OpenRouter - pass PDF URLs directly
         const response = await generateText({
-          model: openrouter("google/gemini-3.1-flash-lite-preview", {
-            models: ["google/gemini-3-flash-preview"],
-          }),
+          model: pdfModel,
           messages: [
             {
               role: "system",

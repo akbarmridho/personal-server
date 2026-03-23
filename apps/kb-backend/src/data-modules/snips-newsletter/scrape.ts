@@ -1,9 +1,9 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import TurndownService from "turndown";
 import { inngest } from "../../infrastructure/inngest.js";
+import { visionModel } from "../../infrastructure/llm.js";
 
 const turndownService = new TurndownService();
 
@@ -13,9 +13,7 @@ async function extractImageContent(
 ): Promise<string> {
   for (let i = 0; i < retries; i++) {
     const { text } = await generateText({
-      model: openrouter("google/gemini-3.1-flash-lite-preview", {
-        models: ["openai/gpt-5.4-mini"],
-      }),
+      model: visionModel,
       messages: [
         {
           role: "user",

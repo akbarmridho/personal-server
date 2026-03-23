@@ -67,6 +67,7 @@ Use web-grounded search results to produce one consolidated **latest news and ev
 3. If sources conflict, list each claim separately with source attribution.
 4. Do not invent facts, numbers, dates, or links.
 5. Keep wording factual and concise.
+6. Do not mainly rely on social media news like X/Twitter.
 
 ## Writing Rules
 

@@ -1,4 +1,3 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
@@ -6,6 +5,7 @@ import pRetry from "p-retry";
 import z from "zod";
 import { KV } from "../../infrastructure/db/kv.js";
 import { inngest } from "../../infrastructure/inngest.js";
+import { flashModelYoutube } from "../../infrastructure/llm.js";
 import type { YoutubeChannel } from "./cron.js";
 
 export interface YoutubeVideoEntry {
@@ -71,9 +71,7 @@ const decideIngestion = async (
 ): Promise<IngestionDecision> => {
   const result = await pRetry(async () => {
     const { object } = await generateObject({
-      model: openrouter("google/gemini-3-flash-preview", {
-        models: ["google/gemini-3.1-flash-lite-preview"],
-      }),
+      model: flashModelYoutube,
       prompt: `
 You are an Investment Content Gatekeeper for a "Vibe Investing" Knowledge Base (Indonesian Stock Market).
 Your task is to analyze the video title and description to determine if it should be ingested.

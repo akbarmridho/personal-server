@@ -1,6 +1,6 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { pdfModel } from "../../infrastructure/llm.js";
 
 export const PdfReconstructionSchema = z.object({
   title: z
@@ -56,9 +56,7 @@ export async function reconstructPdfWithLLM({
   filename?: string;
 }): Promise<PdfReconstruction> {
   const response = await generateObject({
-    model: openrouter("google/gemini-3-flash-preview", {
-      models: ["openai/gpt-5.4-mini"],
-    }),
+    model: pdfModel,
     schema: PdfReconstructionSchema,
     messages: [
       {

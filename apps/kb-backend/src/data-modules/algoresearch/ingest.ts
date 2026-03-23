@@ -1,4 +1,3 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import * as cheerio from "cheerio";
 import dayjs from "dayjs";
@@ -13,6 +12,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
+import { visionModel } from "../../infrastructure/llm.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
@@ -239,9 +239,7 @@ export const algoresearchIngest = inngest.createFunction(
         let modelOutput = "";
         try {
           const result = await generateText({
-            model: openrouter("google/gemini-3.1-flash-lite-preview", {
-              models: ["qwen/qwen3-vl-8b-instruct"],
-            }),
+            model: visionModel,
             messages: [
               {
                 role: "system",

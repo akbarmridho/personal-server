@@ -1,4 +1,3 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
@@ -6,6 +5,7 @@ import utc from "dayjs/plugin/utc.js";
 import { normalizeSector } from "../../../data-modules/profiles/sector.js";
 import { KV } from "../../../infrastructure/db/kv.js";
 import type { JsonObject } from "../../../infrastructure/db/types.js";
+import { searchModel } from "../../../infrastructure/llm.js";
 import { logger } from "../../../utils/logger.js";
 import { checkSymbol } from "../../aggregator/companies.js";
 import { getCompanyReport } from "../../aggregator/company-report.js";
@@ -15,8 +15,6 @@ import { getStockProfile as getStockbitProfile } from "../../stockbit/profile.js
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const PRIMARY_MODEL = "openai/gpt-5.4-mini";
-const FALLBACK_MODEL = "x-ai/grok-4.1-fast";
 const CACHE_PREFIX = "stock.profile.enriched";
 const CACHE_TTL_MONTHS = 6;
 
@@ -37,6 +35,7 @@ Rules:
    - do NOT include exact ownership percentages.
 8. Keep the report concise, factual, and practical. Avoid unnecessary detail.
 9. Treat Stockbit profile as baseline input to enrich and refine, not to copy blindly.
+10. Do not mainly rely on social media news like X/Twitter.
 
 Output format (Markdown only, exact sections):
 
@@ -160,21 +159,7 @@ Stockbit Profile Data:
 ${JSON.stringify(stockbitContext, null, 2)}`;
 
   const { text } = await generateText({
-    model: openrouter(PRIMARY_MODEL, {
-      models: [FALLBACK_MODEL],
-      reasoning: {
-        effort: "medium",
-      },
-      plugins: [
-        {
-          id: "web",
-          max_results: 5,
-        },
-      ],
-      web_search_options: {
-        max_results: 5,
-      },
-    }),
+    model: searchModel,
     messages: [
       {
         role: "system",

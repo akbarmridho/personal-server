@@ -1,4 +1,3 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import dayjs from "dayjs";
 import { NonRetriableError } from "inngest";
@@ -12,6 +11,7 @@ import {
   type InvestmentDocument,
   knowledgeService,
 } from "../../infrastructure/knowledge-service.js";
+import { pdfModel } from "../../infrastructure/llm.js";
 import { extractSymbolFromTexts } from "../profiles/companies.js";
 import { tagMetadata } from "../utils/tagging.js";
 
@@ -67,9 +67,7 @@ const extractNews = async (url: string) => {
   const page3Buffer = await extractPage3FromPdf(url);
 
   const response = await generateObject({
-    model: openrouter("google/gemini-3.1-flash-lite-preview", {
-      models: ["google/gemini-3-flash-preview"],
-    }),
+    model: pdfModel,
     schema: NewsSchema,
     temperature: 0,
     messages: [

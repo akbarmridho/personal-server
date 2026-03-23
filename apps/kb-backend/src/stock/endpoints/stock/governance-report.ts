@@ -1,16 +1,14 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateText } from "ai";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import { KV } from "../../../infrastructure/db/kv.js";
 import type { JsonObject } from "../../../infrastructure/db/types.js";
+import { searchModel } from "../../../infrastructure/llm.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const PRIMARY_MODEL = "openai/gpt-5.4-mini";
-const FALLBACK_MODEL = "x-ai/grok-4.1-fast";
 const CACHE_PREFIX = "stock.governance.report";
 const CACHE_TTL_MONTHS = 2;
 
@@ -42,6 +40,7 @@ Rules:
 7. Mention exact percentages only when they are already present in the provided baseline and materially helpful. Do not expand percentages beyond the provided structured data.
 8. Distinguish structural ownership facts from reported governance issues or controversy.
 9. If no material governance controversy or governance-related news is found in reviewed evidence, say so plainly instead of speculating.
+10. Do not mainly rely on social media news like X/Twitter.
 
 Output format (Markdown only, exact sections):
 
@@ -95,21 +94,7 @@ Structured Governance Baseline:
 ${JSON.stringify(context, null, 2)}`;
 
   const { text } = await generateText({
-    model: openrouter(PRIMARY_MODEL, {
-      models: [FALLBACK_MODEL],
-      reasoning: {
-        effort: "medium",
-      },
-      plugins: [
-        {
-          id: "web",
-          max_results: 5,
-        },
-      ],
-      web_search_options: {
-        max_results: 5,
-      },
-    }),
+    model: searchModel,
     messages: [
       {
         role: "system",

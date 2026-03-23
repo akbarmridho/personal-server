@@ -10,7 +10,7 @@ import { type FilePart, generateText, type ImagePart } from "ai";
 import { lookup } from "mime-types";
 
 const DEFAULT_MODEL = "google/gemini-3.1-flash-lite-preview";
-const FALLBACK_MODEL = "google/gemini-3-flash-preview";
+const FALLBACK_MODEL = "openai/gpt-5.4-nano";
 const PDF_COMPRESSION_THRESHOLD_BYTES = 10 * 1024 * 1024;
 
 const execFileAsync = promisify(execFile);

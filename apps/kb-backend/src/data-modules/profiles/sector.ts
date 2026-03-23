@@ -1,6 +1,6 @@
-import { openrouter } from "@openrouter/ai-sdk-provider";
 import { generateObject } from "ai";
 import z from "zod";
+import { classificationModel } from "../../infrastructure/llm.js";
 import { logger } from "../../utils/logger.js";
 
 export const normalizeSector = (value: string) => {
@@ -971,12 +971,7 @@ export async function classifySector(
 
   try {
     const result = await generateObject({
-      model: openrouter("openai/gpt-oss-20b", {
-        reasoning: {
-          effort: "low",
-        },
-        models: ["google/gemini-3.1-flash-lite-preview"],
-      }),
+      model: classificationModel,
       schema: ClassificationSchema,
       messages: [
         { role: "system", content: systemPrompt },

@@ -154,10 +154,12 @@ Trading-day clock (authoritative):
 - Mandatory top-down memory context before desk-check prep: `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`.
 - Before any buy/add conclusion in `desk-check`, `portfolio-management` must resolve the active IHSG cash floor (EMA21/SMA50/SMA200, base or escalated) from current market context and compare it with live `portfolio_state.cash_ratio`.
 - If portfolio data is missing or malformed, fail fast.
-- Default execution model is multiagent: delegate independent symbol reviews and top-down market review to subagents, then synthesize in the parent agent.
+- Default execution model is multiagent: delegate symbol reviews to subagents in batches, then synthesize in the parent agent.
 - Parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
 - Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
-- Run order: `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls and current IHSG context, then delegated symbol reviews using `technical-analysis`, `flow-analysis`, and `narrative-analysis` as needed, then a delegated top-down market review, then parent synthesis.
+- Symbol review delegation: after the portfolio-management pass, group the coverage universe into batches of 3–5 symbols (by theme, sector, or thesis affinity when possible) and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols and writes retained artifacts to memory before returning. The parent agent must not run symbol-level TA/flow/narrative inline — always delegate.
+- Top-down market review is a separate subagent delegation, run in parallel with symbol batches when possible.
+- Run order: `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks first using `portfolio_state` summary plus targeted `portfolio_trade_history`/`portfolio_symbol_trade_journey` calls and current IHSG context, then delegated symbol-batch subagents and top-down market subagent in parallel, then parent synthesis.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when:

@@ -1,6 +1,5 @@
 export const goldenHandles = [
   "ApestorNyangkut",
-  // "JudiSaham",
   "rakyatkapitalis",
   "Fountaine30",
   "stockmapping",
@@ -16,6 +15,11 @@ export const goldenHandles = [
   "kr39__",
   "RashkaLLC",
   "buildportosaham",
+  "Kutekians",
+  "igodbe_",
+  "bigdigjohnny",
+  "yonathandinata",
+  "ParkJati",
 ];
 
 export const defaultTwitterDigestQueries = [
@@ -38,8 +42,18 @@ function formatQueries(queries: string[]) {
   return queries.map((query, index) => `${index + 1}. "${query}"`).join("\n");
 }
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export function buildTwitterSearchSystemPrompt(params: TwitterPromptParams) {
-  const seedSweepQuery = goldenHandles
+  const shuffledHandles = shuffle(goldenHandles);
+  const seedSweepQuery = shuffledHandles
     .map((handle) => `from:${handle}`)
     .join(" OR ");
   const previousReportsBlock = formatPreviousReports(
@@ -59,7 +73,7 @@ ${previousReportsBlock}
 
 ## Seed Accounts (Reference Pointers)
 
-${goldenHandles.map((handle) => `- @${handle}`).join("\n")}
+${shuffledHandles.map((handle) => `- @${handle}`).join("\n")}
 
 Treat the seed accounts above as **starting pointers, not an exclusive whitelist**.
 
