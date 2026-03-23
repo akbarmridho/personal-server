@@ -52,6 +52,7 @@ export const env = createEnv({
 
     // MCP
     EXA_API_KEY: z.string(),
+    APIFY_API_KEY: z.string(),
   },
   /*
    * Specify what values should be validated by your schemas above.

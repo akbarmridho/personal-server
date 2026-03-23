@@ -58,3 +58,6 @@ export const GROUNDED_NEWS_RUMOUR_SCRAPE_CRON =
 
 // Tuesday – Thursday – Saturday @ 20:05 WIB
 export const TWITTER_RUMOUR_SCRAPE_CRON = "TZ=Asia/Jakarta 5 20 * * 2,4,6";
+
+// Tuesday – Thursday – Saturday @ 20:10 WIB
+export const INSTAGRAM_CRAWL_CRON = "TZ=Asia/Jakarta 10 20 * * 2,4,6";

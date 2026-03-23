@@ -7,6 +7,7 @@ import type { StockbitNewsStreamCrawlEvent } from "../data-modules/general-news/
 import type { GeneralNewsEvent } from "../data-modules/general-news/ingest.js";
 import type { RawGoldenArticlePayload } from "../data-modules/golden-article/crawl.js";
 import type { GoldenArticleEvent } from "../data-modules/golden-article/ingest.js";
+import type { InstagramPost } from "../data-modules/instagram/utils.js";
 import type { PhintracoTelegramIngestEvent } from "../data-modules/phintraco/ingest-telegram.js";
 import type { InputData as SnipInputData } from "../data-modules/snips-newsletter/cleanup.js";
 import type { FilingEventData } from "../data-modules/stockbit-filing/ingest.js";
@@ -161,6 +162,18 @@ type Events = {
   "notify/discord-kb-ingestion": {
     data: {
       payload: InvestmentDocument[];
+    };
+  };
+  "data/instagram-crawl": {
+    data: {
+      url: string;
+      backfill?: boolean;
+    };
+  };
+  "data/instagram-ingest": {
+    data: {
+      post: InstagramPost;
+      notify: boolean;
     };
   };
 };
