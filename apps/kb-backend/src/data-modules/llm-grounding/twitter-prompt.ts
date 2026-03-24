@@ -20,6 +20,7 @@ export const goldenHandles = [
   "bigdigjohnny",
   "yonathandinata",
   "ParkJati",
+  "TeknikalSaham",
 ];
 
 export const defaultTwitterDigestQueries = [
