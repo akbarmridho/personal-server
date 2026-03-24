@@ -1,0 +1,21 @@
+services:
+  trilium:
+    container_name: trilium
+    image: triliumnext/trilium:v0.102.1
+    restart: unless-stopped
+    environment:
+      TRILIUM_GENERAL_INSTANCENAME: "Notes"
+      TRILIUM_DATA_DIR: /home/node/trilium-data
+      TZ: Asia/Jakarta
+      TRILIUM_GENERAL_NOAUTHENTICATION: true
+      TRILIUM_NETWORK_PORT: 8080
+    ports:
+      - '8019:8080'
+    volumes:
+      - ~/trilium-data:/home/node/trilium-data
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true
