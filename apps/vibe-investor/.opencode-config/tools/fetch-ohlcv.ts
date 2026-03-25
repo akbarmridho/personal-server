@@ -4,7 +4,11 @@ import { tool } from "@opencode-ai/plugin";
 
 type ChartPayload = {
   daily?: Array<{ date?: string; is_partial?: boolean }>;
-  intraday_1m?: Array<{ date?: string; datetime?: string; is_partial?: boolean }>;
+  intraday_1m?: Array<{
+    date?: string;
+    datetime?: string;
+    is_partial?: boolean;
+  }>;
   corp_actions?: unknown[];
 };
 
@@ -40,9 +44,9 @@ export default tool({
 
     // Validate symbol format
     const normalizedSymbol = symbol.trim().toUpperCase();
-    if (!normalizedSymbol || !/^[A-Z]{4}$/.test(normalizedSymbol)) {
+    if (!normalizedSymbol || !/^[A-Z][A-Z0-9-]+$/.test(normalizedSymbol)) {
       throw new Error(
-        `Invalid symbol format: "${symbol}". Must be 4 uppercase letters (e.g., BBCA, TLKM).`,
+        `Invalid symbol format: "${symbol}". Must be uppercase letters, digits, or hyphens (e.g., BBCA, USDIDR, COAL-NEWCASTLE).`,
       );
     }
     if (!output_path.trim().toLowerCase().endsWith(".json")) {
