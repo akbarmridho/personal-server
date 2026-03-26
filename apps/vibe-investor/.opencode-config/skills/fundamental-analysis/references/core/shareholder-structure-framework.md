@@ -7,6 +7,7 @@ Use this framework when ownership structure materially affects governance qualit
 Answer:
 
 - who controls the company
+- who ultimately benefits from that control when the disclosure trail allows it
 - how much stock is realistically available to others
 - how concentrated the holder base is
 - whether future supply or overhang risk is material
@@ -35,6 +36,7 @@ If a holder cannot be categorized honestly, keep the classification uncertain an
 Produce these when the evidence supports them:
 
 - controller identity
+- beneficial-owner trail or stated break in the trail when the last disclosed layer is nominee / custody / affiliate only
 - controller / affiliate stake
 - largest disclosed holders
 - reported free float
@@ -53,6 +55,25 @@ Optional secondary outputs:
 - narrative hooks such as new strategic holder, float tightening, overhang increase, or control change
 
 These are secondary outputs only. They do not replace narrative-analysis.
+
+## Control-Chain Tracing
+
+When ownership review is a primary objective, trace control in this order:
+
+1. listed issuer holder table and controller disclosure
+2. board, commissioner, and management affiliations
+3. annual-report organization structure, subsidiary map, and shareholder chart
+4. formal disclosures on control changes, placements, rights issues, or material transactions
+5. `get-shareholder-entity` for named holders that materially affect controller, affiliate, or cross-holding interpretation
+
+For each material layer, state:
+
+- disclosed entity or person
+- relationship to the issuer
+- stake if known
+- why the layer matters: control, alignment, funding access, overhang, or related-party risk
+
+Do not invent hidden political or business links from vibes alone. State only evidence-backed relationships or explicitly mark them uncertain.
 
 ## Reported Free Float vs Effective Float
 
@@ -109,6 +130,7 @@ For each material event, state:
 Assess:
 
 - control clarity
+- beneficial-owner transparency
 - affiliate complexity
 - RPT / tunneling risk
 - controller-vs-minority alignment
@@ -129,6 +151,7 @@ Flag ambiguity when:
 - custody or nominee blocks hide beneficial owners
 - holder list coverage is incomplete
 - controller relationship is suspected but not proven
+- annual-report organization or shareholder charts stop before the real decision maker
 - effective float depends on assumptions rather than disclosed facts
 - entity-level holdings are incomplete or based only on one public snapshot
 

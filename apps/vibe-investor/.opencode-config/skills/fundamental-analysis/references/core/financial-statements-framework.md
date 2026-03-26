@@ -1,5 +1,15 @@
 # Financial Statements Framework
 
+## Fast First-Pass Screen
+
+Before deeper ratio or note work, run this quick screen:
+
+- asset base size and composition, especially cash, receivables, inventory, and other assets
+- profit size relative to assets through ROA or ROCE as relevant
+- operating cash flow positive or negative, and whether it broadly validates profit
+
+This first pass is a filter, not the full conclusion. A name that fails here needs tighter skepticism in later sections.
+
 ## Revenue Analysis
 
 - Start with consolidated revenue trend, then check segment and geographic mix when material.
@@ -19,6 +29,7 @@
 - Current ratio warning when current assets < current liabilities.
 - Quick ratio warning when <0.5.
 - Inventory growth should not outpace profit growth.
+- Receivables or inventory growth that outruns revenue needs explanation from business model and notes.
 - Other assets should generally stay below 5% of total assets.
 
 ### Debt composition
@@ -49,6 +60,7 @@
 ## Cash Flow Checks
 
 - OCF should validate accounting profit over time.
+- Start with the simplest question first: is operating cash flow consistently positive when the company claims it is healthy and growing.
 - OCF/Net Profit divergence is a trap signal.
 - Debt repayment capacity should be realistic from OCF.
 - Cash flow to debt guide: OCF/Total Debt >0.1.

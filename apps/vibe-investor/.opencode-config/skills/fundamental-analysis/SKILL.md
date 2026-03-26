@@ -12,6 +12,7 @@ Use this skill to perform fundamental analysis for:
 - valuation check
 - filing-led review
 - ownership and shareholder-structure review
+- annual-report and public-expose reading with explicit extraction priorities
 - sector or mechanism checks when the lens remains fundamental
 
 This skill answers whether the business is worth owning, whether the financials are trustworthy, whether the price is reasonable, and what would break the view. It does not decide timing on its own.
@@ -53,6 +54,9 @@ Core source contract:
 - Use conservative assumptions over management promotion.
 - Treat value-trap and manipulation diagnostics as hard filters, not side commentary.
 - For IDX ownership work, interpret controller, ultimate owner, reported free float, effective float, institutional and foreign holders, and custody-vs-active-holder context. Do not import promoter/FII/DII labels as-is.
+- For annual-report-led work, read in this order unless the question is narrower: business model and segment framing, organization/control structure, shareholder and subsidiary sections, financial statements plus notes, then auditor and capital-allocation sections.
+- When ownership or control is thesis-critical, trace the control chain from disclosed holders to the ultimate beneficial owner when evidence allows, then explain why that owner matters economically or for minority alignment.
+- Use public expose, concall, and management presentation materials to update management claims and current plans, but reconcile them back to filings before treating them as high-confidence evidence.
 - Distinguish reported free float from effective float. If the effective float cannot be estimated defensibly, output a range or a categorical float-tightness state with uncertainty notes rather than fake precision.
 - Use a practical holder taxonomy: controller / affiliate, management / insider, strategic, domestic institution, foreign institution, passive / index, retail / others, nominee / custody / unclear, and treasury.
 - Treat concentration, overhang, and minority alignment as first-class ownership outputs, not side commentary.
@@ -181,8 +185,8 @@ If the user request is ambiguous, default to `FULL_REVIEW`.
 | `FULL_REVIEW` | Use `get-stock-profile`, `get-stock-keystats`, `get-stock-financials`, `get-stock-governance`, and official filing retrieval when the claim depends on audited or formal disclosure evidence |
 | `QUALITY_CHECK` | Produce explicit `business_quality`, `financial_quality`, `trap_risk`, and what would trigger a deeper valuation review |
 | `VALUATION_ONLY` | Anchor the business model first and stop if the company economics are too unstable for a credible method set |
-| `FILING_REVIEW` | State which filing or formal document was reviewed, why it is the correct primary disclosure, what changed, and what it changes |
-| `OWNERSHIP_REVIEW` | Produce explicit controller / affiliate map, holder taxonomy view, reported vs effective float view, concentration, overhang, minority alignment, and uncertainty notes |
+| `FILING_REVIEW` | State which filing or formal document was reviewed, why it is the correct primary disclosure, what changed, what it changes, and the reading order used for the document |
+| `OWNERSHIP_REVIEW` | Produce explicit controller / affiliate map, beneficial-owner trail when supportable, holder taxonomy view, reported vs effective float view, concentration, overhang, minority alignment, and uncertainty notes |
 | `SECTOR_REVIEW` | Define sector boundary, demand drivers, value-chain logic, competition intensity, and strong-player vs weak-player traits using contextual evidence as first-class input |
 | `MECHANISM_REVIEW` | Define the mechanism, why it matters fundamentally, what evidence best captures it, and whether it strengthens or weakens quality, valuation, solvency, minority alignment, or funding risk |
 
@@ -286,6 +290,7 @@ The result must allow combinations such as strong business but expensive, or che
 ### `OWNERSHIP_REVIEW`
 
 - prioritize controller clarity, holder taxonomy, float quality, concentration, overhang, and minority alignment over full valuation work
+- trace the disclosed control chain up to the ultimate beneficial owner when evidence supports it, and state where the chain becomes uncertain when it does not
 - use `get-shareholder-entity` only when one or more named holders materially affect controller, affiliate, or cross-holding interpretation
 - use holding-composition history from `get-stock-governance` when ownership-base shifts matter structurally
 - use float ranges or float-tightness states when effective float cannot be estimated precisely
@@ -303,11 +308,14 @@ The result must allow combinations such as strong business but expensive, or che
 - valuation is conditional and evidence-led
 - only update valuation if the filing changes earnings power, asset value, capital structure, payout capacity, or risk assumptions
 - state exactly which assumption changed and which valuation method is affected
+- for annual reports, make the extraction order explicit: business and segment framing, control and organization structure, shareholder and subsidiary map, financial statements and notes, then auditor and capital-allocation signals
+- for public expose or management decks, extract management claims, capex/funding plans, and current explanations for operational changes, then reconcile each material claim against stronger filings
 
 ## Execution Defaults
 
 - For `FULL_REVIEW`, fetch the required core sources in parallel, then fetch official evidence.
 - Load sector references only when the thesis materially depends on sector mechanics.
 - Prefer annual plus quarterly statement views when the tool provides both.
+- For annual-report-heavy work, first run a fast screen on cash, inventory or receivables pressure, ROA/ROE or ROCE, and operating cash flow before going deeper into notes and governance.
 - Reuse fetched data; do not re-query the same symbol without reason.
 - If evidence is mixed, lower confidence and keep the final posture conservative.

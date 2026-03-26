@@ -47,6 +47,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 
 #### OWNERSHIP_REVIEW
 - Controller and affiliate map
+- Beneficial-owner trail when supportable
 - Holder taxonomy and largest holders
 - Reported free float and effective float view
 - Holding-composition history and ownership-base shift when material
@@ -79,6 +80,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 Include when ownership is material to the call:
 
 - controller / affiliate summary
+- beneficial-owner trail or explicit break in the disclosure chain
 - reported free float
 - effective float estimate or range
 - float tightness state

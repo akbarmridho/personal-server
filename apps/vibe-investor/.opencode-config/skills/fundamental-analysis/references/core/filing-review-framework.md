@@ -24,6 +24,26 @@ Every filing-led review must state:
 
 Do not use a lighter source when a stronger official source exists for the same claim.
 
+## Annual Report Reading Order
+
+When the task is "read the annual report" or a similar beginner-to-intermediate filing pass, use this order:
+
+1. business overview and segment framing
+2. organization structure, subsidiaries, and controller or shareholder sections
+3. audited primary statements
+4. notes to accounts for revenue quality, receivables, inventory, debt, RPT, contingencies, and accounting-policy detail
+5. auditor opinion, key audit matters, and capital-allocation record
+
+First-pass extraction should answer:
+
+- what the company really does
+- who controls it and whether the control chain is clear
+- whether assets are dominated by cash, receivables, inventory, or lower-quality items
+- whether profit converts into operating cash flow
+- whether leverage, dilution, or related-party behavior weakens minority alignment
+
+If the filing is long, do the first-pass screen before deeper note-by-note review.
+
 ## Review Matrix
 
 | Document type | Mandatory checks | Escalate if |
@@ -36,8 +56,20 @@ Do not use a lighter source when a stronger official source exists for the same 
 | Material transaction | transaction object, strategic fit, pricing sanity, leverage effect, dilution effect, cash-flow effect, related-party angle | highly levered, opaque, circular, or cosmetic deal |
 | Public expose / management presentation | guidance credibility, capex claims, funding claims, explanation for margin, demand, and working-capital changes, consistency with filings | story improves faster than filings do |
 
+## Public Expose And Management-Deck Use
+
+Use public expose and similar materials for:
+
+- management explanations for recent changes
+- current capex, refinancing, or expansion plans
+- segment or project updates not yet visible in the statements
+- consistency checking between management messaging and formal filings
+
+Do not let public expose materials overrule audited statements on accounting quality, control, or formal transaction terms.
+
 ## Interpretation Rules
 
 - Notes-to-accounts can be thesis-critical even when the headline statements look clean.
 - Auditor comfort is not the same as strong economics or good governance.
 - Management commentary is supporting evidence, not a substitute for statements when audited numbers or formal terms are the issue.
+- When annual-report shareholder and organization sections conflict in emphasis, prefer the clearer disclosed control chain and note the inconsistency explicitly.

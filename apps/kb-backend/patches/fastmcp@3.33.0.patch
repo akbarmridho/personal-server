@@ -1,0 +1,184 @@
+diff --git a/dist/chunk-EVM4KQGR.cjs b/dist/chunk-EVM4KQGR.cjs
+index fb1e19f5e7c86a88ec4b362a2a7198c737f7af95..00e147a00e678e0b0dd8e71f166d5209e7c00343 100644
+--- a/dist/chunk-EVM4KQGR.cjs
++++ b/dist/chunk-EVM4KQGR.cjs
+@@ -354,6 +354,7 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+    * Used to track per-session state across multiple requests.
+    */
+   #sessionId;
++  #stateless = false;
+   #utils;
+   constructor({
+     auth,
+@@ -366,6 +367,7 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+     resourcesTemplates,
+     roots,
+     sessionId,
++    stateless = false,
+     tools,
+     transportType,
+     utils,
+@@ -377,6 +379,7 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+     this.#pingConfig = ping;
+     this.#rootsConfig = roots;
+     this.#sessionId = sessionId;
++    this.#stateless = stateless;
+     this.#needsEventLoopFlush = transportType === "httpStream";
+     if (tools.length) {
+       this.#capabilities.tools = {};
+@@ -444,21 +447,23 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+           this.#sessionId = transportWithSessionId.sessionId;
+         }
+       }
+-      let attempt = 0;
+-      const maxAttempts = 10;
+-      const retryDelay = 100;
+-      while (attempt++ < maxAttempts) {
+-        const capabilities = this.#server.getClientCapabilities();
+-        if (capabilities) {
+-          this.#clientCapabilities = capabilities;
+-          break;
++      if (!this.#stateless) {
++        let attempt = 0;
++        const maxAttempts = 10;
++        const retryDelay = 100;
++        while (attempt++ < maxAttempts) {
++          const capabilities = this.#server.getClientCapabilities();
++          if (capabilities) {
++            this.#clientCapabilities = capabilities;
++            break;
++          }
++          await _promises3.setTimeout.call(void 0, retryDelay);
++        }
++        if (!this.#clientCapabilities) {
++          this.#logger.warn(
++            `[FastMCP warning] could not infer client capabilities after ${maxAttempts} attempts. Connection may be unstable.`
++          );
+         }
+-        await _promises3.setTimeout.call(void 0, retryDelay);
+-      }
+-      if (!this.#clientCapabilities) {
+-        this.#logger.warn(
+-          `[FastMCP warning] could not infer client capabilities after ${maxAttempts} attempts. Connection may be unstable.`
+-        );
+       }
+       if (_optionalChain([this, 'access', _6 => _6.#rootsConfig, 'optionalAccess', _7 => _7.enabled]) !== false && _optionalChain([this, 'access', _8 => _8.#clientCapabilities, 'optionalAccess', _9 => _9.roots, 'optionalAccess', _10 => _10.listChanged]) && typeof this.#server.listRoots === "function") {
+         try {
+@@ -1553,7 +1558,7 @@ var FastMCP = class extends FastMCPEventEmitter {
+               }
+             }
+             const sessionId = Array.isArray(request.headers["mcp-session-id"]) ? request.headers["mcp-session-id"][0] : request.headers["mcp-session-id"];
+-            return this.#createSession(auth, sessionId);
++            return this.#createSession(auth, sessionId, true);
+           },
+           enableJsonResponse: httpConfig.enableJsonResponse,
+           eventStore: httpConfig.eventStore,
+@@ -1662,7 +1667,7 @@ var FastMCP = class extends FastMCPEventEmitter {
+    * Creates a new FastMCPSession instance with the current configuration.
+    * Used both for regular sessions and stateless requests.
+    */
+-  #createSession(auth, sessionId) {
++  #createSession(auth, sessionId, stateless = false) {
+     if (auth && typeof auth === "object" && "authenticated" in auth && !auth.authenticated) {
+       const errorMessage = "error" in auth && typeof auth.error === "string" ? auth.error : "Authentication failed";
+       throw new Error(errorMessage);
+@@ -1681,6 +1686,7 @@ var FastMCP = class extends FastMCPEventEmitter {
+       resourcesTemplates: this.#resourcesTemplates,
+       roots: this.#options.roots,
+       sessionId,
++      stateless,
+       tools: allowedTools,
+       transportType: "httpStream",
+       utils: this.#options.utils,
+diff --git a/dist/chunk-J3GVXEY5.js b/dist/chunk-J3GVXEY5.js
+index 45375eecf3994c3bf780d91aaf4ca467b222ad3d..db98acb462b3fa4d61c30bacabc47a858be32cad 100644
+--- a/dist/chunk-J3GVXEY5.js
++++ b/dist/chunk-J3GVXEY5.js
+@@ -354,6 +354,7 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+    * Used to track per-session state across multiple requests.
+    */
+   #sessionId;
++  #stateless = false;
+   #utils;
+   constructor({
+     auth,
+@@ -366,6 +367,7 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+     resourcesTemplates,
+     roots,
+     sessionId,
++    stateless = false,
+     tools,
+     transportType,
+     utils,
+@@ -377,6 +379,7 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+     this.#pingConfig = ping;
+     this.#rootsConfig = roots;
+     this.#sessionId = sessionId;
++    this.#stateless = stateless;
+     this.#needsEventLoopFlush = transportType === "httpStream";
+     if (tools.length) {
+       this.#capabilities.tools = {};
+@@ -444,21 +447,23 @@ var FastMCPSession = class extends FastMCPSessionEventEmitter {
+           this.#sessionId = transportWithSessionId.sessionId;
+         }
+       }
+-      let attempt = 0;
+-      const maxAttempts = 10;
+-      const retryDelay = 100;
+-      while (attempt++ < maxAttempts) {
+-        const capabilities = this.#server.getClientCapabilities();
+-        if (capabilities) {
+-          this.#clientCapabilities = capabilities;
+-          break;
++      if (!this.#stateless) {
++        let attempt = 0;
++        const maxAttempts = 10;
++        const retryDelay = 100;
++        while (attempt++ < maxAttempts) {
++          const capabilities = this.#server.getClientCapabilities();
++          if (capabilities) {
++            this.#clientCapabilities = capabilities;
++            break;
++          }
++          await delay(retryDelay);
++        }
++        if (!this.#clientCapabilities) {
++          this.#logger.warn(
++            `[FastMCP warning] could not infer client capabilities after ${maxAttempts} attempts. Connection may be unstable.`
++          );
+         }
+-        await delay(retryDelay);
+-      }
+-      if (!this.#clientCapabilities) {
+-        this.#logger.warn(
+-          `[FastMCP warning] could not infer client capabilities after ${maxAttempts} attempts. Connection may be unstable.`
+-        );
+       }
+       if (this.#rootsConfig?.enabled !== false && this.#clientCapabilities?.roots?.listChanged && typeof this.#server.listRoots === "function") {
+         try {
+@@ -1553,7 +1558,7 @@ var FastMCP = class extends FastMCPEventEmitter {
+               }
+             }
+             const sessionId = Array.isArray(request.headers["mcp-session-id"]) ? request.headers["mcp-session-id"][0] : request.headers["mcp-session-id"];
+-            return this.#createSession(auth, sessionId);
++            return this.#createSession(auth, sessionId, true);
+           },
+           enableJsonResponse: httpConfig.enableJsonResponse,
+           eventStore: httpConfig.eventStore,
+@@ -1662,7 +1667,7 @@ var FastMCP = class extends FastMCPEventEmitter {
+    * Creates a new FastMCPSession instance with the current configuration.
+    * Used both for regular sessions and stateless requests.
+    */
+-  #createSession(auth, sessionId) {
++  #createSession(auth, sessionId, stateless = false) {
+     if (auth && typeof auth === "object" && "authenticated" in auth && !auth.authenticated) {
+       const errorMessage = "error" in auth && typeof auth.error === "string" ? auth.error : "Authentication failed";
+       throw new Error(errorMessage);
+@@ -1681,6 +1686,7 @@ var FastMCP = class extends FastMCPEventEmitter {
+       resourcesTemplates: this.#resourcesTemplates,
+       roots: this.#options.roots,
+       sessionId,
++      stateless,
+       tools: allowedTools,
+       transportType: "httpStream",
+       utils: this.#options.utils,

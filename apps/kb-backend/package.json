@@ -50,7 +50,7 @@
     "exa-js": "^2.6.1",
     "express": "^5.1.0",
     "fast-xml-parser": "^5.3.3",
-    "fastmcp": "^3.17.0",
+    "fastmcp": "3.33.0",
     "got": "^14.6.6",
     "graceful-server-elysia": "^1.0.25",
     "gray-matter": "^4.0.3",
