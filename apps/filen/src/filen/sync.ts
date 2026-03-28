@@ -2,32 +2,33 @@ import { SyncWorker } from "@filen/sync";
 import type { SyncPair } from "@filen/sync/dist/types.js";
 import { env } from "../utils/env.js";
 import { logger } from "../utils/logger.js";
-import { filen } from "./client.js";
+import { getFilenClient } from "./client.js";
 
 export const setupSync = async () => {
   if (!env.FILEN_SYNC_CONFIG) {
-    logger.warn("No FILEN_SYNC_CONFIG found");
-    return null;
+    throw new Error("FILEN_SYNC_CONFIG is required when sync is enabled");
   }
 
   const config = JSON.parse(env.FILEN_SYNC_CONFIG) as SyncPair[];
 
   if (config.length === 0) {
-    logger.warn("No FILEN_SYNC_CONFIG found");
-    return null;
+    throw new Error("FILEN_SYNC_CONFIG must include at least one sync pair");
   }
+
+  const filen = await getFilenClient();
 
   const sync = new SyncWorker({
     syncPairs: config,
     sdk: filen,
     dbPath: "./sync_db",
-    runOnce: false, // Run the sync once
+    runOnce: false,
   });
 
-  // Start the sync
   await sync.initialize();
 
-  logger.info(`Sync worker set up with config: ${env.FILEN_SYNC_CONFIG}`);
+  logger.info(
+    `Sync worker set up with ${config.length} pair(s), runOnce=false`,
+  );
 
   return sync;
 };

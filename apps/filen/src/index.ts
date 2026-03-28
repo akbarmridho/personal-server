@@ -1,33 +1,29 @@
 import "@dotenvx/dotenvx/config";
-import type { NetworkDrive } from "@filen/network-drive";
 import type { SyncWorker } from "@filen/sync";
 import type { WebDAVServer } from "@filen/webdav";
-import { setupNetworkDrive } from "./filen/network-drive.js";
-import { setupSync } from "./filen/sync.js";
-import { setupWebdav } from "./filen/webdav.js";
-import { env } from "./utils/env.js";
+import { env, parseFilenFeatures } from "./utils/env.js";
+import { logger } from "./utils/logger.js";
 
 (async function main() {
   let webdavServer: WebDAVServer | null = null;
-  let networkDrive: NetworkDrive | null = null;
   // biome-ignore lint/correctness/noUnusedVariables: for future update
   let syncWorker: SyncWorker | null = null;
+  const features = parseFilenFeatures(env.FILEN_FEATURE_CHECK);
 
-  if (env.FILEN_FEATURE_CHECK.includes("network")) {
-    networkDrive = await setupNetworkDrive();
-  }
+  logger.info(`Starting Filen with features=${[...features].join(",")}`);
 
-  if (env.FILEN_FEATURE_CHECK.includes("webdav")) {
+  if (features.has("webdav")) {
+    const { setupWebdav } = await import("./filen/webdav.js");
     webdavServer = await setupWebdav();
   }
 
-  if (env.FILEN_FEATURE_CHECK.includes("sync")) {
+  if (features.has("sync")) {
+    const { setupSync } = await import("./filen/sync.js");
     syncWorker = await setupSync();
   }
 
   const onExit = async () => {
     webdavServer?.stop();
-    networkDrive?.stop();
   };
 
   process.on("SIGINT", onExit);

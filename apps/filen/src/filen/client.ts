@@ -5,21 +5,30 @@ import { env } from "../utils/env.js";
 import { logger } from "../utils/logger.js";
 import { generateTOTP } from "./auth.js";
 
-export const filen = new FilenSDK({
-  metadataCache: true,
-  connectToSocket: true,
-  tmpPath: path.join(tmpdir(), "filen-sdk"),
-  // email: env.FILEN_EMAIL,
-  // password: env.FILEN_PASSWORD,
-  // twoFactorCode: await generateTOTP(),
-});
+let filenPromise: Promise<FilenSDK> | null = null;
 
-try {
-  await filen.login({
-    email: env.FILEN_EMAIL,
-    password: env.FILEN_PASSWORD,
-    twoFactorCode: await generateTOTP(),
-  });
-} catch (e) {
-  logger.error({ e: e }, "login failed");
-}
+export const getFilenClient = async () => {
+  if (!filenPromise) {
+    filenPromise = (async () => {
+      const filen = new FilenSDK({
+        metadataCache: true,
+        connectToSocket: true,
+        tmpPath: path.join(tmpdir(), "filen-sdk"),
+      });
+
+      await filen.login({
+        email: env.FILEN_EMAIL,
+        password: env.FILEN_PASSWORD,
+        twoFactorCode: await generateTOTP(),
+      });
+
+      return filen;
+    })().catch((error) => {
+      filenPromise = null;
+      logger.error({ error }, "login failed");
+      throw error;
+    });
+  }
+
+  return filenPromise;
+};

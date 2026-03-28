@@ -1,7 +1,7 @@
 {
     "name": "@personal-server/filen",
     "version": "1.0.0",
-    "description": "Filen network and webdav custom integration.",
+    "description": "Filen WebDAV and sync custom integration.",
     "main": "index.js",
     "scripts": {
         "build": "tsc",
@@ -20,11 +20,10 @@
         "node": ">=24"
     },
     "dependencies": {
-        "@filen/network-drive": "^0.9.44",
-        "@filen/sdk": "^0.3.11",
+        "@dotenvx/dotenvx": "^1.49.0",
+        "@filen/sdk": "^0.3.12",
         "@filen/sync": "^0.2.1",
         "@filen/webdav": "^0.3.1",
-        "@dotenvx/dotenvx": "^1.49.0",
         "@t3-oss/env-core": "^0.13.8",
         "dayjs": "^1.11.18",
         "pino": "^9.7.0",
@@ -33,9 +32,9 @@
         "zod": "^4.1.1"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.2.2",
+        "@biomejs/biome": "2.3.8",
+        "@swc-node/register": "^1.10.10",
         "@types/node": "^22.16.4",
-        "typescript": "^5.9.2",
-        "@swc-node/register": "^1.10.10"
+        "typescript": "^5.9.2"
     }
 }

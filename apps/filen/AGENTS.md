@@ -1,6 +1,6 @@
-# Filen - Network Drive & WebDAV Integration
+# Filen - WebDAV & Sync Integration
 
-Custom integration for Filen cloud storage providing network drive mounting and WebDAV server capabilities.
+Custom integration for Filen cloud storage providing WebDAV and sync capabilities.
 
 ## Technology Stack
 
@@ -8,22 +8,11 @@ Custom integration for Filen cloud storage providing network drive mounting and 
 - **Language**: TypeScript (ESM modules)
 - **Process Manager**: PM2
 - **Libraries**:
-  - `@filen/network-drive` - Network drive mounting
   - `@filen/sdk` - Filen SDK
   - `@filen/sync` - File synchronization
   - `@filen/webdav` - WebDAV server
   - `@dotenvx/dotenvx` - Environment variable management
   - `totp-generator` - TOTP 2FA support
-
-## Requirements
-
-### System Dependencies
-
-- FUSE3 (libfuse2) must be installed on the system
-
-  ```bash
-  sudo apt install libfuse2
-  ```
 
 ## Scripts
 
