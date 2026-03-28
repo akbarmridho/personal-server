@@ -133,6 +133,32 @@ node apps/knowledge-service/scripts/backfill-bm25.mjs \
   --pause-ms 250
 ```
 
+### New Collection Migration
+
+If the running Qdrant server cannot add the `bm25` sparse vector to an existing collection, migrate into a fresh collection instead:
+
+```bash
+python3 apps/knowledge-service/scripts/migrate_collection_v2.py
+```
+
+This will:
+
+1. read from `QDRANT_COLLECTION_NAME`
+2. create `<source>_v2` with `dense + bm25`
+3. copy payloads and existing dense vectors
+4. build BM25 text from payload during the copy
+5. finalize dense indexing and payload indexes after the full migration
+
+Example with an explicit target:
+
+```bash
+python3 apps/knowledge-service/scripts/migrate_collection_v2.py \
+  --source-collection investment_documents \
+  --target-collection investment_documents_v2
+```
+
+After the migration finishes, point the app at the new collection by setting `QDRANT_COLLECTION_NAME=investment_documents_v2` and redeploying the service.
+
 ### API Response
 
 The ingest endpoint now returns additional information about deduplication:
