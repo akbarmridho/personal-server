@@ -324,26 +324,3 @@ async def enable_indexing():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/admin/backfill-bm25")
-async def backfill_bm25(
-    limit: int = Query(default=500, ge=1, le=5000),
-    batch_size: int = Query(default=100, ge=1, le=500),
-):
-    """
-    Backfill BM25 sparse vectors for existing documents without re-ingesting them.
-    """
-    _, qdrant_svc = get_services()
-
-    try:
-        result = await qdrant_svc.backfill_bm25_vectors(
-            limit=limit,
-            batch_size=batch_size,
-        )
-        return {
-            "status": "success",
-            **result,
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

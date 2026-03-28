@@ -5,7 +5,6 @@ import uuid
 from qdrant_client import AsyncQdrantClient, models
 
 from app.core.config import settings
-from app.services.document_processing import prepare_bm25_text
 from app.services.embeddings import EmbeddingService
 
 
@@ -28,16 +27,10 @@ class QdrantService:
             timeout=180,
             prefer_grpc=True,
         )
-        self.schema_client = AsyncQdrantClient(
-            host=settings.QDRANT_HOST,
-            timeout=180,
-            prefer_grpc=False,
-        )
         self.collection_name = settings.QDRANT_COLLECTION_NAME
-        self._has_bm25_sparse_vector = False
 
     async def _ensure_collection(self):
-        """Create the collection or evolve an existing one for BM25 migration."""
+        """Create the collection and require the steady-state dense + BM25 schema."""
         if not await self.client.collection_exists(self.collection_name):
             print(
                 f"Creating collection {self.collection_name} with dense + BM25 search..."
@@ -59,21 +52,16 @@ class QdrantService:
             )
             print("Collection created.")
 
-        await self._refresh_collection_state()
-        if not self._has_bm25_sparse_vector:
-            await self._ensure_bm25_sparse_vector()
-            await self._refresh_collection_state()
+        await self._validate_collection_schema()
 
-        if not self._has_bm25_sparse_vector:
-            print(
-                "Collection is using legacy schema without the bm25 sparse vector. "
-                "Starting in dense-only compatibility mode."
-            )
-
-    async def _refresh_collection_state(self):
+    async def _validate_collection_schema(self):
         info = await self.client.get_collection(self.collection_name)
         sparse_vectors = info.config.params.sparse_vectors or {}
-        self._has_bm25_sparse_vector = BM25_VECTOR_NAME in sparse_vectors
+        if BM25_VECTOR_NAME not in sparse_vectors:
+            raise ValueError(
+                f"Collection {self.collection_name!r} does not have the required "
+                f"{BM25_VECTOR_NAME!r} sparse vector. Expected the migrated v2 collection."
+            )
 
     def _build_bm25_sparse_vector_params(self) -> models.SparseVectorParams:
         return models.SparseVectorParams(
@@ -83,25 +71,6 @@ class QdrantService:
                 datatype=models.Datatype.FLOAT16,
             ),
         )
-
-    async def _ensure_bm25_sparse_vector(self):
-        print(
-            f"Adding sparse vector {BM25_VECTOR_NAME} to collection "
-            f"{self.collection_name} for server-side BM25 migration..."
-        )
-        try:
-            await self.schema_client.update_collection(
-                collection_name=self.collection_name,
-                sparse_vectors_config={
-                    BM25_VECTOR_NAME: self._build_bm25_sparse_vector_params(),
-                },
-            )
-            print(f"Sparse vector {BM25_VECTOR_NAME} added successfully.")
-        except Exception as error:
-            print(
-                "Unable to add the bm25 sparse vector to the existing collection. "
-                f"Continuing without BM25 migration support. Error: {error}"
-            )
 
     async def enable_indexing(self):
         """Enable indexing for the collection and ensure payload indexes exist."""
@@ -171,20 +140,17 @@ class QdrantService:
         """
         points = []
         for doc in documents:
-            vector_payload: Dict[str, Any] = {
-                DENSE_VECTOR_NAME: doc["dense_vector"],
-            }
-            if self._has_bm25_sparse_vector:
-                vector_payload[BM25_VECTOR_NAME] = models.Document(
-                    text=doc["bm25_text"],
-                    model=SERVER_SIDE_BM25_MODEL,
-                )
-
             points.append(
                 models.PointStruct(
                     id=doc.get("id", str(uuid.uuid4())),
                     payload=doc.get("payload", {}),
-                    vector=vector_payload,
+                    vector={
+                        DENSE_VECTOR_NAME: doc["dense_vector"],
+                        BM25_VECTOR_NAME: models.Document(
+                            text=doc["bm25_text"],
+                            model=SERVER_SIDE_BM25_MODEL,
+                        ),
+                    },
                 )
             )
 
@@ -306,33 +272,27 @@ class QdrantService:
             max(limit, limit * PREFETCH_CANDIDATE_MULTIPLIER),
         )
 
-        prefetches = []
+        prefetches = [
+            models.Prefetch(
+                query=models.Document(
+                    text=query_text,
+                    model=SERVER_SIDE_BM25_MODEL,
+                ),
+                using=BM25_VECTOR_NAME,
+                limit=prefetch_limit,
+                filter=query_filter,
+            )
+        ]
+
         if use_dense and query_vector is not None:
-            prefetches.append(
+            prefetches.insert(
+                0,
                 models.Prefetch(
                     query=query_vector,
                     using=DENSE_VECTOR_NAME,
                     limit=prefetch_limit,
                     filter=query_filter,
-                )
-            )
-
-        if self._has_bm25_sparse_vector:
-            prefetches.append(
-                models.Prefetch(
-                    query=models.Document(
-                        text=query_text,
-                        model=SERVER_SIDE_BM25_MODEL,
-                    ),
-                    using=BM25_VECTOR_NAME,
-                    limit=prefetch_limit,
-                    filter=query_filter,
-                )
-            )
-
-        if not prefetches:
-            raise ValueError(
-                "No retrieval path is available. Enable dense search or backfill BM25."
+                ),
             )
 
         formula_query = self._build_formula_query(query_text)
@@ -572,78 +532,6 @@ class QdrantService:
                 pass
 
         raise ValueError(f"Unable to parse date: {document_date}")
-
-    async def backfill_bm25_vectors(
-        self,
-        limit: int = 500,
-        batch_size: int = 100,
-    ) -> Dict[str, Any]:
-        """
-        Backfill server-side BM25 vectors from existing payloads in chunks.
-        """
-        if not self._has_bm25_sparse_vector:
-            raise ValueError(
-                "Current collection schema does not contain the bm25 sparse vector. "
-                "Qdrant cannot add a new vector name to an existing collection in place."
-            )
-
-        if batch_size <= 0:
-            raise ValueError("batch_size must be greater than 0")
-
-        migration_filter = models.Filter(
-            must_not=[models.HasVectorCondition(has_vector=BM25_VECTOR_NAME)]
-        )
-
-        updated_count = 0
-        next_offset = None
-
-        while updated_count < limit:
-            page_limit = min(batch_size, limit - updated_count)
-            records, next_offset = await self.client.scroll(
-                collection_name=self.collection_name,
-                scroll_filter=migration_filter,
-                limit=page_limit,
-                offset=next_offset,
-                with_payload=True,
-                with_vectors=False,
-                timeout=60,
-            )
-
-            if not records:
-                break
-
-            points = []
-            for record in records:
-                payload = dict(record.payload or {})
-                points.append(
-                    models.PointVectors(
-                        id=record.id,
-                        vector={
-                            BM25_VECTOR_NAME: models.Document(
-                                text=prepare_bm25_text(payload),
-                                model=SERVER_SIDE_BM25_MODEL,
-                            )
-                        },
-                    )
-                )
-
-            if points:
-                await self.client.update_vectors(
-                    collection_name=self.collection_name,
-                    points=points,
-                    wait=True,
-                )
-                updated_count += len(points)
-
-            if len(records) < page_limit:
-                break
-
-        remaining_count = await self.count_documents(migration_filter)
-        return {
-            "updated_count": updated_count,
-            "remaining_count": remaining_count,
-            "has_more": remaining_count > 0,
-        }
 
     async def get_unique_source_names(self) -> List[str]:
         result = await self.client.facet(

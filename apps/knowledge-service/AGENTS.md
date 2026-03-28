@@ -49,6 +49,7 @@ Environment variables:
 
 - `DEDUPLICATION_SIMILARITY_THRESHOLD` - Minimum similarity score (default: 0.87)
 - `DEDUPLICATION_DATE_RANGE_DAYS` - Days to check for duplicates (default: 7)
+- `QDRANT_COLLECTION_NAME` - Defaults to `investment_documents_v2`
 
 ## API Endpoints
 
@@ -80,12 +81,8 @@ Environment variables:
    - Permanent deletion (cannot be undone)
 
 6. **POST `/admin/enable-indexing`** - Enable HNSW indexing for collection
-   - Used after backfilling to improve query performance
+   - Used after collection rebuilds to improve query performance
    - Creates payload indexes for metadata and text boosting fields
-
-7. **POST `/admin/backfill-bm25`** - Backfill BM25 sparse vectors for existing documents
-   - Migrates old documents without re-ingesting them
-   - Safe to run repeatedly until `has_more=false`
 
 ## Document Schema
 

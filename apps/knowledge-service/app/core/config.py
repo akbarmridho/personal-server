@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     
     # Qdrant
     QDRANT_HOST: str = "localhost"
-    QDRANT_COLLECTION_NAME: str = "investment_documents"
+    QDRANT_COLLECTION_NAME: str = "investment_documents_v2"
     
     # API Keys
     OPENROUTER_API_KEY: str | None = None

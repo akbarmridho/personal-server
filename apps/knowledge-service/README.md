@@ -105,37 +105,13 @@ Deduplication settings can be configured via environment variables:
 
 * `DEDUPLICATION_SIMILARITY_THRESHOLD`: Minimum similarity score to consider as duplicate (default: 0.87)
 * `DEDUPLICATION_DATE_RANGE_DAYS`: Number of days before/after to check for duplicates (default: 7)
+* `QDRANT_COLLECTION_NAME`: Defaults to `investment_documents_v2`
 
-## Migration
+## Operations
 
-Existing collections can be migrated in place:
+The current steady-state collection is `investment_documents_v2`.
 
-1. On startup, the service ensures the collection has a dedicated BM25 sparse vector slot.
-2. New ingests write dense vectors plus BM25 text immediately.
-3. Existing points can be backfilled through `POST /admin/backfill-bm25` without re-ingestion.
-4. `POST /admin/enable-indexing` creates the payload indexes used for metadata filters and title/content boosting.
-
-### Backfill Script
-
-Run the helper script to repeatedly call the backfill endpoint until migration is complete:
-
-```bash
-node apps/knowledge-service/scripts/backfill-bm25.mjs
-```
-
-Optional flags:
-
-```bash
-node apps/knowledge-service/scripts/backfill-bm25.mjs \
-  --base-url https://rag.akbarmr.dev \
-  --limit 500 \
-  --batch-size 100 \
-  --pause-ms 250
-```
-
-### New Collection Migration
-
-If the running Qdrant server cannot add the `bm25` sparse vector to an existing collection, migrate into a fresh collection instead:
+If the collection ever needs to be rebuilt from a legacy dense-only collection, use the collection-to-collection migration helper:
 
 ```bash
 python3 apps/knowledge-service/scripts/migrate_collection_v2.py
@@ -143,7 +119,7 @@ python3 apps/knowledge-service/scripts/migrate_collection_v2.py
 
 This will:
 
-1. read from `QDRANT_COLLECTION_NAME`
+1. read from the legacy source collection, defaulting to `investment_documents`
 2. create `<source>_v2` with `dense + bm25`
 3. copy payloads and existing dense vectors
 4. build BM25 text from payload during the copy
@@ -156,8 +132,6 @@ python3 apps/knowledge-service/scripts/migrate_collection_v2.py \
   --source-collection investment_documents \
   --target-collection investment_documents_v2
 ```
-
-After the migration finishes, point the app at the new collection by setting `QDRANT_COLLECTION_NAME=investment_documents_v2` and redeploying the service.
 
 ### API Response
 
