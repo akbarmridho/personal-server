@@ -19,8 +19,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'    # Cap of 2 CPUs
-          memory: 4G   # Cap of 4GB RAM
+          cpus: '1'    # Cap of 1 CPUs
+          memory: 2G   # Cap of 2GB RAM
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -34,7 +34,7 @@ services:
 
   qdrant:
     container_name: qdrant
-    image: qdrant/qdrant:v1.16
+    image: qdrant/qdrant:v1.17.1
     ports:
       - "6333:6333"
       - "6334:6334"
