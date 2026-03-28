@@ -28,6 +28,11 @@ class QdrantService:
             timeout=180,
             prefer_grpc=True,
         )
+        self.schema_client = AsyncQdrantClient(
+            host=settings.QDRANT_HOST,
+            timeout=180,
+            prefer_grpc=False,
+        )
         self.collection_name = settings.QDRANT_COLLECTION_NAME
         self._has_bm25_sparse_vector = False
 
@@ -53,36 +58,22 @@ class QdrantService:
                 },
             )
             print("Collection created.")
-        else:
-            await self._ensure_bm25_sparse_vector()
 
         await self._refresh_collection_state()
+        if not self._has_bm25_sparse_vector:
+            await self._ensure_bm25_sparse_vector()
+            await self._refresh_collection_state()
+
+        if not self._has_bm25_sparse_vector:
+            print(
+                "Collection is using legacy schema without the bm25 sparse vector. "
+                "Starting in dense-only compatibility mode."
+            )
 
     async def _refresh_collection_state(self):
         info = await self.client.get_collection(self.collection_name)
         sparse_vectors = info.config.params.sparse_vectors or {}
         self._has_bm25_sparse_vector = BM25_VECTOR_NAME in sparse_vectors
-
-    async def _ensure_bm25_sparse_vector(self):
-        info = await self.client.get_collection(self.collection_name)
-        sparse_vectors = info.config.params.sparse_vectors or {}
-
-        if BM25_VECTOR_NAME in sparse_vectors:
-            return
-
-        print(
-            f"Adding sparse vector {BM25_VECTOR_NAME} to collection "
-            f"{self.collection_name} for server-side BM25 migration..."
-        )
-        updated_sparse_vectors = dict(sparse_vectors)
-        updated_sparse_vectors[BM25_VECTOR_NAME] = (
-            self._build_bm25_sparse_vector_params()
-        )
-
-        await self.client.update_collection(
-            collection_name=self.collection_name,
-            sparse_vectors_config=updated_sparse_vectors,
-        )
 
     def _build_bm25_sparse_vector_params(self) -> models.SparseVectorParams:
         return models.SparseVectorParams(
@@ -92,6 +83,25 @@ class QdrantService:
                 datatype=models.Datatype.FLOAT16,
             ),
         )
+
+    async def _ensure_bm25_sparse_vector(self):
+        print(
+            f"Adding sparse vector {BM25_VECTOR_NAME} to collection "
+            f"{self.collection_name} for server-side BM25 migration..."
+        )
+        try:
+            await self.schema_client.update_collection(
+                collection_name=self.collection_name,
+                sparse_vectors_config={
+                    BM25_VECTOR_NAME: self._build_bm25_sparse_vector_params(),
+                },
+            )
+            print(f"Sparse vector {BM25_VECTOR_NAME} added successfully.")
+        except Exception as error:
+            print(
+                "Unable to add the bm25 sparse vector to the existing collection. "
+                f"Continuing without BM25 migration support. Error: {error}"
+            )
 
     async def enable_indexing(self):
         """Enable indexing for the collection and ensure payload indexes exist."""
@@ -161,17 +171,20 @@ class QdrantService:
         """
         points = []
         for doc in documents:
+            vector_payload: Dict[str, Any] = {
+                DENSE_VECTOR_NAME: doc["dense_vector"],
+            }
+            if self._has_bm25_sparse_vector:
+                vector_payload[BM25_VECTOR_NAME] = models.Document(
+                    text=doc["bm25_text"],
+                    model=SERVER_SIDE_BM25_MODEL,
+                )
+
             points.append(
                 models.PointStruct(
                     id=doc.get("id", str(uuid.uuid4())),
                     payload=doc.get("payload", {}),
-                    vector={
-                        DENSE_VECTOR_NAME: doc["dense_vector"],
-                        BM25_VECTOR_NAME: models.Document(
-                            text=doc["bm25_text"],
-                            model=SERVER_SIDE_BM25_MODEL,
-                        ),
-                    },
+                    vector=vector_payload,
                 )
             )
 
@@ -568,6 +581,12 @@ class QdrantService:
         """
         Backfill server-side BM25 vectors from existing payloads in chunks.
         """
+        if not self._has_bm25_sparse_vector:
+            raise ValueError(
+                "Current collection schema does not contain the bm25 sparse vector. "
+                "Qdrant cannot add a new vector name to an existing collection in place."
+            )
+
         if batch_size <= 0:
             raise ValueError("batch_size must be greater than 0")
 

@@ -4,6 +4,8 @@
 
 This document defines the unified Qdrant collection schema for the Investment Knowledge Service. It handles multiple types of investment-related documents with flexible querying capabilities and metadata filtering.
 
+Retrieval uses dense vectors plus server-side BM25. Final ranking also applies lightweight boosts for title matches, content matches, and fresher `document_date` values.
+
 ## Document Types
 
 1. **News** - General market news, sector updates, and ticker-specific news
@@ -72,7 +74,7 @@ This section defines **how** to populate the metadata fields to ensure consisten
 * **Rule**: Only populate if the document **explicitly tracks** or is **primarily about** the index.
   * *Yes*: "Weekly Market Recap: IHSG drops 1%", "LQ45 Rebalancing Announced".
   * *No*: "BBCA contributes to IHSG gain" (This is news about BBCA, not the index itself).
-* **Note**: Do not rely on this field for general search relevance. Use keyword search (sparse vectors) for queries like "news about IHSG".
+* **Note**: Do not rely on this field for general search relevance. Use keyword search (BM25) for queries like "news about IHSG".
 
 ## Deduplication
 
@@ -103,6 +105,33 @@ Deduplication settings can be configured via environment variables:
 
 * `DEDUPLICATION_SIMILARITY_THRESHOLD`: Minimum similarity score to consider as duplicate (default: 0.87)
 * `DEDUPLICATION_DATE_RANGE_DAYS`: Number of days before/after to check for duplicates (default: 7)
+
+## Migration
+
+Existing collections can be migrated in place:
+
+1. On startup, the service ensures the collection has a dedicated BM25 sparse vector slot.
+2. New ingests write dense vectors plus BM25 text immediately.
+3. Existing points can be backfilled through `POST /admin/backfill-bm25` without re-ingestion.
+4. `POST /admin/enable-indexing` creates the payload indexes used for metadata filters and title/content boosting.
+
+### Backfill Script
+
+Run the helper script to repeatedly call the backfill endpoint until migration is complete:
+
+```bash
+node apps/knowledge-service/scripts/backfill-bm25.mjs
+```
+
+Optional flags:
+
+```bash
+node apps/knowledge-service/scripts/backfill-bm25.mjs \
+  --base-url https://rag.akbarmr.dev \
+  --limit 500 \
+  --batch-size 100 \
+  --pause-ms 250
+```
 
 ### API Response
 
