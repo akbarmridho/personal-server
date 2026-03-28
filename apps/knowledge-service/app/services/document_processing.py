@@ -1,17 +1,11 @@
-"""
-Document processing utilities for investment documents.
-
-Includes:
-- prepare_embedding_text(): Generate enriched content for better retrieval
-- Validation helpers for document schema
-"""
+"""Document processing utilities for investment documents."""
 
 from typing import Dict, Any
 
 
-def prepare_embedding_text(doc: Dict[str, Any]) -> str:
+def prepare_retrieval_text(doc: Dict[str, Any]) -> str:
     """
-    Prepare enriched content for embedding.
+    Prepare retrieval text shared by dense embeddings and BM25 indexing.
     Works for all document types (news, filing, analysis, rumour).
     
     Combines structured metadata with content to improve:
@@ -35,7 +29,7 @@ def prepare_embedding_text(doc: Dict[str, Any]) -> str:
         ...     "subsectors": ["financials"],
         ...     "document_date": "2025-10-21"
         ... }
-        >>> prepare_embedding_text(doc)
+        >>> prepare_retrieval_text(doc)
         'BBCA Q3 Earnings\\n\\nBank Central Asia reported...\\n\\nCompanies: BBCA\\nSubsectors: financials\\nDate: 2025-10-21\\nType: News'
     """
     parts = []
@@ -76,6 +70,15 @@ def prepare_embedding_text(doc: Dict[str, Any]) -> str:
         parts.append(f"Source: {platform} discussion")
     
     return '\n'.join(parts)
+
+
+def prepare_embedding_text(doc: Dict[str, Any]) -> str:
+    """Backward-compatible alias for existing callers."""
+    return prepare_retrieval_text(doc)
+
+
+def prepare_bm25_text(doc: Dict[str, Any]) -> str:
+    return prepare_retrieval_text(doc)
 
 
 def validate_document_schema(doc: Dict[str, Any]) -> bool:

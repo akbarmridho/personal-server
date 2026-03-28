@@ -78,8 +78,8 @@ class InvestmentSearchRequest(BaseModel):
     limit: int = Field(default=10, ge=1, le=100, description="Number of results")
     use_dense: bool = Field(
         default=True,
-        description="Use dense vector search (requires OpenRouter API, costs money). "
-                    "When false, uses only sparse + late interaction (ColBERT) reranking."
+        description="Use dense vector search with hybrid fusion. "
+                    "When false, use BM25 only and skip the embedding API call."
     )
 
     # Metadata filters (all optional)

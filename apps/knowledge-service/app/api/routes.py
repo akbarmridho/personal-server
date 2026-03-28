@@ -7,7 +7,7 @@ from app.models.investment import (
 )
 from app.services.embeddings import EmbeddingService
 from app.services.qdrant import QdrantService
-from app.services.document_processing import prepare_embedding_text, validate_document_schema
+from app.services.document_processing import prepare_retrieval_text, validate_document_schema
 from app.core.config import settings
 from typing import List, Dict, Any, Optional
 
@@ -37,7 +37,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
     - content, document_date, source (required)
     - Optional metadata: title, symbols, subsectors, subindustries, etc.
     
-    Uses enriched embeddings combining metadata with content for better retrieval.
+    Uses dense embeddings plus server-side BM25 text for retrieval.
     Includes deduplication check to avoid storing similar documents within a date range.
     """
     emb_svc, qdrant_svc = get_services()
@@ -53,10 +53,10 @@ async def ingest_documents(request: InvestmentIngestRequest):
             raise HTTPException(status_code=400, detail=str(e))
     
     # Prepare enriched texts for embedding
-    enriched_texts = [prepare_embedding_text(doc) for doc in documents]
+    retrieval_texts = [prepare_retrieval_text(doc) for doc in documents]
     
     # Generate embeddings in batch (with batch size of 50 for optimal performance)
-    batch_embeddings = await emb_svc.embed_documents(enriched_texts, batch_size=50)
+    batch_embeddings = await emb_svc.embed_documents(retrieval_texts, batch_size=50)
     
     # Check for duplicates
     non_duplicate_docs = []
@@ -64,18 +64,18 @@ async def ingest_documents(request: InvestmentIngestRequest):
     skipped_count = 0
     skipped_docs = []
     
-    for doc, vectors in zip(documents, batch_embeddings):
+    for doc, dense_vector in zip(documents, batch_embeddings):
         # Check if document with same ID already exists
         existing_doc = await qdrant_svc.retrieve(doc["id"])
         
         if existing_doc:
             # Document with same ID exists, allow update (no deduplication check)
             non_duplicate_docs.append(doc)
-            non_duplicate_embeddings.append(vectors)
+            non_duplicate_embeddings.append(dense_vector)
         else:
             # New document, check for duplicates (only for news type)
             similar_docs = await qdrant_svc.find_similar_documents(
-                query_vectors=vectors,
+                dense_vector=dense_vector,
                 document_date=doc["document_date"],
                 document_type=doc["type"],
                 similarity_threshold=settings.DEDUPLICATION_SIMILARITY_THRESHOLD,
@@ -94,15 +94,16 @@ async def ingest_documents(request: InvestmentIngestRequest):
             else:
                 # No similar documents found, include this one
                 non_duplicate_docs.append(doc)
-                non_duplicate_embeddings.append(vectors)
+                non_duplicate_embeddings.append(dense_vector)
     
     # Combine embeddings with original document payloads
     processed_docs = []
-    for doc, vectors in zip(non_duplicate_docs, non_duplicate_embeddings):
+    for doc, dense_vector in zip(non_duplicate_docs, non_duplicate_embeddings):
         processed_docs.append({
             "id": doc["id"],
             "payload": doc,  # Store original structured document
-            "vectors": vectors
+            "dense_vector": dense_vector,
+            "bm25_text": prepare_retrieval_text(doc),
         })
         
     # Upsert non-duplicate documents to Qdrant
@@ -124,7 +125,7 @@ async def ingest_documents(request: InvestmentIngestRequest):
 @router.post("/documents/search", response_model=List[SearchResult])
 async def search_documents(request: InvestmentSearchRequest):
     """
-    Search for documents using hybrid retrieval with metadata filtering.
+    Search for documents using dense + BM25 retrieval with metadata filtering.
 
     Supports filtering by:
     - symbols: List of symbols
@@ -137,22 +138,13 @@ async def search_documents(request: InvestmentSearchRequest):
     - include_ids: Only include documents with these IDs (whitelist)
     - exclude_ids: Exclude documents with these IDs (blacklist)
     - use_dense: Enable/disable dense vector search (default: true)
-      When false, uses only sparse + late interaction (free, no API costs)
+      When false, uses BM25-only retrieval and skips the embedding API call
     """
     emb_svc, qdrant_svc = get_services()
 
-    # Conditionally embed query based on use_dense flag
+    query_vector = None
     if request.use_dense:
-        # Full hybrid: dense + sparse + late (uses OpenRouter API)
-        query_vectors = await emb_svc.embed_query(request.query)
-    else:
-        # Sparse + late only (no OpenRouter API cost)
-        m3_vectors = await emb_svc._embed_m3([request.query])
-        query_vectors = {
-            "dense": None,  # Skip dense vector
-            "late": m3_vectors[0]["late"],
-            "sparse": m3_vectors[0]["sparse"]
-        }
+        query_vector = await emb_svc.embed_query(request.query)
 
     # Build filter from request parameters
     filters = {}
@@ -181,7 +173,8 @@ async def search_documents(request: InvestmentSearchRequest):
 
     # Search with filter
     results = await qdrant_svc.search(
-        query_vectors,
+        query_text=request.query,
+        query_vector=query_vector,
         limit=request.limit,
         query_filter=query_filter,
         use_dense=request.use_dense
@@ -332,3 +325,25 @@ async def enable_indexing():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.post("/admin/backfill-bm25")
+async def backfill_bm25(
+    limit: int = Query(default=500, ge=1, le=5000),
+    batch_size: int = Query(default=100, ge=1, le=500),
+):
+    """
+    Backfill BM25 sparse vectors for existing documents without re-ingesting them.
+    """
+    _, qdrant_svc = get_services()
+
+    try:
+        result = await qdrant_svc.backfill_bm25_vectors(
+            limit=limit,
+            batch_size=batch_size,
+        )
+        return {
+            "status": "success",
+            **result,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

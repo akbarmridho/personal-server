@@ -1,6 +1,6 @@
 # Knowledge Service - Investment Document Knowledge Base
 
-Python-based service for managing investment-related documents using Qdrant vector database with hybrid search (dense + sparse vectors).
+Python-based service for managing investment-related documents using Qdrant vector database with hybrid search (dense + server-side BM25).
 
 ## Overview
 
@@ -17,7 +17,7 @@ Unified knowledge service for storing and querying investment documents with fle
 
 - **Language**: Python
 - **Framework**: FastAPI (likely, based on typical Python service structure)
-- **Vector Database**: Qdrant (for hybrid search with dense + sparse vectors)
+- **Vector Database**: Qdrant (for hybrid search with dense + server-side BM25)
 - **Deployment**: Docker + Docker Compose
 
 ## Key Features
@@ -25,8 +25,8 @@ Unified knowledge service for storing and querying investment documents with fle
 ### Hybrid Search
 
 - Dense vectors for semantic similarity
-- Sparse vectors for keyword matching
-- Configurable fusion algorithms
+- Server-side BM25 for keyword matching
+- Configurable fusion and score boosting
 
 ### Metadata Filtering
 
@@ -69,10 +69,10 @@ Environment variables:
    - **Response**: `{ items: [...], next_page_offset?: number }`
    - Ordered by document_date DESC
 
-4. **POST `/documents/search`** - Semantic search with metadata filtering
+4. **POST `/documents/search`** - Hybrid dense + BM25 search with metadata filtering
    - **Request**: `{ query: string, limit?, symbols?, subsectors?, types?, date_from?, date_to?, pure_sector? }`
    - **Response**: `[{ id, score, payload }]`
-   - Hybrid search (dense + sparse + ColBERT vectors)
+   - Hybrid search with title/content/recency score boosting
 
 5. **DELETE `/documents/{document_id}`** - Delete document by ID
    - **Response**: `{ status: "success", message: "Document {id} deleted" }`
@@ -81,7 +81,11 @@ Environment variables:
 
 6. **POST `/admin/enable-indexing`** - Enable HNSW indexing for collection
    - Used after backfilling to improve query performance
-   - Creates payload indexes for metadata fields
+   - Creates payload indexes for metadata and text boosting fields
+
+7. **POST `/admin/backfill-bm25`** - Backfill BM25 sparse vectors for existing documents
+   - Migrates old documents without re-ingesting them
+   - Safe to run repeatedly until `has_more=false`
 
 ## Document Schema
 
