@@ -36,8 +36,28 @@ export const pdfManualIngest = inngest.createFunction(
       );
     });
 
-    // Determine final date (LLM inference > user provided)
-    const finalDate = extracted.date || event.data.documentDate;
+    const providedDate = event.data.documentDate.trim();
+    const extractedDate = extracted.date;
+    const finalDate = providedDate || extractedDate;
+
+    if (!finalDate) {
+      throw new Error("Missing document date for manual PDF ingestion");
+    }
+
+    if (
+      providedDate &&
+      extractedDate &&
+      extractedDate !== providedDate
+    ) {
+      logger.warn(
+        {
+          providedDate,
+          extractedDate,
+          filename: event.data.filename,
+        },
+        "Ignoring mismatched PDF extracted date in favor of provided document date",
+      );
+    }
 
     // Generate deterministic ID based on source
     const docId = await step.run("generate-id", async () => {

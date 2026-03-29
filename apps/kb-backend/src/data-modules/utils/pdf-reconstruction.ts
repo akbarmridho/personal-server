@@ -13,7 +13,7 @@ export const PdfReconstructionSchema = z.object({
     .string()
     .nullable()
     .describe(
-      "Document date in YYYY-MM-DD format, inferred from content, metadata, or filename. Return null if cannot determine.",
+      "Document date in YYYY-MM-DD format only when the PDF or filename explicitly states the report/publication date. Do not guess from table periods, forecasts, or example dates. Return null if uncertain.",
     ),
 });
 
@@ -27,6 +27,7 @@ YOUR GOAL: Reconstruct the provided PDF document into a high-fidelity text-based
 1.  **NO META-COMMENTARY:** Do not write "The document shows..." or "Figure 1 illustrates...". Just write the content directly.
 2.  **STRUCTURAL FIDELITY:** Use Markdown headers (#, ##, ###) to exactly match the document's hierarchy. If the document has a sidebar, integrate it logically into the flow where it makes sense contextually.
 3.  **ZERO TRUNCATION:** Do not summarize. Do not shorten paragraphs. Keep the full fidelity of the prose.
+4.  **DATE EXTRACTION MUST BE EXPLICIT:** Only populate the structured \`date\` field when the document clearly states a report/publication date or the filename clearly encodes it. Ignore dates that appear only in financial tables, forecast periods, historical references, chart axes, footnotes, or example text. If there is any ambiguity, return \`null\`.
 
 ### HANDLING VISUALS (The "Digital Twin" Method):
 
