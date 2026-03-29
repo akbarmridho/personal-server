@@ -57,7 +57,7 @@ $OPENCODE_CWD/
 │   │   └── theses/{THESIS_ID}/thesis.md
 │   ├── analysis/
 │   │   ├── symbols/{SYMBOL}/{DATE}/
-│   │   └── market/{DATE}/        # desk_check.md, digest_sync.md, news_digest.md, top-down outputs
+│   │   └── market/{DATE}/        # desk_check.md, deep_review.md, explore_idea.md, digest_sync.md, news_digest.md, top-down outputs
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
@@ -65,6 +65,10 @@ $OPENCODE_CWD/
 
 - `/desk-check`
   - Main operator routine for holdings, `READY` watchlist names, leaders, and top-down market context (`IHSG + macro + leaders`).
+- `/deep-review`
+  - Slower full audit of portfolio quality, watchlist hygiene, neglected names, thesis freshness, and process quality.
+- `/explore-idea`
+  - Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting.
 - `/news-digest`
   - Reading-oriented digest from new documents and memory continuity.
   - Writes a retained digest artifact plus its run log.

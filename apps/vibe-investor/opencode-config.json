@@ -84,6 +84,16 @@
       "agent": "vibe-investor",
       "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `desk-check` workflow. Command input: $ARGUMENTS"
     },
+    "deep-review": {
+      "description": "Slower full audit of portfolio quality, watchlist hygiene, neglected names, and process quality with WIB trading-session-aware date context",
+      "agent": "vibe-investor",
+      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `deep-review` workflow. Command input: $ARGUMENTS"
+    },
+    "explore-idea": {
+      "description": "Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting",
+      "agent": "vibe-investor",
+      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `explore-idea` workflow. Command input: $ARGUMENTS"
+    },
     "news-digest": {
       "description": "Reading-oriented digest from full memory scope plus all new high-signal documents with WIB trading-session-aware date context",
       "agent": "vibe-investor",

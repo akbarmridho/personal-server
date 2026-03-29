@@ -357,6 +357,22 @@ Checklist: regime aggression state resolved, IHSG cash floor checked against cur
 
 Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
+### Deep Review
+
+1. Load `review-watchlist-and-review-logging.md` for benchmark/style discipline, re-entry discipline, stale-plan thresholds, and retained review expectations.
+2. Call `portfolio_state` for holdings input and compact summary. If missing or malformed, stop.
+3. Use `portfolio_trade_history` with both `view: "events"` and `view: "realized_stats"` when the review needs operator-behavior context, realized contribution, and system-level performance diagnostics.
+4. Use `portfolio_symbol_trade_journey` for names that need lifecycle context, realized postmortem setup, or high-friction decision review.
+5. Build the review universe from current holdings, active watchlist names required by the parent workflow, and a required resurfacing set of stale or neglected watchlist names and symbol plans.
+6. For each reviewed symbol: check thesis status, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, checkpoint status, and whether the name still deserves scarce portfolio attention.
+7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, benchmark behavior versus `IHSG` and relevant leaders, and current best-ideas density.
+8. Review system quality, not only holdings: equity-curve behavior, realized versus unrealized contribution mix, style drift, repeated re-entry mistakes, stale plans, redundant names, cluttered watchlist entries, and process debt.
+9. Prepare cleanup proposals for watchlist status, symbol-plan refreshes, thesis hygiene, portfolio-monitor state, and any portfolio override actions backed by the review evidence.
+10. If watchlist, symbol, or thesis state changes, refresh the derived registry before the parent workflow writes the success log.
+11. Return portfolio findings, neglected-name resurfacing findings, process-quality findings, cleanup actions, and portfolio-monitor update content to the parent workflow.
+
+Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio overrides assessed, cleanup actions prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+
 ### Position Exit
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.

@@ -10,6 +10,7 @@ Define review cadence, watchlist management process, and retained review-summary
 
 - During reviews, compare portfolio behavior against `IHSG` and relevant sector leaders.
 - Watch for frustration-driven style drift.
+- Prefer best-ideas density over activity; if the book is cluttered with mediocre or redundant names, say it explicitly and push for fewer, higher-quality exposures.
 - If the investor is rotating styles without a framework, say it explicitly.
 
 ### Re-Entry Discipline
@@ -49,6 +50,7 @@ Use postmortems as system upgrades, not blame sessions.
 ### Monthly
 
 - Full performance review: realized and unrealized.
+- Review the portfolio equity curve and decision process as a system, not only as isolated symbol outcomes.
 - Sector allocation and concentration check.
 - Rebalance check: cadence, drift, thesis validity.
 - Strategy quality review: what worked and what failed.
@@ -86,6 +88,10 @@ If a plan is stale:
 ## Watchlist Management
 
 Watchlist statuses use the labels defined in `SKILL.md`.
+
+- Treat the watchlist as attention-budgeted inventory, not as a dumping ground for interesting names.
+- Keep `READY` inventory tight enough to match realistic monitoring capacity.
+- Any watchlist name without a clear `why now`, trigger, invalidation, or recent review should be refreshed, demoted, or removed.
 
 | Status | Criteria | Action |
 |--------|----------|--------|

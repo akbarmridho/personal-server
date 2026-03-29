@@ -42,7 +42,7 @@ workdir/
 │   │   │   ├── synthesis.md
 │   │   │   ├── sources.md
 │   │   │   └── *.png
-│   │   └── market/{DATE}/         # desk_check.md, digest_sync.md, news_digest.md, top-down outputs
+│   │   └── market/{DATE}/         # desk_check.md, deep_review.md, explore_idea.md, digest_sync.md, news_digest.md, top-down outputs
 │
 └── work/                         # Temporary scratch (cleared often)
 ```
@@ -82,7 +82,7 @@ Portfolio memory rules:
 - For new durable analysis notes, frontmatter is recommended when the file is meant to be queried later; keep it minimal and only include fields needed for retrieval.
 - For local filesystem retrieval, prefer `rg` for content search and `rg --files` for file discovery. Use `jq` for inspecting `memory/registry/*.json`. If available, `fd` and `fzf` are useful accelerators but not required.
 
-By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check` and `digest-sync`, memory file updates are part of execution and should be written during the workflow.
+By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check`, `deep-review`, and `digest-sync`, memory file updates are part of execution and should be written during the workflow. For `explore-idea`, writing the retained exploration artifact is part of execution, but durable watchlist/thesis mutation is not unless the user explicitly asks for promotion.
 
 Evidence-backed: supported by at least one verifiable data point from MCP tools, documents, or filings — not from agent inference alone.
 
@@ -102,7 +102,7 @@ Scope reminder:
 
 Skill and reference preflight (mandatory):
 
-1. Determine the user's current objective and active workflow/mode first (for example: technical `INITIAL`/`UPDATE`, `desk-check`, `news-digest`, or `digest-sync`).
+1. Determine the user's current objective and active workflow/mode first (for example: technical `INITIAL`/`UPDATE`, `desk-check`, `deep-review`, `explore-idea`, `news-digest`, or `digest-sync`).
 2. Resolve an explicit reference-file list from the selected skill(s) for that workflow/mode.
 3. Load runtime references for the active mode only. Do not load archive, curation, or source-material references unless the task is explicitly about refining the skill or doctrine.
 4. Read the resolved reference files before running tools and before writing conclusions.
@@ -112,6 +112,8 @@ Skill and reference preflight (mandatory):
 Primary user-facing workflows:
 
 - `desk-check`: the main operator routine for holdings review, watchlist trigger review, portfolio discipline, and top-down market context.
+- `deep-review`: a slower full audit of portfolio quality, watchlist hygiene, thesis freshness, neglected names, and process quality.
+- `explore-idea`: a discovery workflow for new interesting ideas outside the active operating set, plus resurfacing dormant internal candidates worth revisiting.
 - `news-digest`: the digest workflow that gathers high-signal news/documents since the last successful digest run and writes a retained digest artifact.
 - `digest-sync`: the sync workflow that updates thesis/watchlist memory from the latest digest and writes a retained sync summary.
 
@@ -178,6 +180,53 @@ Trading-day clock (authoritative):
 - Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_desk-check.json` after all required scopes succeed.
 - Success run log `artifacts` must reference the actual memory paths produced, not scratch files under `work/`.
 - `desk-check` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
+
+`deep-review` defaults:
+
+- Purpose: full audit of the current operating system. This is not the fast trading-session continuity loop; it is the slower review for portfolio quality, process quality, and cleanup.
+- Coverage universe: all holdings from `portfolio_state`, active theses, watchlist symbols in `READY`, watchlist symbols marked as leaders, and a required resurfacing set of watchlist names or symbol plans that appear stale, neglected, or absent from recent review coverage.
+- Continuity: read the latest successful `memory/runs/*/*_deep-review.json`; if none exists, use last 30 calendar days ending at `TRADING_DAY` for trade and document context. If the latest successful run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
+- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/state/theses/**/thesis.md`, `memory/state/symbols/**`, and the latest prior deep review if found.
+- Top-down context is mandatory: review IHSG structure/regime, macro/news tone, leader breadth deterioration, and portfolio behavior versus `IHSG` plus relevant leaders.
+- Before any buy/add conclusion in `deep-review`, `portfolio-management` must resolve the active IHSG cash floor (EMA21/SMA50/SMA200, base or escalated) from current market context and compare it with live `portfolio_state.cash_ratio`.
+- If portfolio data is missing or malformed, fail fast.
+- Default execution model is multiagent: parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
+- Run order: `portfolio-management` first for holdings, realized and unrealized review, concentration/heat/cash-overlay checks, stale-plan detection, best-ideas-density review, and neglected-watchlist resurfacing; then delegated symbol or thesis review batches plus top-down market review in parallel; then parent synthesis.
+- Required review dimensions: current book coherence, best-ideas density, equity-curve and decision-process review, benchmark and leader comparison, stale plans, style drift, re-entry discipline, hidden clustering, thesis hygiene, and watchlist cleanup.
+- Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
+- Flow analysis is most relevant when holdings or resurfaced names need sponsor-quality refresh or when lead / confirm / warning context could change the conclusion materially.
+- Narrative analysis prioritizes catalyst drift, story decay, crowding changes, and fresh invalidation evidence over full report formatting.
+- Fundamental analysis is selective: use it when thesis quality, accounting quality, ownership risk, or structural deterioration cannot be judged honestly from the existing evidence set.
+- On every successful `deep-review`, refresh `memory/notes/portfolio-monitor.md` with the current review state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, active portfolio health flags, and any evidence-backed process-quality findings or cleanup actions from the review.
+- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include the retained files needed for names reviewed materially in this workflow.
+- Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `deep_review.md`.
+- Evidence-backed memory updates may touch only `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
+- When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
+- After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
+- Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_deep-review.json` after all required scopes succeed.
+- Success run log `artifacts` must reference the actual memory paths produced, not scratch files under `work/`.
+- `deep-review` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
+
+`explore-idea` defaults:
+
+- Purpose: discovery workflow for new interesting names, sectors, mechanisms, and catalysts outside the active operating set, plus resurfacing dormant internal candidates worth revisiting.
+- Discovery lanes are mandatory:
+  - external discovery lane: search for names and themes not already central to active holdings, watchlist, or theses
+  - internal resurfacing lane: rescan dormant watchlist names, inactive theses, or older symbol plans that were not explicitly removed but have been reviewed rarely
+- Current holdings, active theses, and active watchlist names are novelty filters, not the primary discovery universe, except for the required internal resurfacing lane.
+- Discovery is not news-only: candidate generation may come from filings, analysis, rumours, sector/theme linkages, ownership/governance changes, mechanism-led situations, and neglected internal names.
+- Continuity: read the latest successful `memory/runs/*/*_explore-idea.json`; if none exists, use last 30 calendar days ending at `TRADING_DAY` as the default external discovery window. If the latest successful run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`. This window applies to external discovery sources only; internal resurfacing is not limited by that window.
+- Mandatory memory context: `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/thesis.md`, `memory/notes/watchlist.md`, `memory/state/theses/**/thesis.md`, `memory/state/symbols/**`, and the latest prior explore-idea artifact if found.
+- Default execution model is multiagent: parent agent owns discovery orchestration, novelty filtering, shortlist ranking, retained artifact writing, and the single success run log.
+- Run order: broad discovery and clustering first using internal knowledge sources and selected external corroboration; then lightweight symbol triage on shortlisted candidates; then parent synthesis across fresh candidates, resurfaced candidates, and discarded candidates.
+- `narrative-analysis` is the lead discovery lens for story regime, catalyst dossier, narrative stage, crowding, and failure risk.
+- `technical-analysis` is the lightweight structural filter for shortlisted names and resurfaced internal candidates.
+- `flow-analysis` is used when sponsor behavior could materially upgrade or disqualify a shortlisted candidate.
+- `fundamental-analysis` is selective: use it for top candidates, mechanism-led cases, or when the base-value anchor is too weak to judge narrative quality honestly.
+- Default mutation rule: do not update `memory/notes/watchlist.md`, `memory/notes/thesis.md`, `memory/state/symbols/{SYMBOL}.md`, or `memory/state/theses/{THESIS_ID}/thesis.md` automatically. Write the retained exploration artifact only. Promotion into durable state requires an explicit follow-up workflow or explicit user instruction.
+- Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `explore_idea.md`.
+- Write exactly one success log at `memory/runs/{TRADING_DAY}/{HHMMSS}_explore-idea.json` after the exploration artifact is saved.
+- `explore-idea` success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 
 `news-digest` defaults:
 
