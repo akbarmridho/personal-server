@@ -49,6 +49,9 @@ Rules:
 - If technical structure breaks, say it clearly.
 - Do not let narrative hope override invalidation.
 - No averaging down below broken structure unless the evidence is better than before and chart / structure repair is visible.
+- Build and reduce size in tranches, not in an all-in / all-out style by default.
+- Add only when the prior tranche is working or when the plan explicitly allows a staged entry near favorable location with unchanged invalidation.
+- Reduce progressively when evidence weakens, even before full invalidation, if the plan defines that downgrade path.
 - Require staged trim logic for trades with clear upside targets.
 - Warn against target drift after public or planned targets are reached.
 - Do not let a winning trade silently mutate into a round-trip loser.
@@ -85,6 +88,7 @@ Rules:
 ## Plan
 - Entry zone: {price range}
 - Position size: {X% of portfolio} ({amount})
+- Entry build: {initial tranche, add conditions, and max exposure condition}
 - Size reason: {why this size is justified relative to evidence quality, liquidity, and monitoring capacity}
 - Stop loss: {price} (-{X%} from entry)
 - Risk per trade: {Rp amount} ({X%} of portfolio)
@@ -100,6 +104,7 @@ Rules:
 - Holding mode: {TACTICAL / THESIS / HYBRID}
 - Technical trail mode: {STRUCTURE / ZONE / MA / ATR}
 - Technical plan role: {primary exit engine / trim-only / monitoring-only}
+- Reduction ladder: {what causes trim to half, trim to starter, or full exit}
 - Early trim rule: {what gets sold at T1 / T2}
 - Runner policy: {how the remainder is handled}
 - Final exit precedence: {hard invalidation > portfolio risk > thesis/non-TA exit > technical harvest/trail}
@@ -127,6 +132,7 @@ Rules:
 - Invalidation
 - Expected holding period
 - Position size and stop loss
+- Entry build
 - Size reason
 - Monitoring requirement
 - Timeframe, `Last Reviewed`, and review cadence

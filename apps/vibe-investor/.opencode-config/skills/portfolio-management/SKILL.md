@@ -28,6 +28,7 @@ Tool source of truth:
 - Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, theme clustering, and correlation clustering).
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
 - Apply a regime-sensitive aggression ladder before new longs; if breadth/market structure weakens, reduce aggression, slow adds, and protect cash.
+- Review process quality separately from outcome. Do not let a profitable result excuse weak underwriting, and do not let a loss erase a process that remained disciplined and evidence-based.
 - Use a two-tier IHSG cash-floor ladder (EMA21/SMA50/SMA200) as a regime overlay: base floors set minimum cash, escalated floors apply when broader red flags confirm trouble.
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level overrides when heat, concentration, liquidity, or regime require action beyond the symbol-level baseline.
@@ -46,6 +47,11 @@ This skill's default doctrine incorporates postmortem-derived portfolio rules an
 - For buy, add, hold-escalation, and re-entry decisions, enforce trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, and winner-management rules from `references/trading-plan-template.md`.
 - For reviews, re-entry checks, and postmortems, enforce benchmark/style discipline and the postmortem-upgrade loop from `references/review-watchlist-and-review-logging.md`.
 - Trade classification is not identical to `holding_mode`, but they should usually agree at the operating level.
+- During reviews and postmortems, explicitly separate:
+  - process quality
+  - P&L outcome
+  - evidence change since the prior review
+- Do not let recent gains justify oversized risk, late adds, or loosened discipline. Do not let recent losses justify revenge trading or abandoning a sound process without evidence.
 
 ## Shared Labels And Health Flags
 
@@ -235,6 +241,12 @@ Resolve one aggression state:
 - `CAPITAL_PRESERVATION`: broad weakness, leader breakdowns clustering, or regime quality clearly poor. No aggressive new longs; pilot size or cash only.
 
 The regime gate controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
+
+Rate-of-change read:
+
+- Do not assess regime from static levels alone. Also assess whether market conditions are improving, stable, or deteriorating versus the prior review window.
+- Include rate-of-change judgment for breadth, leader health, breakdown clustering, and risk appetite. Inflections matter before full breakdowns become obvious.
+- If direction of change is deteriorating, reduce aggression before the damage is fully expressed in price.
 
 IHSG cash overlay:
 
