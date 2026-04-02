@@ -1,4 +1,3 @@
-import pThrottle from "p-throttle";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { Json } from "../../infrastructure/db/types.js";
 import { logger } from "../../utils/logger.js";
@@ -6,7 +5,6 @@ import { dateToFormatted } from "../utils.js";
 import type { BaseStockbitResponse } from "./auth.js";
 import { getStockbitStatusCode, stockbitGetJson } from "./client.js";
 
-const MARKET_DETECTOR_LIMITER_LIMIT = 8;
 const MARKET_DETECTOR_LIMITER_INTERVAL_MS = 1_000;
 const MARKET_DETECTOR_CACHE_VERSION = "v1";
 
@@ -68,36 +66,6 @@ type MarketDetectorDailySnapshotInput = {
   limit?: number;
 };
 
-const marketDetectorThrottle = pThrottle({
-  limit: MARKET_DETECTOR_LIMITER_LIMIT,
-  interval: MARKET_DETECTOR_LIMITER_INTERVAL_MS,
-});
-
-const throttledMarketDetectorRequest = marketDetectorThrottle(
-  async (url: string) => {
-    try {
-      return await stockbitGetJson<BaseStockbitResponse<MarketDetectorData>>(
-        url,
-      );
-    } catch (error) {
-      if (getStockbitStatusCode(error) === 429) {
-        logger.warn(
-          { url },
-          "Stockbit market detector rate limited, retrying once",
-        );
-        await new Promise((resolve) =>
-          setTimeout(resolve, MARKET_DETECTOR_LIMITER_INTERVAL_MS),
-        );
-        return await stockbitGetJson<BaseStockbitResponse<MarketDetectorData>>(
-          url,
-        );
-      }
-
-      throw error;
-    }
-  },
-);
-
 const buildMarketDetectorUrl = (input: Required<MarketDetectorInput>) => {
   const fromFormatted = dateToFormatted(input.from);
   const toFormatted = dateToFormatted(input.to);
@@ -150,9 +118,29 @@ export const getMarketDetector = async (
   input: MarketDetectorInput,
 ): Promise<MarketDetectorData> => {
   const options = resolveMarketDetectorOptions(input);
-  const rawData = await throttledMarketDetectorRequest(
-    buildMarketDetectorUrl(options),
-  );
+  const url = buildMarketDetectorUrl(options);
+
+  let rawData: BaseStockbitResponse<MarketDetectorData>;
+  try {
+    rawData = await stockbitGetJson<BaseStockbitResponse<MarketDetectorData>>(
+      url,
+    );
+  } catch (error) {
+    if (getStockbitStatusCode(error) !== 429) {
+      throw error;
+    }
+
+    logger.warn(
+      { url },
+      "Stockbit market detector rate limited, retrying once",
+    );
+    await new Promise((resolve) =>
+      setTimeout(resolve, MARKET_DETECTOR_LIMITER_INTERVAL_MS),
+    );
+    rawData = await stockbitGetJson<BaseStockbitResponse<MarketDetectorData>>(
+      url,
+    );
+  }
 
   return rawData.data;
 };

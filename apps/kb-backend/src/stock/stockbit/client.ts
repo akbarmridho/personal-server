@@ -1,5 +1,6 @@
 import got, { HTTPError, RequestError } from "got";
 import http2wrapper from "http2-wrapper";
+import pThrottle from "p-throttle";
 import { stockProxyUrl } from "../proxy-url.js";
 import {
   getAuthorizationHeaderValue,
@@ -20,6 +21,11 @@ const DROP_HEADER_KEYS = new Set([
 ]);
 
 const REQUEST_TIMEOUT_MS = 30_000;
+const STOCKBIT_REQUEST_SPACING_MS = 200;
+const STOCKBIT_PER_SECOND_LIMIT = 5;
+const STOCKBIT_PER_MINUTE_LIMIT = 250;
+const STOCKBIT_SECOND_INTERVAL_MS = 1_000;
+const STOCKBIT_MINUTE_INTERVAL_MS = 60_000;
 
 type StockbitJsonRequestOptions = {
   url: string;
@@ -33,6 +39,41 @@ type StockbitPublicTextRequestOptions = {
   method?: "GET";
   headers?: Record<string, string>;
 };
+
+type StockbitOperation = () => Promise<unknown>;
+const STOCKBIT_SLIDING_WINDOW_WEIGHT = () => 1;
+
+// `strict` + `weight` makes p-throttle use its time-based sliding window path.
+const stockbitRequestSpacer = pThrottle({
+  limit: 1,
+  interval: STOCKBIT_REQUEST_SPACING_MS,
+  strict: true,
+  weight: STOCKBIT_SLIDING_WINDOW_WEIGHT,
+});
+
+const stockbitPerSecondLimiter = pThrottle({
+  limit: STOCKBIT_PER_SECOND_LIMIT,
+  interval: STOCKBIT_SECOND_INTERVAL_MS,
+  strict: true,
+  weight: STOCKBIT_SLIDING_WINDOW_WEIGHT,
+});
+
+const stockbitPerMinuteLimiter = pThrottle({
+  limit: STOCKBIT_PER_MINUTE_LIMIT,
+  interval: STOCKBIT_MINUTE_INTERVAL_MS,
+  strict: true,
+  weight: STOCKBIT_SLIDING_WINDOW_WEIGHT,
+});
+
+const runSpacedStockbitOperation = stockbitRequestSpacer(
+  async (operation: StockbitOperation) => operation(),
+);
+const runPerSecondLimitedStockbitOperation = stockbitPerSecondLimiter(
+  runSpacedStockbitOperation,
+);
+const runGlobalStockbitOperation = stockbitPerMinuteLimiter(
+  runPerSecondLimitedStockbitOperation,
+);
 
 export class StockbitHttpError extends Error {
   statusCode?: number;
@@ -67,31 +108,16 @@ export async function stockbitRequestJson<T>(
   const profile = await stockbitAuth.getOrThrow();
   const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
   const headers = buildReplayHeaders(profile, options.authorizationOverride);
-  const agent = new http2wrapper.proxies.Http2OverHttp({
-    proxyOptions: {
-      url: proxyUrl,
-    },
-  });
 
   try {
-    const client = got.extend({
-      http2: true,
-      retry: {
-        limit: 0,
-      },
-      timeout: {
-        request: REQUEST_TIMEOUT_MS,
-      },
-      headers,
-      agent: {
-        http2: agent,
-      },
-    });
+    return await scheduleStockbitRequest(async () => {
+      const client = createStockbitClient(proxyUrl, headers);
 
-    return await client(options.url, {
-      method: options.method || "GET",
-      json: options.json,
-    }).json<T>();
+      return await client(options.url, {
+        method: options.method || "GET",
+        json: options.json,
+      }).json<T>();
+    });
   } catch (error) {
     throw toStockbitHttpError(error, options.url);
   }
@@ -140,36 +166,54 @@ async function stockbitRequestText(
 ): Promise<string> {
   const { proxy_url: proxyUrl } = await stockProxyUrl.getOrThrow();
   const headers = sanitizeHeaders(options.headers ?? {});
+
+  try {
+    return await scheduleStockbitRequest(async () => {
+      const client = createStockbitClient(proxyUrl, headers);
+
+      return await client(options.url, {
+        method: options.method || "GET",
+      }).text();
+    });
+  } catch (error) {
+    throw toStockbitHttpError(error, options.url);
+  }
+}
+
+async function scheduleStockbitRequest<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  return (await runGlobalStockbitOperation(operation)) as T;
+}
+
+function createStockbitClient(
+  proxyUrl: string,
+  headers: Record<string, string>,
+) {
   const agent = new http2wrapper.proxies.Http2OverHttp({
     proxyOptions: {
       url: proxyUrl,
     },
   });
 
-  try {
-    const client = got.extend({
-      http2: true,
-      retry: {
-        limit: 0,
-      },
-      timeout: {
-        request: REQUEST_TIMEOUT_MS,
-      },
-      headers,
-      agent: {
-        http2: agent,
-      },
-    });
-
-    return await client(options.url, {
-      method: options.method || "GET",
-    }).text();
-  } catch (error) {
-    throw toStockbitHttpError(error, options.url);
-  }
+  return got.extend({
+    http2: true,
+    retry: {
+      limit: 0,
+    },
+    timeout: {
+      request: REQUEST_TIMEOUT_MS,
+    },
+    headers,
+    agent: {
+      http2: agent,
+    },
+  });
 }
 
-function sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+function sanitizeHeaders(
+  headers: Record<string, string>,
+): Record<string, string> {
   const output: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(headers)) {
