@@ -257,6 +257,12 @@ Produce output per `references/core/output-report-template.md`.
 
 Final result must include:
 
+- `fundamental_assessment.conviction_score`
+- `fundamental_assessment.confidence`
+- `fundamental_assessment.bull_factors`
+- `fundamental_assessment.bear_factors`
+- `fundamental_assessment.valuation_anchor`
+- `fundamental_assessment.quality_flags`
 - `business_quality`
 - `financial_quality`
 - `valuation_verdict`
@@ -268,6 +274,40 @@ Final result must include:
 - ownership structure summary when holder structure is material to the call
 
 The result must allow combinations such as strong business but expensive, or cheap but likely a trap.
+
+## Fundamental Assessment Contract
+
+Primary machine-readable output:
+
+```yaml
+fundamental_assessment:
+  conviction_score: 70
+  confidence: MEDIUM
+  bull_factors: []
+  bear_factors: []
+  valuation_anchor: {}
+  quality_flags: []
+```
+
+Score rubric:
+
+| Score | Meaning |
+|-------|---------|
+| 0-15 | Structurally broken business, stressed financials, or severe governance/trap risk |
+| 16-30 | Weak business quality, weak financial quality, or overvaluation with material trap risk |
+| 31-45 | Mixed quality, limited margin of safety, or unresolved governance/accounting concerns |
+| 46-60 | Acceptable quality but only fair valuation or incomplete evidence |
+| 61-75 | Good quality with reasonable valuation support and manageable risks |
+| 76-90 | Strong quality, clean financials, clear ownership/governance, and undervaluation |
+| 91-100 | Exceptional business and financial quality with strong margin of safety and low trap risk |
+
+Scoring rules:
+
+- Combine business quality, financial quality, valuation, governance/minority alignment, and trap-risk diagnostics into `conviction_score`.
+- Use `valuation_verdict` and MoS/valuation-method outputs to populate `valuation_anchor`.
+- Use `bull_factors` and `bear_factors` for concise evidence-backed drivers.
+- Use `quality_flags` for accounting, governance, solvency, dilution, or value-trap warnings that the parent synthesis should see directly.
+- Keep `confidence` separate from `conviction_score`; downgrade confidence when evidence coverage is incomplete or method uncertainty is high.
 
 ## Mode-Aware Valuation Behavior
 

@@ -105,7 +105,7 @@ Advanced signals:
 - `advanced_signals.wash_risk_state`
 - `advanced_signals.anomaly_risk_state`
 
-Trust and verdict:
+Trust and assessment:
 
 - `trust_regime.liquidity_profile`
 - `trust_regime.market_cap_profile`
@@ -216,22 +216,29 @@ Interpretation rules:
 - high anomaly risk or low coverage must discount trust
 - `verdict_weight_profile` explains how factor weighting changes by ticker regime
 
-### 7. `VERDICT`
+### 7. `FLOW_ASSESSMENT`
 
-The verdict is:
+Produce one `flow_assessment` object as the broker-flow output contract:
 
-- `ACCUMULATION`
-- `DISTRIBUTION`
-- `NEUTRAL`
+```yaml
+flow_assessment:
+  conviction_score: 45
+  confidence: LOW
+  bull_factors: []
+  bear_factors: []
+  sponsor_quality: {}
+  timing_context: {}
+  trust_regime: {}
+```
 
-It is not:
+Scoring rules:
 
-- `BUY`
-- `HOLD`
-- `WAIT`
-- `EXIT`
-
-Treat it as broker-flow lean only.
+- Use `baseline_verdict.conviction_pct` from `flow_context.json` as the primary 0-100 score source.
+- Use `baseline_verdict.strongest_support_factors` as `bull_factors` and `baseline_verdict.strongest_caution_factors` as `bear_factors`.
+- Map `trust_regime.trust_level` into `confidence`: `high -> HIGH`, `medium -> MEDIUM`, `low -> LOW`.
+- Populate `sponsor_quality` from `baseline_verdict.sponsor_quality`, `timing_context` from `integration_hook`, and `trust_regime` from the deterministic trust packet.
+- If `baseline_verdict.verdict` is useful for readability, keep it only as a derived convenience label inside the prose summary; `conviction_score` is the primary output.
+- Treat this as broker-flow assessment only. Do not emit `BUY`, `HOLD`, `WAIT`, or `EXIT`.
 
 ### 8. `INTEGRATION_HOOK`
 
@@ -273,7 +280,7 @@ Keep the final report smaller than the HTML product UI.
 
 Required sections:
 
-1. `Decision Summary`
+1. `Flow Assessment Summary`
 2. `Context`
 3. `Core Metrics`
 4. `Advanced Signals`
@@ -281,16 +288,17 @@ Required sections:
 6. `Integration Hook`
 7. `Monitoring`
 
-### `Decision Summary`
+### `Flow Assessment Summary`
 
 Required fields:
 
-- `baseline_verdict.verdict`
-- `baseline_verdict.conviction_pct`
-- `trust_regime.trust_level`
-- `baseline_verdict.sponsor_quality`
-- `baseline_verdict.strongest_caution_factors`
-- `integration_hook.timing_relation`
+- `flow_assessment.conviction_score`
+- `flow_assessment.confidence`
+- `flow_assessment.bull_factors`
+- `flow_assessment.bear_factors`
+- `flow_assessment.sponsor_quality`
+- `flow_assessment.timing_context`
+- `flow_assessment.trust_regime`
 - `monitoring.next_review_window`
 
 ### `Context`
@@ -359,4 +367,4 @@ State:
 - be explicit about what is deterministic versus heuristic
 - call out low coverage or high anomaly risk plainly
 - do not oversell broker-flow as a stand-alone trigger engine
-- keep flow verdict separate from technical execution
+- keep `flow_assessment` separate from technical execution

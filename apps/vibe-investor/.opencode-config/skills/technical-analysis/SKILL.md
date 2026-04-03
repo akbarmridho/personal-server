@@ -84,8 +84,8 @@ Default chart set: `daily_structure`, `intraday_structure`, `structure_events`, 
 - treat `daily` as thesis authority
 - treat `15m` as timing authority
 - use one setup family or `NO_VALID_SETUP`
-- use one final action: `BUY`, `HOLD`, `WAIT`, or `EXIT`
-- default to `WAIT` under unresolved contradiction
+- produce one final `technical_assessment` with a 0-100 `conviction_score`, score drivers, risk map, key levels, and monitoring triggers
+- default to a lower conviction score under unresolved contradiction
 - keep baseline MA context lean
 - treat hybrid charting as default visual context, not as automatic decision weight
 
@@ -94,9 +94,9 @@ Default chart set: `daily_structure`, `intraday_structure`, `structure_events`, 
 - parse JSON directly
 - when invoked by a parent workflow, use the mode and output paths provided by that workflow
 - for `UPDATE` and `POSTMORTEM`, require prior thesis context
-- after the technical answer, add one short plain-language wrap-up with bias, key level, and immediate action
-- for actionable output, always include invalidation and stop-loss
-- when evidence is mixed, prefer `WAIT`
+- after the technical answer, add one short plain-language wrap-up with bias, key level, and what would raise or lower conviction next
+- for a constructive setup score, always include invalidation and stop-loss
+- when evidence is mixed, lower `conviction_score` and state the unresolved contradiction
 
 ## Workflow Spine
 
@@ -128,9 +128,9 @@ Must produce: failure point, missed/absent warning, invalidation path, rule/hand
 
 ### Canonical Phase Order
 
-`MODE` → `STATE` → `LOCATION` → `SETUP` → `TRIGGER` → `CONFIRMATION` → `RISK` → `DECISION` → `MONITORING`
+`MODE` → `STATE` → `LOCATION` → `SETUP` → `TRIGGER` → `CONFIRMATION` → `RISK` → `ASSESSMENT` → `MONITORING`
 
-Chart-first, structure-first. Determine the job → classify daily state → map zones → choose setup or none → demand trigger → confirm → build risk from invalidation backward → choose one action → define what happens next.
+Chart-first, structure-first. Determine the job → classify daily state → map zones → choose setup or none → demand trigger → confirm → build risk from invalidation backward → score the setup and risk map → define what happens next.
 
 ### Phase Contracts
 
@@ -142,25 +142,25 @@ What job is being done? Outputs: `purpose_mode`, `position_state`, `intent`. If 
 
 What is the daily market state and regime? Requires: daily structure read, value acceptance/repricing state, Wyckoff cycle + recent sequence, baseline MA posture.
 
-Stop: if state cannot be classified beyond `unclear`, return `WAIT`. If `no_trade`, return `WAIT` unless `POSTMORTEM`.
+Stop: if state cannot be classified beyond `unclear`, assign a low conviction score. If `no_trade`, cap conviction at the broken/no-setup range unless `POSTMORTEM`.
 
 #### 3. LOCATION
 
 Where is price relative to meaningful decision zones? Requires: at least one meaningful nearby zone, current/opposing draw, value-area acceptance state.
 
-Stop: if mid-range noise with no meaningful zone active, return `WAIT`. If no clear next path, lean `WAIT`.
+Stop: if mid-range noise with no meaningful zone active, score the setup in the mixed/no-setup range. If no clear next path exists, cap conviction and state why.
 
 #### 4. SETUP
 
 What setup family matches state and location? Select one of `S1`–`S5` or `NO_VALID_SETUP`.
 
-Stop: if no setup fits cleanly, return `WAIT`. Do not carry multiple final setups into later phases.
+Stop: if no setup fits cleanly, emit `NO_VALID_SETUP` with a low conviction score. Do not carry multiple final setups into later phases.
 
 #### 5. TRIGGER
 
 Has the setup actually triggered? `15m` owns trigger quality inside daily thesis. Requires: trigger event tied to selected setup, local acceptance/reclaim/follow-through read.
 
-Stop: if trigger absent, return `WAIT` or watchlist. Do not promote untriggered setup into actionable trade.
+Stop: if trigger is absent, keep the score in the setup-forming or lower range. Do not score an untriggered setup as confirmed.
 
 #### 6. CONFIRMATION
 
@@ -168,17 +168,17 @@ Does evidence support the trigger strongly enough? Requires: follow-through, par
 
 Chart modes: `hybrid` (default) = `21EMA` + `50SMA` + `200SMA` + chosen `SMA{n}`; `baseline` = `21EMA` + `50SMA` + `200SMA`.
 
-Stop: if confirmation mixed and contradiction affects action quality, return `WAIT`. If trigger fails immediately, downgrade to `WAIT` or `EXIT` depending on position state.
+Stop: if confirmation is mixed and contradiction affects action quality, lower `conviction_score` and state the contradiction. If trigger fails immediately, score the setup in the failed/broken range depending on position state.
 
 #### 7. RISK
 
 Where is the thesis wrong and what is the level-to-level path? Requires: explicit invalidation, explicit next-zone path, RR at or above threshold.
 
-Stop: if invalidation unclear, no next-zone path, or RR below threshold, return `WAIT`.
+Stop: if invalidation is unclear, no next-zone path exists, or RR is below threshold, cap conviction and state the exact blocker.
 
-#### 8. DECISION
+#### 8. ASSESSMENT
 
-One final action: `BUY` | `HOLD` | `WAIT` | `EXIT`. Use action rules from the Policy Contract section. Unresolved contradiction defaults to `WAIT`.
+One final `technical_assessment` object with `conviction_score`, confidence, bull/bear factors, risk map, red flags, key levels, and monitoring triggers. Use the Conviction Scoring Contract section. Unresolved contradiction lowers `conviction_score`.
 
 #### 9. MONITORING
 
@@ -190,21 +190,34 @@ When the chart has more than one plausible forward path that materially changes 
 
 Daily owns: STATE, LOCATION, SETUP, main risk map. Daily has final authority on thesis direction.
 
-`15m` owns: TRIGGER, CONFIRMATION, tactical timing, local acceptance/rejection, follow-through quality. `15m` can veto timing, downgrade confidence, keep result in `WAIT`. `15m` cannot create a trade against daily thesis by itself.
+`15m` owns: TRIGGER, CONFIRMATION, tactical timing, local acceptance/rejection, follow-through quality. `15m` can downgrade timing quality and cap `conviction_score`. `15m` cannot create a trade against daily thesis by itself.
 
 ### Workflow Trace
 
-Final response must trace phases used: MODE, STATE, LOCATION, SETUP, TRIGGER, CONFIRMATION, RISK, DECISION, MONITORING.
+Final response must trace phases used: MODE, STATE, LOCATION, SETUP, TRIGGER, CONFIRMATION, RISK, ASSESSMENT, MONITORING.
 
 Non-initial additions: Previous Thesis Snapshot (UPDATE/POSTMORTEM), Thesis Status + reason (UPDATE), Delta Log (UPDATE), failure + handling notes (POSTMORTEM).
 
-## Policy Contract
+## Conviction Scoring Contract
 
-Runtime decision contract.
+Runtime technical assessment contract. The parent workflow decides the final trade action.
 
-### Action Space (long-only)
+### Output Shape
 
-`BUY` | `HOLD` | `WAIT` | `EXIT`
+```yaml
+technical_assessment:
+  conviction_score: 62
+  confidence: MEDIUM
+  bull_factors: []
+  bear_factors: []
+  risk_map:
+    invalidation: 10200
+    target_1: 11500
+    rr: 2.1
+  red_flags: []
+  key_levels: []
+  monitoring_triggers: []
+```
 
 ### Setup Space
 
@@ -223,54 +236,27 @@ Runtime decision contract.
 
 If a required input is missing, stop and report missing dependency.
 
-### Decision Rules
+### Score Rubric
 
-#### `BUY`
+| Score | Meaning |
+|-------|---------|
+| 0-15 | Structure broken, thesis invalidated |
+| 16-30 | Damaged, no setup, poor location |
+| 31-45 | Mixed, developing, mid-range noise |
+| 46-60 | Setup forming, location decent, trigger developing |
+| 61-75 | Setup valid, trigger active or near, confirmation partial |
+| 76-90 | Clean setup, trigger confirmed, good RR |
+| 91-100 | Textbook setup, strong confirmation, excellent RR |
 
-All must be true:
+### Scoring Rules
 
-- `analysis.position_state = flat`
-- `setup.primary_setup != NO_VALID_SETUP`
-- location is meaningful
-- trigger is active
-- confirmation is not rejected
-- invalidation is explicit
-- next-zone path exists
-- `risk_map.best_rr >= risk_map.min_rr_required`
-
-#### `HOLD`
-
-All must be true:
-
-- `analysis.position_state = long`
-- thesis remains valid
-- no exit trigger is active
-- no critical contradiction requires immediate reduction or exit
-- `risk_map.current_rr` is computed and stated
-
-#### `WAIT`
-
-Default when any decision prerequisite is unresolved: state unclear, location poor, `NO_VALID_SETUP`, trigger absent, confirmation mixed, invalidation unclear, no next-zone path, RR below threshold.
-
-Every `WAIT` decision must include a concrete recommendation lifecycle:
-
-- `upgrade_trigger`: falsifiable condition that would upgrade the setup to `BUY` for a flat symbol or `HOLD` for a long symbol
-- `downgrade_trigger`: falsifiable condition that would downgrade or remove the setup
-- `decision_horizon`: maximum time window before forced resolution, expressed as trading days or desk-check count; default `5 trading days or 3 desk-checks, whichever comes first`
-- `expiry_action`: what to do when the horizon passes without either trigger firing; default `re-underwrite with fresh levels or downgrade to WATCHING`
-
-A complete `WAIT` recommendation includes all four lifecycle fields.
-
-#### `EXIT`
-
-All must be true:
-
-- `analysis.position_state = long`
-- invalidation failed, thesis invalidated, trigger failure + confirmation breakdown materially damages thesis, or critical red flag forces exit
-
-### Uncertainty Handling
-
-When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved contradiction.
+- Score the chart and risk setup directly in `technical_assessment`.
+- `conviction_score` must reflect both structural quality and execution readiness.
+- Use `bull_factors` and `bear_factors` to explain the score in short, evidence-backed bullets.
+- Include `risk_map.invalidation`, `risk_map.target_1`, and `risk_map.rr` whenever a constructive setup exists.
+- Include `key_levels` as the compact decision-zone map the parent workflow can consume.
+- Use `confidence` (`HIGH`, `MEDIUM`, `LOW`) to express evidence quality and contradiction level separately from the numeric score.
+- When the prior symbol plan carries a live `WAIT`, include `upgrade_trigger`, `downgrade_trigger`, `decision_horizon`, and `expiry_action` in `monitoring_triggers`/follow-up text so the parent workflow can refresh `active_recommendation`.
 
 ### Validation Gates
 
@@ -279,14 +265,14 @@ When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved co
 1. `G1_MODE` purpose mode is explicit
 2. `G2_DATA` required data is present and usable
 3. `G3_STATE` daily state and regime are classifiable enough to proceed
-4. `G4_LOCATION` price is at a meaningful area or result is `WAIT`
+4. `G4_LOCATION` price is at a meaningful area or conviction is capped for weak location
 5. `G5_SETUP` exactly one setup family or `NO_VALID_SETUP`
-6. `G6_TRIGGER` actionable decisions require a real trigger
-7. `G7_INVALIDATION` actionable decisions require explicit invalidation
-8. `G8_PATH` actionable decisions require a clear next-zone path
-9. `G9_RR` actionable decisions require acceptable reward-to-risk
+6. `G6_TRIGGER` high conviction requires a real trigger
+7. `G7_INVALIDATION` constructive scores require explicit invalidation
+8. `G8_PATH` constructive scores require a clear next-zone path
+9. `G9_RR` constructive scores require acceptable reward-to-risk
 10. `G10_CONFLICTS` chart and numeric contradictions are resolved explicitly
-11. `G11_WAIT` unresolved decision-critical ambiguity defaults to `WAIT`
+11. `G11_CONVICTION` unresolved decision-critical ambiguity lowers `conviction_score`
 
 #### Conditional Gates
 
@@ -299,7 +285,7 @@ When evidence is mixed: prefer `WAIT`, lower confidence, state the unresolved co
 
 #### Advisory
 
-- Prefer `WAIT` over forcing a low-quality narrative
+- Lower `conviction_score` instead of forcing a low-quality setup narrative
 - Downgrade confidence when `15m` timing conflicts with daily thesis
 - Treat mid-range noise as weak location
 - Treat weak follow-through as veto or delay, not proof
@@ -326,17 +312,15 @@ Severity guidance:
 
 Every red flag must include `flag_id`, `severity`, `why`. Include an overall risk summary with one short rationale.
 
-### Minimum Final Decision Output
+### Minimum Final Assessment Output
 
-Required: `purpose_mode`, `action`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `confidence`, `monitoring_triggers`, `chart_artifact_refs`.
+Required: `purpose_mode`, `technical_assessment.conviction_score`, `technical_assessment.confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `technical_assessment.bull_factors`, `technical_assessment.bear_factors`, `technical_assessment.risk_map`, `technical_assessment.red_flags`, `technical_assessment.key_levels`, `technical_assessment.monitoring_triggers`, `chart_artifact_refs`.
 
-Required when actionable (`BUY`): `best_rr`.
+Required when a constructive setup exists: `technical_assessment.risk_map.rr`.
 
-Required when `WAIT`: `upgrade_trigger`, `downgrade_trigger`, `decision_horizon`, `expiry_action`.
+Required when long (`UPDATE`): `current_rr`.
 
-Required when long (`HOLD`, `UPDATE`): `current_rr`.
-
-Conditional: prior thesis delta for `UPDATE`, postmortem findings for `POSTMORTEM`.
+Conditional: prior thesis delta for `UPDATE`, postmortem findings for `POSTMORTEM`, recommendation lifecycle fields in follow-up text when the parent workflow needs `active_recommendation`.
 
 ## Market Structure And Trend
 
@@ -529,7 +513,7 @@ Use when range/accumulation context is credible, support-side excursion behaves 
 
 - A setup area is not enough by itself — action requires a trigger tied to the selected setup family.
 - `15m` owns trigger quality inside the daily thesis.
-- Absent trigger means watchlist or `WAIT`.
+- Absent trigger caps the setup score in the setup-forming range.
 
 Trigger types: breakout close, retest hold, reclaim, sweep reclaim, range-edge rejection, `CHOCH` + confirmation `BOS`, spring reclaim.
 
@@ -546,17 +530,17 @@ Trigger types: breakout close, retest hold, reclaim, sweep reclaim, range-edge r
 For bullish reversal: prior structure damaged/bearish → `CHOCH` appears → pullback holds constructively → confirmation `BOS` → reversal becomes actionable.
 
 - `CHOCH` alone is warning, not confirmation.
-- Structure shift without confirmation stays in watchlist or `WAIT`.
+- Structure shift without confirmation stays in a developing-score range.
 
 ### Execution And Risk
 
 #### Core Rules
 
 - `R-RISK-01` No setup without invalidation.
-- `R-RISK-02` Every actionable decision must include explicit stop-loss and invalidator.
+- `R-RISK-02` Every constructive setup score must include explicit stop-loss and invalidator.
 - `R-RISK-03` Entry is valid only near a mapped decision zone.
 - `R-RISK-04` Primary target is the next meaningful zone in path.
-- `R-RISK-05` If no clear next-zone path exists, default to `WAIT`.
+- `R-RISK-05` If no clear next-zone path exists, cap conviction and state the blocker.
 - `R-RISK-06` Mid-range entries without zone confluence are low quality and usually not actionable.
 - `R-RISK-07` Minimum expected reward-to-risk must be stated before execution.
 - `R-RISK-08` Add only when the trade is working and structure remains valid. Do not average down into structural failure.
@@ -591,7 +575,7 @@ Use stop as thesis invalidation, not arbitrary percentage.
 
 ### Take-Profit And Trade Management
 
-- `R-TP-01` Every actionable `BUY` must include a technical trade-management plan at entry.
+- `R-TP-01` Every high-conviction constructive setup must include a technical trade-management plan at entry.
 - `R-TP-02` Technical targets come from structure/value zones and R-multiples, not oscillators.
 - `R-TP-03` Partial sizing defaults by setup family:
   - `S1`/`S2`: `25 / 25 / 50`
@@ -617,7 +601,7 @@ Allowed only after base structural plan is valid: local `15m` acceptance/rejecti
 
 #### Minimum Actionability
 
-All required: valid setup family, meaningful location, valid trigger, confirmation not rejected, explicit invalidation, explicit next-zone path, acceptable RR. If any missing, default to `WAIT`.
+All required for high conviction: valid setup family, meaningful location, valid trigger, confirmation not rejected, explicit invalidation, explicit next-zone path, acceptable RR. Missing prerequisites cap `conviction_score`.
 
 ## `ta_context` Schema
 
@@ -647,7 +631,6 @@ Rules: required sections must always be present except `prior_thesis` (required 
 ### `prior_thesis` (required for `UPDATE`/`POSTMORTEM`)
 
 - `reference`: string, prior report path or run id
-- `prior_action`: `BUY` | `HOLD` | `WAIT` | `EXIT`
 - `prior_bias`: `bullish` | `bearish` | `neutral`
 - `prior_setup_family`: `S1`–`S5` | `NO_VALID_SETUP`
 - `thesis_summary`: string[], 1–3 short bullets
@@ -803,11 +786,11 @@ Rules: required sections must always be present except `prior_thesis` (required 
 
 Use this structure for every technical analysis output:
 
-- **A. Decision Summary**: purpose mode, action, bias, setup, key active level, invalidation, next trigger, confidence, R:R (entry `best_rr` for BUY; remaining `current_rr` for HOLD/UPDATE)
+- **A. Technical Assessment Summary**: purpose mode, `conviction_score`, confidence, bias, setup, key active level, invalidation, next trigger, R:R, and top bull/bear factors
 - **B. Context**: date, intent, timeframes, data dependency status, prior analysis reference (UPDATE/POSTMORTEM)
 - **C. State And Location**: state, regime, bias, Wyckoff (cycle phase, schematic phase, maturity, confidence), key S/R zones, baseline MA posture, value-area context, liquidity map, location summary
 - **D. Setup And Trigger**: selected setup family, validity, trigger state/type/level, confirmation state, participation quality, latest structure event, breakout quality note
-- **E. Risk And Decision**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR (`best_rr` for BUY, `current_rr` for HOLD/UPDATE), red flags summary, final action rationale
+- **E. Risk And Conviction**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR, red flags summary, and score rationale
 - **F. Trade Management**: technical partial plan, trail mode, time-stop baseline, active profit state and exit-urgency context when long
 - **Optional Scenarios**: 2-4 named chart-path branches when the setup is path-dependent. For each scenario, state trigger/level, likely path, operating implication, and optional rough likelihood.
 - **G. Delta And Monitoring**: previous thesis snapshot (UPDATE/POSTMORTEM), thesis status and review reason (UPDATE), delta log (UPDATE), failure point and handling improvement (POSTMORTEM), monitoring triggers, stale setup condition

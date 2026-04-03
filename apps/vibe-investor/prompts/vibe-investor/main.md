@@ -156,8 +156,8 @@ Workflow ownership:
 - Command templates only invoke these workflows; they must not redefine continuity, artifact paths, mutation scope, run-log schema, or execution order.
 - Explicit user instructions may narrow scope or change emphasis only when they do not weaken mandatory coverage, evidence requirements, continuity, or write rules.
 - Valid overrides include narrower symbol focus, a tighter date window, output emphasis, or a requested lens. Invalid overrides are ignored if they conflict with the workflow contract.
-- `technical-analysis` owns the chart-driven baseline (`technical_plan` and `technical_state`).
-- `flow-analysis` owns the broker-flow baseline (`flow_context`, broker-flow verdict, trust regime, and integration hook).
+- `technical-analysis` owns the chart-driven technical assessment, risk map, and chart-derived operating baseline.
+- `flow-analysis` owns the broker-flow assessment (`flow_assessment`), deterministic `flow_context`, trust regime, and integration hook.
 - Parent workflow owns multi-lens synthesis across flow, narrative, technical, and fundamental inputs.
 - `portfolio-management` owns portfolio-risk overlays, live portfolio-tool checks, and durable symbol-plan persistence.
 
@@ -167,18 +167,18 @@ Exit synthesis contract:
 - `flow_context`: broker-flow baseline from `flow-analysis` for broker sponsorship, trust regime, and lead-versus-confirm timing context.
 - `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol, including `holding_mode`, timeframe intent, thesis quality, and non-TA exit drivers.
 - `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
-- Parent workflow must resolve exit precedence explicitly as: hard invalidation, portfolio risk override, thesis or non-TA exit, then technical harvest or trail.
+- Parent workflow must resolve exit precedence explicitly as: hard invalidation, portfolio hard rail or size-cap constraint, thesis or non-TA exit, then technical harvest or trail.
 - Parent workflow writes or refreshes the resolved execution plan on entry, desk-check reviews, and material plan changes.
 
 Shadow scoring bridge:
 
 - During `desk-check` parent synthesis, compute a non-authoritative `shadow_scoring` block after the existing gate-cascade decision for every materially reviewed symbol. The gate cascade remains the actual decision engine.
 - Convert current skill outputs into 0-100 shadow scores:
-  - `technical_score` from TA action and setup quality: `EXIT` or invalidated/broken structure `0-15`, poor/no setup or poor location `16-30`, mixed/developing `31-45`, setup forming with trigger developing `46-60`, valid setup with trigger near/partial confirmation `61-75`, clean setup with confirmed trigger and good RR `76-90`, textbook setup with excellent RR and strong confirmation `91-100`
-  - `flow_score` from flow verdict, trust regime, and `conviction_pct`: strong accumulation/high trust `76-100`, accumulation or constructive with medium trust `61-75`, neutral/mixed `40-60`, distribution or weak trust `16-39`, heavy distribution/low trust `0-15`
-  - `narrative_score` from catalyst strength and thesis freshness: strong narrative with near-term catalyst `76-100`, constructive but less urgent `61-75`, mixed/moderate `40-60`, weak or stale `16-39`, broken/adverse `0-15`
-  - `fundamental_score` from quality and valuation when the fundamental lens is loaded: strong business plus undervaluation `76-100`, good quality or fair undervaluation `61-75`, fair/mixed `40-60`, weak quality or overvaluation `16-39`, structurally broken `0-15`
-  - `portfolio_fit_score` from PM constraints and regime fit: no override, room in heat/cash, and good diversification `76-100`; acceptable but constrained `61-75`; neutral/mixed `40-60`; crowded, cash-tight, or weak liquidity `16-39`; blocked by hard portfolio/regime constraint `0-15`
+  - `technical_score` from `technical_assessment.conviction_score` when available; otherwise convert TA setup quality into the same 0-100 rubric
+  - `flow_score` from `flow_assessment.conviction_score` when available; otherwise derive from broker-flow lean, trust regime, and `baseline_verdict.conviction_pct`
+  - `narrative_score` from `narrative_assessment.conviction_score` when available; otherwise derive from catalyst strength and thesis freshness
+  - `fundamental_score` from `fundamental_assessment.conviction_score` when the fundamental lens is loaded; otherwise derive from business quality and valuation
+  - `portfolio_fit_score` from `portfolio_constraints`: no hard rails, room in heat/cash, and good diversification `76-100`; acceptable but capped `61-75`; neutral/mixed `40-60`; crowded, cash-tight, or weak liquidity `16-39`; blocked by `hard_rails_triggered` `0-15`
 - Compute `composite_score` as a weighted score using available lens scores only, with base weights `0.25 technical`, `0.15 flow`, `0.25 narrative`, `0.20 fundamental`, `0.15 portfolio_fit`. If a lens score is omitted because that lens was not loaded, renormalize over the remaining weights instead of inserting placeholder/null fields.
 - Map `composite_score` to `shadow_action`: `0-29 NO_TRADE`, `30-49 WATCHLIST`, `50-59 PILOT`, `60-74 STARTER`, `75-89 STANDARD`, `90-100 HIGH_CONVICTION`.
 - Persist the shadow output in the retained desk-check artifact and flag whether it diverges from the actual gate-cascade decision. Shadow scoring is for comparison and validation only; it does not change trade actions, symbol memory, or watchlist status until the scoring architecture is promoted in later tasks.
@@ -216,7 +216,7 @@ Trading-day clock (authoritative):
   - sponsor behavior could change conviction materially
   - the parent workflow needs lead / confirm / warning context versus TA
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
-- Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, optional scenario branches from analysis artifacts, and any portfolio-risk override before updating symbol memory.
+- Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, optional scenario branches from analysis artifacts, and any portfolio hard rail or size-cap constraint before updating symbol memory.
 - For every symbol carrying `active_recommendation.action = WAIT`, check whether `horizon_expires` has passed during parent synthesis. If the horizon has passed, execute `expiry_action`. If the setup is still valid, re-underwrite it with fresh trigger levels and a fresh horizon before persisting the renewed `active_recommendation`.
 - During parent synthesis, report cumulative missed opportunity from `memory/notes/opportunity-cost.md` alongside `portfolio_heat`, and re-underwrite any READY symbol with >10% missed move or `wait_desk_check_count > 5`.
 - On every successful `desk-check`, refresh `memory/notes/portfolio-monitor.md` with the current portfolio monitor state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, and any evidence-backed portfolio health flags or discipline actions from the review.

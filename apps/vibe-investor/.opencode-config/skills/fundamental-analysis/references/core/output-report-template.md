@@ -5,12 +5,20 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 ```markdown
 ## Fundamental Analysis: {SUBJECT}
 
+**Fundamental Conviction:** {0-100}
 **Business Quality:** {STRONG / ADEQUATE / WEAK}
 **Financial Quality:** {CLEAN / MIXED / STRESSED}
 **Valuation Verdict:** {UNDERVALUED / FAIR / OVERVALUED}
 **Trap Risk:** {PASS / WARNING / FAIL}
 **Thesis Posture:** {ACTIONABLE / WATCHLIST / AVOID}
 **Confidence:** {HIGH / MEDIUM / LOW}
+
+### Fundamental Assessment
+- Conviction score: {0-100}
+- Bull factors: {short evidence-backed bullets}
+- Bear factors: {short evidence-backed bullets}
+- Valuation anchor: {primary method, fair-value range / MoS, and why it fits}
+- Quality flags: {accounting, governance, solvency, dilution, or trap warnings}
 
 ### Required Sections By Mode
 

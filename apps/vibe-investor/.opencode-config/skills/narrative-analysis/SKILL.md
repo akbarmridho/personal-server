@@ -12,7 +12,7 @@ Use this file as the entrypoint. Do not load all references by default.
 3. Read the selected reference files before running the analysis.
 4. Pull MCP data in parallel when running a full analysis.
 5. Execute sequential analysis phases.
-6. Return a verdict: `STRONG`, `MODERATE`, `WEAK`, or `BROKEN`.
+6. Return one `narrative_assessment` object with a 0-100 `conviction_score` and structured evidence.
 
 ## Concepts And School Of Thought
 
@@ -24,7 +24,7 @@ Use this file as the entrypoint. Do not load all references by default.
 - Score narrative strength (0-15) and failure risk (0-3) as structured judgment, not free-form opinion.
 - Decompose price into base value plus narrative premium, but anchor base value to available fundamental context (`fundamental-analysis`, internal research, or `get-stock-keystats`) rather than inventing a standalone valuation engine here.
 - Treat crowding and common-knowledge status as first-class risk inputs, not side commentary.
-- Route mechanism-heavy cases through dedicated frameworks (rights issue, backdoor, IPO, hype lifecycle) before final verdict.
+- Route mechanism-heavy cases through dedicated frameworks (rights issue, backdoor, IPO, hype lifecycle) before final assessment.
 - Treat narrative as a pricing framework, not a moral/business-quality verdict; without complete source coverage, downgrade confidence.
 
 ## Reference Index And Topic Ownership
@@ -85,12 +85,24 @@ Rules:
 
 ## Shared Labels
 
-### Narrative Verdict
+### Narrative Assessment Score
 
-- `STRONG`: fresh, supported, catalyst-active
-- `MODERATE`: real story but partially priced or delayed catalyst
-- `WEAK`: stale or weakly supported narrative
-- `BROKEN`: no credible narrative edge
+Primary output: `narrative_assessment.conviction_score` on a 0-100 scale.
+
+Score mapping from the backbone `0-15` narrative strength score:
+
+- `0-19`: broken or no credible narrative edge
+- `20-39`: weak, stale, or poorly supported
+- `40-64`: moderate but delayed, partially priced, or mixed
+- `65-84`: strong, fresh, and catalyst-active
+- `85-100`: exceptional narrative strength with fresh catalyst, durable support, and limited crowding
+
+Derived summary labels may still be used in prose:
+
+- `STRONG`
+- `MODERATE`
+- `WEAK`
+- `BROKEN`
 
 ### Confidence
 
@@ -189,7 +201,7 @@ This is the backbone narrative score. Do not replace it by collapsing stage, dur
 - Crowding evidence is supporting evidence only. Social spread, media repetition, or ownership concentration can strengthen or weaken a call, but they cannot prove the story by themselves.
 - If a story is consensus and fully priced, say so — do not manufacture upside.
 - Late-cycle and exit-liquidity risk must be flagged when detected, even if the narrative is still "intact."
-- All output verdicts and labels must use the values defined in this file.
+- All derived labels and structured status values must use the values defined in this file.
 
 ## Machine vs Judgment Boundary
 
@@ -220,7 +232,7 @@ Use this routing when narrative quality depends on mechanism-level details.
 
 1. Map the thesis to a concrete mechanism (rights issue, backdoor cycle, rerating premium, hype phase).
 2. Load only the matching specialized references.
-3. Evaluate timing, dilution/control implications, and late-cycle risk before final verdict.
+3. Evaluate timing, dilution/control implications, and late-cycle risk before final assessment.
 
 Routing defaults:
 
@@ -256,15 +268,15 @@ Add when relevant:
 7. Haluasi / narrative-premium assessment if relevant (load `narrative-premium-and-hype.md`), anchored to available fundamental base-value context rather than standalone narrative valuation.
 8. When the story is path-dependent, define a small optional scenario map with named branches, trigger/evidence, narrative implication, and optional rough likelihood.
 
-### Phase 3: Verdict
+### Phase 3: Narrative Assessment
 
 Produce output using this structure:
 
 ```markdown
 ## Narrative Analysis: {SYMBOL}
 
-**Verdict:** {STRONG / MODERATE / WEAK / BROKEN}
-**Narrative Score:** {X}/15
+**Narrative Conviction:** {0-100}
+**Backbone Strength Score:** {X}/15
 **Confidence:** {HIGH / MEDIUM / LOW}
 **Evidence Quality:** {HIGH / MEDIUM / LOW}
 
@@ -306,6 +318,25 @@ Optional. Use only when one catalyst path is not enough.
 |---|---|---|---|
 | ... | ... | ... | ... |
 ```
+
+Machine-readable output contract:
+
+```yaml
+narrative_assessment:
+  conviction_score: 78
+  confidence: HIGH
+  bull_factors: []
+  bear_factors: []
+  catalyst_map: {}
+  failure_risk: {}
+```
+
+Field rules:
+
+- Derive `conviction_score` from the `0-15` backbone score, then adjust within the mapped band for stage, durability, crowding, evidence quality, and priced-in risk.
+- `bull_factors` and `bear_factors` must be short, evidence-backed bullets.
+- `catalyst_map` should expose the highest-signal catalyst dossier fields and timing.
+- `failure_risk` should include the `0-3` failure score, primary failure trigger, and kill criteria.
 
 ## Execution Defaults
 

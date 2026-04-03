@@ -32,7 +32,7 @@ Tool source of truth:
 - Use a two-tier IHSG cash-floor ladder (EMA21/SMA50/SMA200) as a regime overlay: base floors set minimum cash, escalated floors apply when broader red flags confirm trouble.
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
 - Use durable `Active Scenarios` in symbol and thesis state when they exist. Scenario transitions can justify adds, trims, de-risking, or thesis retirement before hard invalidation is hit.
-- Portfolio management does not own raw symbol exits. It owns portfolio-level overrides when heat, concentration, liquidity, or regime require action beyond the symbol-level baseline.
+- Portfolio management does not own raw symbol exits. It owns portfolio-level sizing constraints, de-risking rails, and hard safety rails when heat, concentration, liquidity, or regime require tighter exposure than the symbol-level baseline.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
 - Use durable state files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated and the derived registry is refreshed.
 - Consume technical exit doctrine from `technical-analysis`; this skill does not redefine raw chart-level TP rules.
@@ -96,6 +96,35 @@ Health flag metadata:
 | `PM-W10` | Thesis stale (no review within cadence) | `MEDIUM` | deterministic |
 | `PM-W11` | Cash ratio below IHSG regime cash floor | `HIGH` | deterministic |
 
+## Portfolio Constraints Contract
+
+Return portfolio-level sizing constraints to the parent workflow.
+
+```yaml
+portfolio_constraints:
+  heat_budget_remaining_pct: 2.8
+  max_new_position_size_pct: 1.5
+  regime_aggression: 0.3
+  cash_floor_status: above
+  concentration_flags: []
+  hard_rails_triggered: []
+```
+
+Field rules:
+
+- `heat_budget_remaining_pct`: remaining open-risk budget before hitting the normal portfolio heat ceiling
+- `max_new_position_size_pct`: max additional position size this symbol can take after concentration, liquidity, theme, and regime constraints
+- `regime_aggression`: numeric aggression multiplier derived from the current regime read (`AGGRESSIVE = 1.0`, `NORMAL = 0.7`, `DEFENSIVE = 0.3`, `CAPITAL_PRESERVATION = 0.0`) until 2.7 replaces the categorical regime gate
+- `cash_floor_status`: `above` | `at_floor` | `below`
+- `concentration_flags`: active concentration, clustering, or diversification warnings that should compress size
+- `hard_rails_triggered`: binary stop rails only; include `portfolio_heat_breach`, `single_position_cap_breach`, `thesis_invalidated`, `very_low_liquidity`, or `capital_preservation_regime` when active
+
+Interpretation rules:
+
+- Use the constraint fields to cap position size and aggression.
+- Most weak or mixed conditions should reduce `max_new_position_size_pct` and `regime_aggression` instead of becoming a binary veto.
+- Only `hard_rails_triggered` are binary stops.
+
 ## Risk Budgets And Sizing Doctrine
 
 Use explicit risk budgets before target weights.
@@ -106,7 +135,7 @@ Core controls:
 - `portfolio_heat`: max 5-6% total open risk across live positions
 - hard caps: no sizing rule may override concentration, liquidity, or heat caps
 
-Within those guardrails, conviction can change the size. Outside them, the trade must be reduced or skipped.
+Within those guardrails, conviction can change the size. Outside them, reduce `max_new_position_size_pct`, and use `hard_rails_triggered` only for the explicit binary stop rails.
 
 Diversification by capital size:
 
@@ -127,7 +156,7 @@ The 50:30:10 rule:
 
 Correlation-aware diversification:
 
-- Corr > 0.75 with an existing large holding: reduce target size or skip
+- Corr > 0.75 with an existing large holding: compress `max_new_position_size_pct` sharply and record a concentration flag
 - Corr 0.40-0.75: allow with reduced size and explicit portfolio role
 - Corr < 0.40: strongest diversification benefit
 - In broad risk-off periods, assume correlations rise toward 1.0 and increase cash buffer
@@ -136,7 +165,7 @@ Theme and cluster concentration:
 
 - Sector limits alone are not enough
 - Also check whether the name adds to an already crowded theme, macro driver, or factor cluster
-- If the same driver is already crowded, reduce size, trim elsewhere first, or skip
+- If the same driver is already crowded, compress `max_new_position_size_pct`, trim elsewhere first, and record a concentration flag
 
 Liquidity-based sizing:
 
@@ -146,7 +175,7 @@ Liquidity-based sizing:
 | 1-5% of ADTV | Medium (needs staged exits) |
 | > 5% of ADTV | High (assume slippage + long exit time) |
 
-If size is too large relative to liquidity, prefer smaller size, staged exits, or skip.
+If size is too large relative to liquidity, cap `max_new_position_size_pct`, prefer staged exits, and use `very_low_liquidity` in `hard_rails_triggered` when liquidity is too weak for a safe exit path.
 
 1% risk rule:
 
@@ -180,7 +209,7 @@ Hard-loss fallback:
 |------|--------|
 | [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md`, trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, winner management |
 | [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates, benchmark/style discipline, re-entry discipline, postmortem upgrade loop |
-| This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, market regime gate, mixed-signal arbitration, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
+| This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, portfolio constraints, market regime gate, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
 
 Reference boundary:
 
@@ -264,22 +293,6 @@ IHSG cash overlay:
 - Exception trades are allowed only when stock-level structure, flow, and invalidation are strong enough to justify them, and they still must fit hard portfolio caps.
 - During `desk-check` and before any new long/add recommendation, compare `portfolio_state.cash_ratio` against the active cash floor (base or escalated), carry any shortfall into the portfolio findings and monitor update, and state whether the escalated floor applies.
 
-## Mixed-Signal Arbitration
-
-When lenses disagree, apply this hierarchy:
-
-1. hard invalidation from the active symbol-level baseline
-2. portfolio override when heat, liquidity, concentration, or regime requires de-risking
-3. parent-workflow synthesis across thesis quality, timeframe intent, flow, narrative, and fundamentals
-4. discretionary adds or trims inside the remaining risk budget
-
-Practical implications:
-
-- PM may block or reduce adds even when symbol-level lenses remain constructive.
-- PM may force trims when portfolio constraints are breached.
-- PM does not replace the raw symbol-level exit engine owned by other lenses.
-- If conflict remains ambiguous after hard rules and portfolio overrides, prefer the safer sizing path.
-
 ## Entry, Exit, And Rebalance Doctrine
 
 Entry discipline:
@@ -291,7 +304,7 @@ Pilot entry pathway:
 
 - Use `entry_type = PILOT` when a READY symbol has an explicit thesis, explicit invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the full BUY gate stack is still incomplete because the trigger is absent, confirmation is mixed, or regime is only `DEFENSIVE`.
 - Pilot size defaults to 0.25% of portfolio equity and is capped at 0.5%.
-- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, regime is `DEFENSIVE` or better, liquidity is acceptable, and no portfolio override blocks the name.
+- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, regime is `DEFENSIVE` or better, liquidity is acceptable, and no hard safety rail is triggered.
 - Pilot entries may proceed on daily location with partial or developing confirmation, neutral-or-better flow, and acceptable but imperfect RR.
 - A pilot is a probe, not a commitment. `trade_classification` remains `THESIS`, `TACTICAL`, or `SPECULATION` based on thesis quality and operating intent.
 - If the full BUY trigger fires after pilot entry, scale using the normal full-gate process.
@@ -321,7 +334,7 @@ Exit doctrine:
 - Profit taking can be staged as price approaches intrinsic value
 - Early exits are acceptable when better opportunity needs cash, portfolio cash is too low, market outlook worsens, or sizing limits are breached
 - Cut-loss framework distinguishes permanent fundamental change/governance violation from temporary noise
-- Portfolio-management consumes symbol-level exits and may add portfolio overrides; it does not replace the raw exit engine owned by other lenses
+- Portfolio-management consumes symbol-level exits and applies portfolio hard rails and size caps around them; it does not replace the raw exit engine owned by other lenses
 
 Rebalancing protocol:
 
@@ -353,7 +366,7 @@ Rebalancing protocol:
 | IHSG cash floor vs current cash ratio | Deterministic | Apply the highest active IHSG cash floor (base 30/50/70 keyed to EMA21/SMA50/SMA200, or escalated 40/60/80) and compare it with `portfolio_state.cash_ratio` |
 | Regime aggression state | Agent judgment | Interpret market proxy structure, leader breadth, and breakdown clustering |
 | Thesis quality assessment | Agent judgment | Synthesize fundamentals, narrative, flow |
-| Portfolio override decision | Agent judgment | Decide whether heat, liquidity, concentration, or regime requires trimming despite symbol thesis remaining intact |
+| Portfolio constraint sizing | Agent judgment | Decide how much heat, liquidity, concentration, or regime should cap size despite symbol thesis remaining intact |
 | Cut-loss vs hold decision | Agent judgment | Evaluate whether decline is permanent impairment or noise |
 
 ## Common Workflows
@@ -385,11 +398,11 @@ Checklist: regime aggression state resolved, IHSG cash floor checked against cur
 9. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, cumulative missed opportunity from the opportunity-cost ledger, and recent action context from the tool outputs.
 10. Extend coverage to watchlist symbols required by the active workflow contract.
 11. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, `Entry type`, pilot lifecycle fields, rebalance-band notes, `Last Reviewed`, `active_recommendation`, and other resolved execution-policy fields.
-12. Prepare the updated portfolio-monitor state and opportunity-cost ledger for the parent workflow.
+12. Prepare the updated portfolio-monitor state, opportunity-cost ledger, and `portfolio_constraints` for the parent workflow.
 13. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
-14. Return portfolio findings, portfolio-monitor update content, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
+14. Return `portfolio_constraints`, portfolio findings, portfolio-monitor update content, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, WAIT staleness checked, opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, WAIT staleness checked, opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Deep Review
 
@@ -401,22 +414,22 @@ Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat`
 6. For each reviewed symbol: check thesis status, active scenario, scenario switch conditions, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, checkpoint status, and whether the name still deserves scarce portfolio attention.
 7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, benchmark behavior versus `IHSG` and relevant leaders, and current best-ideas density.
 8. Review system quality, not only holdings: equity-curve behavior, realized versus unrealized contribution mix, style drift, repeated re-entry mistakes, stale plans, redundant names, cluttered watchlist entries, and process debt.
-9. Prepare cleanup proposals for watchlist status, symbol-plan refreshes, thesis hygiene, portfolio-monitor state, and any portfolio override actions backed by the review evidence.
+9. Prepare cleanup proposals for watchlist status, symbol-plan refreshes, thesis hygiene, portfolio-monitor state, and any portfolio hard-rail or size-cap changes backed by the review evidence.
 10. If watchlist, symbol, or thesis state changes, refresh the derived registry before the parent workflow writes the success log.
 11. Return portfolio findings, neglected-name resurfacing findings, process-quality findings, cleanup actions, and portfolio-monitor update content to the parent workflow.
 
-Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio overrides assessed, cleanup actions prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio constraints assessed, cleanup actions prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.
-2. Confirm whether the exit is coming from the symbol-level baseline (`technical_plan` / thesis invalidation) or from a portfolio override (heat, concentration, liquidity, regime).
+2. Confirm whether the exit is coming from the symbol-level baseline (`technical_plan` / thesis invalidation) or from a portfolio hard rail (heat breach, concentration breach, liquidity breach, regime floor).
 3. Execute exit, update `memory/state/symbols/{SYMBOL}.md` with close details and any final execution-policy outcome that matters for future review.
 4. Update `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
 5. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 6. Post-exit: evaluate process quality, not outcome.
 
-Checklist: exit source documented (symbol baseline vs portfolio override), symbol/watchlist memory updated where needed, registry refreshed, process review noted.
+Checklist: exit source documented (symbol baseline vs portfolio hard rail), symbol/watchlist memory updated where needed, registry refreshed, process review noted.
 
 ### Rebalance Check
 
@@ -437,7 +450,7 @@ Checklist: drift measured, holding-mode band reviewed, event triggers checked, h
 - Keep symbol-memory trade-management fields aligned with the parent workflow's resolved execution plan; do not let raw TA output bypass that synthesis layer.
 - When constraints conflict (`conviction` vs liquidity, thesis quality vs hidden clustering, valuation vs correlation), prefer the safer sizing path.
 - Treat `risk_per_trade`, `portfolio_heat`, liquidity caps, and concentration caps as hard guardrails before discretionary conviction scaling.
-- Treat portfolio overrides as a separate layer after symbol-level analysis: PM can force trims or reduced aggression, but it should not redefine the raw symbol-level exit engine owned by other lenses.
+- Treat portfolio constraints as a separate layer after symbol-level analysis: PM can cap size, force trims through hard rails, or reduce aggression, but it should not redefine the raw symbol-level exit engine owned by other lenses.
 - Use rebalance bands to guide trim/add decisions during reviews, not to create optimizer-style target weights unsupported by the current tool surface.
 - Check regime gate before any new long exposure.
 - Enforce the active IHSG cash floor before endorsing fresh risk, and flag a shortfall when `portfolio_state.cash_ratio` is below that floor.
