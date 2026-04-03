@@ -218,6 +218,7 @@ composite_decision:
 | 86-100 | `HIGH_CONVICTION` | 3.0-5.0% |
 
 - Pick `base_size_pct` inside the mapped band according to score position inside that band, then compute `final_size_pct = min(base_size_pct, portfolio_constraints.max_new_position_size_pct) * portfolio_constraints.regime_aggression`.
+- Lot-size floor: if `action_tier` is `PILOT` or above and `final_size_pct` produces less than 1 IDX lot (100 shares) at the intended entry price, round up to 1 lot. This floor is subject to hard safety rails — if a hard rail blocks the entry, the floor does not override it. The scoring system decides whether to buy; the lot floor ensures the minimum executable size when it does.
 - Binary overrides are limited to hard safety rails:
   - explicit thesis invalidation from any lens -> `EXIT`
   - portfolio heat above 8% -> block all new longs

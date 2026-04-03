@@ -312,6 +312,7 @@ Pilot entry pathway:
 
 - Use `entry_type = PILOT` when a READY symbol has an explicit thesis, explicit invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the composite score is still in the `PILOT` band because the trigger is absent, confirmation is mixed, or `regime_aggression` is low.
 - Pilot base size defaults to 0.25% of portfolio equity and is capped at 0.5% before multiplying by `regime_aggression`.
+- Lot-size floor: if the sizing formula produces a non-zero position smaller than 1 IDX lot (100 shares) at the intended entry price, round up to 1 lot. This applies to all entry types (`PILOT` and `FULL`). The floor is subject to hard safety rails — if a hard rail blocks the entry, the floor does not override it.
 - Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, `regime_aggression >= 0.25`, liquidity is acceptable, and no hard safety rail is triggered.
 - Pilot entries may proceed on daily location with partial or developing confirmation, neutral-or-better flow, and acceptable but imperfect RR.
 - A pilot is a probe, not a commitment. `trade_classification` remains `THESIS`, `TACTICAL`, or `SPECULATION` based on thesis quality and operating intent.

@@ -6,9 +6,7 @@ New symbol plans should start with YAML frontmatter:
 
 ```yaml
 ---
-id: {symbol-lowercase}
-scope: symbol
-symbol: {SYMBOL}
+id: {SYMBOL}
 watchlist_status: {WATCHING | READY | ACTIVE | REMOVED}
 trade_classification: {THESIS | TACTICAL | SPECULATION}
 holding_mode: {TACTICAL | THESIS | HYBRID}
@@ -22,8 +20,8 @@ tags: [{tag}, ...]
 
 Rules:
 
-- Keep the schema small and strict.
-- When an older symbol plan is edited, add the frontmatter during that write instead of leaving mixed formats behind.
+- Keep the schema small and strict. `id` doubles as the symbol ticker. `scope` is implicit from file location (`memory/state/symbols/`).
+- When an older symbol plan is edited, migrate the frontmatter: remove `scope` and `symbol` fields, add any missing fields from the current schema, and add exit-review fields to the Open Position Monitoring section if the position is active.
 - `watchlist_status` is the durable watchlist label for the symbol.
 - Use `leader: true` only for active leadership names that matter to breadth/regime checks.
 - Body content still owns narrative explanation, levels, invalidation, and execution details.
