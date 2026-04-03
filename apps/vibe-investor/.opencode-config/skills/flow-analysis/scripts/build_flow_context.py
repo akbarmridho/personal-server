@@ -12,6 +12,9 @@ import pandas as pd
 
 PRIMARY_WINDOW_DAYS = 30
 TRUST_WINDOW_DAYS = 60
+BETA_PRIMARY_WINDOW_DAYS = 120
+BETA_SHORT_WINDOW_DAYS = 60
+ATR_WINDOW_DAYS = 20
 RECENT_WINDOW_DAYS = 5
 DIVERGENCE_WINDOW_DAYS = 10
 CADI_TOP_BROKERS = 10
@@ -39,6 +42,8 @@ FREQ_GINI_ASYMMETRY_THRESHOLD = 0.08
 FREQ_GINI_MIN_BUY_GINI = 0.55
 FREQ_GINI_MIN_SELL_GINI = 0.55
 
+HIGH_VOLATILITY_ATR_PCT_THRESHOLD = 0.045
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -52,7 +57,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ohlcv",
         required=True,
-        help="Input JSON path from fetch-ohlcv.",
+        help="Input stock JSON path from fetch-ohlcv.",
+    )
+    parser.add_argument(
+        "--benchmark-ohlcv",
+        default=None,
+        help="Optional IHSG benchmark JSON path from fetch-ohlcv for beta metrics.",
     )
     parser.add_argument("--symbol", required=True, help="Ticker symbol, e.g. ANTM.")
     parser.add_argument("--outdir", default="work", help="Output directory.")
@@ -211,6 +221,113 @@ def _money_flow_index(days: list[dict[str, Any]], period: int = 14) -> float:
 
 def _mfi_series(days: list[dict[str, Any]], period: int = 14) -> list[float]:
     return [_money_flow_index(days[: idx + 1], period=period) for idx in range(len(days))]
+
+
+def _atr_volatility_metrics(days: list[dict[str, Any]]) -> dict[str, Any]:
+    window = days[-min(ATR_WINDOW_DAYS, len(days)) :]
+    if len(window) < 2:
+        return {
+            "atr_pct": 0.0,
+            "volatility_profile": "normal",
+        }
+
+    prev_close = float(window[0]["close"])
+    tr_pct_values: list[float] = []
+    for day in window:
+        high = float(day["high"])
+        low = float(day["low"])
+        close = float(day["close"])
+        true_range = max(
+            high - low,
+            abs(high - prev_close),
+            abs(low - prev_close),
+        )
+        tr_pct_values.append(_safe_ratio(true_range, close))
+        prev_close = close
+
+    atr_pct = float(pd.Series(tr_pct_values, dtype="float64").mean())
+    return {
+        "atr_pct": round(atr_pct, 6),
+        "volatility_profile": "high_volatility"
+        if atr_pct >= HIGH_VOLATILITY_ATR_PCT_THRESHOLD
+        else "normal",
+    }
+
+
+def _beta_from_returns(
+    stock_returns: pd.Series,
+    benchmark_returns: pd.Series,
+    window_days: int,
+) -> float:
+    window = pd.concat(
+        [stock_returns.tail(window_days), benchmark_returns.tail(window_days)],
+        axis=1,
+        keys=["stock", "benchmark"],
+    ).dropna()
+    if len(window) < 20:
+        raise ValueError(
+            f"not enough overlapping return rows for {window_days}D beta: got {len(window)}"
+        )
+    benchmark_var = float(window["benchmark"].var(ddof=0))
+    if benchmark_var <= 0 or not math.isfinite(benchmark_var):
+        raise ValueError(f"invalid benchmark return variance for {window_days}D beta")
+    beta_value = float(window["stock"].cov(window["benchmark"], ddof=0) / benchmark_var)
+    if not math.isfinite(beta_value):
+        raise ValueError(f"invalid {window_days}D beta")
+    return beta_value
+
+
+def _beta_classification(beta_120d: float) -> str:
+    if beta_120d < 0.7:
+        return "defensive"
+    if beta_120d <= 1.3:
+        return "moderate"
+    return "aggressive"
+
+
+def _beta_metrics(
+    stock_daily_ohlcv: pd.DataFrame,
+    benchmark_daily_ohlcv: pd.DataFrame,
+    as_of_date: str,
+) -> dict[str, Any]:
+    stock = stock_daily_ohlcv[["date", "close"]].copy()
+    benchmark = benchmark_daily_ohlcv[["date", "close"]].copy()
+    stock["date"] = stock["date"].astype(str)
+    benchmark["date"] = benchmark["date"].astype(str)
+
+    merged = (
+        stock.merge(
+            benchmark,
+            on="date",
+            how="inner",
+            suffixes=("_stock", "_benchmark"),
+        )
+        .sort_values("date")
+        .reset_index(drop=True)
+    )
+    merged = merged[merged["date"] <= as_of_date].copy()
+    if len(merged) < BETA_SHORT_WINDOW_DAYS + 1:
+        raise ValueError(
+            f"not enough overlapping stock/IHSG OHLCV rows for beta: got {len(merged)}"
+        )
+
+    stock_returns = merged["close_stock"].pct_change().dropna()
+    benchmark_returns = merged["close_benchmark"].pct_change().dropna()
+    beta_120d = _beta_from_returns(
+        stock_returns,
+        benchmark_returns,
+        min(BETA_PRIMARY_WINDOW_DAYS, len(stock_returns)),
+    )
+    beta_60d = _beta_from_returns(
+        stock_returns,
+        benchmark_returns,
+        min(BETA_SHORT_WINDOW_DAYS, len(stock_returns)),
+    )
+    return {
+        "beta_120d": round(beta_120d, 6),
+        "beta_60d": round(beta_60d, 6),
+        "beta_classification": _beta_classification(beta_120d),
+    }
 
 
 def _longest_streak(signs: list[int], target: int) -> int:
@@ -851,6 +968,7 @@ def _verdict_weight_profile(
     *,
     liquidity_profile: str,
     market_cap_profile: str,
+    volatility_profile: str,
     persistence_score: float,
     gvpr_buy_pct: float,
     gvpr_sell_pct: float,
@@ -863,6 +981,17 @@ def _verdict_weight_profile(
         and max(buy_hhi, sell_hhi) >= 1500
     )
 
+    if volatility_profile == "high_volatility":
+        return "high_volatility", {
+            "cadi": 0.15,
+            "mfi": 0.18,
+            "persistence": 0.18,
+            "execution": 0.08,
+            "gvpr": 0.08,
+            "concentration": 0.12,
+            "frequency": 0.11,
+            "correlation": 0.10,
+        }
     if institutional_driven:
         return "institutional_driven", {
             "cadi": 0.18,
@@ -1250,6 +1379,7 @@ def build_flow_context_result(
     symbol: str,
     broker_flow: dict[str, Any],
     daily_ohlcv: pd.DataFrame,
+    benchmark_daily_ohlcv: pd.DataFrame | None,
     purpose_mode: str,
 ) -> dict[str, Any]:
     payload_symbol = str(broker_flow.get("symbol", "")).strip().upper()
@@ -1287,6 +1417,9 @@ def build_flow_context_result(
     trust_days = days[-min(TRUST_WINDOW_DAYS, len(days)) :]
     primary_days = trust_days[-min(PRIMARY_WINDOW_DAYS, len(trust_days)) :]
     recent_days = primary_days[-min(RECENT_WINDOW_DAYS, len(primary_days)) :]
+    as_of_date = str(
+        (broker_flow.get("window") or {}).get("as_of_date") or primary_days[-1]["date"]
+    )
 
     cadi_running = 0.0
     cadi_series: list[float] = []
@@ -1375,6 +1508,16 @@ def build_flow_context_result(
     liquidity_profile = _liquidity_profile(avg_daily_value_for_trust)
     latest_market_cap = float(primary_days[-1]["market_cap_close"])
     market_cap_profile = _market_cap_profile(latest_market_cap)
+    volatility_metrics = _atr_volatility_metrics(trust_days)
+    beta_metrics = (
+        _beta_metrics(
+            daily_ohlcv,
+            benchmark_daily_ohlcv,
+            as_of_date=as_of_date,
+        )
+        if benchmark_daily_ohlcv is not None
+        else {}
+    )
 
     if avg_wash_risk >= 12:
         wash_risk_state = "high"
@@ -1403,6 +1546,7 @@ def build_flow_context_result(
     weight_profile_name, weight_profile = _verdict_weight_profile(
         liquidity_profile=liquidity_profile,
         market_cap_profile=market_cap_profile,
+        volatility_profile=str(volatility_metrics["volatility_profile"]),
         persistence_score=persistence_score,
         gvpr_buy_pct=avg_gvpr_buy,
         gvpr_sell_pct=avg_gvpr_sell,
@@ -1454,7 +1598,6 @@ def build_flow_context_result(
     actual_trading_days = int(
         _to_float((broker_flow.get("window") or {}).get("actual_trading_days"), len(days))
     )
-    as_of_date = str((broker_flow.get("window") or {}).get("as_of_date") or primary_days[-1]["date"])
 
     return {
         "analysis": {
@@ -1545,6 +1688,9 @@ def build_flow_context_result(
             "liquidity_profile": liquidity_profile,
             "market_cap_profile": market_cap_profile,
             "market_cap_value": round(latest_market_cap, 2),
+            "atr_pct": volatility_metrics["atr_pct"],
+            "volatility_profile": volatility_metrics["volatility_profile"],
+            **beta_metrics,
             "ticker_flow_usefulness": ticker_flow_usefulness,
             "trust_level": trust_level,
             "verdict_weight_profile": weight_profile_name,
@@ -1581,6 +1727,11 @@ def main() -> None:
 
     broker_flow_path = Path(args.broker_flow).expanduser().resolve()
     ohlcv_path = Path(args.ohlcv).expanduser().resolve()
+    benchmark_ohlcv_path = (
+        Path(args.benchmark_ohlcv).expanduser().resolve()
+        if args.benchmark_ohlcv
+        else None
+    )
     outdir = Path(args.outdir).expanduser().resolve()
     output_path = (
         Path(args.output).expanduser().resolve()
@@ -1590,10 +1741,16 @@ def main() -> None:
 
     broker_flow = load_broker_flow(broker_flow_path)
     daily_ohlcv = load_daily_ohlcv(ohlcv_path)
+    benchmark_daily_ohlcv = (
+        load_daily_ohlcv(benchmark_ohlcv_path)
+        if benchmark_ohlcv_path is not None
+        else None
+    )
     result = build_flow_context_result(
         symbol=symbol,
         broker_flow=broker_flow,
         daily_ohlcv=daily_ohlcv,
+        benchmark_daily_ohlcv=benchmark_daily_ohlcv,
         purpose_mode=args.purpose_mode,
     )
 

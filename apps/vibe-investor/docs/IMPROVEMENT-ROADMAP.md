@@ -70,9 +70,9 @@ Implementation order: bug fix first (3.5), then new signals (3.3 → 3.4 → 3.9
 | 3.3 | Gini-based concentration asymmetry | DONE | `tasks/3.3-gini-concentration.md` | — |
 | 3.4 | Freq+Gini divergence (narrowed from multi-type) | DONE | `tasks/3.4-multi-divergence.md` | 3.3 |
 | 3.5 | Regime threshold calibration | DONE | `tasks/3.5-regime-thresholds.md` | — |
-| 3.6 | Stock beta relative to IHSG | PLANNED | `tasks/3.6-stock-beta.md` | 2.7 |
+| 3.6 | Stock beta relative to IHSG | DONE | `tasks/3.6-stock-beta.md` | 2.7 |
 | 3.7 | Rolling trust regime series | DROPPED | `tasks/3.7-rolling-trust.md` | — |
-| 3.8 | High volatility regime | PLANNED | `tasks/3.8-high-volatility-regime.md` | — |
+| 3.8 | High volatility regime | DONE | `tasks/3.8-high-volatility-regime.md` | — |
 | 3.9 | Net accumulation price | DONE | `tasks/3.9-net-accumulation-price.md` | — |
 | 3.10 | Wyckoff PS/PSY events + continuation/pullback | RESEARCH | `tasks/3.10-wyckoff-ps-psy.md` | — |
 | 3.11 | Per-broker persistence table | DROPPED | `tasks/3.11-broker-persistence.md` | — |

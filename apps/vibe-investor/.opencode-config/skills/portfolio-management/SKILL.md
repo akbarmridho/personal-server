@@ -28,6 +28,7 @@ Tool source of truth:
 - Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, theme clustering, and correlation clustering).
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
 - Apply a regime-sensitive aggression multiplier before new longs; if breadth/market structure weakens, reduce aggression, slow adds, and protect cash.
+- Use symbol beta and portfolio-weighted beta versus `IHSG` as a market-risk overlay: when the tape weakens, compress high-beta adds more sharply and prefer defensive-beta names for any remaining exposure.
 - Review process quality separately from outcome. Do not let a profitable result excuse weak underwriting, and do not let a loss erase a process that remained disciplined and evidence-based.
 - Use a two-tier IHSG cash-target ladder (EMA21/SMA50/SMA200) as a regime overlay: base targets and escalated targets are soft budget targets that compress `regime_aggression` and `max_new_position_size_pct` when cash is below target.
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
@@ -274,6 +275,12 @@ Compute one `regime_aggression` multiplier from IHSG structure and breadth:
 | Below SMA200 with additional red flags | 0.1 | 0.2 | 0.1 |
 
 Use the table as the starting point, then adjust only within `0.1-1.5` when leader health, breakdown clustering, or macro context materially strengthens or weakens the tape. The aggression curve controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
+
+Beta overlay:
+
+- Estimate the book's current position-weighted beta from live holding weights and the latest available per-symbol `trust_regime.beta_120d` values.
+- When IHSG structure/breadth is weak and the book's weighted beta is already high, reduce `regime_aggression`, compress `max_new_position_size_pct` for new aggressive-beta names, and prefer defensive or moderate-beta candidates.
+- When IHSG improves and beta is low, high-beta names can use more of the available size budget, but still only inside heat, concentration, and liquidity rails.
 
 Rate-of-change read:
 

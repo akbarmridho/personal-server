@@ -28,9 +28,13 @@ Those remain under `technical-analysis` and the parent workflow.
 Required dependencies:
 
 1. `fetch-broker-flow` output JSON
-2. `fetch-ohlcv` output JSON
+2. `fetch-ohlcv` output JSON for the stock
 
-If either fetch fails, stop. Do not improvise broker-flow analysis without both datasets.
+Optional dependency:
+
+- `fetch-ohlcv` output JSON for `IHSG` when beta metrics are needed
+
+If any required fetch fails, stop. Do not improvise broker-flow analysis without broker-flow and stock OHLCV data.
 
 ## Deterministic Build
 
@@ -41,16 +45,19 @@ Run:
 ```bash
 python3 scripts/build_flow_context.py \
   --broker-flow {FETCH_BROKER_FLOW_OUTPUT_PATH} \
-  --ohlcv {FETCH_OHLCV_OUTPUT_PATH} \
+  --ohlcv {FETCH_STOCK_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --output {FLOW_CONTEXT_OUTPUT_PATH} \
   --purpose-mode {INITIAL|UPDATE|POSTMORTEM}
 ```
 
+Include `--benchmark-ohlcv {FETCH_IHSG_OHLCV_OUTPUT_PATH}` when beta metrics are needed.
+
 Rules:
 
 - use the exact JSON produced by `fetch-broker-flow`
-- use the exact JSON produced by `fetch-ohlcv`
+- use the exact stock JSON produced by `fetch-ohlcv`
+- if `--benchmark-ohlcv` is provided, use the exact `IHSG` JSON produced by `fetch-ohlcv`
 - output must be a UTF-8 `.json` file
 - `60` fetched trading days provide:
   - `30D` active read for current sponsor behavior and direction
@@ -120,6 +127,11 @@ Trust and assessment:
 - `trust_regime.liquidity_profile`
 - `trust_regime.market_cap_profile`
 - `trust_regime.market_cap_value`
+- `trust_regime.atr_pct`
+- `trust_regime.volatility_profile`
+- `trust_regime.beta_120d`
+- `trust_regime.beta_60d`
+- `trust_regime.beta_classification`
 - `trust_regime.ticker_flow_usefulness`
 - `trust_regime.trust_level`
 - `trust_regime.verdict_weight_profile`
@@ -225,6 +237,8 @@ Interpretation rules:
 - `30D` tells you what brokers are doing now
 - `60D` tells you whether broker-flow signals are generally trustworthy here
 - liquidity and market cap must influence trust
+- high `atr_pct` should switch the factor mix to `high_volatility`, which places more weight on `MFI`
+- when beta fields are present, `beta_classification` adds market-risk context: `defensive`, `moderate`, or `aggressive` versus `IHSG`
 - high anomaly risk or low coverage must discount trust
 - `verdict_weight_profile` explains how factor weighting changes by ticker regime
 
@@ -361,6 +375,8 @@ State:
 
 - `trust_regime.liquidity_profile`
 - `trust_regime.market_cap_profile`
+- `trust_regime.volatility_profile`
+- `trust_regime.beta_classification`
 - `trust_regime.ticker_flow_usefulness`
 - `trust_regime.trust_rationale`
 
