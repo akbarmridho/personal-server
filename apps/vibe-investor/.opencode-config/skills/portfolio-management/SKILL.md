@@ -68,20 +68,6 @@ Shared labels used by this skill:
 
 Portfolio health flags:
 
-- `PM-W01` Single position exceeds 30% weight
-- `PM-W02` Speculative allocation exceeds 10%
-- `PM-W03` Less than 50% in MoS >30% positions
-- `PM-W04` Sector limit breached (>2 per sector)
-- `PM-W05` Portfolio heat exceeds 6%
-- `PM-W06` Correlation clustering (`corr > 0.75`) between large holdings
-- `PM-W07` Position size exceeds 5% of ADTV
-- `PM-W08` Portfolio flat/red while IHSG at new highs
-- `PM-W09` Multiple leaders invalidated in the same review window
-- `PM-W10` Thesis stale (no review within cadence)
-- `PM-W11` Cash ratio below IHSG cash target
-
-Health flag metadata:
-
 | Flag | Meaning | Severity | Source type |
 |------|---------|----------|-------------|
 | `PM-W01` | Single position exceeds 30% weight | `HIGH` | deterministic |
