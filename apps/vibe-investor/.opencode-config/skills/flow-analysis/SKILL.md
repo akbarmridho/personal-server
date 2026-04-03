@@ -80,12 +80,15 @@ Core metrics:
 - `core_metrics.gvpr_pattern`
 - `core_metrics.top_buyer_share_pct`
 - `core_metrics.top_seller_share_pct`
+- `core_metrics.net_accumulation_price`
+- `core_metrics.net_accumulation_vs_current_pct`
 
 Semantics:
 
 - `core_metrics.coverage_*` measures visible top-25 side value as a share of total market value
 - `core_metrics.buy_avg_vs_vwap_pct`, `core_metrics.sell_avg_vs_vwap_pct`, `core_metrics.gvpr_*`, and `core_metrics.top_*_share_pct` are selected-period aggregate metrics over the primary 30-session window
 - `core_metrics.gvpr_*` and `core_metrics.top_*_share_pct` are anchored to total market value over that window, matching the source doctrine
+- `core_metrics.net_accumulation_price` is the VWAP of net-positive flow days in the primary window; compare `core_metrics.net_accumulation_vs_current_pct` to see whether visible accumulators are in profit
 
 Advanced signals:
 
@@ -93,13 +96,20 @@ Advanced signals:
 - `advanced_signals.persistence_state`
 - `advanced_signals.buy_hhi`
 - `advanced_signals.sell_hhi`
-- `advanced_signals.concentration_asymmetry_state`
+- `advanced_signals.buy_gini`
+- `advanced_signals.sell_gini`
+- `advanced_signals.gini_asymmetry`
+- `advanced_signals.gini_asymmetry_state`
 - `advanced_signals.mfi_value`
 - `advanced_signals.mfi_state`
 - `advanced_signals.frequency_score`
 - `advanced_signals.frequency_profile`
 - `advanced_signals.flow_price_correlation_spearman`
 - `advanced_signals.flow_price_correlation_state`
+- `advanced_signals.cadi_divergence_state`
+- `advanced_signals.mfi_divergence_state`
+- `advanced_signals.freq_gini_divergence_state`
+- `advanced_signals.divergence_summary`
 - `advanced_signals.divergence_state`
 - `advanced_signals.wash_risk_pct`
 - `advanced_signals.wash_risk_state`
@@ -189,6 +199,7 @@ Interpretation rules:
 
 - rising `CADI` with positive recent net flow is constructive
 - selected-period buy-vs-VWAP is the verdict input; daily execution path still lives in `history`
+- `net_accumulation_price` below current price means visible accumulators are sitting in profit; above current price means they are underwater
 - `GVPR` and top-broker share are participation context, not standalone truth
 - low coverage means the visible broker picture is partial
 
@@ -199,8 +210,9 @@ These refine the read.
 Interpretation rules:
 
 - persistence upgrades conviction; it does not replace direction
-- `HHI` and top-k participation are the preferred concentration backbone
+- `gini_asymmetry_state` is the primary concentration asymmetry read; `HHI` and top-k participation are secondary confirmation
 - `Frequency Profile` is included because raw broker frequency exists in the source data
+- read `cadi_divergence_state`, `mfi_divergence_state`, and `freq_gini_divergence_state` separately, then use `divergence_summary` as the compact rollup
 - divergence is context only
 - wash/anomaly risk is a discount, not a conclusion
 
@@ -320,6 +332,8 @@ Summarize:
 - `core_metrics.net_flow_recent_value`
 - `core_metrics.buy_avg_vs_vwap_pct`
 - `core_metrics.sell_avg_vs_vwap_pct`
+- `core_metrics.net_accumulation_price`
+- `core_metrics.net_accumulation_vs_current_pct`
 - `core_metrics.gvpr_buy_pct` / `core_metrics.gvpr_sell_pct`
 - `core_metrics.top_buyer_share_pct` / `core_metrics.top_seller_share_pct`
 - `core_metrics.coverage_buy_pct` / `core_metrics.coverage_sell_pct`
@@ -331,8 +345,13 @@ If needed for inspection, refer to the compact historical block instead of re-re
 Summarize only what matters:
 
 - `advanced_signals.persistence_state`
-- `advanced_signals.concentration_asymmetry_state`
+- `advanced_signals.gini_asymmetry_state`
+- `advanced_signals.gini_asymmetry`
 - `advanced_signals.flow_price_correlation_state`
+- `advanced_signals.cadi_divergence_state`
+- `advanced_signals.mfi_divergence_state`
+- `advanced_signals.freq_gini_divergence_state`
+- `advanced_signals.divergence_summary`
 - `advanced_signals.divergence_state`
 - `advanced_signals.wash_risk_state` / `advanced_signals.anomaly_risk_state`
 

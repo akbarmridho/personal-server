@@ -21,6 +21,24 @@ MIN_REQUIRED_FLOW_DAYS = 10
 LOW_COVERAGE_THRESHOLD = 0.45
 VERY_LOW_COVERAGE_THRESHOLD = 0.30
 
+LIQUIDITY_HIGH_THRESHOLD = 500_000_000_000
+LIQUIDITY_MEDIUM_THRESHOLD = 100_000_000_000
+LIQUIDITY_LOW_THRESHOLD = 10_000_000_000
+
+MARKET_CAP_LARGE_THRESHOLD = 40_000_000_000_000
+MARKET_CAP_MID_THRESHOLD = 5_000_000_000_000
+MARKET_CAP_SMALL_THRESHOLD = 500_000_000_000
+
+GINI_STRONG_THRESHOLD = 0.12
+GINI_LEAN_THRESHOLD = 0.02
+
+MFI_DIVERGENCE_SLOPE_THRESHOLD = 0.75
+FREQ_GINI_PRICE_FLAT_THRESHOLD = 0.001
+FREQ_GINI_FREQUENCY_SLOPE_THRESHOLD = 0.03
+FREQ_GINI_ASYMMETRY_THRESHOLD = 0.08
+FREQ_GINI_MIN_BUY_GINI = 0.55
+FREQ_GINI_MIN_SELL_GINI = 0.55
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -191,6 +209,10 @@ def _money_flow_index(days: list[dict[str, Any]], period: int = 14) -> float:
     return 100.0 - (100.0 / (1.0 + ratio))
 
 
+def _mfi_series(days: list[dict[str, Any]], period: int = 14) -> list[float]:
+    return [_money_flow_index(days[: idx + 1], period=period) for idx in range(len(days))]
+
+
 def _longest_streak(signs: list[int], target: int) -> int:
     best = 0
     current = 0
@@ -204,21 +226,21 @@ def _longest_streak(signs: list[int], target: int) -> int:
 
 
 def _liquidity_profile(avg_daily_value: float) -> str:
-    if avg_daily_value > 50_000_000_000:
+    if avg_daily_value >= LIQUIDITY_HIGH_THRESHOLD:
         return "high"
-    if avg_daily_value >= 10_000_000_000:
+    if avg_daily_value >= LIQUIDITY_MEDIUM_THRESHOLD:
         return "medium"
-    if avg_daily_value >= 1_000_000_000:
+    if avg_daily_value >= LIQUIDITY_LOW_THRESHOLD:
         return "low"
     return "very_low"
 
 
 def _market_cap_profile(market_cap_value: float) -> str:
-    if market_cap_value > 10_000_000_000_000:
+    if market_cap_value >= MARKET_CAP_LARGE_THRESHOLD:
         return "large"
-    if market_cap_value >= 1_000_000_000_000:
+    if market_cap_value >= MARKET_CAP_MID_THRESHOLD:
         return "mid"
-    if market_cap_value >= 100_000_000_000:
+    if market_cap_value >= MARKET_CAP_SMALL_THRESHOLD:
         return "small"
     return "micro"
 
@@ -311,6 +333,24 @@ def _hhi_from_rows(rows: list[dict[str, Any]]) -> float:
     )
 
 
+def _gini_from_rows(rows: list[dict[str, Any]]) -> float:
+    values = sorted(
+        value
+        for value in (_to_float(row.get("value")) for row in rows)
+        if value > 0
+    )
+    if len(values) < 2:
+        return 0.0
+    total_value = sum(values)
+    if total_value <= 0:
+        return 0.0
+    weighted_sum = sum((idx + 1) * value for idx, value in enumerate(values))
+    gini_value = ((2.0 * weighted_sum) / (len(values) * total_value)) - (
+        (len(values) + 1.0) / len(values)
+    )
+    return _clip(gini_value, 0.0, 1.0)
+
+
 def _window_vwap(days: list[dict[str, Any]]) -> float:
     total_value = sum(_to_float(day.get("market_value")) for day in days)
     total_volume = sum(_to_float(day.get("market_volume")) for day in days)
@@ -355,6 +395,8 @@ def _daily_metrics(
     sell_rows: list[dict[str, Any]],
     market_row: pd.Series,
 ) -> dict[str, Any]:
+    high = _to_float(market_row.get("high"))
+    low = _to_float(market_row.get("low"))
     close = _to_float(market_row.get("close"))
     market_volume = _to_float(market_row.get("volume"))
     raw_market_value = _to_float(market_row.get("value"))
@@ -412,12 +454,17 @@ def _daily_metrics(
 
     buy_top_values = sorted((_to_float(row.get("value")) for row in buy_rows), reverse=True)
     sell_top_values = sorted((_to_float(row.get("value")) for row in sell_rows), reverse=True)
+    buy_gini = _gini_from_rows(buy_rows)
+    sell_gini = _gini_from_rows(sell_rows)
 
     return {
         "date": date,
+        "high": high,
+        "low": low,
         "close": close,
         "market_value": market_value,
         "market_volume": market_volume,
+        "market_vwap": vwap_day,
         "market_cap_close": market_cap_close,
         "coverage_buy": buy_coverage,
         "coverage_sell": sell_coverage,
@@ -434,6 +481,11 @@ def _daily_metrics(
         "gvpr_sell_pct": _safe_ratio(sum(sell_top_values[:GVPR_TOP_BROKERS]), market_value),
         "buy_hhi": _hhi_from_rows(buy_rows),
         "sell_hhi": _hhi_from_rows(sell_rows),
+        "buy_gini": buy_gini,
+        "sell_gini": sell_gini,
+        "gini_asymmetry": buy_gini - sell_gini,
+        "total_frequency": sum(_to_float(row.get("frequency")) for row in buy_rows)
+        + sum(_to_float(row.get("frequency")) for row in sell_rows),
         "net_flow_visible_value": sum(sanitized_net_by_broker.values()),
         "cadi_increment": cadi_increment,
         "wash_risk_pct": _clip(wash_risk_raw * 100.0, 0.0, 100.0),
@@ -531,11 +583,25 @@ def _correlation_state(value: float) -> str:
     return "minimal"
 
 
-def _concentration_state(avg_buy_hhi: float, avg_sell_hhi: float, avg_gvpr_buy: float, avg_gvpr_sell: float) -> str:
+def _gini_asymmetry_state(
+    avg_gini_asymmetry: float,
+    avg_buy_hhi: float,
+    avg_sell_hhi: float,
+    avg_gvpr_buy: float,
+    avg_gvpr_sell: float,
+) -> str:
+    if avg_gini_asymmetry > GINI_STRONG_THRESHOLD:
+        return "institutional_accumulation"
+    if avg_gini_asymmetry >= GINI_LEAN_THRESHOLD:
+        return "leaning_accumulation"
+    if avg_gini_asymmetry < -GINI_STRONG_THRESHOLD:
+        return "institutional_distribution"
+    if avg_gini_asymmetry <= -GINI_LEAN_THRESHOLD:
+        return "leaning_distribution"
     if avg_buy_hhi - avg_sell_hhi >= 250 and avg_gvpr_buy - avg_gvpr_sell >= 0.02:
-        return "buy_heavy"
+        return "leaning_accumulation"
     if avg_sell_hhi - avg_buy_hhi >= 250 and avg_gvpr_sell - avg_gvpr_buy >= 0.02:
-        return "sell_heavy"
+        return "leaning_distribution"
     return "balanced"
 
 
@@ -572,9 +638,15 @@ def _mfi_state(mfi_value: float) -> str:
     return "extreme_bearish"
 
 
-def _divergence_state(primary_days: list[dict[str, Any]]) -> str:
+def _divergence_states(primary_days: list[dict[str, Any]]) -> dict[str, str]:
     if len(primary_days) < 5:
-        return "unclear"
+        return {
+            "cadi_divergence_state": "unclear",
+            "mfi_divergence_state": "unclear",
+            "freq_gini_divergence_state": "unclear",
+            "divergence_summary": "unclear",
+        }
+
     window = primary_days[-min(DIVERGENCE_WINDOW_DAYS, len(primary_days)) :]
     price_values = [float(day["close"]) for day in window]
     cadi_series: list[float] = []
@@ -586,11 +658,99 @@ def _divergence_state(primary_days: list[dict[str, Any]]) -> str:
     cadi_slope = _series_slope(cadi_series)
     avg_price = sum(price_values) / len(price_values)
     normalized_price_slope = _safe_ratio(price_slope, avg_price)
+
     if normalized_price_slope <= -0.001 and cadi_slope >= 0.0025:
-        return "bullish_divergence"
-    if normalized_price_slope >= 0.001 and cadi_slope <= -0.0025:
-        return "bearish_divergence"
-    return "none"
+        cadi_divergence_state = "bullish_divergence"
+    elif normalized_price_slope >= 0.001 and cadi_slope <= -0.0025:
+        cadi_divergence_state = "bearish_divergence"
+    else:
+        cadi_divergence_state = "none"
+
+    mfi_values = _mfi_series(primary_days)[-len(window) :]
+    mfi_slope = _series_slope(mfi_values)
+    if (
+        normalized_price_slope <= -0.001
+        and mfi_slope >= MFI_DIVERGENCE_SLOPE_THRESHOLD
+    ):
+        mfi_divergence_state = "bullish_divergence"
+    elif (
+        normalized_price_slope >= 0.001
+        and mfi_slope <= -MFI_DIVERGENCE_SLOPE_THRESHOLD
+    ):
+        mfi_divergence_state = "bearish_divergence"
+    else:
+        mfi_divergence_state = "none"
+
+    frequency_values = [float(day["total_frequency"]) for day in window]
+    avg_frequency = sum(frequency_values) / len(frequency_values)
+    normalized_frequency_slope = _safe_ratio(_series_slope(frequency_values), avg_frequency)
+    avg_buy_gini = float(pd.Series([day["buy_gini"] for day in window]).mean())
+    avg_sell_gini = float(pd.Series([day["sell_gini"] for day in window]).mean())
+    avg_gini_asymmetry = float(
+        pd.Series([day["gini_asymmetry"] for day in window]).mean()
+    )
+
+    if (
+        abs(normalized_price_slope) <= FREQ_GINI_PRICE_FLAT_THRESHOLD
+        and normalized_frequency_slope >= FREQ_GINI_FREQUENCY_SLOPE_THRESHOLD
+        and avg_buy_gini >= FREQ_GINI_MIN_BUY_GINI
+        and avg_gini_asymmetry >= FREQ_GINI_ASYMMETRY_THRESHOLD
+    ):
+        freq_gini_divergence_state = "bullish_divergence"
+    elif (
+        abs(normalized_price_slope) <= FREQ_GINI_PRICE_FLAT_THRESHOLD
+        and normalized_frequency_slope >= FREQ_GINI_FREQUENCY_SLOPE_THRESHOLD
+        and avg_sell_gini >= FREQ_GINI_MIN_SELL_GINI
+        and avg_gini_asymmetry <= -FREQ_GINI_ASYMMETRY_THRESHOLD
+    ):
+        freq_gini_divergence_state = "bearish_divergence"
+    else:
+        freq_gini_divergence_state = "none"
+
+    states = [
+        cadi_divergence_state,
+        mfi_divergence_state,
+        freq_gini_divergence_state,
+    ]
+    if "bullish_divergence" in states and "bearish_divergence" not in states:
+        divergence_summary = "bullish_divergence"
+    elif "bearish_divergence" in states and "bullish_divergence" not in states:
+        divergence_summary = "bearish_divergence"
+    elif "bullish_divergence" in states and "bearish_divergence" in states:
+        divergence_summary = "mixed"
+    else:
+        divergence_summary = "none"
+
+    return {
+        "cadi_divergence_state": cadi_divergence_state,
+        "mfi_divergence_state": mfi_divergence_state,
+        "freq_gini_divergence_state": freq_gini_divergence_state,
+        "divergence_summary": divergence_summary,
+    }
+
+
+def _net_accumulation_metrics(primary_days: list[dict[str, Any]]) -> dict[str, float]:
+    positive_net_value = 0.0
+    positive_net_volume = 0.0
+    for day in primary_days:
+        net_flow_value = float(day["net_flow_visible_value"])
+        day_vwap = float(day["market_vwap"])
+        if net_flow_value <= 0 or day_vwap <= 0:
+            continue
+        positive_net_value += net_flow_value
+        positive_net_volume += net_flow_value / day_vwap
+
+    net_accumulation_price = _safe_ratio(positive_net_value, positive_net_volume)
+    if net_accumulation_price <= 0 or not primary_days:
+        return {}
+
+    current_price = float(primary_days[-1]["close"])
+    return {
+        "net_accumulation_price": round(net_accumulation_price, 6),
+        "net_accumulation_vs_current_pct": round(
+            _safe_ratio(current_price, net_accumulation_price) - 1.0, 6
+        ),
+    }
 
 
 def _trust_regime(
@@ -840,6 +1000,11 @@ def _baseline_verdict(
     elif gvpr_bias <= -0.03:
         caution_factors.append("sell-side participation concentration is stronger than buy-side")
 
+    if concentration_bias >= 0.20:
+        support_factors.append("buy-side concentration asymmetry favors accumulation")
+    elif concentration_bias <= -0.20:
+        caution_factors.append("sell-side concentration asymmetry favors distribution")
+
     if frequency_score >= 0.18:
         support_factors.append("buy-side ticket size profile looks more institutional")
     elif frequency_score <= -0.18:
@@ -855,6 +1020,8 @@ def _baseline_verdict(
         support_factors.append("flow is improving ahead of price")
     elif divergence_state == "bearish_divergence":
         caution_factors.append("flow is deteriorating while price still holds up")
+    elif divergence_state == "mixed":
+        caution_factors.append("divergence signals are mixed across CADI, MFI, and frequency-Gini")
 
     return verdict, conviction_pct, sponsor_quality, support_factors[:4], caution_factors[:4]
 
@@ -897,6 +1064,8 @@ def _integration_hook(
         summary.append("bullish divergence keeps the read in early-turn territory")
     elif divergence_state == "bearish_divergence":
         summary.append("bearish divergence keeps the read in warning territory")
+    elif divergence_state == "mixed":
+        summary.append("divergence signals are mixed across broker-flow, MFI, and frequency-Gini")
 
     return {
         "timing_relation": timing_relation,
@@ -924,6 +1093,8 @@ def _update_context(
         flow_status = "intact"
 
     if divergence_state in {"bullish_divergence", "bearish_divergence"}:
+        review_reason = "contradiction"
+    elif divergence_state == "mixed":
         review_reason = "contradiction"
     elif (
         verdict == "ACCUMULATION" and persistence_state in {"sell_persistence", "strong_sell_persistence"}
@@ -1173,6 +1344,9 @@ def build_flow_context_result(
     )
     avg_buy_hhi = _hhi_from_rows(primary_buy_rows)
     avg_sell_hhi = _hhi_from_rows(primary_sell_rows)
+    avg_buy_gini = float(pd.Series([day["buy_gini"] for day in primary_days]).mean())
+    avg_sell_gini = float(pd.Series([day["sell_gini"] for day in primary_days]).mean())
+    avg_gini_asymmetry = avg_buy_gini - avg_sell_gini
     avg_top_buyer_share = _safe_ratio(
         primary_buy_values[0] if primary_buy_values else 0.0, total_market_value_primary
     )
@@ -1182,10 +1356,16 @@ def build_flow_context_result(
     frequency_score, frequency_profile = _frequency_profile(primary_buy_rows, primary_sell_rows)
 
     persistence_score, persistence_state = _persistence(primary_days)
-    concentration_state = _concentration_state(
-        avg_buy_hhi, avg_sell_hhi, avg_gvpr_buy, avg_gvpr_sell
+    concentration_state = _gini_asymmetry_state(
+        avg_gini_asymmetry,
+        avg_buy_hhi,
+        avg_sell_hhi,
+        avg_gvpr_buy,
+        avg_gvpr_sell,
     )
-    divergence_state = _divergence_state(primary_days)
+    divergence_states = _divergence_states(primary_days)
+    divergence_summary = divergence_states["divergence_summary"]
+    net_accumulation_metrics = _net_accumulation_metrics(primary_days)
 
     closes_trust = [float(day["close"]) for day in trust_days]
     flow_price_correlation = _spearman_corr(cadi_series, closes_trust)
@@ -1230,7 +1410,8 @@ def build_flow_context_result(
         sell_hhi=avg_sell_hhi,
     )
     concentration_bias = _clip(
-        ((avg_gvpr_buy - avg_gvpr_sell) * 4.0) + ((avg_buy_hhi - avg_sell_hhi) / 2000.0),
+        (_safe_ratio(avg_gini_asymmetry, GINI_STRONG_THRESHOLD) * 0.75)
+        + (((avg_buy_hhi - avg_sell_hhi) / 2000.0) * 0.25),
         -1.0,
         1.0,
     )
@@ -1244,7 +1425,7 @@ def build_flow_context_result(
             concentration_bias=concentration_bias,
             frequency_score=frequency_score,
             correlation_value=flow_price_correlation,
-            divergence_state=divergence_state,
+            divergence_state=divergence_summary,
             trust_level=trust_level,
             cadi_trend=cadi_trend,
             avg_coverage=avg_coverage,
@@ -1255,7 +1436,7 @@ def build_flow_context_result(
     )
 
     integration_hook, normalized_price_slope = _integration_hook(
-        verdict, trust_level, divergence_state, primary_days
+        verdict, trust_level, divergence_summary, primary_days
     )
     monitoring = _monitoring(
         verdict=verdict,
@@ -1337,20 +1518,25 @@ def build_flow_context_result(
             ),
             "top_buyer_share_pct": round(avg_top_buyer_share, 6),
             "top_seller_share_pct": round(avg_top_seller_share, 6),
+            **net_accumulation_metrics,
         },
         "advanced_signals": {
             "persistence_score": round(persistence_score, 2),
             "persistence_state": persistence_state,
             "buy_hhi": round(avg_buy_hhi, 2),
             "sell_hhi": round(avg_sell_hhi, 2),
-            "concentration_asymmetry_state": concentration_state,
+            "buy_gini": round(avg_buy_gini, 6),
+            "sell_gini": round(avg_sell_gini, 6),
+            "gini_asymmetry": round(avg_gini_asymmetry, 6),
+            "gini_asymmetry_state": concentration_state,
             "mfi_value": round(mfi_value, 2),
             "mfi_state": mfi_state,
             "frequency_score": round(frequency_score, 6),
             "frequency_profile": frequency_profile,
             "flow_price_correlation_spearman": round(flow_price_correlation, 6),
             "flow_price_correlation_state": correlation_state,
-            "divergence_state": divergence_state,
+            **divergence_states,
+            "divergence_state": divergence_summary,
             "wash_risk_pct": round(avg_wash_risk, 2),
             "wash_risk_state": wash_risk_state,
             "anomaly_risk_state": anomaly_risk_state,
@@ -1376,7 +1562,7 @@ def build_flow_context_result(
         **(
             {"update_context": _update_context(
                 verdict=verdict,
-                divergence_state=divergence_state,
+                divergence_state=divergence_summary,
                 cadi_trend=cadi_trend,
                 status_drift=str(monitoring["status_drift"]),
                 persistence_state=persistence_state,
