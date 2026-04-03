@@ -176,6 +176,8 @@ One final action: `BUY` | `HOLD` | `WAIT` | `EXIT`. Use action rules from the Po
 
 What confirms, invalidates, or refreshes this thesis next? Every run ends with explicit monitoring conditions.
 
+When the chart has more than one plausible forward path that materially changes execution, include a small optional scenario map in the final report instead of forcing a single-path narrative too early.
+
 ### Daily And 15m Authority
 
 Daily owns: STATE, LOCATION, SETUP, main risk map. Daily has final authority on thesis direction.
@@ -781,6 +783,7 @@ Use this structure for every technical analysis output:
 - **D. Setup And Trigger**: selected setup family, validity, trigger state/type/level, confirmation state, participation quality, latest structure event, breakout quality note
 - **E. Risk And Decision**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR, red flags summary, final action rationale
 - **F. Trade Management**: technical partial plan, trail mode, time-stop baseline, active profit state and exit-urgency context when long
+- **Optional Scenarios**: 2-4 named chart-path branches when the setup is path-dependent. For each scenario, state trigger/level, likely path, operating implication, and optional rough likelihood.
 - **G. Delta And Monitoring**: previous thesis snapshot (UPDATE/POSTMORTEM), thesis status and review reason (UPDATE), delta log (UPDATE), failure point and handling improvement (POSTMORTEM), monitoring triggers, stale setup condition
 - **H. Adaptive MA**: selected period and chart mode when available
 - **I. Evidence**: workflow trace, evidence ledger, chart artifact references from manifest

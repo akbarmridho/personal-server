@@ -31,6 +31,7 @@ Tool source of truth:
 - Review process quality separately from outcome. Do not let a profitable result excuse weak underwriting, and do not let a loss erase a process that remained disciplined and evidence-based.
 - Use a two-tier IHSG cash-floor ladder (EMA21/SMA50/SMA200) as a regime overlay: base floors set minimum cash, escalated floors apply when broader red flags confirm trouble.
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
+- Use durable `Active Scenarios` in symbol and thesis state when they exist. Scenario transitions can justify adds, trims, de-risking, or thesis retirement before hard invalidation is hit.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level overrides when heat, concentration, liquidity, or regime require action beyond the symbol-level baseline.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
 - Use durable state files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated and the derived registry is refreshed.
@@ -358,7 +359,7 @@ Checklist: regime aggression state resolved, IHSG cash floor checked against cur
 2. Call `portfolio_state` for holdings input and compact summary. If missing or malformed, stop.
 3. Use `portfolio_trade_history` with `view: "events"` plus a tight `limit` when recent operator behavior matters for the review window.
 4. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
-5. For each position: check thesis status, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, and checkpoint status from `portfolio_state`, symbol memory, and trade-history context.
+5. For each position: check thesis status, active scenario, scenario switch conditions, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, and checkpoint status from `portfolio_state`, symbol memory, and trade-history context.
 6. Check whether any `Progress checkpoint date` has passed and evaluate the stored checkpoint failure action.
 7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, and recent action context from the tool outputs.
 8. Extend coverage to watchlist symbols required by the active workflow contract.
@@ -376,7 +377,7 @@ Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat`
 3. Use `portfolio_trade_history` with both `view: "events"` and `view: "realized_stats"` when the review needs operator-behavior context, realized contribution, and system-level performance diagnostics.
 4. Use `portfolio_symbol_trade_journey` for names that need lifecycle context, realized postmortem setup, or high-friction decision review.
 5. Build the review universe from current holdings, active watchlist names required by the parent workflow, and a required resurfacing set of stale or neglected watchlist names and symbol plans.
-6. For each reviewed symbol: check thesis status, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, checkpoint status, and whether the name still deserves scarce portfolio attention.
+6. For each reviewed symbol: check thesis status, active scenario, scenario switch conditions, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, checkpoint status, and whether the name still deserves scarce portfolio attention.
 7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, benchmark behavior versus `IHSG` and relevant leaders, and current best-ideas density.
 8. Review system quality, not only holdings: equity-curve behavior, realized versus unrealized contribution mix, style drift, repeated re-entry mistakes, stale plans, redundant names, cluttered watchlist entries, and process debt.
 9. Prepare cleanup proposals for watchlist status, symbol-plan refreshes, thesis hygiene, portfolio-monitor state, and any portfolio override actions backed by the review evidence.
@@ -399,7 +400,7 @@ Checklist: exit source documented (symbol baseline vs portfolio override), symbo
 ### Rebalance Check
 
 1. Check drift triggers (>20% deviation from target or beyond the intended holding-mode band).
-2. Check event triggers (thesis break, governance, liquidity, or regime deterioration).
+2. Check event triggers (scenario transition, thesis break, governance, liquidity, or regime deterioration).
 3. For replacements: check correlation with remaining holdings.
 4. Check hidden clustering before replacing one name with another similar driver.
 5. Skip tiny trades with no material risk impact.

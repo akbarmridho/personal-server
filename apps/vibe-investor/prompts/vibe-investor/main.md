@@ -67,7 +67,7 @@ Portfolio memory rules:
 
 - Portfolio raw and normalized machine data live outside workspace memory under `AI_CONNECTOR_DATA_ROOT`. Access via custom portfolio tools only.
 - Portfolio checks remain part of the `portfolio-management` skill and rely on portfolio tools plus durable memory state, including IHSG regime cash-floor checks (EMA21/SMA50/SMA200 base and escalated floors) against live cash ratio.
-- `memory/state/symbols/{SYMBOL}.md` is the durable per-symbol operating plan, including holding mode, technical exit baseline, and resolved execution policy.
+- `memory/state/symbols/{SYMBOL}.md` is the durable per-symbol operating plan, including holding mode, technical exit baseline, resolved execution policy, and optional active operating scenarios when one linear path is not enough.
 - Portfolio tools are the live truth for actual holdings, fills, remaining size, realized actions, and latest portfolio state. Do not treat symbol memory as the execution ledger.
 - If a one-off portfolio calculation is needed and the portfolio tools do not already provide it, create and run a temporary script under `work/` instead of adding a permanent script surface.
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
@@ -76,7 +76,7 @@ Portfolio memory rules:
 - `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` are derived current-state files for fast lookup. Refresh them after any workflow that mutates symbol, thesis, or watchlist state.
 - Durable machine state lives in `memory/state/symbols/{SYMBOL}.md` and `memory/state/theses/{THESIS_ID}/thesis.md`.
 - Keep thesis summary in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`. Each row should include `Type` (`THESIS` or `SUBTHESIS`), `Parent` (blank for top-level theses), and a link to the per-thesis file.
-- Store each thesis or subthesis in `memory/state/theses/{THESIS_ID}/thesis.md` as decision state + lifecycle timeline (why hold/change/close).
+- Store each thesis or subthesis in `memory/state/theses/{THESIS_ID}/thesis.md` as decision state + optional thesis-wide scenarios + lifecycle timeline (why hold/change/close and which branch is playing out).
 - Use flat storage under `memory/state/theses/`. Parent-child relationships are expressed in file metadata, not by nested thesis folders.
 - Use `type: THESIS` for an umbrella thesis and `type: SUBTHESIS` for a narrower mechanism, comparison, or expression that belongs under a larger thesis.
 - Use `parent_thesis_id` only for `SUBTHESIS`.
@@ -92,6 +92,20 @@ Portfolio memory rules:
 By default, when saving analysis to memory, include both markdown write-up and important drawn charts (not markdown only). For standalone technical/fundamental/narrative analysis, update memory only when the user explicitly asks to save memory or at session end. For `desk-check`, `deep-review`, and `digest-sync`, memory file updates are part of execution and should be written during the workflow. For `explore-idea`, writing the retained exploration artifact is part of execution, but durable watchlist/thesis mutation is not unless the user explicitly asks for promotion.
 
 Evidence-backed: supported by at least one verifiable data point from MCP tools, documents, or filings — not from agent inference alone.
+
+## Scenario Discipline
+
+Use scenarios as a forward-path map when one linear thesis summary is not enough to manage uncertainty, timing, or position risk.
+
+Scenario rules:
+
+- Scenarios are optional and case-specific. Use them when the stock, thesis, or setup is path-dependent; skip them when one thesis, one catalyst, one invalidation, and one monitoring plan are already enough.
+- Use scenario names that match the actual mechanism or path, not fixed bull/base/bear labels.
+- When scenarios are included, keep the active set small and decision-oriented: usually 2-4 branches, with each branch containing `scenario`, `trigger/evidence`, `implication`, and optional `likelihood`.
+- Keep likelihood estimates rough and avoid fake precision. Do not force probabilities to sum to 100% when the evidence does not support that framing.
+- Analysis artifacts under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` may propose lens-specific scenario branches when the lens warrants it.
+- Parent workflows own promotion of durable scenarios into `memory/state/symbols/{SYMBOL}.md` and `memory/state/theses/{THESIS_ID}/thesis.md` during synthesis. Subagents write scenario analysis artifacts only; they do not mutate durable scenario state directly.
+- On `UPDATE`, `desk-check`, `deep-review`, and `digest-sync`, compare new evidence against any prior durable scenarios, state which branch is becoming dominant, and explain what changed. Retire stale branches, add new branches only when evidence-backed, and record material scenario transitions in the thesis or symbol timeline/notes.
 
 ## Skills
 
@@ -176,7 +190,7 @@ Trading-day clock (authoritative):
   - sponsor behavior could change conviction materially
   - the parent workflow needs lead / confirm / warning context versus TA
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
-- Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, and any portfolio-risk override before updating symbol memory.
+- Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, optional scenario branches from analysis artifacts, and any portfolio-risk override before updating symbol memory.
 - On every successful `desk-check`, refresh `memory/notes/portfolio-monitor.md` with the current portfolio monitor state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, and any evidence-backed portfolio health flags or discipline actions from the review.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
@@ -199,7 +213,7 @@ Trading-day clock (authoritative):
 - If portfolio data is missing or malformed, fail fast.
 - Default execution model is multiagent: parent agent owns orchestration, final synthesis, memory updates, and the single success run log.
 - Run order: `portfolio-management` first for holdings, realized and unrealized review, concentration/heat/cash-overlay checks, stale-plan detection, best-ideas-density review, and neglected-watchlist resurfacing; then delegated symbol or thesis review batches plus top-down market review in parallel; then parent synthesis.
-- Required review dimensions: current book coherence, best-ideas density, equity-curve and decision-process review, benchmark and leader comparison, stale plans, style drift, re-entry discipline, hidden clustering, thesis hygiene, and watchlist cleanup.
+- Required review dimensions: current book coherence, best-ideas density, equity-curve and decision-process review, benchmark and leader comparison, stale plans, style drift, re-entry discipline, hidden clustering, scenario review-back, thesis hygiene, and watchlist cleanup.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - Flow analysis is most relevant when holdings or resurfaced names need sponsor-quality refresh or when lead / confirm / warning context could change the conclusion materially.
 - Narrative analysis prioritizes catalyst drift, story decay, crowding changes, and fresh invalidation evidence over full report formatting.
@@ -250,7 +264,7 @@ Trading-day clock (authoritative):
 - Always consume the latest `memory/analysis/market/*/news_digest.md`.
 - Stop and report if the digest artifact is missing.
 - Read the latest successful `news-digest` run log and inherit its `window_from` and `window_to`.
-- Update `memory/state/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes.
+- Update `memory/state/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes and scenario-branch updates.
 - Update `memory/notes/thesis.md` only when thesis state changes.
 - Update `memory/notes/watchlist.md` only for explicit status or trigger changes.
 - Write a retained sync summary to `memory/analysis/market/{TRADING_DAY}/digest_sync.md`.

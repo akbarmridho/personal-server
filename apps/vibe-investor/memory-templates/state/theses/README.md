@@ -48,10 +48,21 @@ tags: [{tag}, ...]
 
 ## Why This Exists
 
+## Scenarios
+
+Use this section only when the thesis has multiple plausible forward paths that materially change conclusion, sizing, or symbol selection.
+
+- Active scenario: {scenario name or single-path thesis}
+- Scenario map:
+  - {Scenario name}: {what happens}; trigger/evidence: {what would confirm this branch}; implication: {how thesis/symbol posture changes}; likelihood: {optional rough estimate}
+  - {Scenario name}: {what happens}; trigger/evidence: {what would confirm this branch}; implication: {how thesis/symbol posture changes}; likelihood: {optional rough estimate}
+- Switch conditions: {what would move the active scenario from one branch to another}
+
 ## Invalidation
 
 ## Linked Symbols
 
 ## Timeline
 - {YYYY-MM-DD}: {what changed and why}
+- {YYYY-MM-DD}: {scenario transition, branch retired/added, or active scenario updated when relevant}
 ```

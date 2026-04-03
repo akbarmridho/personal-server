@@ -77,6 +77,9 @@ Rules:
 ## Catalyst
 {What should happen, by when, and why it matters}
 
+## Active Scenarios
+{Optional. Use only when one linear plan is not enough. Keep 2-4 decision-relevant branches with scenario name, trigger/evidence, operating implication, and optional rough likelihood.}
+
 ## Tier Alignment
 - Flow: {ACCUMULATION / DISTRIBUTION / NEUTRAL}
 - Narrative: {STRONG / MODERATE / WEAK}
@@ -115,6 +118,8 @@ Rules:
 
 ## Open Position Monitoring
 - Thesis status: {intact / improving / degrading / invalidated}
+- Active scenario: {scenario name or single-path setup}
+- Scenario switch trigger: {what would move the operating plan to another branch}
 - Next catalyst: {date/event}
 - Add trigger: {what would justify add}
 - Reduce trigger: {what would justify trim / reduce}

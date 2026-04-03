@@ -254,6 +254,7 @@ Add when relevant:
 5. Narrative strength and durability scoring (from `narrative-core-framework.md`), keeping the `0-15` score as the backbone and reporting stage, durability, crowding, and premium risk separately.
 6. Failure-mode assessment and explicit invalidation or kill criteria (from `narrative-core-framework.md`).
 7. Haluasi / narrative-premium assessment if relevant (load `narrative-premium-and-hype.md`), anchored to available fundamental base-value context rather than standalone narrative valuation.
+8. When the story is path-dependent, define a small optional scenario map with named branches, trigger/evidence, narrative implication, and optional rough likelihood.
 
 ### Phase 3: Verdict
 
@@ -297,6 +298,13 @@ Produce output using this structure:
 - Kill criteria: {clear conditions that break the story}
 - Failure risk score: {0-3}
 - Binary dependency: {yes/no}
+
+### Scenarios
+Optional. Use only when one catalyst path is not enough.
+
+| Scenario | Trigger / evidence | Narrative implication | Likelihood |
+|---|---|---|---|
+| ... | ... | ... | ... |
 ```
 
 ## Execution Defaults

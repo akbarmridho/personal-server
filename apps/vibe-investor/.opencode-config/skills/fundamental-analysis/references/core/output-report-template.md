@@ -20,6 +20,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 - Ownership / governance: controller, float quality, concentration, overhang, minority alignment
 - Industry / moat: structure, demand drivers, competitive edge or weakness
 - Valuation: methods used, fair-value range or comparative frame, why the method set fits
+- Scenarios: optional named business/valuation branches with trigger/evidence, implication, and optional rough likelihood when the case is path-dependent
 - Red flags: major trap or accounting risks
 - Evidence trace
 - Investment view: posture, major risks, invalidation conditions
@@ -34,6 +35,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 #### VALUATION_ONLY
 - Overview
 - Valuation
+- Scenarios: optional assumption-driven branches when single-point valuation is not honest
 - Key reasons the method set is valid or invalid
 - Evidence trace
 - Investment view
@@ -64,6 +66,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 - Industry economics and structure
 - Strong-player vs weak-player traits
 - Comparative valuation frame
+- Scenarios: optional sector-path branches when commodity, policy, or cycle outcomes materially diverge
 - Key risks
 - Evidence trace
 - Conclusion
@@ -72,6 +75,7 @@ Use this file as an output contract, not a sample report. Keep outputs concise a
 - Mechanism under review and why it matters
 - Economic and governance implications
 - Impact on quality, valuation, solvency, dilution, or minority alignment
+- Scenarios: optional mechanism-outcome branches when event execution can materially diverge
 - Evidence trace
 - Conclusion
 

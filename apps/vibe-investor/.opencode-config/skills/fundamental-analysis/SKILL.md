@@ -249,6 +249,8 @@ For `OWNERSHIP_REVIEW`, stop if the ownership call depends on unavailable holder
 | `EVIDENCE_TRACE` | separate filing-backed claims, contextual-document claims, news-backed claims, and inference | if a filing-led conclusion depends on unsupported commentary, stop; contextual documents can lead when the task is sectoral, mechanism-led, or about externally reported developments |
 | `THESIS` | synthesize why the asset, sector, or mechanism is attractive or not, plus risks and invalidation | keep the section inside the fundamental lens; if the case depends more on storytelling than economics, keep posture conservative |
 
+When the business outcome is path-dependent (turnaround, commodity cycle, dilution/funding path, pre-profit margin ramp, or regulatory change), include a small scenario map in the final result with named branches, operating assumptions, evidence that would confirm each branch, valuation/quality implication, and optional rough likelihood.
+
 #### 15. RESULT
 
 Produce output per `references/core/output-report-template.md`.

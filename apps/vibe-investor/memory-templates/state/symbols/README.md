@@ -27,4 +27,22 @@ Rules:
 - `watchlist_status` is the durable watchlist label for the symbol.
 - Use `leader: true` only for active leadership names that matter to breadth/regime checks.
 - Body content still owns narrative explanation, levels, invalidation, and execution details.
+- Body content may include optional `Active Scenarios` when multiple forward paths materially change add/trim/exit decisions. Keep the active scenario set small and promote only branches that matter operationally.
 - Do not store live fills, current P/L, or temporary execution state here.
+
+Suggested optional scenario structure:
+
+```markdown
+## Active Scenarios
+
+- Active scenario: {scenario name or single-path setup}
+- {Scenario name}
+  - Trigger/evidence: {what would confirm this branch}
+  - Implication: {hold / add / trim / exit consequence}
+  - Likelihood: {optional rough estimate}
+- {Scenario name}
+  - Trigger/evidence: {what would confirm this branch}
+  - Implication: {hold / add / trim / exit consequence}
+  - Likelihood: {optional rough estimate}
+- Switch conditions: {what would move the active scenario}
+```
