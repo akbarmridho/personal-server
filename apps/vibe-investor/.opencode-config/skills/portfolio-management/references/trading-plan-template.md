@@ -50,7 +50,7 @@ Rules:
 - Do not let narrative hope override invalidation.
 - No averaging down below broken structure unless the evidence is better than before and chart / structure repair is visible.
 - Build and reduce size in tranches, not in an all-in / all-out style by default.
-- Add only when the prior tranche is working or when the plan explicitly allows a staged entry near favorable location with unchanged invalidation.
+- Add only when thesis and structure remain valid and either the prior tranche is working or the plan explicitly allows a staged pullback add near a predefined favorable zone with unchanged invalidation.
 - Reduce progressively when evidence weakens, even before full invalidation, if the plan defines that downgrade path.
 - Require staged trim logic for trades with clear upside targets.
 - Warn against target drift after public or planned targets are reached.

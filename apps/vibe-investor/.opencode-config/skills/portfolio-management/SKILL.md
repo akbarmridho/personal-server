@@ -334,7 +334,7 @@ Entry posture options:
 
 Pyramid discipline:
 
-- Add only if the prior tranche is green and thesis/structure remains valid
+- Add only if thesis/structure remains valid and either the prior tranche is green or the original plan explicitly allows a staged pullback add near a predefined favorable zone with unchanged invalidation
 - Do not add to losing positions
 - After adding, tighten risk so aggregate trade does not violate portfolio heat limits
 
@@ -457,7 +457,7 @@ Checklist: drift measured, holding-mode band reviewed, event triggers checked, h
 - Prefer portfolio tools first. Use temporary scripts in `work/` only for one-off calculations that the current tool surface does not provide.
 - Write concrete outputs to memory files for portfolio-management workflows, not only narrative answers.
 - Keep symbol-memory trade-management fields aligned with the parent workflow's resolved execution plan; do not let raw TA output bypass that synthesis layer.
-- When constraints conflict (`conviction` vs liquidity, thesis quality vs hidden clustering, valuation vs correlation), prefer the safer sizing path.
+- When constraints conflict (`conviction` vs liquidity, thesis quality vs hidden clustering, valuation vs correlation), translate the conflict into lower `portfolio_fit_score`, lower `max_new_position_size_pct`, and lower `regime_aggression`; use a binary block only when an explicit hard rail in `hard_rails_triggered` is active.
 - Treat `risk_per_trade`, `portfolio_heat`, liquidity caps, and concentration caps as hard guardrails before discretionary conviction scaling.
 - Treat portfolio constraints as a separate layer after symbol-level analysis: PM can cap size, force trims through hard rails, or reduce aggression, but it should not redefine the raw symbol-level exit engine owned by other lenses.
 - Use rebalance bands to guide trim/add decisions during reviews, not to create optimizer-style target weights unsupported by the current tool surface.
