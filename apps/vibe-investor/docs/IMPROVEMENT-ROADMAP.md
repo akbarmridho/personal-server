@@ -42,7 +42,7 @@ Migration order follows the radical-redesign-proposal's phased approach: add sha
 
 | # | Item | Status | Task File | Depends On |
 |---|------|--------|-----------|------------|
-| 2.0 | Shadow scoring bridge (add scoring layer alongside existing outputs) | PLANNED | `tasks/2.0-shadow-scoring.md` | Iteration 1 complete |
+| 2.0 | Shadow scoring bridge (add scoring layer alongside existing outputs) | DONE | `tasks/2.0-shadow-scoring.md` | Iteration 1 complete |
 | 2.1 | Skill output contract: TA conviction score | PLANNED | `tasks/2.1-ta-conviction-score.md` | 2.0 validated |
 | 2.2 | Skill output contract: flow conviction score | PLANNED | `tasks/2.2-flow-conviction-score.md` | 2.0 validated |
 | 2.3 | Skill output contract: narrative conviction score | PLANNED | `tasks/2.3-narrative-conviction-score.md` | 2.0 validated |

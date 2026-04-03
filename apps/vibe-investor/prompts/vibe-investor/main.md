@@ -170,6 +170,19 @@ Exit synthesis contract:
 - Parent workflow must resolve exit precedence explicitly as: hard invalidation, portfolio risk override, thesis or non-TA exit, then technical harvest or trail.
 - Parent workflow writes or refreshes the resolved execution plan on entry, desk-check reviews, and material plan changes.
 
+Shadow scoring bridge:
+
+- During `desk-check` parent synthesis, compute a non-authoritative `shadow_scoring` block after the existing gate-cascade decision for every materially reviewed symbol. The gate cascade remains the actual decision engine.
+- Convert current skill outputs into 0-100 shadow scores:
+  - `technical_score` from TA action and setup quality: `EXIT` or invalidated/broken structure `0-15`, poor/no setup or poor location `16-30`, mixed/developing `31-45`, setup forming with trigger developing `46-60`, valid setup with trigger near/partial confirmation `61-75`, clean setup with confirmed trigger and good RR `76-90`, textbook setup with excellent RR and strong confirmation `91-100`
+  - `flow_score` from flow verdict, trust regime, and `conviction_pct`: strong accumulation/high trust `76-100`, accumulation or constructive with medium trust `61-75`, neutral/mixed `40-60`, distribution or weak trust `16-39`, heavy distribution/low trust `0-15`
+  - `narrative_score` from catalyst strength and thesis freshness: strong narrative with near-term catalyst `76-100`, constructive but less urgent `61-75`, mixed/moderate `40-60`, weak or stale `16-39`, broken/adverse `0-15`
+  - `fundamental_score` from quality and valuation when the fundamental lens is loaded: strong business plus undervaluation `76-100`, good quality or fair undervaluation `61-75`, fair/mixed `40-60`, weak quality or overvaluation `16-39`, structurally broken `0-15`
+  - `portfolio_fit_score` from PM constraints and regime fit: no override, room in heat/cash, and good diversification `76-100`; acceptable but constrained `61-75`; neutral/mixed `40-60`; crowded, cash-tight, or weak liquidity `16-39`; blocked by hard portfolio/regime constraint `0-15`
+- Compute `composite_score` as a weighted score using available lens scores only, with base weights `0.25 technical`, `0.15 flow`, `0.25 narrative`, `0.20 fundamental`, `0.15 portfolio_fit`. If a lens score is omitted because that lens was not loaded, renormalize over the remaining weights instead of inserting placeholder/null fields.
+- Map `composite_score` to `shadow_action`: `0-29 NO_TRADE`, `30-49 WATCHLIST`, `50-59 PILOT`, `60-74 STARTER`, `75-89 STANDARD`, `90-100 HIGH_CONVICTION`.
+- Persist the shadow output in the retained desk-check artifact and flag whether it diverges from the actual gate-cascade decision. Shadow scoring is for comparison and validation only; it does not change trade actions, symbol memory, or watchlist status until the scoring architecture is promoted in later tasks.
+
 Trading-day clock (authoritative):
 
 - Resolve all default workflow dates and review modes in `Asia/Jakarta` (`WIB`, UTC+7).
@@ -212,6 +225,7 @@ Trading-day clock (authoritative):
 - On every successful `desk-check`, compare the current strategic context against `memory/MEMORY.md`. If active thesis priorities, risk posture, or structural focus have shifted based on evidence from this run, update the file and bump `Last materially changed`. If the content is still valid, bump `Last reviewed` only.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
+- `memory/analysis/market/{TRADING_DAY}/desk_check.md` must include a `shadow_scoring` section for each materially reviewed symbol with the available lens scores, `composite_score`, `shadow_action`, `actual_action`, and `divergence`.
 - Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/opportunity-cost.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
 - After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
