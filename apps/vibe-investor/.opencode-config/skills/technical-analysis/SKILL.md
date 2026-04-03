@@ -114,6 +114,14 @@ If required prior thesis context is missing, stop and report missing dependency.
 
 Must produce: `thesis_status`, `review_reason`, and explicit delta assessment covering structure, levels, volume/participation, setup quality, and risk.
 
+If prior symbol context contains `active_recommendation.action = WAIT` with a `retest_level`, check whether price visited that level since the prior review before repeating the same setup:
+
+- `tested_held`: price reached the retest zone and showed acceptance or defense; state this explicitly and evaluate whether it satisfies `upgrade_trigger`
+- `tested_failed`: price reached the retest zone and broke it; state this explicitly and downgrade the setup or update invalidation
+- `not_tested`: price did not reach the retest zone; state this explicitly and, on the 3rd+ consecutive unchecked session, assess whether the setup is stale or the entry zone needs adjustment
+
+Use `daily[]` and `intraday_1m[]` for this check. A repeated retest-based `WAIT` must state one of `tested_held`, `tested_failed`, or `not_tested`.
+
 #### `POSTMORTEM` Requirements
 
 Must produce: failure point, missed/absent warning, invalidation path, rule/handling improvement.
@@ -647,6 +655,7 @@ Rules: required sections must always be present except `prior_thesis` (required 
 - `key_levels`: number[]
 - `prior_thesis_status` (optional): `intact` | `improving` | `degrading` | `invalidated`
 - `prior_trade_management` (optional): object carrying prior technical trade-management snapshot when available
+- `active_recommendation` (optional): object carrying the prior symbol-plan recommendation lifecycle when available; use `retest_level`, `retest_status`, `retest_checked`, and `wait_desk_check_count` during `UPDATE` retest checks
 
 ### `daily_thesis`
 

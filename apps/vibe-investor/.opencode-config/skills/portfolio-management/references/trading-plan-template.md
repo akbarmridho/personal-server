@@ -79,6 +79,10 @@ active_recommendation:
   upgrade_trigger: {Concrete condition that upgrades WAIT to BUY/HOLD}
   downgrade_trigger: {Concrete condition that downgrades or removes the setup}
   expiry_action: {Re-underwrite with fresh levels or downgrade to WATCHING}
+  wait_desk_check_count: {0+}
+  retest_level: {PRICE}
+  retest_status: {not_tested / tested_held / tested_failed}
+  retest_checked: {YYYY-MM-DD}
 ---
 
 # {SYMBOL} - Trading Plan
@@ -110,9 +114,13 @@ active_recommendation:
 - Conviction: {HIGH / MEDIUM / LOW}
 
 ## Plan
+- Entry type: {FULL / PILOT}
 - Entry zone: {price range}
 - Position size: {X% of portfolio} ({amount})
 - Entry build: {initial tranche, add conditions, and max exposure condition}
+- Reduced pilot gates used: {Required for PILOT; omit for FULL}
+- Scale-up trigger: {Required for PILOT; omit for FULL}
+- Pilot expiry: {Required for PILOT; omit for FULL}
 - Size reason: {why this size is justified relative to evidence quality, liquidity, and monitoring capacity}
 - Stop loss: {price} (-{X%} from entry)
 - Risk per trade: {Rp amount} ({X%} of portfolio)
@@ -154,12 +162,16 @@ active_recommendation:
 Frontmatter rules:
 
 - Include `active_recommendation` when the symbol carries a live `WAIT` recommendation.
-- Keep `active_recommendation` limited to the current recommendation lifecycle: `action`, `issued`, `horizon_expires`, `upgrade_trigger`, `downgrade_trigger`, and `expiry_action`.
+- Keep `active_recommendation` limited to the current recommendation lifecycle: `action`, `issued`, `horizon_expires`, `upgrade_trigger`, `downgrade_trigger`, `expiry_action`, `wait_desk_check_count`, `retest_level`, `retest_status`, and `retest_checked`.
+- Use `wait_desk_check_count` to track how many desk-checks the same `WAIT` has persisted.
+- Use `retest_level`, `retest_status`, and `retest_checked` when the live `WAIT` is anchored to a concrete retest zone.
+- Omit `retest_level`, `retest_status`, and `retest_checked` when the live recommendation is not retest-based.
 - Omit `active_recommendation` when there is no live recommendation lifecycle to track.
 
 ## Minimum Required Fields
 
 - Trade Classification
+- Entry type
 - Thesis
 - Catalyst
 - Invalidation
@@ -167,6 +179,7 @@ Frontmatter rules:
 - Position size and stop loss
 - Expected R:R
 - Entry build
+- For `PILOT`: Reduced pilot gates used, Scale-up trigger, Pilot expiry
 - Size reason
 - Monitoring requirement
 - Timeframe, `Last Reviewed`, and review cadence

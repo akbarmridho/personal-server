@@ -25,6 +25,7 @@ workdir/
 │   ├── notes/                    # Operational notes
 │   │   ├── ihsg.md               # IHSG regime map and key levels
 │   │   ├── macro.md              # Macro and geopolitical context affecting IDX
+│   │   ├── opportunity-cost.md   # Missed-move and WAIT-age ledger for READY names
 │   │   ├── portfolio-monitor.md  # Open-book classification and monitoring rules
 │   │   ├── thesis.md             # Human-readable thesis summary view
 │   │   └── watchlist.md          # Human-readable watchlist summary view
@@ -62,6 +63,7 @@ Market context memory files:
 
 - Before broad market strategy work or desk-check preparation, consult `memory/notes/ihsg.md` for the current IHSG regime map and key levels.
 - Before broad market strategy work or desk-check preparation, consult `memory/notes/macro.md` for geopolitical and macro conditions affecting IDX.
+- Before broad market strategy work or desk-check preparation, consult `memory/notes/opportunity-cost.md` for missed-move and WAIT-age pressure on READY names.
 - Before broad market strategy work or desk-check preparation, consult `memory/notes/portfolio-monitor.md` for the current open-book classification and monitoring rules.
 - Use `memory/MEMORY.md` as static strategic context only: investment philosophy, active thesis themes, risk posture, and structural priorities. Do not put operational pointers (latest artifact paths, latest run dates, current prices) in `MEMORY.md` — those belong in `memory/registry/*.json` and `memory/runs/`.
 
@@ -82,6 +84,7 @@ Portfolio memory rules:
 - Store successful top-level workflow continuity in `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json`.
 - Write one run log only after the full workflow succeeds. Parent workflow writes it; subagents do not.
 - `memory/notes/watchlist.md` and `memory/notes/thesis.md` are human-readable summary views. Keep them aligned with durable state, but do not treat them as the authoritative machine state.
+- `memory/notes/opportunity-cost.md` is the human-readable missed-move and WAIT-age ledger for READY symbols.
 - `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` are derived current-state files for fast lookup. Refresh them after any workflow that mutates symbol, thesis, or watchlist state.
 - Durable machine state lives in `memory/state/symbols/{SYMBOL}.md` and `memory/state/theses/{THESIS_ID}/thesis.md`.
 - Keep thesis summary in `memory/notes/thesis.md` with two sections: `ACTIVE` and `INACTIVE`. Each row should include `Type` (`THESIS` or `SUBTHESIS`), `Parent` (blank for top-level theses), and a link to the per-thesis file.
@@ -184,6 +187,7 @@ Trading-day clock (authoritative):
 - Continuity: read the latest successful `memory/runs/*/*_desk-check.json`; if none exists, use last 1 calendar day ending at `TRADING_DAY`. If the latest successful run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory: review IHSG structure/regime, macro/news tone, and leader breadth deterioration in every `desk-check`.
 - Mandatory top-down memory context before desk-check prep: `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`.
+- Mandatory opportunity-cost memory context before desk-check prep: `memory/notes/opportunity-cost.md`.
 - Before any buy/add conclusion in `desk-check`, `portfolio-management` must resolve the active IHSG cash floor (EMA21/SMA50/SMA200, base or escalated) from current market context and compare it with live `portfolio_state.cash_ratio`.
 - If portfolio data is missing or malformed, fail fast.
 - Default execution model is multiagent: delegate symbol reviews to subagents in batches, then synthesize in the parent agent.
@@ -201,12 +205,14 @@ Trading-day clock (authoritative):
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
 - Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, optional scenario branches from analysis artifacts, and any portfolio-risk override before updating symbol memory.
 - For every symbol carrying `active_recommendation.action = WAIT`, check whether `horizon_expires` has passed during parent synthesis. If the horizon has passed, execute `expiry_action`. If the setup is still valid, re-underwrite it with fresh trigger levels and a fresh horizon before persisting the renewed `active_recommendation`.
+- During parent synthesis, report cumulative missed opportunity from `memory/notes/opportunity-cost.md` alongside `portfolio_heat`, and re-underwrite any READY symbol with >10% missed move or `wait_desk_check_count > 5`.
 - On every successful `desk-check`, refresh `memory/notes/portfolio-monitor.md` with the current portfolio monitor state for `TRADING_DAY`, including `Last updated`, open-book classification, active monitoring rules, current focus, and any evidence-backed portfolio health flags or discipline actions from the review.
+- On every successful `desk-check`, refresh `memory/notes/opportunity-cost.md` for `TRADING_DAY` with current READY symbols, their last recommended entry zones, current prices, missed moves, WAIT age, and current status.
 - On every successful `desk-check`, the top-down market review must compare fresh IHSG technical evidence and macro/news evidence against the current content of `memory/notes/ihsg.md` and `memory/notes/macro.md`. If the regime, key levels, operating stance, or macro stress points have changed materially, update the file with the new read and bump `Last materially changed`. If the content is still valid, bump `Last reviewed` only. Do not skip this comparison.
 - On every successful `desk-check`, compare the current strategic context against `memory/MEMORY.md`. If active thesis priorities, risk posture, or structural focus have shifted based on evidence from this run, update the file and bump `Last materially changed`. If the content is still valid, bump `Last reviewed` only.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
-- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
+- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/opportunity-cost.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
 - After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.

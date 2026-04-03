@@ -41,6 +41,7 @@ for f in \
   MEMORY.md \
   notes/ihsg.md \
   notes/macro.md \
+  notes/opportunity-cost.md \
   notes/portfolio-monitor.md \
   notes/watchlist.md \
   notes/thesis.md \
@@ -75,6 +76,7 @@ echo "  │   ├── MEMORY.md"
 echo "  │   ├── notes/"
 echo "  │   │   ├── ihsg.md"
 echo "  │   │   ├── macro.md"
+echo "  │   │   ├── opportunity-cost.md"
 echo "  │   │   ├── portfolio-monitor.md"
 echo "  │   │   ├── thesis.md"
 echo "  │   │   └── watchlist.md"

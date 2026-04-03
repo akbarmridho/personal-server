@@ -206,6 +206,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 | File | Purpose |
 |------|---------|
 | `memory/notes/portfolio-monitor.md` | Current open-book classification, active monitor rules, health flags, and next portfolio-level focus |
+| `memory/notes/opportunity-cost.md` | Missed-move ledger for READY symbols, WAIT age, and re-underwrite pressure from inaction |
 | `memory/notes/watchlist.md` | Human-readable watchlist summary view |
 | `memory/registry/symbols.json` | Derived current-state symbol registry for fast watchlist and leader lookup |
 | `memory/state/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing, and resolved execution policy |
@@ -239,7 +240,7 @@ Resolve one aggression state:
 - `AGGRESSIVE`: broad structure constructive, leader breadth healthy, and no fresh breakdown clustering. Normal-to-high conviction sizing allowed inside all hard caps.
 - `NORMAL`: mixed but acceptable structure. Base sizing allowed, but adds should remain selective.
 - `DEFENSIVE`: weakening structure or growing breakdown cluster. Reduce aggression, tighten sizing, prefer trims over fresh expansion.
-- `CAPITAL_PRESERVATION`: broad weakness, leader breakdowns clustering, or regime quality clearly poor. No aggressive new longs; pilot size or cash only.
+- `CAPITAL_PRESERVATION`: broad weakness, leader breakdowns clustering, or regime quality clearly poor. No new longs, including pilots; cash only.
 
 The regime gate controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
 
@@ -285,6 +286,22 @@ Entry discipline:
 
 - Prefer entries during drawdowns when weakness is temporary and the long-term thesis remains valid
 - Avoid discount entries when decline is driven by permanent impairment
+
+Pilot entry pathway:
+
+- Use `entry_type = PILOT` when a READY symbol has an explicit thesis, explicit invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the full BUY gate stack is still incomplete because the trigger is absent, confirmation is mixed, or regime is only `DEFENSIVE`.
+- Pilot size defaults to 0.25% of portfolio equity and is capped at 0.5%.
+- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, regime is `DEFENSIVE` or better, liquidity is acceptable, and no portfolio override blocks the name.
+- Pilot entries may proceed on daily location with partial or developing confirmation, neutral-or-better flow, and acceptable but imperfect RR.
+- A pilot is a probe, not a commitment. `trade_classification` remains `THESIS`, `TACTICAL`, or `SPECULATION` based on thesis quality and operating intent.
+- If the full BUY trigger fires after pilot entry, scale using the normal full-gate process.
+- If invalidation is hit, exit the pilot.
+- If the pilot makes no progress for 3+ desk-checks with no trigger and no invalidation, exit the pilot and downgrade the symbol to `WATCHING`.
+- Track pilot plans with `Entry type`, `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry` in the symbol plan.
+- Maximum 2 active pilots at any time.
+- Pilot positions count toward `portfolio_heat` and liquidity limits.
+- Pilot positions are excluded from the 50:30:10 allocation test because they are sub-sized probes.
+- A pilot cannot be scaled above pilot size without passing the full BUY gates.
 
 Entry posture options:
 
@@ -332,6 +349,7 @@ Rebalancing protocol:
 | Theme or cluster concentration | Mixed | Deterministic grouping when obvious; agent judgment when theme linkage is qualitative |
 | Thesis stale check | Deterministic | Last review date vs cadence |
 | Checkpoint failure | Deterministic | `Progress checkpoint date` passed without required condition being met |
+| WAIT staleness count | Deterministic | `active_recommendation.wait_desk_check_count` on READY symbols carrying `WAIT` |
 | IHSG cash floor vs current cash ratio | Deterministic | Apply the highest active IHSG cash floor (base 30/50/70 keyed to EMA21/SMA50/SMA200, or escalated 40/60/80) and compare it with `portfolio_state.cash_ratio` |
 | Regime aggression state | Agent judgment | Interpret market proxy structure, leader breadth, and breakdown clustering |
 | Thesis quality assessment | Agent judgment | Synthesize fundamentals, narrative, flow |
@@ -345,13 +363,14 @@ Rebalancing protocol:
 1. Check regime gate (this file).
 2. Check the active IHSG cash floor and confirm current `portfolio_state.cash_ratio` is compatible with any planned new exposure.
 3. Map the symbol to `holding_mode` from the trading plan (`TACTICAL`, `THESIS`, or `HYBRID`) and apply the corresponding sizing posture.
-4. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, 50:30:10, theme/correlation clustering, and ADTV liquidity).
-5. Load `trading-plan-template.md`, fill all required fields including `Holding mode` and final exit precedence.
-6. Write plan to `memory/state/symbols/{SYMBOL}.md`.
-7. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
-8. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
+4. Choose `entry_type = FULL` or `entry_type = PILOT`. For `PILOT`, enforce the reduced pilot gates, max 0.5% size, max 2 active pilots, and `CAPITAL_PRESERVATION` block.
+5. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, `50:30:10` for `FULL` entries, theme/correlation clustering, and ADTV liquidity).
+6. Load `trading-plan-template.md`, fill all required fields including `Entry type`, `Holding mode`, and final exit precedence. For `PILOT`, also fill `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry`.
+7. Write plan to `memory/state/symbols/{SYMBOL}.md`.
+8. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
+9. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 
-Checklist: regime aggression state resolved, IHSG cash floor checked against current cash ratio, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
+Checklist: regime aggression state resolved, IHSG cash floor checked against current cash ratio, `entry_type` selected, pilot constraints enforced when relevant, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
 
 ### Desk Check Review
 
@@ -361,14 +380,16 @@ Checklist: regime aggression state resolved, IHSG cash floor checked against cur
 4. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
 5. For each position: check thesis status, active scenario, scenario switch conditions, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, and checkpoint status from `portfolio_state`, symbol memory, and trade-history context.
 6. Check whether any `Progress checkpoint date` has passed and evaluate the stored checkpoint failure action.
-7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, and recent action context from the tool outputs.
-8. Extend coverage to watchlist symbols required by the active workflow contract.
-9. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, rebalance-band notes, `Last Reviewed`, and other resolved execution-policy fields.
-10. Prepare the updated portfolio-monitor state for the parent workflow: `Last updated`, current `portfolio_heat`, open-book classification, active monitoring rules, current focus, and active portfolio health flags or discipline actions backed by the review evidence.
-11. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
-12. Return portfolio findings, portfolio-monitor update content, watchlist changes, and any required follow-up actions to the parent workflow.
+7. For each READY symbol carrying `active_recommendation.action = WAIT`, increment `active_recommendation.wait_desk_check_count`, inspect `retest_status`, and force one of these outcomes when `wait_desk_check_count >= 3` and `retest_status = not_tested`: upgrade to actionable with an adjusted entry, downgrade to `WATCHING` with an explicit reason, or renew the `WAIT` with fresh evidence and a new trigger level. Repeating the same `WAIT` with no new evidence is not a valid renewal.
+8. For each READY symbol where current price is more than 5% above the last recommended entry zone, compute the missed move from that entry zone to current price and record it in `memory/notes/opportunity-cost.md`. A missed move above 10% forces re-evaluation of whether the setup family, entry zone, or underwriting threshold needs to be refreshed. `wait_desk_check_count > 5` also forces re-underwrite or expiry.
+9. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, cumulative missed opportunity from the opportunity-cost ledger, and recent action context from the tool outputs.
+10. Extend coverage to watchlist symbols required by the active workflow contract.
+11. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, `Entry type`, pilot lifecycle fields, rebalance-band notes, `Last Reviewed`, `active_recommendation`, and other resolved execution-policy fields.
+12. Prepare the updated portfolio-monitor state and opportunity-cost ledger for the parent workflow.
+13. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
+14. Return portfolio findings, portfolio-monitor update content, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, WAIT staleness checked, opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio overrides assessed, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Deep Review
 
