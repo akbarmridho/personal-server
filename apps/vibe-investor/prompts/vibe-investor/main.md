@@ -161,27 +161,65 @@ Workflow ownership:
 - Parent workflow owns multi-lens synthesis across flow, narrative, technical, and fundamental inputs.
 - `portfolio-management` owns portfolio-risk overlays, live portfolio-tool checks, and durable symbol-plan persistence.
 
-Exit synthesis contract:
+Composite synthesis contract:
 
-- `technical_plan`: chart-driven baseline from `technical-analysis` for invalidation, target ladder, trailing mode, and technical profit-management behavior.
-- `flow_context`: broker-flow baseline from `flow-analysis` for broker sponsorship, trust regime, and lead-versus-confirm timing context.
-- `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol, including `holding_mode`, timeframe intent, thesis quality, and non-TA exit drivers.
-- `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
+- Parent synthesis operates under two mandates with equal architectural weight: protect capital and deploy capital. Resolve that tension explicitly instead of defaulting to inaction when signals are mixed.
+- Per-symbol operating baselines still matter:
+  - `technical_plan`: chart-driven baseline from `technical-analysis` for invalidation, target ladder, trailing mode, and technical profit-management behavior.
+  - `flow_context`: broker-flow baseline from `flow-analysis` for broker sponsorship, trust regime, and lead-versus-confirm timing context.
+  - `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol, including `holding_mode`, timeframe intent, thesis quality, and non-TA exit drivers.
+  - `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
+- For every materially reviewed symbol, produce a primary `composite_decision` object:
+
+```yaml
+composite_decision:
+  technical_score: 62
+  flow_score: 45
+  narrative_score: 78
+  fundamental_score: 50
+  portfolio_fit_score: 72
+  composite_score: 64
+  action_tier: STARTER
+  base_size_pct: 1.2
+  final_size_pct: 0.8
+  conflict_note: "Narrative leads flow; thesis is fresh but sponsorship is still mixed."
+  hard_rails_applied: []
+```
+
+- Score source rules:
+  - `technical_score` from `technical_assessment.conviction_score`.
+  - `flow_score` from `flow_assessment.conviction_score`.
+  - `narrative_score` from `narrative_assessment.conviction_score`.
+  - `fundamental_score` from `fundamental_assessment.conviction_score` when the fundamental lens is loaded.
+  - `portfolio_fit_score` from `portfolio_constraints`: no hard rails, room in heat/cash, and good diversification `76-100`; acceptable but capped `61-75`; neutral/mixed `40-60`; crowded, cash-tight, or weak liquidity `16-39`; blocked by `hard_rails_triggered` `0-15`.
+- If a lens is skipped for this run, reuse its most recent score from symbol memory or the latest retained artifact when that score is less than 3 desk-checks old; otherwise use `50` as the neutral fallback. Do not omit any score field in `composite_decision`.
+- Compute `composite_score = 0.25 * technical_score + 0.15 * flow_score + 0.25 * narrative_score + 0.20 * fundamental_score + 0.15 * portfolio_fit_score`.
+- Resolve conflicts explicitly:
+  - State the score spread between disagreeing lenses.
+  - Explain which lens deserves more weight for this symbol in this context.
+  - Apply a context-specific adjustment to the final decision only if the rationale is written into `conflict_note`.
+  - Do not collapse mixed evidence by defaulting to the weakest lens.
+- Map `composite_score` to `action_tier` and a base size band:
+
+| Composite score | Action tier | Base size band |
+|-----------------|-------------|----------------|
+| 0-25 | `NO_TRADE` | 0% |
+| 26-40 | `WATCHLIST` | 0% |
+| 41-55 | `PILOT` | 0.25-0.5% |
+| 56-70 | `STARTER` | 0.5-1.5% |
+| 71-85 | `STANDARD` | 1.5-3.0% |
+| 86-100 | `HIGH_CONVICTION` | 3.0-5.0% |
+
+- Pick `base_size_pct` inside the mapped band according to score position inside that band, then compute `final_size_pct = min(base_size_pct, portfolio_constraints.max_new_position_size_pct) * portfolio_constraints.regime_aggression`.
+- Binary overrides are limited to hard safety rails:
+  - explicit thesis invalidation from any lens -> `EXIT`
+  - portfolio heat above 8% -> block all new longs
+  - single-position weight above 30% -> block adds to that position
+  - position size above 5% ADTV -> cap `final_size_pct`
+  - 4 active pilots already live -> block a new `PILOT`
+- Everything else should change score or size, not act as a veto.
 - Parent workflow must resolve exit precedence explicitly as: hard invalidation, portfolio hard rail or size-cap constraint, thesis or non-TA exit, then technical harvest or trail.
-- Parent workflow writes or refreshes the resolved execution plan on entry, desk-check reviews, and material plan changes.
-
-Shadow scoring bridge:
-
-- During `desk-check` parent synthesis, compute a non-authoritative `shadow_scoring` block after the existing gate-cascade decision for every materially reviewed symbol. The gate cascade remains the actual decision engine.
-- Convert current skill outputs into 0-100 shadow scores:
-  - `technical_score` from `technical_assessment.conviction_score` when available; otherwise convert TA setup quality into the same 0-100 rubric
-  - `flow_score` from `flow_assessment.conviction_score` when available; otherwise derive from broker-flow lean, trust regime, and `baseline_verdict.conviction_pct`
-  - `narrative_score` from `narrative_assessment.conviction_score` when available; otherwise derive from catalyst strength and thesis freshness
-  - `fundamental_score` from `fundamental_assessment.conviction_score` when the fundamental lens is loaded; otherwise derive from business quality and valuation
-  - `portfolio_fit_score` from `portfolio_constraints`: no hard rails, room in heat/cash, and good diversification `76-100`; acceptable but capped `61-75`; neutral/mixed `40-60`; crowded, cash-tight, or weak liquidity `16-39`; blocked by `hard_rails_triggered` `0-15`
-- Compute `composite_score` as a weighted score using available lens scores only, with base weights `0.25 technical`, `0.15 flow`, `0.25 narrative`, `0.20 fundamental`, `0.15 portfolio_fit`. If a lens score is omitted because that lens was not loaded, renormalize over the remaining weights instead of inserting placeholder/null fields.
-- Map `composite_score` to `shadow_action`: `0-29 NO_TRADE`, `30-49 WATCHLIST`, `50-59 PILOT`, `60-74 STARTER`, `75-89 STANDARD`, `90-100 HIGH_CONVICTION`.
-- Persist the shadow output in the retained desk-check artifact and flag whether it diverges from the actual gate-cascade decision. Shadow scoring is for comparison and validation only; it does not change trade actions, symbol memory, or watchlist status until the scoring architecture is promoted in later tasks.
+- Parent workflow writes or refreshes `composite_decision` and `resolved_execution_plan` in the retained desk-check artifact and refreshes symbol memory on entry, desk-check reviews, and material plan changes.
 
 Trading-day clock (authoritative):
 
@@ -225,7 +263,7 @@ Trading-day clock (authoritative):
 - On every successful `desk-check`, compare the current strategic context against `memory/MEMORY.md`. If active thesis priorities, risk posture, or structural focus have shifted based on evidence from this run, update the file and bump `Last materially changed`. If the content is still valid, bump `Last reviewed` only.
 - Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/` and must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/` and must include `desk_check.md`.
-- `memory/analysis/market/{TRADING_DAY}/desk_check.md` must include a `shadow_scoring` section for each materially reviewed symbol with the available lens scores, `composite_score`, `shadow_action`, `actual_action`, and `divergence`.
+- `memory/analysis/market/{TRADING_DAY}/desk_check.md` must include a `composite_decision` section for each materially reviewed symbol with all lens scores, `composite_score`, `action_tier`, `base_size_pct`, `final_size_pct`, `conflict_note`, and `hard_rails_applied`.
 - Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/opportunity-cost.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
 - When `memory/state/symbols/{SYMBOL}.md` is updated, refresh the resolved execution policy fields when the live operating plan changes materially.
 - After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.

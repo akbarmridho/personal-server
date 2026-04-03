@@ -40,8 +40,6 @@ Replace the binary gate cascade with continuous conviction scoring. Skills produ
 
 Migration order follows the radical-redesign-proposal's phased approach: add shadow scoring alongside existing outputs first, validate, then replace.
 
-Implementation note: 2.0 shadow scoring is implemented, but validation is deferred until the full Iteration 2 contract patch lands. Review `shadow_scoring` vs `actual_action` after 2.1-2.5 are in place.
-
 | # | Item | Status | Task File | Depends On |
 |---|------|--------|-----------|------------|
 | 2.0 | Shadow scoring bridge (add scoring layer alongside existing outputs) | DONE | `tasks/2.0-shadow-scoring.md` | Iteration 1 complete |
@@ -50,7 +48,7 @@ Implementation note: 2.0 shadow scoring is implemented, but validation is deferr
 | 2.3 | Skill output contract: narrative conviction score | DONE | `tasks/2.3-narrative-conviction-score.md` | 2.0 validation deferred until Iteration 2 contract patch lands |
 | 2.4 | Skill output contract: fundamental conviction score | DONE | `tasks/2.4-fundamental-conviction-score.md` | 2.0 validation deferred until Iteration 2 contract patch lands |
 | 2.5 | Skill output contract: PM produces constraints not verdicts | DONE | `tasks/2.5-pm-constraints.md` | 2.0 validation deferred until Iteration 2 contract patch lands |
-| 2.6 | Parent synthesis: weighted composite scoring in main.md | PLANNED | `tasks/2.6-composite-scoring.md` | 2.1–2.5 |
+| 2.6 | Parent synthesis: weighted composite scoring in main.md | DONE | `tasks/2.6-composite-scoring.md` | 2.1–2.5 |
 | 2.7 | Continuous aggression curve (replaces binary regime gate) | PLANNED | `tasks/2.7-aggression-curve.md` | 2.6 |
 | 2.8 | Downstream contract cleanup (main.md, trading-plan-template) | PLANNED | `tasks/2.8-contract-cleanup.md` | 2.6 |
 | 2.9 | Agent performance tracker | PLANNED | `tasks/2.9-agent-performance.md` | 2.6 |
