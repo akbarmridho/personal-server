@@ -23,13 +23,13 @@ Tool source of truth:
 
 ## Concepts And School Of Thought
 
-- Treat portfolio management as a risk operating system: capital preservation first, return second.
+- Treat portfolio management as a risk-and-deployment operating system: prevent ruin with hard rails, but keep enough aggression to avoid wasting valid setups.
 - Use explicit risk budgets, not only raw target weights: `risk_per_trade`, `portfolio_heat`, and hard caps are first-class controls.
 - Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, theme clustering, and correlation clustering).
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
-- Apply a regime-sensitive aggression ladder before new longs; if breadth/market structure weakens, reduce aggression, slow adds, and protect cash.
+- Apply a regime-sensitive aggression multiplier before new longs; if breadth/market structure weakens, reduce aggression, slow adds, and protect cash.
 - Review process quality separately from outcome. Do not let a profitable result excuse weak underwriting, and do not let a loss erase a process that remained disciplined and evidence-based.
-- Use a two-tier IHSG cash-floor ladder (EMA21/SMA50/SMA200) as a regime overlay: base floors set minimum cash, escalated floors apply when broader red flags confirm trouble.
+- Use a two-tier IHSG cash-target ladder (EMA21/SMA50/SMA200) as a regime overlay: base targets and escalated targets are soft budget targets that compress `regime_aggression` and `max_new_position_size_pct` when cash is below target.
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
 - Use durable `Active Scenarios` in symbol and thesis state when they exist. Scenario transitions can justify adds, trims, de-risking, or thesis retirement before hard invalidation is hit.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level sizing constraints, de-risking rails, and hard safety rails when heat, concentration, liquidity, or regime require tighter exposure than the symbol-level baseline.
@@ -43,8 +43,7 @@ Tool source of truth:
 This skill's default doctrine incorporates postmortem-derived portfolio rules and repeated trading lessons.
 
 - Act as a risk operating companion for the human investor in IDX, not just as an idea generator.
-- Protect capital first, then optimize upside.
-- When this doctrine conflicts with a more aggressive interpretation from another lens, this doctrine wins unless the user explicitly accepts the quantified risk.
+- Protect capital and deploy capital with equal architectural weight; when they conflict, resolve the tension explicitly through size and hard rails instead of defaulting to inaction.
 - For buy, add, hold-escalation, and re-entry decisions, enforce trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, and winner-management rules from `references/trading-plan-template.md`.
 - For reviews, re-entry checks, and postmortems, enforce benchmark/style discipline and the postmortem-upgrade loop from `references/review-watchlist-and-review-logging.md`.
 - Trade classification is not identical to `holding_mode`, but they should usually agree at the operating level.
@@ -64,7 +63,7 @@ Shared labels used by this skill:
 - Fundamental valuation: `UNDERVALUED`, `FAIR`, `OVERVALUED`
 - Correlation role: `DIVERSIFIER`, `NEUTRAL`, `CONCENTRATOR`
 - Timeframe: `SWING`, `POSITION`, `LONG_TERM`
-- Regime aggression state: `AGGRESSIVE`, `NORMAL`, `DEFENSIVE`, `CAPITAL_PRESERVATION`
+- Regime aggression multiplier: `0.1-1.5`
 
 Portfolio health flags:
 
@@ -78,7 +77,7 @@ Portfolio health flags:
 - `PM-W08` Portfolio flat/red while IHSG at new highs
 - `PM-W09` Multiple leaders invalidated in the same review window
 - `PM-W10` Thesis stale (no review within cadence)
-- `PM-W11` Cash ratio below IHSG regime cash floor
+- `PM-W11` Cash ratio below IHSG cash target
 
 Health flag metadata:
 
@@ -94,7 +93,7 @@ Health flag metadata:
 | `PM-W08` | Portfolio flat/red while IHSG at new highs | `HIGH` | agent judgment |
 | `PM-W09` | Multiple leaders invalidated in the same review window | `HIGH` | agent judgment |
 | `PM-W10` | Thesis stale (no review within cadence) | `MEDIUM` | deterministic |
-| `PM-W11` | Cash ratio below IHSG regime cash floor | `HIGH` | deterministic |
+| `PM-W11` | Cash ratio below IHSG cash target | `HIGH` | deterministic |
 
 ## Portfolio Constraints Contract
 
@@ -114,10 +113,10 @@ Field rules:
 
 - `heat_budget_remaining_pct`: remaining open-risk budget before hitting the normal portfolio heat ceiling
 - `max_new_position_size_pct`: max additional position size this symbol can take after concentration, liquidity, theme, and regime constraints
-- `regime_aggression`: numeric aggression multiplier derived from the current regime read (`AGGRESSIVE = 1.0`, `NORMAL = 0.7`, `DEFENSIVE = 0.3`, `CAPITAL_PRESERVATION = 0.0`) until 2.7 replaces the categorical regime gate
+- `regime_aggression`: numeric aggression multiplier in `0.1-1.5` derived from IHSG structure, breadth, leader health, and rate of change
 - `cash_floor_status`: `above` | `at_floor` | `below`
 - `concentration_flags`: active concentration, clustering, or diversification warnings that should compress size
-- `hard_rails_triggered`: binary stop rails only; include `portfolio_heat_breach`, `single_position_cap_breach`, `thesis_invalidated`, `very_low_liquidity`, or `capital_preservation_regime` when active
+- `hard_rails_triggered`: binary stop rails only; include `portfolio_heat_breach`, `single_position_cap_breach`, `thesis_invalidated`, `very_low_liquidity`, or `pilot_slot_limit` when active
 
 Interpretation rules:
 
@@ -209,7 +208,7 @@ Hard-loss fallback:
 |------|--------|
 | [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md`, trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, winner management |
 | [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates, benchmark/style discipline, re-entry discipline, postmortem upgrade loop |
-| This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, portfolio constraints, market regime gate, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
+| This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, portfolio constraints, market aggression curve, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
 
 Reference boundary:
 
@@ -245,7 +244,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 ## Operating Rules
 
-- Capital preservation is first priority; upside is secondary. A 50% loss requires 100% gain to recover.
+- Preventing large drawdowns and deploying capital into valid setups are both first-class goals; hard rails control ruin risk, and `regime_aggression` controls how much risk to take. A 50% loss still requires a 100% gain to recover.
 - No thesis, no hold. If invalidation is hit, exit.
 - Do not average down after thesis break.
 - Every new position must fit an explicit `risk_per_trade` budget and the current `portfolio_heat` budget.
@@ -258,40 +257,43 @@ Stop: if fetch fails, stop the task and report dependency failure.
 - Use `portfolio_state` and symbol-trade tools as live position truth; use symbol memory for the latest intended plan and exit policy.
 - Use durable symbol memory for the operating plan only. Do not write live lots, execution timestamps, running P/L, or temporary execution state into the symbol plan.
 
-## Market Regime Gate
+## Market Aggression Curve
 
-Before any new long exposure, check market regime.
+Before any new long exposure, resolve `regime_aggression`.
 
 Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/registry/symbols.json` (fallback: `memory/notes/watchlist.md` when registry is missing or stale).
 
-Resolve one aggression state:
+Compute one `regime_aggression` multiplier from IHSG structure and breadth:
 
-- `AGGRESSIVE`: broad structure constructive, leader breadth healthy, and no fresh breakdown clustering. Normal-to-high conviction sizing allowed inside all hard caps.
-- `NORMAL`: mixed but acceptable structure. Base sizing allowed, but adds should remain selective.
-- `DEFENSIVE`: weakening structure or growing breakdown cluster. Reduce aggression, tighten sizing, prefer trims over fresh expansion.
-- `CAPITAL_PRESERVATION`: broad weakness, leader breakdowns clustering, or regime quality clearly poor. No new longs, including pilots; cash only.
+| IHSG state | Base | Improving breadth | Deteriorating breadth |
+|------------|------|-------------------|-----------------------|
+| Above all key MAs, healthy structure | 1.2 | 1.5 | 1.0 |
+| Above SMA50, below EMA21 | 0.8 | 1.0 | 0.7 |
+| Below SMA50, above SMA200 | 0.5 | 0.7 | 0.4 |
+| Below SMA200 | 0.2 | 0.4 | 0.2 |
+| Below SMA200 with additional red flags | 0.1 | 0.2 | 0.1 |
 
-The regime gate controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
+Use the table as the starting point, then adjust only within `0.1-1.5` when leader health, breakdown clustering, or macro context materially strengthens or weakens the tape. The aggression curve controls how much of the available risk budget may be used. It does not replace symbol-level invalidation, chart doctrine, or parent-workflow synthesis.
 
 Rate-of-change read:
 
-- Do not assess regime from static levels alone. Also assess whether market conditions are improving, stable, or deteriorating versus the prior review window.
+- Do not assess `regime_aggression` from static levels alone. Also assess whether market conditions are improving, stable, or deteriorating versus the prior review window.
 - Include rate-of-change judgment for breadth, leader health, breakdown clustering, and risk appetite. Inflections matter before full breakdowns become obvious.
-- If direction of change is deteriorating, reduce aggression before the damage is fully expressed in price.
+- If direction of change is deteriorating, reduce `regime_aggression` before the damage is fully expressed in price.
 
 IHSG cash overlay:
 
 - Use IHSG moving averages (EMA21, SMA50, SMA200) as a regime-based cash overlay, not as a standalone trading signal.
 - Resolve the current IHSG moving-average state from the active market-context evidence before portfolio conclusions.
-- Base cash floor ladder:
-  - IHSG below EMA21: keep at least 30% cash and reduce new-risk aggression.
-  - IHSG below SMA50: keep at least 50% cash and treat the tape as damaged.
-  - IHSG below SMA200: keep at least 70% cash and operate in capital-preservation mode.
-- Escalated cash floor: when the base floor is active and additional red flags are present (multiple portfolio health warnings, clustering leader breakdowns, negative narrative/news flow, or deteriorating stock-level setups across the book), escalate the floor by +10pp to 40% / 60% / 80% respectively.
-- Apply the highest active floor only. If IHSG is below SMA200 with red flags, the operative minimum cash floor is 80%.
-- Treat this as a floor, not an exact target. Holding more cash is allowed.
-- Exception trades are allowed only when stock-level structure, flow, and invalidation are strong enough to justify them, and they still must fit hard portfolio caps.
-- During `desk-check` and before any new long/add recommendation, compare `portfolio_state.cash_ratio` against the active cash floor (base or escalated), carry any shortfall into the portfolio findings and monitor update, and state whether the escalated floor applies.
+- Base cash target ladder:
+  - IHSG below EMA21: target at least 30% cash and reduce new-risk aggression.
+  - IHSG below SMA50: target at least 50% cash and treat the tape as damaged.
+  - IHSG below SMA200: target at least 70% cash and compress new-risk size sharply.
+- Escalated cash target: when the base target is active and additional red flags are present (multiple portfolio health warnings, clustering leader breakdowns, negative narrative/news flow, or deteriorating stock-level setups across the book), escalate the target by +10pp to 40% / 60% / 80% respectively.
+- Apply the highest active target only. If IHSG is below SMA200 with red flags, the operative cash target is 80%.
+- Treat this as a soft budget target, not a hard wall. Holding more cash is allowed, and a modest shortfall can be tolerated when a high-conviction opportunity still fits the hard rails.
+- When `portfolio_state.cash_ratio` is below the active target, compress `regime_aggression` and `max_new_position_size_pct`, set `cash_floor_status = below`, and carry the shortfall into the portfolio findings and monitor update.
+- During `desk-check` and before any new long/add recommendation, compare `portfolio_state.cash_ratio` against the active cash target and state whether the escalated target applies.
 
 ## Entry, Exit, And Rebalance Doctrine
 
@@ -302,19 +304,19 @@ Entry discipline:
 
 Pilot entry pathway:
 
-- Use `entry_type = PILOT` when a READY symbol has an explicit thesis, explicit invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the full BUY gate stack is still incomplete because the trigger is absent, confirmation is mixed, or regime is only `DEFENSIVE`.
-- Pilot size defaults to 0.25% of portfolio equity and is capped at 0.5%.
-- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, regime is `DEFENSIVE` or better, liquidity is acceptable, and no hard safety rail is triggered.
+- Use `entry_type = PILOT` when a READY symbol has an explicit thesis, explicit invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the composite score is still in the `PILOT` band because the trigger is absent, confirmation is mixed, or `regime_aggression` is low.
+- Pilot base size defaults to 0.25% of portfolio equity and is capped at 0.5% before multiplying by `regime_aggression`.
+- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, `regime_aggression >= 0.1`, liquidity is acceptable, and no hard safety rail is triggered.
 - Pilot entries may proceed on daily location with partial or developing confirmation, neutral-or-better flow, and acceptable but imperfect RR.
 - A pilot is a probe, not a commitment. `trade_classification` remains `THESIS`, `TACTICAL`, or `SPECULATION` based on thesis quality and operating intent.
-- If the full BUY trigger fires after pilot entry, scale using the normal full-gate process.
+- If evidence improves and `composite_score` upgrades into `STARTER`, `STANDARD`, or `HIGH_CONVICTION`, scale using the parent workflow's score-to-size contract.
 - If invalidation is hit, exit the pilot.
 - If the pilot makes no progress for 3+ desk-checks with no trigger and no invalidation, exit the pilot and downgrade the symbol to `WATCHING`.
 - Track pilot plans with `Entry type`, `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry` in the symbol plan.
-- Maximum 2 active pilots at any time.
+- Maximum 4 active pilots at any time.
 - Pilot positions count toward `portfolio_heat` and liquidity limits.
 - Pilot positions are excluded from the 50:30:10 allocation test because they are sub-sized probes.
-- A pilot cannot be scaled above pilot size without passing the full BUY gates.
+- A pilot cannot be scaled above pilot size unless `composite_score` upgrades above the `PILOT` band and all hard rails remain clear.
 
 Entry posture options:
 
@@ -363,8 +365,8 @@ Rebalancing protocol:
 | Thesis stale check | Deterministic | Last review date vs cadence |
 | Checkpoint failure | Deterministic | `Progress checkpoint date` passed without required condition being met |
 | WAIT staleness count | Deterministic | `active_recommendation.wait_desk_check_count` on READY symbols carrying `WAIT` |
-| IHSG cash floor vs current cash ratio | Deterministic | Apply the highest active IHSG cash floor (base 30/50/70 keyed to EMA21/SMA50/SMA200, or escalated 40/60/80) and compare it with `portfolio_state.cash_ratio` |
-| Regime aggression state | Agent judgment | Interpret market proxy structure, leader breadth, and breakdown clustering |
+| IHSG cash target vs current cash ratio | Deterministic | Apply the highest active IHSG cash target (base 30/50/70 keyed to EMA21/SMA50/SMA200, or escalated 40/60/80) and compare it with `portfolio_state.cash_ratio` |
+| Regime aggression multiplier | Agent judgment | Interpret market proxy structure, leader breadth, breakdown clustering, and rate of change into `regime_aggression` |
 | Thesis quality assessment | Agent judgment | Synthesize fundamentals, narrative, flow |
 | Portfolio constraint sizing | Agent judgment | Decide how much heat, liquidity, concentration, or regime should cap size despite symbol thesis remaining intact |
 | Cut-loss vs hold decision | Agent judgment | Evaluate whether decline is permanent impairment or noise |
@@ -373,17 +375,17 @@ Rebalancing protocol:
 
 ### New Position Entry
 
-1. Check regime gate (this file).
-2. Check the active IHSG cash floor and confirm current `portfolio_state.cash_ratio` is compatible with any planned new exposure.
+1. Resolve `regime_aggression` from the market aggression curve (this file).
+2. Check the active IHSG cash target and convert any cash shortfall into lower `regime_aggression` and `max_new_position_size_pct`.
 3. Map the symbol to `holding_mode` from the trading plan (`TACTICAL`, `THESIS`, or `HYBRID`) and apply the corresponding sizing posture.
-4. Choose `entry_type = FULL` or `entry_type = PILOT`. For `PILOT`, enforce the reduced pilot gates, max 0.5% size, max 2 active pilots, and `CAPITAL_PRESERVATION` block.
+4. Choose `entry_type = FULL` or `entry_type = PILOT`. For `PILOT`, enforce the reduced pilot gates, max 0.5% base size before aggression scaling, max 4 active pilots, and all hard rails.
 5. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, `50:30:10` for `FULL` entries, theme/correlation clustering, and ADTV liquidity).
 6. Load `trading-plan-template.md`, fill all required fields including `Entry type`, `Holding mode`, and final exit precedence. For `PILOT`, also fill `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry`.
 7. Write plan to `memory/state/symbols/{SYMBOL}.md`.
 8. Update `memory/notes/watchlist.md` when the plan changes watchlist status or trigger conditions.
 9. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 
-Checklist: regime aggression state resolved, IHSG cash floor checked against current cash ratio, `entry_type` selected, pilot constraints enforced when relevant, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
+Checklist: `regime_aggression` resolved, IHSG cash target checked against current cash ratio, `entry_type` selected, pilot constraints enforced when relevant, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
 
 ### Desk Check Review
 
@@ -395,14 +397,14 @@ Checklist: regime aggression state resolved, IHSG cash floor checked against cur
 6. Check whether any `Progress checkpoint date` has passed and evaluate the stored checkpoint failure action.
 7. For each READY symbol carrying `active_recommendation.action = WAIT`, increment `active_recommendation.wait_desk_check_count`, inspect `retest_status`, and force one of these outcomes when `wait_desk_check_count >= 3` and `retest_status = not_tested`: upgrade to actionable with an adjusted entry, downgrade to `WATCHING` with an explicit reason, or renew the `WAIT` with fresh evidence and a new trigger level. Repeating the same `WAIT` with no new evidence is not a valid renewal.
 8. For each READY symbol where current price is more than 5% above the last recommended entry zone, compute the missed move from that entry zone to current price and record it in `memory/notes/opportunity-cost.md`. A missed move above 10% forces re-evaluation of whether the setup family, entry zone, or underwriting threshold needs to be refreshed. `wait_desk_check_count > 5` also forces re-underwrite or expiry.
-9. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, cumulative missed opportunity from the opportunity-cost ledger, and recent action context from the tool outputs.
+9. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, `regime_aggression`, active IHSG cash target, current cash ratio, cumulative missed opportunity from the opportunity-cost ledger, and recent action context from the tool outputs.
 10. Extend coverage to watchlist symbols required by the active workflow contract.
 11. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, `Entry type`, pilot lifecycle fields, rebalance-band notes, `Last Reviewed`, `active_recommendation`, and other resolved execution-policy fields.
 12. Prepare the updated portfolio-monitor state, opportunity-cost ledger, and `portfolio_constraints` for the parent workflow.
 13. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
 14. Return `portfolio_constraints`, portfolio findings, portfolio-monitor update content, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, checkpoint failures checked, stale plans checked, WAIT staleness checked, opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, checkpoint failures checked, stale plans checked, WAIT staleness checked, opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Deep Review
 
@@ -412,13 +414,13 @@ Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat`
 4. Use `portfolio_symbol_trade_journey` for names that need lifecycle context, realized postmortem setup, or high-friction decision review.
 5. Build the review universe from current holdings, active watchlist names required by the parent workflow, and a required resurfacing set of stale or neglected watchlist names and symbol plans.
 6. For each reviewed symbol: check thesis status, active scenario, scenario switch conditions, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, checkpoint status, and whether the name still deserves scarce portfolio attention.
-7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, regime aggression state, active IHSG cash floor, current cash ratio, benchmark behavior versus `IHSG` and relevant leaders, and current best-ideas density.
+7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, `regime_aggression`, active IHSG cash target, current cash ratio, benchmark behavior versus `IHSG` and relevant leaders, and current best-ideas density.
 8. Review system quality, not only holdings: equity-curve behavior, realized versus unrealized contribution mix, style drift, repeated re-entry mistakes, stale plans, redundant names, cluttered watchlist entries, and process debt.
 9. Prepare cleanup proposals for watchlist status, symbol-plan refreshes, thesis hygiene, portfolio-monitor state, and any portfolio hard-rail or size-cap changes backed by the review evidence.
 10. If watchlist, symbol, or thesis state changes, refresh the derived registry before the parent workflow writes the success log.
 11. Return portfolio findings, neglected-name resurfacing findings, process-quality findings, cleanup actions, and portfolio-monitor update content to the parent workflow.
 
-Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash floor checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio constraints assessed, cleanup actions prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio constraints assessed, cleanup actions prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
@@ -452,6 +454,6 @@ Checklist: drift measured, holding-mode band reviewed, event triggers checked, h
 - Treat `risk_per_trade`, `portfolio_heat`, liquidity caps, and concentration caps as hard guardrails before discretionary conviction scaling.
 - Treat portfolio constraints as a separate layer after symbol-level analysis: PM can cap size, force trims through hard rails, or reduce aggression, but it should not redefine the raw symbol-level exit engine owned by other lenses.
 - Use rebalance bands to guide trim/add decisions during reviews, not to create optimizer-style target weights unsupported by the current tool surface.
-- Check regime gate before any new long exposure.
-- Enforce the active IHSG cash floor before endorsing fresh risk, and flag a shortfall when `portfolio_state.cash_ratio` is below that floor.
+- Resolve `regime_aggression` before any new long exposure.
+- Use the active IHSG cash target as soft budget pressure before endorsing fresh risk, and flag a shortfall when `portfolio_state.cash_ratio` is below that target.
 - Flag any portfolio health warnings (`PM-W01` through `PM-W11`) when detected during any workflow.

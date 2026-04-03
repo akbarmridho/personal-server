@@ -39,6 +39,7 @@ mkdir -p "$OPENCODE_CWD/work"
 echo "Copying memory templates..."
 for f in \
   MEMORY.md \
+  notes/agent-performance.md \
   notes/ihsg.md \
   notes/macro.md \
   notes/opportunity-cost.md \
@@ -74,6 +75,7 @@ echo "  $OPENCODE_CWD/"
 echo "  ├── memory/"
 echo "  │   ├── MEMORY.md"
 echo "  │   ├── notes/"
+echo "  │   │   ├── agent-performance.md"
 echo "  │   │   ├── ihsg.md"
 echo "  │   │   ├── macro.md"
 echo "  │   │   ├── opportunity-cost.md"

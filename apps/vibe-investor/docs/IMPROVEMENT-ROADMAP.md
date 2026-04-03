@@ -49,9 +49,9 @@ Migration order follows the radical-redesign-proposal's phased approach: add sha
 | 2.4 | Skill output contract: fundamental conviction score | DONE | `tasks/2.4-fundamental-conviction-score.md` | 2.0 validation deferred until Iteration 2 contract patch lands |
 | 2.5 | Skill output contract: PM produces constraints not verdicts | DONE | `tasks/2.5-pm-constraints.md` | 2.0 validation deferred until Iteration 2 contract patch lands |
 | 2.6 | Parent synthesis: weighted composite scoring in main.md | DONE | `tasks/2.6-composite-scoring.md` | 2.1–2.5 |
-| 2.7 | Continuous aggression curve (replaces binary regime gate) | PLANNED | `tasks/2.7-aggression-curve.md` | 2.6 |
-| 2.8 | Downstream contract cleanup (main.md, trading-plan-template) | PLANNED | `tasks/2.8-contract-cleanup.md` | 2.6 |
-| 2.9 | Agent performance tracker | PLANNED | `tasks/2.9-agent-performance.md` | 2.6 |
+| 2.7 | Continuous aggression curve (replaces binary regime gate) | DONE | `tasks/2.7-aggression-curve.md` | 2.6 |
+| 2.8 | Downstream contract cleanup (main.md, trading-plan-template) | DONE | `tasks/2.8-contract-cleanup.md` | 2.6 |
+| 2.9 | Agent performance tracker | DONE | `tasks/2.9-agent-performance.md` | 2.6 |
 
 Source: `docs/session-analysis/architecture-proposal.md`, `docs/session-analysis/radical-redesign-proposal.md`
 

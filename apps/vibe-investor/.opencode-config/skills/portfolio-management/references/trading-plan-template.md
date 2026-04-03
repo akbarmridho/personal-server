@@ -105,13 +105,15 @@ active_recommendation:
 ## Active Scenarios
 {Optional. Use only when one linear plan is not enough. Keep 2-4 decision-relevant branches with scenario name, trigger/evidence, operating implication, and optional rough likelihood.}
 
-## Tier Alignment
-- Flow: {ACCUMULATION / DISTRIBUTION / NEUTRAL}
-- Narrative: {STRONG / MODERATE / WEAK}
-- Technical: {bullish setup / neutral / bearish}
-- Fundamental: {UNDERVALUED / FAIR / OVERVALUED}, MoS: {X%}
-- Correlation Role: {DIVERSIFIER / NEUTRAL / CONCENTRATOR}, vs {key holding}: {corr value}
-- Conviction: {HIGH / MEDIUM / LOW}
+## Lens Scores
+- Technical: {0-100} - {one-line score driver summary}
+- Flow: {0-100} - {one-line score driver summary}
+- Narrative: {0-100} - {one-line score driver summary}
+- Fundamental: {0-100} - {valuation anchor / quality summary}
+- Portfolio fit: {0-100} - {heat, concentration, liquidity, and cash-budget summary}
+- Composite: {0-100} -> {NO_TRADE / WATCHLIST / PILOT / STARTER / STANDARD / HIGH_CONVICTION}
+- Aggression multiplier: {0.1-1.5}
+- Final size: {X%}
 
 ## Plan
 - Entry type: {FULL / PILOT}
@@ -140,7 +142,7 @@ active_recommendation:
 - Reduction ladder: {what causes trim to half, trim to starter, or full exit}
 - Early trim rule: {what gets sold at T1 / T2}
 - Runner policy: {how the remainder is handled}
-- Final exit precedence: {hard invalidation > portfolio risk > thesis/non-TA exit > technical harvest/trail}
+- Final exit precedence: {hard invalidation > portfolio hard rail or size-cap constraint > thesis/non-TA exit > technical harvest/trail}
 - Non-TA exit drivers: {valuation / catalyst / flow / thesis aging / opportunity cost}
 
 ## Invalidation
@@ -196,12 +198,14 @@ If one or more fields are missing:
 
 ## Cross-Skill Dependencies
 
-Tier Alignment fields come from multiple sources:
+Lens score fields come from multiple sources:
 
-- Flow, Technical: provided by technical-analysis skill or agent assessment of chart data.
-- Fundamental, MoS: provided by fundamental analysis or agent assessment of financials.
-- Correlation Role: computed from `fetch-ohlcv` rolling correlation (deterministic).
-- Narrative, Conviction: agent judgment synthesizing all inputs.
+- Technical score: `technical_assessment.conviction_score` plus the parent workflow's one-line driver summary.
+- Flow score: `flow_assessment.conviction_score` plus sponsor/trust/timing context from `flow_context`.
+- Narrative score: `narrative_assessment.conviction_score` plus catalyst and failure-risk context.
+- Fundamental score: `fundamental_assessment.conviction_score` plus valuation anchor / quality context when the fundamental lens is loaded.
+- Portfolio fit score, composite score, action tier, aggression multiplier, and final size: parent workflow synthesis using `portfolio_constraints` and the composite scoring contract.
+- Correlation Role: computed from `fetch-ohlcv` rolling correlation (deterministic) and reflected in the portfolio-fit summary.
 
 If a contributing skill is not active, the agent fills the field with its best available assessment and notes the source limitation.
 
