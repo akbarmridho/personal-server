@@ -24,7 +24,7 @@ These items are ordered by implementation sequence. Dependencies are explicit �
 
 | # | Item | Status | Task File | Depends On |
 |---|------|--------|-----------|------------|
-| 1.1 | Forced decision timeline on every WAIT | PLANNED | `tasks/1.1-decision-timeline.md` | — |
+| 1.1 | Forced decision timeline on every WAIT | DONE | `tasks/1.1-decision-timeline.md` | — |
 | 1.2 | Wait staleness tracking in symbol memory | PLANNED | `tasks/1.2-wait-staleness.md` | 1.1 (extends `active_recommendation` schema) |
 | 1.3 | Retest-observed check in TA UPDATE mode | PLANNED | `tasks/1.3-retest-observed.md` | 1.2 (updates `retest_status` field) |
 | 1.4 | Pilot entry pathway in portfolio management | PLANNED | `tasks/1.4-pilot-entry.md` | 1.1 (uses decision horizon for pilot expiry) |

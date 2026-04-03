@@ -60,6 +60,27 @@ Rules:
 ## Template
 
 ```markdown
+---
+id: {SYMBOL}
+scope: symbol
+symbol: {SYMBOL}
+watchlist_status: {WATCHING / READY / ACTIVE / REMOVED}
+trade_classification: {THESIS / TACTICAL / SPECULATION}
+holding_mode: {TACTICAL / THESIS / HYBRID}
+thesis_id: {THESIS_ID}
+last_reviewed: {YYYY-MM-DD}
+next_review: {YYYY-MM-DD}
+leader: {true / false}
+tags: [{TAG_1}, {TAG_2}]
+active_recommendation:
+  action: {WAIT}
+  issued: {YYYY-MM-DD}
+  horizon_expires: {YYYY-MM-DD}
+  upgrade_trigger: {Concrete condition that upgrades WAIT to BUY/HOLD}
+  downgrade_trigger: {Concrete condition that downgrades or removes the setup}
+  expiry_action: {Re-underwrite with fresh levels or downgrade to WATCHING}
+---
+
 # {SYMBOL} - Trading Plan
 
 **Date**: {YYYY-MM-DD}
@@ -129,6 +150,12 @@ Rules:
 ## Notes
 {Additional context, key dates, items to monitor}
 ```
+
+Frontmatter rules:
+
+- Include `active_recommendation` when the symbol carries a live `WAIT` recommendation.
+- Keep `active_recommendation` limited to the current recommendation lifecycle: `action`, `issued`, `horizon_expires`, `upgrade_trigger`, `downgrade_trigger`, and `expiry_action`.
+- Omit `active_recommendation` when there is no live recommendation lifecycle to track.
 
 ## Minimum Required Fields
 

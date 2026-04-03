@@ -244,6 +244,15 @@ All must be true:
 
 Default when any decision prerequisite is unresolved: state unclear, location poor, `NO_VALID_SETUP`, trigger absent, confirmation mixed, invalidation unclear, no next-zone path, RR below threshold.
 
+Every `WAIT` decision must include a concrete recommendation lifecycle:
+
+- `upgrade_trigger`: falsifiable condition that would upgrade the setup to `BUY` for a flat symbol or `HOLD` for a long symbol
+- `downgrade_trigger`: falsifiable condition that would downgrade or remove the setup
+- `decision_horizon`: maximum time window before forced resolution, expressed as trading days or desk-check count; default `5 trading days or 3 desk-checks, whichever comes first`
+- `expiry_action`: what to do when the horizon passes without either trigger firing; default `re-underwrite with fresh levels or downgrade to WATCHING`
+
+A complete `WAIT` recommendation includes all four lifecycle fields.
+
 #### `EXIT`
 
 All must be true:
@@ -314,6 +323,8 @@ Every red flag must include `flag_id`, `severity`, `why`. Include an overall ris
 Required: `purpose_mode`, `action`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `confidence`, `monitoring_triggers`, `chart_artifact_refs`.
 
 Required when actionable (`BUY`): `best_rr`.
+
+Required when `WAIT`: `upgrade_trigger`, `downgrade_trigger`, `decision_horizon`, `expiry_action`.
 
 Required when long (`HOLD`, `UPDATE`): `current_rr`.
 
