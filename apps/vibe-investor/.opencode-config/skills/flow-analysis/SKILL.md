@@ -101,6 +101,7 @@ Advanced signals:
 
 - `advanced_signals.persistence_score`
 - `advanced_signals.persistence_state`
+- `advanced_signals.persistence_drivers`
 - `advanced_signals.buy_hhi`
 - `advanced_signals.sell_hhi`
 - `advanced_signals.buy_gini`
@@ -145,6 +146,12 @@ Trust and assessment:
 - `integration_hook.price_structure_alignment`
 - `integration_hook.signal_role`
 - `integration_hook.integration_summary`
+- `participant_flow.foreign_net`
+- `participant_flow.government_net`
+- `participant_flow.local_net`
+- `participant_flow.unclassified_net`
+- `participant_flow.dominant_type`
+- `participant_flow.classified_pct`
 - `monitoring`
 
 Historical series:
@@ -169,7 +176,8 @@ Always interpret in this order:
 6. `TRUST_AND_REGIME`
 7. `VERDICT`
 8. `INTEGRATION_HOOK`
-9. `MONITORING`
+9. `PARTICIPANT_FLOW`
+10. `MONITORING`
 
 ### 1. `MODE`
 
@@ -222,6 +230,8 @@ These refine the read.
 Interpretation rules:
 
 - persistence upgrades conviction; it does not replace direction
+- use `persistence_drivers` to name the top broker codes behind the aggregate persistence state
+- each `persistence_drivers[]` item carries `broker`, `side`, `streak`, `active`, `flow_share_pct`, and `contribution`
 - `gini_asymmetry_state` is the primary concentration asymmetry read; `HHI` and top-k participation are secondary confirmation
 - `Frequency Profile` is included because raw broker frequency exists in the source data
 - read `cadi_divergence_state`, `mfi_divergence_state`, and `freq_gini_divergence_state` separately, then use `divergence_summary` as the compact rollup
@@ -286,7 +296,28 @@ Interpretation:
 
 Do not re-derive TA setup families or invalidate TA ownership here.
 
-### 9. `MONITORING`
+### 9. `PARTICIPANT_FLOW`
+
+This section breaks down visible flow by participant type using the `broker_type` field from the data source.
+
+Types:
+
+- `foreign`: brokers affiliated with foreign institutions (e.g., UBS, JP Morgan, Mirae, Maybank)
+- `government`: government/BUMN-controlled brokers (e.g., Mandiri, BNI, BRI-Danareksa, Bahana)
+- `local`: private domestic brokers (e.g., Stockbit, Indo Premier, Trimegah, Ajaib)
+- `unclassified`: brokers without a type classification in the source data
+
+Interpretation:
+
+- foreign net buy with local net sell is a high-conviction institutional accumulation signal
+- local net buy with foreign net sell often indicates distribution into retail buying
+- government net flow can reflect state-directed activity (pension funds, SOE treasury) which has different persistence characteristics than foreign or local private flow
+- `classified_pct` below 0.70 means the breakdown is partial; treat with caution
+- `dominant_type` identifies which participant type has the largest absolute net flow
+
+Do not treat participant flow as a standalone verdict. It adds context to the existing accumulation/distribution lean — it tells you *who* is behind the flow, not whether the flow is bullish or bearish.
+
+### 10. `MONITORING`
 
 Always end with:
 
@@ -312,7 +343,8 @@ Required sections:
 4. `Advanced Signals`
 5. `Trust / Regime`
 6. `Integration Hook`
-7. `Monitoring`
+7. `Participant Flow`
+8. `Monitoring`
 
 ### `Flow Assessment Summary`
 
@@ -359,6 +391,7 @@ If needed for inspection, refer to the compact historical block instead of re-re
 Summarize only what matters:
 
 - `advanced_signals.persistence_state`
+- `advanced_signals.persistence_drivers`
 - `advanced_signals.gini_asymmetry_state`
 - `advanced_signals.gini_asymmetry`
 - `advanced_signals.flow_price_correlation_state`
@@ -387,6 +420,16 @@ State:
 - `integration_hook.timing_relation`
 - `integration_hook.price_structure_alignment`
 - `integration_hook.integration_summary`
+
+### `Participant Flow`
+
+State:
+
+- `participant_flow.foreign_net`
+- `participant_flow.government_net`
+- `participant_flow.local_net`
+- `participant_flow.dominant_type`
+- `participant_flow.classified_pct`
 
 ### `Monitoring`
 

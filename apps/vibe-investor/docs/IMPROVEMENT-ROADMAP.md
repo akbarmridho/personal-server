@@ -78,7 +78,7 @@ Implementation order: bug fix first (3.5), then new signals (3.3 → 3.4 → 3.9
 | 3.11 | Per-broker persistence table | DROPPED | `tasks/3.11-broker-persistence.md` | — |
 | 3.12 | Wyckoff phase history with event chains | DROPPED | `tasks/3.12-wyckoff-event-chains.md` | 3.10 |
 | 3.13 | SMT confidence and wash discount | SKIPPED | `tasks/3.13-smt-confidence.md` | 3.2 |
-| 3.14 | Participant-type flow breakdown | PLANNED | `tasks/3.14-participant-flow.md` | — |
+| 3.14 | Participant-type flow breakdown | DONE | `tasks/3.14-participant-flow.md` | — |
 | 3.15 | Ridge R² with out-of-sample validation | DROPPED | `tasks/3.15-ridge-r2.md` | — |
 | 3.16 | Rank IC | DROPPED | `tasks/3.16-rank-ic.md` | 3.15 |
 

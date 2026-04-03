@@ -418,6 +418,19 @@ def load_daily_ohlcv(path: Path) -> pd.DataFrame:
     return df
 
 
+BROKER_TYPE_MAP = {
+    "asing": "foreign",
+    "pemerintah": "government",
+    "lokal": "local",
+}
+
+
+def _normalize_broker_type(raw: Any) -> str:
+    if not raw or not isinstance(raw, str):
+        return "unclassified"
+    return BROKER_TYPE_MAP.get(raw.strip().lower(), "unclassified")
+
+
 def _normalize_rows(rows: Any) -> list[dict[str, Any]]:
     if not isinstance(rows, list):
         return []
@@ -431,6 +444,7 @@ def _normalize_rows(rows: Any) -> list[dict[str, Any]]:
         out.append(
             {
                 "broker": broker,
+                "broker_type": _normalize_broker_type(row.get("broker_type")),
                 "value": round(_to_float(row.get("value"))),
                 "lots": round(_to_float(row.get("lots"))),
                 "avg_price": _to_float(row.get("avg_price")),
@@ -648,9 +662,11 @@ def _trend_strength_from_slope(slope: float, values: list[float]) -> tuple[str, 
     return "flat", "neutral"
 
 
-def _persistence(primary_days: list[dict[str, Any]]) -> tuple[float, str]:
+def _persistence(
+    primary_days: list[dict[str, Any]],
+) -> tuple[float, str, list[dict[str, Any]]]:
     if not primary_days:
-        return 0.0, "mixed"
+        return 0.0, "mixed", []
 
     broker_signs: dict[str, list[int]] = {}
     broker_weights: dict[str, float] = {}
@@ -664,14 +680,34 @@ def _persistence(primary_days: list[dict[str, Any]]) -> tuple[float, str]:
             broker_weights[broker] = broker_weights.get(broker, 0.0) + abs(net_value) / market_value
 
     primary_len = len(primary_days)
+    total_broker_weight = sum(broker_weights.values())
     buy_persistence = 0.0
     sell_persistence = 0.0
+    broker_drivers: list[dict[str, Any]] = []
     for broker, signs in broker_signs.items():
         buy_streak = _longest_streak(signs, 1)
         sell_streak = _longest_streak(signs, -1)
         weight = broker_weights.get(broker, 0.0)
         buy_persistence += weight * (buy_streak / primary_len)
         sell_persistence += weight * (sell_streak / primary_len)
+        current_sign = next((sign for sign in reversed(signs) if sign != 0), 0)
+        dominant_sign = 1 if buy_streak >= sell_streak else -1
+        dominant_streak = max(buy_streak, sell_streak)
+        if dominant_streak <= 0 or weight <= 0:
+            continue
+        broker_drivers.append(
+            {
+                "broker": broker,
+                "side": "buy" if dominant_sign > 0 else "sell",
+                "streak": int(dominant_streak),
+                "active": bool(current_sign == dominant_sign),
+                "flow_share_pct": round(
+                    _safe_ratio(weight, total_broker_weight) * 100.0,
+                    4,
+                ),
+                "contribution": round(weight * (dominant_streak / primary_len), 6),
+            }
+        )
 
     total = buy_persistence + sell_persistence
     score = 0.0 if total == 0 else ((buy_persistence - sell_persistence) / total) * 100.0
@@ -686,7 +722,16 @@ def _persistence(primary_days: list[dict[str, Any]]) -> tuple[float, str]:
         state = "sell_persistence"
     else:
         state = "mixed"
-    return score, state
+    broker_drivers = sorted(
+        broker_drivers,
+        key=lambda item: (
+            float(item["contribution"]),
+            int(item["streak"]),
+            float(item["flow_share_pct"]),
+        ),
+        reverse=True,
+    )[:3]
+    return score, state, broker_drivers
 
 
 def _correlation_state(value: float) -> str:
@@ -867,6 +912,51 @@ def _net_accumulation_metrics(primary_days: list[dict[str, Any]]) -> dict[str, f
         "net_accumulation_vs_current_pct": round(
             _safe_ratio(current_price, net_accumulation_price) - 1.0, 6
         ),
+    }
+
+
+def _participant_flow(primary_days: list[dict[str, Any]]) -> dict[str, Any]:
+    type_net: dict[str, float] = {}
+    type_buy: dict[str, float] = {}
+    type_sell: dict[str, float] = {}
+    total_classified_value = 0.0
+    total_visible_value = 0.0
+
+    for day in primary_days:
+        for row in day["buy_rows"]:
+            bt = str(row.get("broker_type", "unclassified"))
+            value = _to_float(row.get("value"))
+            type_buy[bt] = type_buy.get(bt, 0.0) + value
+            type_net[bt] = type_net.get(bt, 0.0) + value
+            total_visible_value += value
+            if bt != "unclassified":
+                total_classified_value += value
+        for row in day["sell_rows"]:
+            bt = str(row.get("broker_type", "unclassified"))
+            value = _to_float(row.get("value"))
+            type_sell[bt] = type_sell.get(bt, 0.0) + value
+            type_net[bt] = type_net.get(bt, 0.0) - value
+            total_visible_value += value
+            if bt != "unclassified":
+                total_classified_value += value
+
+    classified_pct = _safe_ratio(total_classified_value, total_visible_value)
+
+    foreign_net = round(type_net.get("foreign", 0.0), 2)
+    government_net = round(type_net.get("government", 0.0), 2)
+    local_net = round(type_net.get("local", 0.0), 2)
+    unclassified_net = round(type_net.get("unclassified", 0.0), 2)
+
+    nets = {"foreign": foreign_net, "government": government_net, "local": local_net}
+    dominant_type = max(nets, key=lambda k: abs(nets[k]))
+
+    return {
+        "foreign_net": foreign_net,
+        "government_net": government_net,
+        "local_net": local_net,
+        "unclassified_net": unclassified_net,
+        "dominant_type": dominant_type,
+        "classified_pct": round(classified_pct, 6),
     }
 
 
@@ -1488,7 +1578,7 @@ def build_flow_context_result(
     )
     frequency_score, frequency_profile = _frequency_profile(primary_buy_rows, primary_sell_rows)
 
-    persistence_score, persistence_state = _persistence(primary_days)
+    persistence_score, persistence_state, persistence_drivers = _persistence(primary_days)
     concentration_state = _gini_asymmetry_state(
         avg_gini_asymmetry,
         avg_buy_hhi,
@@ -1499,6 +1589,7 @@ def build_flow_context_result(
     divergence_states = _divergence_states(primary_days)
     divergence_summary = divergence_states["divergence_summary"]
     net_accumulation_metrics = _net_accumulation_metrics(primary_days)
+    participant_flow = _participant_flow(primary_days)
 
     closes_trust = [float(day["close"]) for day in trust_days]
     flow_price_correlation = _spearman_corr(cadi_series, closes_trust)
@@ -1666,6 +1757,7 @@ def build_flow_context_result(
         "advanced_signals": {
             "persistence_score": round(persistence_score, 2),
             "persistence_state": persistence_state,
+            "persistence_drivers": persistence_drivers,
             "buy_hhi": round(avg_buy_hhi, 2),
             "sell_hhi": round(avg_sell_hhi, 2),
             "buy_gini": round(avg_buy_gini, 6),
@@ -1704,6 +1796,7 @@ def build_flow_context_result(
             "strongest_caution_factors": caution_factors,
         },
         "integration_hook": integration_hook,
+        "participant_flow": participant_flow,
         "monitoring": monitoring,
         **(
             {"update_context": _update_context(
