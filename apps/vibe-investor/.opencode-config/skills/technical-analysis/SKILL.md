@@ -238,6 +238,7 @@ All must be true:
 - thesis remains valid
 - no exit trigger is active
 - no critical contradiction requires immediate reduction or exit
+- `risk_map.current_rr` is computed and stated
 
 #### `WAIT`
 
@@ -311,6 +312,10 @@ Every red flag must include `flag_id`, `severity`, `why`. Include an overall ris
 ### Minimum Final Decision Output
 
 Required: `purpose_mode`, `action`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `confidence`, `monitoring_triggers`, `chart_artifact_refs`.
+
+Required when actionable (`BUY`): `best_rr`.
+
+Required when long (`HOLD`, `UPDATE`): `current_rr`.
 
 Conditional: prior thesis delta for `UPDATE`, postmortem findings for `POSTMORTEM`.
 
@@ -700,6 +705,7 @@ Rules: required sections must always be present except `prior_thesis` (required 
 - `target_ladder` (optional): number[]
 - `rr_by_target` (optional): number[]
 - `best_rr` (conditional): number, required when actionable
+- `current_rr` (conditional): number, required when `analysis.position_state = long`; reward-to-risk from current price to next target versus current price to invalidation
 - `min_rr_required`: number
 - `risk_status`: `valid` | `insufficient_rr` | `poor_location` | `no_clear_invalidation` | `no_clear_path` | `wait`
 - `stale_setup_condition`: string
@@ -777,11 +783,11 @@ Rules: required sections must always be present except `prior_thesis` (required 
 
 Use this structure for every technical analysis output:
 
-- **A. Decision Summary**: purpose mode, action, bias, setup, key active level, invalidation, next trigger, confidence
+- **A. Decision Summary**: purpose mode, action, bias, setup, key active level, invalidation, next trigger, confidence, R:R (entry `best_rr` for BUY; remaining `current_rr` for HOLD/UPDATE)
 - **B. Context**: date, intent, timeframes, data dependency status, prior analysis reference (UPDATE/POSTMORTEM)
 - **C. State And Location**: state, regime, bias, Wyckoff (cycle phase, schematic phase, maturity, confidence), key S/R zones, baseline MA posture, value-area context, liquidity map, location summary
 - **D. Setup And Trigger**: selected setup family, validity, trigger state/type/level, confirmation state, participation quality, latest structure event, breakout quality note
-- **E. Risk And Decision**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR, red flags summary, final action rationale
+- **E. Risk And Decision**: entry zone, stop-loss, invalidation basis, next-zone target, target ladder, expected RR (`best_rr` for BUY, `current_rr` for HOLD/UPDATE), red flags summary, final action rationale
 - **F. Trade Management**: technical partial plan, trail mode, time-stop baseline, active profit state and exit-urgency context when long
 - **Optional Scenarios**: 2-4 named chart-path branches when the setup is path-dependent. For each scenario, state trigger/level, likely path, operating implication, and optional rough likelihood.
 - **G. Delta And Monitoring**: previous thesis snapshot (UPDATE/POSTMORTEM), thesis status and review reason (UPDATE), delta log (UPDATE), failure point and handling improvement (POSTMORTEM), monitoring triggers, stale setup condition

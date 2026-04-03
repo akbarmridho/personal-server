@@ -98,6 +98,7 @@ Rules:
 - Target 1: {price} (+{X%}) - sell {X%}
 - Target 2: {price} (+{X%}) - sell {X%}
 - Target 3: {price} (+{X%}) - sell remaining
+- Expected R:R: {X:1} (entry to T1), {X:1} (entry to T2), {X:1} (entry to T3)
 - Monitoring requirement: {LOW / MEDIUM / HIGH} + {what must actually be monitored}
 - Progress checkpoint date: {YYYY-MM-DD}
 - Progress expectation by checkpoint: {what must be true}
@@ -137,6 +138,7 @@ Rules:
 - Invalidation
 - Expected holding period
 - Position size and stop loss
+- Expected R:R
 - Entry build
 - Size reason
 - Monitoring requirement
