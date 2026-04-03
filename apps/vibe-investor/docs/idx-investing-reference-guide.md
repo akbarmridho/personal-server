@@ -304,7 +304,11 @@ The composite maps to a sized action:
 | 71-85 | `STANDARD` | 1.5-3.0% |
 | 86-100 | `HIGH_CONVICTION` | 3.0-5.0% |
 
-Final sizing applies the aggression multiplier: `final_size = base_size × regime_aggression`.
+Final sizing applies the portfolio cap and aggression multiplier:
+
+```
+final_size = min(base_size, max_new_position_size_pct) × regime_aggression
+```
 
 Binary overrides are limited to hard safety rails only:
 
@@ -323,7 +327,7 @@ How to weigh conflicts:
 - If narrative is hot but already late/crowded and price is extended, respect the story but avoid chasing poor location.
 - If TA is triggering but thesis quality is weak and evidence is rumor-heavy, keep size small or pass.
 - If flow is warning while TA still looks fine, reduce conviction and tighten monitoring.
-- If a long-term thesis remains intact but portfolio heat/cash regime is bad, portfolio risk can still force smaller size or delayed adds.
+- If a long-term thesis remains intact but portfolio heat is high or IHSG regime/cash pressure is weak, portfolio risk can still force smaller size or delayed adds.
 - Do not collapse mixed evidence by defaulting to the weakest lens.
 
 Decision outputs should be explicit:
@@ -369,15 +373,15 @@ Sizing and risk rules:
 
 IHSG cash overlay and aggression curve:
 
-The market regime produces a continuous aggression multiplier (0.1-1.5) based on IHSG structure and breadth:
+The market regime produces a continuous aggression multiplier (0.25-1.5) based on IHSG structure and breadth:
 
 | IHSG state | Base | Improving breadth | Deteriorating breadth |
 |---|---|---|---|
 | Above all key MAs, healthy | 1.2 | 1.5 | 1.0 |
 | Above SMA50, below EMA21 | 0.8 | 1.0 | 0.7 |
 | Below SMA50, above SMA200 | 0.5 | 0.7 | 0.4 |
-| Below SMA200 | 0.2 | 0.4 | 0.2 |
-| Below SMA200 + red flags | 0.1 | 0.2 | 0.1 |
+| Below SMA200 | 0.3 | 0.4 | 0.25 |
+| Below SMA200 + red flags | 0.25 | 0.3 | 0.25 |
 
 Cash targets by IHSG state:
 
@@ -387,7 +391,7 @@ Cash targets by IHSG state:
 | Below SMA50 | 50% |
 | Below SMA200 | 70% |
 
-If broader red flags are also present, escalate those targets by +10pp to 40% / 60% / 80%. These are soft budget targets that compress aggression and max position size, not hard walls.
+If broader red flags are also present, escalate those targets by +10pp to 40% / 60% / 80%. These are soft budget targets that compress `regime_aggression`. Reserve `max_new_position_size_pct` for concentration, correlation, liquidity, and theme constraints.
 
 Add/trim/exit discipline:
 
@@ -453,7 +457,7 @@ Postmortem rule:
 - Does flow confirm, lead, or warn?
 - Is the narrative still early enough, or already crowded/priced in?
 - Is valuation sane and is this not a value trap?
-- Does this fit portfolio heat, cash floor, liquidity, and concentration limits?
+- Does this fit portfolio heat, concentration, correlation, and liquidity limits?
 
 ### While Holding
 
@@ -470,7 +474,7 @@ Postmortem rule:
 - Has evidence improved, not just price become cheaper?
 - Is structure still valid and is invalidation unchanged or tighter?
 - Does the active scenario justify more exposure?
-- Does the add breach cash floor, heat, concentration, correlation, or ADTV constraints?
+- Does the add breach heat, concentration, correlation, or ADTV constraints, and is any IHSG cash-target shortfall reflected in `regime_aggression`?
 
 ### Before Trimming Or Exiting
 
@@ -521,7 +525,7 @@ Postmortem rule:
 | Portfolio heat | Sum of open risk across positions, used to prevent too many simultaneous high-risk bets |
 | Holding mode | Operating posture for a position: `TACTICAL`, `HYBRID`, or `THESIS` |
 | Composite score | Weighted average of lens conviction scores (0-100) that maps to a sized action tier |
-| Aggression multiplier | Continuous 0.1-1.5 multiplier from IHSG structure and breadth that scales position sizing |
+| Aggression multiplier | Continuous 0.25-1.5 multiplier from IHSG structure and breadth that scales position sizing |
 | Beta | Stock's sensitivity to IHSG moves; defensive (<0.7), moderate (0.7-1.3), aggressive (>1.3) |
 | Gini asymmetry | Buy-side Gini minus sell-side Gini; positive = institutional accumulation pattern, negative = institutional distribution |
 | Net accumulation price | VWAP of net-positive flow days; smart money's average cost basis for the visible accumulation |
