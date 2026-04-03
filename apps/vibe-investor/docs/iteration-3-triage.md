@@ -55,9 +55,7 @@ This is a skill prompt edit, not a pipeline code change. Add it when implementin
 
 ## Research (conditional keep)
 
-These earn an implementation slot only if the research resolves cleanly. Do not commit to implementation until research questions are answered.
+No active research items remaining.
 
-| # | Task | Effort | Research gate |
-|---|------|--------|---------------|
-| 3.10 | Wyckoff PS/PSY | Medium | Detection heuristics for PS and PSY events — what volume/price/close-position thresholds distinguish PS from noise? Risk is false precision: noisy heuristics the agent trusts too much. Only implement if heuristics validate against known phase history examples. |
-| 3.14 | Participant flow | Medium | Two gates: (1) a reliable broker-to-participant-type mapping can be sourced for IDX, and (2) a maintenance plan exists for keeping it current (broker codes shift via new brokers, mergers, desk reassignments). If the mapping requires manual quarterly updates, price that cost in before committing. Stale mapping = agent trusts wrong labels silently. |
+- 3.10 (Wyckoff PS/PSY): shipped with PS/PSY detection only. Continuation/pullback deferred — the current event schema has no direction field, so a generic `Pullback` event would be ambiguous in chart annotation. Revisit if the event schema gains direction context.
+- 3.14 (Participant flow): moved to Keep. The `fetch-broker-flow` output already includes `broker_type` (`Asing`/`Pemerintah`/`Lokal`) on every row. No mapping file or maintenance needed — the classification comes from the data source. Implementation is small: read `broker_type` in `_normalize_rows()`, aggregate net flow by type, emit participant flow fields.

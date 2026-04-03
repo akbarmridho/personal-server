@@ -867,12 +867,14 @@ def plot_wyckoff_history(
 
     # Wyckoff event markers
     _WYCKOFF_EVENT_COLORS = {
+        "PS": "#42a5f5", "PSY": "#ff8a65",
         "SC": "#e53935", "BC": "#e53935", "AR": "#00c853",
         "ST": "#78909c", "Spring": "#2979ff", "ToS": "#5c6bc0",
         "SOS": "#00c853", "LPS": "#66bb6a",
         "UT": "#ff7043", "UTAD": "#d32f2f", "SOW": "#e53935", "LPSY": "#ef5350",
     }
     _WYCKOFF_EVENT_MARKERS = {
+        "PS": "v", "PSY": "^",
         "SC": "v", "BC": "^", "AR": "^", "ST": "o",
         "Spring": "D", "ToS": "d", "SOS": "^", "LPS": "s",
         "UT": "v", "UTAD": "D", "SOW": "v", "LPSY": "s",
@@ -901,7 +903,7 @@ def plot_wyckoff_history(
                 edgecolors="#111111", linewidths=0.7, zorder=6, alpha=0.92,
             )
             # Annotation with anti-overlap
-            is_support = ev_type in {"SC", "ST", "Spring", "ToS", "LPS", "SOW"}
+            is_support = ev_type in {"PS", "SC", "ST", "Spring", "ToS", "LPS", "SOW"}
             sign = -1.0 if is_support else 1.0
             ty = ev_price + sign * atr_unit * 0.9
             for _ in range(5):

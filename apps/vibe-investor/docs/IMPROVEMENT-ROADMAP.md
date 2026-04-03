@@ -74,11 +74,11 @@ Implementation order: bug fix first (3.5), then new signals (3.3 → 3.4 → 3.9
 | 3.7 | Rolling trust regime series | DROPPED | `tasks/3.7-rolling-trust.md` | — |
 | 3.8 | High volatility regime | DONE | `tasks/3.8-high-volatility-regime.md` | — |
 | 3.9 | Net accumulation price | DONE | `tasks/3.9-net-accumulation-price.md` | — |
-| 3.10 | Wyckoff PS/PSY events + continuation/pullback | RESEARCH | `tasks/3.10-wyckoff-ps-psy.md` | — |
+| 3.10 | Wyckoff PS/PSY detection (continuation/pullback deferred) | DONE | `tasks/3.10-wyckoff-ps-psy.md` | — |
 | 3.11 | Per-broker persistence table | DROPPED | `tasks/3.11-broker-persistence.md` | — |
 | 3.12 | Wyckoff phase history with event chains | DROPPED | `tasks/3.12-wyckoff-event-chains.md` | 3.10 |
 | 3.13 | SMT confidence and wash discount | SKIPPED | `tasks/3.13-smt-confidence.md` | 3.2 |
-| 3.14 | Participant-type flow breakdown | RESEARCH | `tasks/3.14-participant-flow.md` | — |
+| 3.14 | Participant-type flow breakdown | PLANNED | `tasks/3.14-participant-flow.md` | — |
 | 3.15 | Ridge R² with out-of-sample validation | DROPPED | `tasks/3.15-ridge-r2.md` | — |
 | 3.16 | Rank IC | DROPPED | `tasks/3.16-rank-ic.md` | 3.15 |
 
@@ -86,10 +86,7 @@ Source: `docs/flow-future-improvements.md`, triaged in `docs/iteration-3-triage.
 
 ## Research Items
 
-| Item | What needs research |
-|------|-------------------|
-| 3.10 Wyckoff PS/PSY | Define detection heuristics for PS and PSY events — what volume/price/close-position thresholds distinguish PS from noise and from SC? How to handle multiple PS events in sequence? Validate against AlphaFlow's BMRI phase history examples. If 3.10 ships, add 3.12 event chain strings as a freebie. |
-| 3.14 Participant-type flow | Two gates: (1) source a reliable broker-code-to-participant-type mapping for IDX, and (2) define a maintenance plan for keeping it current (broker codes shift via new brokers, mergers, desk reassignments). If mapping requires manual quarterly updates, price that cost before committing. |
+No active research items. 3.10 (PS/PSY) shipped with PS/PSY detection only; continuation/pullback deferred because the event schema lacks a direction field. 3.14 (participant flow) moved to PLANNED after discovering `broker_type` field already exists in `fetch-broker-flow` output (`Asing`/`Pemerintah`/`Lokal`).
 
 ## Non-Goals
 

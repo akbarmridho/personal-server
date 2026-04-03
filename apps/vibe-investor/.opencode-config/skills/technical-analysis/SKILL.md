@@ -775,7 +775,7 @@ Rules: required sections must always be present except `prior_thesis` (required 
 
 #### `wyckoff_event[]`
 
-- `type`: `SC` | `BC` | `AR` | `ST` | `Spring` | `ToS` | `SOS` | `LPS` | `UT` | `UTAD` | `SOW` | `LPSY`
+- `type`: `PS` | `PSY` | `SC` | `BC` | `AR` | `ST` | `Spring` | `ToS` | `SOS` | `LPS` | `UT` | `UTAD` | `SOW` | `LPSY`
 - `bar_index`: integer
 - `ts`: ISO date string
 - `price`: number

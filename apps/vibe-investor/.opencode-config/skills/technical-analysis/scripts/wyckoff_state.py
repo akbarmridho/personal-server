@@ -32,8 +32,25 @@ RANGE_PIERCE_PCT = 0.005
 AR_WINDOW = 6
 TEST_OF_SPRING_WINDOW = 12
 EVENT_DEDUPE_WINDOW = 3
+PRELIMINARY_EVENT_GAP_BARS = 4
 MAX_EVENTS_PER_SEGMENT = 6
-EVENT_PRIORITY = ["SC", "BC", "AR", "Spring", "UTAD", "UT", "SOS", "SOW", "ST", "Test", "ToS", "LPS", "LPSY"]
+EVENT_PRIORITY = [
+    "PS",
+    "PSY",
+    "SC",
+    "BC",
+    "AR",
+    "Spring",
+    "UTAD",
+    "UT",
+    "SOS",
+    "SOW",
+    "ST",
+    "Test",
+    "ToS",
+    "LPS",
+    "LPSY",
+]
 
 
 def _prepare_daily(df: pd.DataFrame) -> pd.DataFrame:
@@ -175,10 +192,12 @@ def _new_schematic_ctx() -> dict[str, Any]:
         "anchored_low": None,
         "anchored_high": None,
         "anchor_source": "rolling",
+        "ps_bar": None,
         "sc_bar": None,
         "sc_low": None,
         "ar_bar": None,
         "ar_high": None,
+        "psy_bar": None,
         "bc_bar": None,
         "bc_high": None,
         "ar_low_dist": None,
@@ -205,6 +224,25 @@ def _event(
     }
 
 
+def _has_preliminary_spacing(
+    last_event_bar: int | None,
+    bar_idx: int,
+) -> bool:
+    return (
+        last_event_bar is None
+        or (bar_idx - last_event_bar) >= PRELIMINARY_EVENT_GAP_BARS
+    )
+
+
+def _recent_move_pct(window: pd.DataFrame, lookback: int = PRIOR_WINDOW) -> float:
+    if len(window) < 2:
+        return 0.0
+    anchor_idx = max(0, len(window) - lookback - 1)
+    ref_close = float(window["close"].iloc[anchor_idx])
+    close = float(window["close"].iloc[-1])
+    return (close - ref_close) / max(abs(ref_close), 1e-9)
+
+
 def _detect_events(
     window: pd.DataFrame,
     bar_idx: int,
@@ -219,11 +257,22 @@ def _detect_events(
     close = float(row["close"])
     low = float(row["low"])
     high = float(row["high"])
+    open_price = float(row["open"])
     vol_ratio = float(row["vol_ratio"]) if pd.notna(row["vol_ratio"]) else 1.0
     atr14 = float(row["ATR14"]) if pd.notna(row["ATR14"]) and float(row["ATR14"]) > 0 else max(close * 0.02, 1e-9)
     spread = high - low
     cp = _bar_close_position(row)
     ret = float(row["ret"]) if pd.notna(row["ret"]) else 0.0
+    lower_tail_ratio = (
+        float((min(open_price, close) - low) / spread)
+        if spread > 0
+        else 0.0
+    )
+    upper_tail_ratio = (
+        float((high - max(open_price, close)) / spread)
+        if spread > 0
+        else 0.0
+    )
 
     # Range references: prefer anchored, fall back to rolling
     stats = _range_stats(window)
@@ -261,8 +310,55 @@ def _detect_events(
 
     # ===== ACCUMULATION EVENTS =====
     if side == "accumulation":
+        ps_emitted = False
+
+        # --- PS: Preliminary Support ---
+        if phase == "A" and ctx["sc_bar"] is None and _has_preliminary_spacing(
+            ctx.get("ps_bar"), bar_idx
+        ):
+            lookback = window.tail(min(CLIMAX_LOOKBACK, len(window)))
+            is_near_low = low <= float(lookback["low"].min()) * (1.0 + RANGE_PROXIMITY_PCT)
+            decline_pct = _recent_move_pct(window)
+            has_absorption = cp >= 0.55 or lower_tail_ratio >= 0.35
+            non_climactic_volume = HIGH_RVOL <= vol_ratio < CLIMAX_RVOL
+            wide_enough = spread >= TEST_SPREAD_ATR * atr14
+            if (
+                is_near_low
+                and decline_pct <= -0.05
+                and has_absorption
+                and non_climactic_volume
+                and wide_enough
+            ):
+                score = min(
+                    0.82,
+                    0.25
+                    + (vol_ratio - HIGH_RVOL) * 0.08
+                    + max(cp - 0.50, 0.0) * 0.35
+                    + max(lower_tail_ratio - 0.25, 0.0) * 0.25
+                    + min(abs(decline_pct), 0.20) * 0.6,
+                )
+                events.append(
+                    _event(
+                        "PS",
+                        bar_idx,
+                        ts,
+                        low,
+                        score,
+                        "high_vol" if vol_ratio >= 1.8 else "moderate",
+                    )
+                )
+                ps_emitted = True
+                ctx = {
+                    **ctx,
+                    "ps_bar": bar_idx,
+                    "anchored_low": low
+                    if ctx["anchored_low"] is None
+                    else min(float(ctx["anchored_low"]), low),
+                    "anchor_source": "event",
+                }
+
         # --- SC: Selling Climax ---
-        if phase == "A" and ctx["sc_bar"] is None:
+        if phase == "A" and ctx["sc_bar"] is None and not ps_emitted:
             lookback = window.tail(min(CLIMAX_LOOKBACK, len(window)))
             is_new_low = low <= float(lookback["low"].min())
             if is_new_low and vol_ratio >= CLIMAX_RVOL and spread >= WIDE_SPREAD_ATR * atr14 and cp >= 0.45:
@@ -333,8 +429,55 @@ def _detect_events(
 
     # ===== DISTRIBUTION EVENTS =====
     elif side == "distribution":
+        psy_emitted = False
+
+        # --- PSY: Preliminary Supply ---
+        if phase == "A" and ctx["bc_bar"] is None and _has_preliminary_spacing(
+            ctx.get("psy_bar"), bar_idx
+        ):
+            lookback = window.tail(min(CLIMAX_LOOKBACK, len(window)))
+            is_near_high = high >= float(lookback["high"].max()) * (1.0 - RANGE_PROXIMITY_PCT)
+            rally_pct = _recent_move_pct(window)
+            has_rejection = cp <= 0.45 or upper_tail_ratio >= 0.35
+            non_climactic_volume = HIGH_RVOL <= vol_ratio < CLIMAX_RVOL
+            wide_enough = spread >= TEST_SPREAD_ATR * atr14
+            if (
+                is_near_high
+                and rally_pct >= 0.05
+                and has_rejection
+                and non_climactic_volume
+                and wide_enough
+            ):
+                score = min(
+                    0.82,
+                    0.25
+                    + (vol_ratio - HIGH_RVOL) * 0.08
+                    + max(0.50 - cp, 0.0) * 0.35
+                    + max(upper_tail_ratio - 0.25, 0.0) * 0.25
+                    + min(rally_pct, 0.20) * 0.6,
+                )
+                events.append(
+                    _event(
+                        "PSY",
+                        bar_idx,
+                        ts,
+                        high,
+                        score,
+                        "high_vol" if vol_ratio >= 1.8 else "moderate",
+                    )
+                )
+                psy_emitted = True
+                ctx = {
+                    **ctx,
+                    "psy_bar": bar_idx,
+                    "anchored_high": high
+                    if ctx["anchored_high"] is None
+                    else max(float(ctx["anchored_high"]), high),
+                    "anchor_source": "event",
+                }
+
         # --- BC: Buying Climax ---
-        if phase == "A" and ctx["bc_bar"] is None:
+        if phase == "A" and ctx["bc_bar"] is None and not psy_emitted:
             lookback = window.tail(min(CLIMAX_LOOKBACK, len(window)))
             is_new_high = high >= float(lookback["high"].max())
             if is_new_high and vol_ratio >= CLIMAX_RVOL and spread >= WIDE_SPREAD_ATR * atr14 and cp <= 0.40:
