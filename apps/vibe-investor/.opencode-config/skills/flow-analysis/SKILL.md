@@ -82,6 +82,7 @@ Core metrics:
 - `core_metrics.buy_execution_quality`
 - `core_metrics.sell_execution_quality`
 - `core_metrics.bs_spread_pct`
+- `core_metrics.bs_spread_trend`
 - `core_metrics.gvpr_buy_pct`
 - `core_metrics.gvpr_sell_pct`
 - `core_metrics.gvpr_pattern`
@@ -130,9 +131,9 @@ Trust and assessment:
 - `trust_regime.market_cap_value`
 - `trust_regime.atr_pct`
 - `trust_regime.volatility_profile`
-- `trust_regime.beta_120d`
-- `trust_regime.beta_60d`
-- `trust_regime.beta_classification`
+- `trust_regime.beta_120d` (when `--benchmark-ohlcv` is provided)
+- `trust_regime.beta_60d` (when `--benchmark-ohlcv` is provided)
+- `trust_regime.beta_classification` (when `--benchmark-ohlcv` is provided)
 - `trust_regime.ticker_flow_usefulness`
 - `trust_regime.trust_level`
 - `trust_regime.verdict_weight_profile`

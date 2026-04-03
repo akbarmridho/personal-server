@@ -169,7 +169,7 @@ Composite synthesis contract:
 - Parent synthesis operates under two mandates with equal architectural weight: protect capital and deploy capital. Resolve that tension explicitly instead of defaulting to inaction when signals are mixed.
 - Per-symbol operating baselines still matter:
   - `technical_plan`: chart-driven baseline from `technical-analysis` for invalidation, target ladder, trailing mode, and technical profit-management behavior.
-  - `flow_context`: broker-flow baseline from `flow-analysis` for broker sponsorship, trust regime, and lead-versus-confirm timing context.
+  - `flow_context`: broker-flow baseline from `flow-analysis` for broker sponsorship, trust regime, participant-type flow breakdown, and lead-versus-confirm timing context.
   - `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol, including `holding_mode`, timeframe intent, thesis quality, and non-TA exit drivers.
   - `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
 - For every materially reviewed symbol, produce a primary `composite_decision` object:

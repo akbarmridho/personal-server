@@ -107,12 +107,14 @@ Read gross flow first, then use net flow as a compression layer. Net-only thinki
 
 Core flow questions:
 
-- Is visible broker pressure constructive (`ACCUMULATION`), distributive (`DISTRIBUTION`), or neutral?
+- Is visible broker pressure constructive or distributive, and how strong is the conviction score (0-100)?
+- Who is behind the flow? Foreign buying with local selling is a very different signal than local buying with foreign selling.
 - Are buyers paying up above VWAP or absorbing below?
 - Is buying/selling persistent or random?
-- Is activity concentrated enough to matter, or fragmented?
+- Is concentration asymmetric? Gini asymmetry >0.12 suggests institutional accumulation; <-0.12 suggests institutional distribution.
 - Is broker coverage high enough to trust the visible picture?
 - Does flow lead price, confirm price, warn against price, or remain unclear?
+- Where is the net accumulation price relative to current price? If accumulators are in profit, the flow read is stronger.
 
 Useful concepts:
 
@@ -121,12 +123,17 @@ Useful concepts:
 | Rising CADI + positive recent net flow | Usually constructive |
 | Buyers paying above VWAP | More aggressive sponsorship |
 | High persistence | Stronger signal quality |
-| High concentration asymmetry | A few dominant brokers may matter |
+| High Gini asymmetry (buy > sell) | Institutional accumulation pattern — few big buyers, many small sellers |
+| Net accumulation price below current price | Visible accumulators are in profit, supporting the read |
+| Foreign net buy + local net sell | High-conviction institutional accumulation |
+| Local net buy + foreign net sell | Often distribution into retail buying |
+| Government/BUMN net flow | State-directed activity with different persistence characteristics |
 | Positive flow-price alignment | Flow is confirming structure |
 | Flow deterioration while chart still looks fine | Warning signal |
+| CADI, MFI, or freq+Gini divergence | Different types of flow-price mismatch; freq+Gini divergence can reveal hidden accumulation |
 | Low coverage / high anomaly / high wash risk | Discount the flow read |
 
-Trust regime matters. On illiquid, noisy, or anomaly-prone tickers, broker flow deserves less authority. On cleaner, liquid tickers with stronger historical flow-price usefulness, flow can carry more weight in synthesis.
+Trust regime matters. On illiquid, noisy, or anomaly-prone tickers, broker flow deserves less authority. On cleaner, liquid tickers with stronger historical flow-price usefulness, flow can carry more weight in synthesis. High-volatility tickers use a different factor weighting that emphasizes MFI over persistence.
 
 End every flow read with:
 
@@ -280,26 +287,50 @@ Example:
 
 The hardest part is not reading one lens. It is deciding what to do when lenses disagree.
 
-Default arbitration hierarchy:
+Each lens produces a conviction score (0-100). Parent synthesis computes a weighted composite:
 
-1. Hard invalidation or structural failure
-2. Portfolio risk override when heat, concentration, liquidity, or market regime is too dangerous
-3. Multi-lens synthesis across thesis quality, timeframe, flow, narrative, and fundamentals
-4. Discretionary add/trim decisions inside the remaining risk budget
+```
+composite = 0.25 × technical + 0.15 × flow + 0.25 × narrative + 0.20 × fundamental + 0.15 × portfolio_fit
+```
+
+The composite maps to a sized action:
+
+| Composite score | Action tier | Base size band |
+|---|---|---|
+| 0-25 | `NO_TRADE` | 0% |
+| 26-40 | `WATCHLIST` | 0% |
+| 41-55 | `PILOT` | 0.25-0.5% |
+| 56-70 | `STARTER` | 0.5-1.5% |
+| 71-85 | `STANDARD` | 1.5-3.0% |
+| 86-100 | `HIGH_CONVICTION` | 3.0-5.0% |
+
+Final sizing applies the aggression multiplier: `final_size = base_size × regime_aggression`.
+
+Binary overrides are limited to hard safety rails only:
+
+- Thesis invalidated from any lens → EXIT
+- Portfolio heat above 8% → block all new longs
+- Single position above 30% → block adds
+- Position above 5% ADTV → cap size
+- 4 active pilots already live → block new PILOT
+
+Everything else should change the score or size, not act as a veto. The system has two mandates with equal weight: protect capital and deploy capital.
 
 How to weigh conflicts:
 
+- When lenses disagree, state the score spread, explain which lens deserves more weight for this symbol in this context, and document the reasoning.
 - If fundamentals are strong but flow and chart are under distribution, patience may be warranted for long-term holding, but fresh adds usually need better structure/sponsorship.
 - If narrative is hot but already late/crowded and price is extended, respect the story but avoid chasing poor location.
 - If TA is triggering but thesis quality is weak and evidence is rumor-heavy, keep size small or pass.
 - If flow is warning while TA still looks fine, reduce conviction and tighten monitoring.
 - If a long-term thesis remains intact but portfolio heat/cash regime is bad, portfolio risk can still force smaller size or delayed adds.
+- Do not collapse mixed evidence by defaulting to the weakest lens.
 
 Decision outputs should be explicit:
 
-- What is the current bias?
+- What is the composite score and action tier?
 - Which scenario is dominant now?
-- What action is justified today?
+- What action is justified today and at what size?
 - What level/event changes the decision?
 - What should be reviewed next and when?
 
@@ -333,8 +364,22 @@ Sizing and risk rules:
 - Limit sector crowding and also check hidden theme/factor clustering.
 - If correlation with an existing large holding is >0.75, reduce size or skip.
 - If intended position size is >5% of ADTV, assume exit/liquidity risk is too high and reduce size or avoid.
+- Use stock beta versus IHSG as a market-risk overlay: high-beta stocks (>1.3) get steeper sizing discounts in weak regimes, defensive-beta stocks (<0.7) can use more of the available budget.
+- Track portfolio-weighted beta across holdings. High portfolio beta in a deteriorating regime is a risk flag.
 
-IHSG cash overlay:
+IHSG cash overlay and aggression curve:
+
+The market regime produces a continuous aggression multiplier (0.1-1.5) based on IHSG structure and breadth:
+
+| IHSG state | Base | Improving breadth | Deteriorating breadth |
+|---|---|---|---|
+| Above all key MAs, healthy | 1.2 | 1.5 | 1.0 |
+| Above SMA50, below EMA21 | 0.8 | 1.0 | 0.7 |
+| Below SMA50, above SMA200 | 0.5 | 0.7 | 0.4 |
+| Below SMA200 | 0.2 | 0.4 | 0.2 |
+| Below SMA200 + red flags | 0.1 | 0.2 | 0.1 |
+
+Cash targets by IHSG state:
 
 | IHSG state | Base minimum cash |
 |---|---|
@@ -342,7 +387,7 @@ IHSG cash overlay:
 | Below SMA50 | 50% |
 | Below SMA200 | 70% |
 
-If broader red flags are also present, escalate those floors by +10pp to 40% / 60% / 80%. This is a floor, not an exact target.
+If broader red flags are also present, escalate those targets by +10pp to 40% / 60% / 80%. These are soft budget targets that compress aggression and max position size, not hard walls.
 
 Add/trim/exit discipline:
 
@@ -475,3 +520,9 @@ Postmortem rule:
 | Scenario switch trigger | The concrete evidence or level that moves the operating view from one scenario branch to another |
 | Portfolio heat | Sum of open risk across positions, used to prevent too many simultaneous high-risk bets |
 | Holding mode | Operating posture for a position: `TACTICAL`, `HYBRID`, or `THESIS` |
+| Composite score | Weighted average of lens conviction scores (0-100) that maps to a sized action tier |
+| Aggression multiplier | Continuous 0.1-1.5 multiplier from IHSG structure and breadth that scales position sizing |
+| Beta | Stock's sensitivity to IHSG moves; defensive (<0.7), moderate (0.7-1.3), aggressive (>1.3) |
+| Gini asymmetry | Buy-side Gini minus sell-side Gini; positive = institutional accumulation pattern, negative = institutional distribution |
+| Net accumulation price | VWAP of net-positive flow days; smart money's average cost basis for the visible accumulation |
+| Participant flow | Flow breakdown by broker type: foreign, government/BUMN, local private |

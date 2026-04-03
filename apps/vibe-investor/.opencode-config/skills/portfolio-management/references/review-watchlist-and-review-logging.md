@@ -117,7 +117,7 @@ Watchlist statuses use the labels defined in `SKILL.md`.
 ## Market Context
 - IHSG: {level} ({change%})
 - Key news: {1-2 headlines}
-- Regime aggression state: {AGGRESSIVE / NORMAL / DEFENSIVE / CAPITAL_PRESERVATION}
+- Regime aggression: {0.1-1.5}
 - Current portfolio heat: {X%}
 
 ## Actions Taken

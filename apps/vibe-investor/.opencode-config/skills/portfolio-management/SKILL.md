@@ -105,7 +105,7 @@ portfolio_constraints:
   heat_budget_remaining_pct: 2.8
   max_new_position_size_pct: 1.5
   regime_aggression: 0.3
-  cash_floor_status: above
+  cash_target_status: above
   concentration_flags: []
   hard_rails_triggered: []
 ```
@@ -115,7 +115,7 @@ Field rules:
 - `heat_budget_remaining_pct`: remaining open-risk budget before hitting the normal portfolio heat ceiling
 - `max_new_position_size_pct`: max additional position size this symbol can take after concentration, liquidity, theme, and regime constraints
 - `regime_aggression`: numeric aggression multiplier in `0.1-1.5` derived from IHSG structure, breadth, leader health, and rate of change
-- `cash_floor_status`: `above` | `at_floor` | `below`
+- `cash_target_status`: `above` | `at_target` | `below`
 - `concentration_flags`: active concentration, clustering, or diversification warnings that should compress size
 - `hard_rails_triggered`: binary stop rails only; include `portfolio_heat_breach`, `single_position_cap_breach`, `thesis_invalidated`, `very_low_liquidity`, or `pilot_slot_limit` when active
 
@@ -299,7 +299,7 @@ IHSG cash overlay:
 - Escalated cash target: when the base target is active and additional red flags are present (multiple portfolio health warnings, clustering leader breakdowns, negative narrative/news flow, or deteriorating stock-level setups across the book), escalate the target by +10pp to 40% / 60% / 80% respectively.
 - Apply the highest active target only. If IHSG is below SMA200 with red flags, the operative cash target is 80%.
 - Treat this as a soft budget target, not a hard wall. Holding more cash is allowed, and a modest shortfall can be tolerated when a high-conviction opportunity still fits the hard rails.
-- When `portfolio_state.cash_ratio` is below the active target, compress `regime_aggression` and `max_new_position_size_pct`, set `cash_floor_status = below`, and carry the shortfall into the portfolio findings and monitor update.
+- When `portfolio_state.cash_ratio` is below the active target, compress `regime_aggression` and `max_new_position_size_pct`, set `cash_target_status = below`, and carry the shortfall into the portfolio findings and monitor update.
 - During `desk-check` and before any new long/add recommendation, compare `portfolio_state.cash_ratio` against the active cash target and state whether the escalated target applies.
 
 ## Entry, Exit, And Rebalance Doctrine
