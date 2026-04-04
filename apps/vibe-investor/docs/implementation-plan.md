@@ -8,7 +8,7 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | Flip the Default for Stale WAIT Only | pending |
+| 1 | Flip the Default for Stale WAIT Only | done |
 | 2 | Kill 80% of the Prompt (Keep Skill Preflight) | pending |
 | 3 | Guardrail Dedupe Only | pending |
 | 4 | Single `get_state` Tool + Plugin Run Logs | pending |
@@ -19,7 +19,7 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 
 ## 1. Flip the Default for Stale WAIT Only
 
-**Status:** pending
+**Status:** done
 
 **Scope:** Enforce existing stale WAIT ladder in main.md lines 280-281. No new mechanism — just ensure the agent consistently applies the rule at `wait_desk_check_count >= 3` (re-underwrite, default PILOT if gates pass) and `wait_desk_check_count > 5` (hard expiry).
 
