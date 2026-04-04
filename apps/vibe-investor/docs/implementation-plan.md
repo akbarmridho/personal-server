@@ -12,8 +12,8 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 | 2 | Kill 80% of the Prompt (Keep Skill Preflight) | done |
 | 3 | Guardrail Dedupe Only | done |
 | 4 | Single `get_state` Tool + Plugin Run Logs | pending |
-| 5 | Flatten Memory to `symbols/`, `theses/`, `market/`, `digests/` | pending |
-| 6 | Retest Fast-Track | pending |
+| 5 | Flatten Memory to `symbols/`, `theses/`, `market/`, `digests/` | done |
+| 6 | Retest Fast-Track | done |
 
 ---
 
@@ -24,6 +24,7 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 **Scope:** Enforce existing stale WAIT ladder in main.md lines 280-281. No new mechanism — just ensure the agent consistently applies the rule at `wait_desk_check_count >= 3` (re-underwrite, default PILOT if gates pass) and `wait_desk_check_count > 5` (hard expiry).
 
 **Context prompt:**
+
 ```
 Read these files before starting:
 - prompts/vibe-investor/main.md (lines 280-282, the WAIT staleness contract)
@@ -44,6 +45,7 @@ The mechanism exists. The fix is enforcement discipline. Do not add new gates or
 **Scope:** Move workflow contracts to command markdown files. Keep tools and memory details in main.md. Keep main.md as workflow owner and keep skill preflight.
 
 **Context prompt:**
+
 ```
 Read these files before starting:
 - prompts/vibe-investor/main.md (full file, identify what stays vs moves)
@@ -66,6 +68,7 @@ Keep skill preflight (main.md line 143). Do not remove mandatory skill loading.
 **Scope:** One owner per guardrail. Remove cross-layer restatements that cause the parent synthesis to apply the same constraint twice.
 
 **Context prompt:**
+
 ```
 Read these files before starting:
 - prompts/vibe-investor/main.md (binary overrides, composite synthesis, WAIT staleness)
@@ -96,6 +99,7 @@ TA red flags stay as-is. TA "stop" rules are score caps, not vetoes.
 **Scope:** Create custom tool that parses frontmatter from live symbol/thesis files. Create plugin for run logs. Remove registry JSON files and generated view files.
 
 **Context prompt:**
+
 ```
 Read these files before starting:
 - prompts/vibe-investor/main.md (registry refresh rules, run log schema, generated view files)
@@ -109,16 +113,17 @@ Files to remove: memory/registry/state.json, memory/registry/symbols.json, memor
 ```
 
 **Migration prompt:**
+
 ```
 Run this migration after implementing the get_state tool and before removing registry files:
 
-1. For each symbol plan in memory/state/symbols/*.md:
+1. For each symbol plan in memory/symbols/*/plan.md:
    - Parse frontmatter
    - Verify required fields: id, watchlist_status, trade_classification, holding_mode, thesis_id, last_reviewed, next_review, leader, tags
    - Warn on any missing fields or legacy fields (scope: symbol)
    - Output a summary of files needing attention
 
-2. For each thesis in memory/state/theses/*/thesis.md:
+2. For each thesis in memory/theses/*/thesis.md:
    - Parse frontmatter
    - Verify required fields: id, scope, title, type, parent_thesis_id, status, symbols, last_updated, tags
    - Warn on any missing fields
@@ -135,11 +140,12 @@ Run this migration after implementing the get_state tool and before removing reg
 
 ## 5. Flatten Memory to `symbols/`, `theses/`, `market/`, `digests/`
 
-**Status:** pending
+**Status:** done
 
-**Scope:** Collapse memory tree. Merge state/symbols + analysis/symbols into one symbols/ directory. Merge IHSG + macro into market/. Remove state/ and analysis/ directories.
+**Scope:** Collapse memory tree. Merge state/symbols + analysis/symbols into one symbols/ directory. Merge IHSG + macro into market/. Remove state/ and analysis/ directories. Keep `memory/registry/` and generated note views until item 4.
 
 **Context prompt:**
+
 ```
 Read these files before starting:
 - prompts/vibe-investor/main.md (memory directory tree, file path references)
@@ -160,6 +166,7 @@ IHSG becomes a symbol in market/, not a special case in analysis/market/{DATE}/.
 ```
 
 **Migration prompt:**
+
 ```
 Run this migration after updating all file path references in main.md and skill files:
 
@@ -187,8 +194,7 @@ Run this migration after updating all file path references in main.md and skill 
    - mv memory/state/theses/* memory/theses/
 
 5. Migrate notes:
-   - Keep memory/notes/ for user custom notes only
-   - Remove generated views (thesis.md, watchlist.md, portfolio-monitor.md, opportunity-cost.md) — already removed by item 4
+   - Keep memory/notes/thesis.md, memory/notes/watchlist.md, memory/notes/portfolio-monitor.md, and memory/notes/opportunity-cost.md until item 4
    - Keep ihsg.md and macro.md content merged into market/plan.md (step 3)
 
 6. Update all file path references:
@@ -199,18 +205,22 @@ Run this migration after updating all file path references in main.md and skill 
 7. Remove old directories:
    - rm -rf memory/state memory/analysis
 
-8. Test: verify get_state tool reads from new paths correctly.
+8. Test:
+   - Verify `memory/state` and `memory/analysis` are gone
+   - Verify live artifacts now sit under `memory/symbols/`, `memory/theses/`, `memory/market/`, and `memory/digests/`
+   - Verify no stale `memory/state/` or `memory/analysis/` references remain outside `memory/archive/` snapshots and historical `memory/runs/` logs
 ```
 
 ---
 
 ## 6. Retest Fast-Track
 
-**Status:** pending
+**Status:** done
 
 **Scope:** Enforce the retest check in parent synthesis. TA skill already checks tested_held/tested_failed/not_tested (line 117). The gap is in the parent synthesis — the agent reads the retest status but doesn't always act on it.
 
 **Context prompt:**
+
 ```
 Read these files before starting:
 - prompts/vibe-investor/main.md (desk-check defaults, WAIT staleness, parent synthesis)

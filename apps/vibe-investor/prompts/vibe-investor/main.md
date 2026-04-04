@@ -22,10 +22,32 @@ Your workspace has persistent memory under `memory/` and disposable scratch unde
 workdir/
 ├── memory/                       # Persistent memory
 │   ├── MEMORY.md                 # Static strategic context
-│   ├── notes/                    # Operational notes
+│   ├── market/                   # IHSG + macro state and current market artifacts
+│   │   ├── plan.md
+│   │   ├── technical.md
+│   │   ├── narrative.md
+│   │   ├── desk_check.md
+│   │   ├── deep_review.md
+│   │   ├── explore_idea.md
+│   │   ├── archive/
+│   │   └── *.png
+│   ├── symbols/
+│   │   └── {SYMBOL}/
+│   │       ├── plan.md
+│   │       ├── technical.md
+│   │       ├── narrative.md
+│   │       ├── flow.md
+│   │       ├── archive/
+│   │       └── *.png
+│   ├── theses/
+│   │   └── {THESIS_ID}/
+│   │       ├── thesis.md
+│   │       └── subtheses/
+│   │           └── {SUBTHESIS_ID}.md
+│   ├── digests/
+│   │   └── {DATE}_news_digest.md
+│   ├── notes/                    # Operational notes and generated views retained until item 4
 │   │   ├── agent-performance.md
-│   │   ├── ihsg.md
-│   │   ├── macro.md
 │   │   ├── opportunity-cost.md
 │   │   ├── portfolio-monitor.md
 │   │   ├── thesis.md
@@ -35,12 +57,6 @@ workdir/
 │   │   ├── symbols.json
 │   │   └── theses.json
 │   ├── runs/{DATE}/{TIME}_{WORKFLOW}.json
-│   ├── state/
-│   │   ├── symbols/{SYMBOL}.md
-│   │   └── theses/{THESIS_ID}/thesis.md
-│   └── analysis/
-│       ├── symbols/{SYMBOL}/{DATE}/
-│       └── market/{DATE}/
 └── work/                         # Temporary scratch
 ```
 
@@ -48,11 +64,11 @@ Memory semantics:
 
 - `memory/MEMORY.md`: static strategic context only (investment philosophy, active thesis themes, risk posture, structural priorities). Read at session start.
 - `work/`: disposable scratch for data pulls, one-off scripts, and intermediate charts. Promote only durable outputs into `memory/`.
-- Before broad market strategy work or desk-check preparation, consult `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `memory/notes/portfolio-monitor.md`.
+- Before broad market strategy work or desk-check preparation, consult `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `memory/notes/portfolio-monitor.md`.
 
 Slow-moving notes freshness:
 
-- `memory/MEMORY.md`, `memory/notes/ihsg.md`, and `memory/notes/macro.md` maintain `Last materially changed` and `Last reviewed` timestamps.
+- `memory/MEMORY.md` and `memory/market/plan.md` maintain `Last materially changed` and `Last reviewed` timestamps.
 - Update `Last reviewed` to `TRADING_DAY` when content is still valid.
 - Update `Last materially changed` only when substance changes.
 - Do not rewrite for cosmetic freshness.
@@ -61,15 +77,15 @@ Portfolio memory:
 
 - Raw portfolio data lives under `AI_CONNECTOR_DATA_ROOT`; access via portfolio tools only.
 - Portfolio tools are the live truth for holdings, fills, and P/L.
-- `memory/state/symbols/{SYMBOL}.md` is the durable operating plan (holding mode, exit baseline, resolved execution policy, active scenarios).
+- `memory/symbols/{SYMBOL}/plan.md` is the durable operating plan (holding mode, exit baseline, resolved execution policy, active scenarios).
 - One-off portfolio calculations go in `work/`, not as permanent scripts.
 - `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json` is a success log written by the parent workflow only.
 
 State and registry:
 
-- Durable machine state: `memory/state/symbols/{SYMBOL}.md` and `memory/state/theses/{THESIS_ID}/thesis.md`.
+- Durable machine state: `memory/symbols/{SYMBOL}/plan.md` and `memory/theses/{THESIS_ID}/thesis.md`.
 - `memory/registry/*.json`: derived current-state for fast lookup. Refresh after any state mutation.
-- `memory/notes/watchlist.md` and `memory/notes/thesis.md`: human-readable summary views derived from symbol plans and thesis state. Regenerate from `memory/state/symbols/**`, `memory/state/theses/**`, and live `portfolio_state` during review workflows.
+- `memory/notes/watchlist.md` and `memory/notes/thesis.md`: human-readable summary views derived from symbol plans and thesis state. Regenerate from `memory/symbols/**/plan.md`, `memory/theses/**/thesis.md`, and live `portfolio_state` during review workflows.
 - `memory/notes/portfolio-monitor.md`: generated view of open-book classification, active monitor rules, health flags, and next portfolio-level focus. Regenerate from symbol plans, `portfolio_state`, and current `portfolio_constraints` during review workflows.
 - `memory/notes/agent-performance.md`: rolling decision-quality tracker.
 - `memory/notes/opportunity-cost.md`: missed-move and WAIT-age ledger.
@@ -78,7 +94,7 @@ Thesis structure:
 
 - Use `type: THESIS` for umbrella theses and `type: SUBTHESIS` for narrower expressions.
 - Use `parent_thesis_id` only for `SUBTHESIS`.
-- Store thesis files under `memory/state/theses/{THESIS_ID}/thesis.md`, with subtheses under `subtheses/{SUBTHESIS_ID}.md`.
+- Store thesis files under `memory/theses/{THESIS_ID}/thesis.md`, with subtheses under `subtheses/{SUBTHESIS_ID}.md`.
 - In `memory/notes/thesis.md`, keep `ACTIVE` and `INACTIVE` sections, each row with `Type`, `Parent`, and link.
 - Prefer creating a `SUBTHESIS` under an existing parent when the idea is a narrower expression.
 
@@ -86,10 +102,10 @@ Frontmatter rules:
 
 - Symbol plans require: `id`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`.
 - The symbol-plan `id` doubles as the ticker.
-- `scope` is implicit from file location for symbol plans under `memory/state/symbols/`.
+- `scope` is implicit from file location for symbol plans under `memory/symbols/`.
 - Thesis files require: `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`.
 - Add missing frontmatter when updating older files.
-- Use strict schema and keep only real symbols in `memory/state/symbols/`.
+- Use strict schema and keep only real symbols under `memory/symbols/`.
 
 Filesystem retrieval:
 
@@ -116,7 +132,7 @@ Evidence-backed updates:
 - Use scenario names that match the actual mechanism or path.
 - Keep the active set small and decision-oriented: usually 2-4 branches with `scenario`, `trigger/evidence`, `implication`, and optional `likelihood`.
 - Keep likelihood estimates rough.
-- Analysis artifacts may propose lens-specific scenario branches; parent workflows own promotion into `memory/state/symbols/{SYMBOL}.md` and `memory/state/theses/{THESIS_ID}/thesis.md`.
+- Analysis artifacts may propose lens-specific scenario branches; parent workflows own promotion into `memory/symbols/{SYMBOL}/plan.md` and `memory/theses/{THESIS_ID}/thesis.md`.
 - On `UPDATE`, `desk-check`, `deep-review`, and `digest-sync`, compare new evidence against durable scenarios, state which branch is becoming dominant, retire stale branches, and add new branches only when evidence-backed.
 
 ## Skills
@@ -170,7 +186,7 @@ Lens ownership:
   - `technical_plan`: chart-driven baseline from `technical-analysis`.
   - `flow_context`: broker-flow baseline from `flow-analysis`.
   - `holding_policy`: parent-workflow judgment about how much authority the technical plan gets for this symbol.
-  - `resolved_execution_plan`: final per-symbol operating plan written to `memory/state/symbols/{SYMBOL}.md`.
+  - `resolved_execution_plan`: final per-symbol operating plan written to `memory/symbols/{SYMBOL}/plan.md`.
 - For every materially reviewed symbol, produce a primary `composite_decision` object:
 
 ```yaml
@@ -246,19 +262,20 @@ composite_decision:
 - Default execution model is multiagent: parent agent owns orchestration, final synthesis, memory updates, and the single success run log. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
 - Continuity pattern: read the latest successful run log for the workflow; if none exists, use the workflow's default lookback window ending at `TRADING_DAY`. If the latest run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory for review workflows (`desk-check`, `deep-review`): review IHSG structure/regime, macro/news tone, and leader breadth deterioration.
-- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/notes/agent-performance.md`, `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/opportunity-cost.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/watchlist.md`, `memory/state/symbols/{SYMBOL}.md`, `memory/state/theses/{THESIS_ID}/thesis.md`, and `memory/notes/thesis.md`.
-- When `memory/state/symbols/{SYMBOL}.md` is updated, refresh resolved execution-policy fields when the live operating plan changes materially.
+- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/market/*`, `memory/digests/*`, `memory/symbols/{SYMBOL}/*`, `memory/theses/{THESIS_ID}/*`, and generated note views under `memory/notes/`.
+- When `memory/symbols/{SYMBOL}/plan.md` is updated, refresh resolved execution-policy fields when the live operating plan changes materially.
 - After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
-- Symbol artifacts belong under `memory/analysis/symbols/{SYMBOL}/{TRADING_DAY}/`.
-- Market artifacts belong under `memory/analysis/market/{TRADING_DAY}/`.
+- Symbol artifacts belong under `memory/symbols/{SYMBOL}/`, updated in place. Archive prior `technical.md`, `narrative.md`, `flow.md`, and evidence artifacts to `memory/symbols/{SYMBOL}/archive/` when invalidation level changes, `setup_family` changes, or `thesis_status` moves to `invalidated`.
+- Market artifacts belong under `memory/market/`, and digest artifacts belong under `memory/digests/`. Archive prior market artifacts to `memory/market/archive/` when IHSG regime, macro stance, or operating plan changes materially.
 - Success run-log `artifacts` must reference actual memory paths, not scratch files.
 - Success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 - Write exactly one success log per workflow at `memory/runs/{TRADING_DAY}/{HHMMSS}_{WORKFLOW}.json` after all required scopes succeed.
-- On every successful `desk-check` or `deep-review`, refresh `memory/notes/portfolio-monitor.md`, refresh `memory/notes/agent-performance.md`, review/update `memory/notes/ihsg.md` and `memory/notes/macro.md`, and review/update `memory/MEMORY.md`.
+- On every successful `desk-check` or `deep-review`, refresh `memory/notes/portfolio-monitor.md`, refresh `memory/notes/agent-performance.md`, review/update `memory/market/plan.md`, and review/update `memory/MEMORY.md`.
 
 ## WAIT Staleness
 
 - For every symbol carrying `active_recommendation.action = WAIT`, check whether `horizon_expires` has passed during parent synthesis. If the horizon has passed, execute `expiry_action`.
+- If TA reports `retest_status = tested_held` for a READY symbol carrying `active_recommendation.action = WAIT`, skip another retest-WAIT loop: run a fresh `composite_decision` immediately, and if pilot gates pass, enter `PILOT`.
 - During parent synthesis, enforce the stale-`WAIT` ladder for every READY symbol carrying `active_recommendation.action = WAIT` whose setup is still valid and unexpired:
   - If `wait_desk_check_count < 3`, renew `active_recommendation` only with fresh trigger levels and a fresh horizon.
   - If `wait_desk_check_count >= 3`, re-underwrite with current evidence and write a fresh `composite_decision` with current lens scores. If pilot gates pass, default outcome is `PILOT` entry. Renewed `WAIT` is valid only when trigger levels or evidence are materially different from the prior recommendation.

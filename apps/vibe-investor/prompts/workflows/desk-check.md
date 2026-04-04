@@ -9,7 +9,7 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 - Purpose: main operator routine for holdings review, watchlist trigger review, portfolio discipline, and top-down market context.
 - Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
 - Continuity window: 1 calendar day.
-- Mandatory memory context: `memory/notes/ihsg.md`, `memory/notes/macro.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`.
+- Mandatory memory context: `memory/market/plan.md`, `memory/notes/portfolio-monitor.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`.
 - Run order: `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks first using `portfolio_state` summary plus targeted `portfolio_trade_history` / `portfolio_symbol_trade_journey` calls and current IHSG context, then delegated symbol-batch subagents and top-down market subagent in parallel, then parent synthesis.
 - Symbol review delegation: after the `portfolio-management` pass, group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols and writes retained artifacts to memory before returning. The parent agent must not run symbol-level TA/flow/narrative inline. Top-down market review is a separate subagent delegation, run in parallel with symbol batches when possible.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
@@ -20,5 +20,5 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 - On every successful run, refresh `memory/notes/opportunity-cost.md` for `TRADING_DAY` with current `READY` symbols, last recommended entry zones, current prices, missed moves, WAIT age, and current status.
 - Symbol artifacts must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts must include `desk_check.md`.
-- `memory/analysis/market/{TRADING_DAY}/desk_check.md` must include a `composite_decision` section for each materially reviewed symbol with all lens scores, `composite_score`, `action_tier`, `base_size_pct`, `final_size_pct`, `conflict_note`, and `hard_rails_applied`.
+- `memory/market/desk_check.md` must include a `composite_decision` section for each materially reviewed symbol with all lens scores, `composite_score`, `action_tier`, `base_size_pct`, `final_size_pct`, `conflict_note`, and `hard_rails_applied`.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.

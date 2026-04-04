@@ -7,15 +7,14 @@ Use commands in OpenCode TUI with `/command-name`.
 - `/desk-check`
   - Main operating routine for holdings, `READY` watchlist names, leaders, and market context.
   - Uses `portfolio-management`, `technical-analysis`, and `narrative-analysis` internally.
-  - Writes retained analysis artifacts, `memory/analysis/market/{TODAY}/desk_check.md`, and a success run log.
+  - Writes retained analysis artifacts, `memory/market/desk_check.md`, and a success run log.
 
 - `/news-digest`
   - Builds a reading-oriented digest from new high-signal documents since the last successful digest.
-  - Writes `memory/analysis/market/{TODAY}/news_digest.md` and its success run log.
+  - Writes `memory/digests/{TODAY}_news_digest.md` and its success run log.
 
 - `/digest-sync`
   - Applies the latest digest to thesis and watchlist memory when changes are evidence-backed.
-  - Writes `memory/analysis/market/{TODAY}/digest_sync.md`.
 
 - `/ta {SYMBOL} {INTENT_IN_SENTENCE}`
   - Focused technical review for one symbol.
@@ -26,7 +25,7 @@ Use commands in OpenCode TUI with `/command-name`.
 `/desk-check`
 
 - Coverage: holdings from `portfolio_state`, watchlist names in `READY`, leaders, and top-down market context
-- Prep context: consult `memory/notes/ihsg.md`, `memory/notes/macro.md`, and `memory/notes/portfolio-monitor.md`
+- Prep context: consult `memory/market/plan.md` and `memory/notes/portfolio-monitor.md`
 - Continuity: uses the latest successful `desk-check` run log
 - Main outputs: retained symbol and market artifacts, `desk_check.md`, success run log
 
@@ -39,8 +38,8 @@ Use commands in OpenCode TUI with `/command-name`.
 `/digest-sync`
 
 - Input: latest digest artifact
-- Main outputs: evidence-backed thesis and watchlist updates plus `digest_sync.md`
-- If evidence is ambiguous, records `Needs Verification` in `digest_sync.md`
+- Main outputs: evidence-backed thesis and watchlist updates plus a success run log
+- If evidence is ambiguous, stop and report `Needs Verification`
 
 `/ta`
 

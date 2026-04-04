@@ -1,6 +1,6 @@
 # Trading Plan Template Body
 
-Full template for `memory/state/symbols/{SYMBOL}.md`. Load when creating or fully rewriting a symbol plan.
+Full template for `memory/symbols/{SYMBOL}/plan.md`. Load when creating or fully rewriting a symbol plan.
 
 ```markdown
 ---

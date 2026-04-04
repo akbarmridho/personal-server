@@ -57,7 +57,7 @@ $OPENCODE_CWD/
 │   │   └── theses/{THESIS_ID}/thesis.md
 │   ├── analysis/
 │   │   ├── symbols/{SYMBOL}/{DATE}/
-│   │   └── market/{DATE}/        # desk_check.md, deep_review.md, explore_idea.md, digest_sync.md, news_digest.md, top-down outputs
+│   │   └── market/{DATE}/        # desk_check.md, deep_review.md, explore_idea.md, news_digest.md, top-down outputs
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
@@ -73,7 +73,7 @@ $OPENCODE_CWD/
   - Reading-oriented digest from new documents and memory continuity.
   - Writes a retained digest artifact plus its run log.
 - `/digest-sync`
-  - Applies evidence-backed digest updates to thesis/watchlist memory and writes a retained sync summary.
+  - Applies evidence-backed digest updates to thesis/watchlist memory.
 - `/ta {SYMBOL} {INTENT}`
   - Manual technical deep dive when one symbol needs closer review.
 

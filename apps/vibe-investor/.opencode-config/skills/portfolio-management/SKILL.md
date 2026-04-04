@@ -203,7 +203,7 @@ Output: populate `concentration_flags[]` with any active warnings from the check
 
 | File | Topics |
 |------|--------|
-| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/state/symbols/{SYMBOL}.md`, trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, winner management |
+| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure for `memory/symbols/{SYMBOL}/plan.md`, trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, winner management |
 | [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Daily/weekly/monthly review cadence, watchlist management, retained review-summary templates, benchmark/style discipline, re-entry discipline, postmortem upgrade loop |
 | This file (SKILL.md) | Shared labels, health flags, risk budgets, sizing doctrine, portfolio constraints, market aggression curve, entry/exit/rebalance doctrine, capital preservation principles, and operating rules |
 
@@ -232,12 +232,12 @@ Stop: if fetch fails, stop the task and report dependency failure.
 |------|---------|
 | `memory/notes/portfolio-monitor.md` | Generated view: open-book classification, active monitor rules, health flags, and next portfolio-level focus. Regenerated from symbol plans + `portfolio_state` + `portfolio_constraints` during review workflows. |
 | `memory/notes/opportunity-cost.md` | Missed-move ledger for READY symbols, WAIT age, and re-underwrite pressure from inaction |
-| `memory/notes/watchlist.md` | Generated view: human-readable watchlist summary. Regenerated from `memory/state/symbols/**` + live `portfolio_state` during review workflows. |
+| `memory/notes/watchlist.md` | Generated view: human-readable watchlist summary. Regenerated from `memory/symbols/**/plan.md` + live `portfolio_state` during review workflows. |
 | `memory/registry/symbols.json` | Derived current-state symbol registry for fast watchlist and leader lookup |
-| `memory/state/symbols/{SYMBOL}.md` | Per-symbol plan, thesis, invalidation, sizing, and resolved execution policy |
+| `memory/symbols/{SYMBOL}/plan.md` | Per-symbol plan, thesis, invalidation, sizing, and resolved execution policy |
 | `memory/runs/{DATE}/{TIME}_desk-check.json` | Successful desk-check continuity log written by the parent workflow |
-| `memory/analysis/symbols/{SYMBOL}/{DATE}/` | Supporting analysis artifacts |
-| `memory/analysis/market/{DATE}/desk_check.md` | Top-level desk-check summary |
+| `memory/symbols/{SYMBOL}/` | Supporting symbol artifacts (`technical.md`, `narrative.md`, `flow.md`, charts, `archive/`) |
+| `memory/market/desk_check.md` | Top-level desk-check summary |
 
 ## Operating Rules
 
@@ -391,7 +391,7 @@ Rebalancing protocol:
 4. Choose `entry_type = FULL` or `entry_type = PILOT`. For `PILOT`, enforce the reduced pilot gates, max 0.5% base size before aggression scaling, max 4 active pilots, and all hard rails.
 5. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, `50:30:10` for `FULL` entries, theme/correlation clustering, and ADTV liquidity).
 6. Load `trading-plan-template.md`, fill all required fields including `Entry type`, `Holding mode`, and final exit precedence. For `PILOT`, also fill `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry`.
-7. Write plan to `memory/state/symbols/{SYMBOL}.md`.
+7. Write plan to `memory/symbols/{SYMBOL}/plan.md`.
 8. Regenerate `memory/notes/watchlist.md` from current symbol plans and live portfolio state when the plan changes watchlist status or trigger conditions.
 9. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 
@@ -436,7 +436,7 @@ Checklist: holdings reviewed, stale or neglected names resurfaced, realized and 
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.
 2. Confirm whether the exit is coming from the symbol-level baseline (`technical_plan` / thesis invalidation) or from a portfolio hard rail (heat breach, concentration breach, liquidity breach).
-3. Execute exit, update `memory/state/symbols/{SYMBOL}.md` with close details and any final execution-policy outcome that matters for future review.
+3. Execute exit, update `memory/symbols/{SYMBOL}/plan.md` with close details and any final execution-policy outcome that matters for future review.
 4. Regenerate `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
 5. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
 6. Post-exit: evaluate process quality, not outcome.
