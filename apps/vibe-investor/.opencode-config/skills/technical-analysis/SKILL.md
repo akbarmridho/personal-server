@@ -308,7 +308,7 @@ Severity guidance:
 - `F6_MA_BREAKDOWN`: `medium` when price loses `21EMA` only; `high` when price loses `50SMA` or is below both
 - `F3_WEAK_BREAKOUT`: treat more severely when continuation structure is no longer intact
 - `F16_PRICE_LIMIT_PROXIMITY`: use for either `close_near_*` or `intrabar_*_near_*` limit behavior; `medium` by default, escalate to `high` when the day finished near the limit and that bar is core to the breakout or downside-stress interpretation
-- `F17_LIQUIDITY_WEAK`: use 20-day average daily value buckets; `medium` for `low` liquidity (`Rp1B–10B`), `high` for `very_low` liquidity (`< Rp1B`); only the `high` tier should hard-block entries in deterministic policy
+- `F17_LIQUIDITY_WEAK`: use 20-day average daily value buckets; `medium` for `low` liquidity (`Rp1B-10B`), `high` for `very_low` liquidity (`< Rp1B`). This is a score reducer and warning flag only; PM owns ADTV hard rails through `very_low_liquidity`.
 
 Every red flag must include `flag_id`, `severity`, `why`. Include an overall risk summary with one short rationale.
 
@@ -543,7 +543,7 @@ For bullish reversal: prior structure damaged/bearish → `CHOCH` appears → pu
 - `R-RISK-05` If no clear next-zone path exists, cap conviction and state the blocker.
 - `R-RISK-06` Mid-range entries without zone confluence are low quality and usually not actionable.
 - `R-RISK-07` Minimum expected reward-to-risk must be stated before execution.
-- `R-RISK-08` Add only when the trade is working and structure remains valid. Do not average down into structural failure.
+- `R-RISK-08` Add only when structure remains valid and the PM-owned no-averaging-down rule is satisfied.
 - `R-RISK-09` Adaptive MA may refine execution only after the structural plan exists. It never overrides invalidation, stop, or risk discipline.
 
 #### Level-To-Level Execution

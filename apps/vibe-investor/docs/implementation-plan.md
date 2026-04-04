@@ -10,7 +10,7 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 |---|------|--------|
 | 1 | Flip the Default for Stale WAIT Only | done |
 | 2 | Kill 80% of the Prompt (Keep Skill Preflight) | done |
-| 3 | Guardrail Dedupe Only | pending |
+| 3 | Guardrail Dedupe Only | done |
 | 4 | Single `get_state` Tool + Plugin Run Logs | pending |
 | 5 | Flatten Memory to `symbols/`, `theses/`, `market/`, `digests/` | pending |
 | 6 | Retest Fast-Track | pending |
@@ -61,7 +61,7 @@ Keep skill preflight (main.md line 143). Do not remove mandatory skill loading.
 
 ## 3. Guardrail Dedupe Only
 
-**Status:** pending
+**Status:** done
 
 **Scope:** One owner per guardrail. Remove cross-layer restatements that cause the parent synthesis to apply the same constraint twice.
 

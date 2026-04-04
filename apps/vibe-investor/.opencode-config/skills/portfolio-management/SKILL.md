@@ -23,7 +23,7 @@ Tool source of truth:
 
 ## Concepts And School Of Thought
 
-- Treat portfolio management as a risk-and-deployment operating system: prevent ruin with hard rails, but keep enough aggression to avoid wasting valid setups.
+- Implement the parent prompt's equal protect/deploy mandate through PM sizing constraints, hard rails, and `regime_aggression`.
 - Use explicit risk budgets, not only raw target weights: `risk_per_trade`, `portfolio_heat`, and hard caps are first-class controls.
 - Size exposure with deterministic controls (1% risk rule, portfolio heat, concentration caps, 50:30:10, theme clustering, and correlation clustering).
 - Enforce liquidity-aware execution using ADTV constraints so exits remain feasible under stress.
@@ -34,7 +34,7 @@ Tool source of truth:
 - Use `holding_mode` to change sizing posture and portfolio expectations: `TACTICAL` names should be smaller and easier to exit, `THESIS` names may deserve wider holding tolerance, and `HYBRID` names sit between them.
 - Use durable `Active Scenarios` in symbol and thesis state when they exist. Scenario transitions can justify adds, trims, de-risking, or thesis retirement before hard invalidation is hit.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level sizing constraints, de-risking rails, and hard safety rails when heat, concentration, liquidity, or regime require tighter exposure than the symbol-level baseline.
-- Run workflow discipline end-to-end (entry, add, exit, rebalance, review) with explicit invalidation and process checks.
+- Run workflow discipline end-to-end (entry, add, exit, rebalance, review) while consuming TA-owned invalidation and the parent prompt's final exit contract.
 - Use durable state files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated and the derived registry is refreshed.
 - Consume technical exit doctrine from `technical-analysis`; this skill does not redefine raw chart-level TP rules.
 - Keep the durable symbol plan separate from live portfolio truth. Store the intended operating plan in memory; store actual holdings, fills, remaining size, and P/L in portfolio tools.
@@ -44,8 +44,8 @@ Tool source of truth:
 This skill's default doctrine incorporates postmortem-derived portfolio rules and repeated trading lessons.
 
 - Act as a risk operating companion for the human investor in IDX, not just as an idea generator.
-- Protect capital and deploy capital with equal architectural weight; when they conflict, resolve the tension explicitly through size and hard rails instead of defaulting to inaction.
-- For buy, add, hold-escalation, and re-entry decisions, enforce trade classification, minimum underwriting fields, evidence discipline, invalidation discipline, and winner-management rules from `references/trading-plan-template.md`.
+- Apply the parent prompt's equal protect/deploy mandate through size and hard rails.
+- For buy, add, hold-escalation, and re-entry decisions, enforce trade classification, minimum underwriting fields, evidence discipline, TA-owned invalidation presence, and winner-management rules from `references/trading-plan-template.md`.
 - For reviews, re-entry checks, and postmortems, enforce benchmark/style discipline and the postmortem-upgrade loop from `references/review-watchlist-and-review-logging.md`.
 - Trade classification is not identical to `holding_mode`, but they should usually agree at the operating level.
 - During reviews and postmortems, explicitly separate:
@@ -137,8 +137,8 @@ Holding mode changes posture, not hard limits.
 
 Hard-loss fallback:
 
-- Primary stop should come from thesis/structure invalidation
-- If no clean invalidation level exists, use a fallback cap
+- Use TA-owned invalidation as the primary stop reference.
+- If no clean invalidation level exists in TA output, use a fallback cap and downgrade sizing/conviction instead of promoting the setup.
 - Default fallback cap: 7-8% from entry
 - If volatility/liquidity is unusually high, reduce size instead of widening risk
 - Never let fallback cap override a tighter, higher-quality technical invalidation
@@ -241,8 +241,8 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 ## Operating Rules
 
-- Preventing large drawdowns and deploying capital into valid setups are both first-class goals; hard rails control ruin risk, and `regime_aggression` controls how much risk to take. A 50% loss still requires a 100% gain to recover.
-- No thesis, no hold. If invalidation is hit, exit.
+- Apply the parent prompt's protect/deploy doctrine; this skill expresses it through `max_new_position_size_pct`, `regime_aggression`, and `hard_rails_triggered`.
+- Use TA-owned invalidation as the symbol-level exit trigger; this skill only adds portfolio hard rails or size caps around that baseline.
 - Do not average down after thesis break.
 - Every new position must fit an explicit `risk_per_trade` budget and the current `portfolio_heat` budget.
 - Position size must be liquidity-aware before entry.
@@ -310,14 +310,14 @@ Entry discipline:
 
 Pilot entry pathway:
 
-- Use `entry_type = PILOT` when a READY symbol has an explicit thesis, explicit invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the composite score is still in the `PILOT` band because the trigger is absent, confirmation is mixed, or `regime_aggression` is low.
+- Use `entry_type = PILOT` when a READY symbol has an explicit thesis, TA-owned invalidation, evidence grade `1`-`3`, and a live `WAIT` that has persisted for at least 2 desk-checks while the thesis remains intact, but the composite score is still in the `PILOT` band because the trigger is absent, confirmation is mixed, or `regime_aggression` is low.
 - Pilot base size defaults to 0.25% of portfolio equity and is capped at 0.5% before multiplying by `regime_aggression`.
 - Lot-size floor: if the sizing formula produces a non-zero position smaller than 1 IDX lot (100 shares) at the intended entry price, round up to 1 lot. This applies to all entry types (`PILOT` and `FULL`). The floor is subject to hard safety rails — if a hard rail blocks the entry, the floor does not override it.
-- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, explicit invalidation and stop, `regime_aggression >= 0.25`, liquidity is acceptable, and no hard safety rail is triggered.
+- Pilot entries must still pass these reduced gates: thesis quality at least `MEDIUM` with evidence grade `1`-`3`, TA-owned invalidation/stop exists, `regime_aggression >= 0.25`, liquidity is acceptable, and no hard safety rail is triggered.
 - Pilot entries may proceed on daily location with partial or developing confirmation, neutral-or-better flow, and acceptable but imperfect RR.
 - A pilot is a probe, not a commitment. `trade_classification` remains `THESIS`, `TACTICAL`, or `SPECULATION` based on thesis quality and operating intent.
 - If evidence improves and `composite_score` upgrades into `STARTER`, `STANDARD`, or `HIGH_CONVICTION`, scale using the parent workflow's score-to-size contract.
-- If invalidation is hit, exit the pilot.
+- If TA-owned invalidation is hit, exit the pilot.
 - If the pilot makes no progress for 3+ desk-checks with no trigger and no invalidation, exit the pilot and downgrade the symbol to `WATCHING`.
 - Track pilot plans with `Entry type`, `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry` in the symbol plan.
 - Maximum 4 active pilots at any time.
@@ -343,8 +343,7 @@ Exit doctrine:
 - Profit taking can be staged as price approaches intrinsic value
 - Early exits are acceptable when better opportunity needs cash, portfolio cash is too low, market outlook worsens, or sizing limits are breached
 - Cut-loss framework distinguishes permanent fundamental change/governance violation from temporary noise
-- Portfolio-management consumes symbol-level exits and applies portfolio hard rails and size caps around them; it does not replace the raw exit engine owned by other lenses
-- Every exit, trim, or de-risk recommendation must be specific: include quantity (lots or % of position), price level or condition, and deadline (by session N or by date). Vague labels like "exit-review," "de-risk first," or "consider trimming" are not valid final recommendations.
+- Portfolio-management consumes symbol-level exits and applies portfolio hard rails and size caps around them; the parent prompt owns the final exit-specificity contract.
 
 Rebalancing protocol:
 
@@ -406,12 +405,8 @@ Checklist: `regime_aggression` resolved, IHSG cash target checked against curren
 4. Use `portfolio_symbol_trade_journey` for names that need symbol-level lifecycle context, realized review, or postmortem setup.
 5. For each position: check thesis status, stop levels, invalidation quality, resolved execution policy, sizing compliance, `Last Reviewed`, review cadence, checkpoint status, and exit-review state from `portfolio_state`, symbol memory, and trade-history context. If the symbol plan carries active scenarios, check scenario switch conditions and which branch is dominant. If the symbol plan does not yet carry scenarios but the current evidence suggests multiple plausible paths, propose scenario branches for promotion during synthesis. If the live recommendation degrades to a de-risk/exit posture while hard invalidation has not yet fired, set `Exit review state = in_review`, initialize `Exit review gate` to the concrete reclaim level or condition, and set `Exit review count = 1` on that first desk-check. For positions already in exit-review, increment `Exit review count` if the gate has not been reclaimed; reset `Exit review state = not_in_review`, clear `Exit review gate`, and set `Exit review count = 0` if reclaimed. If `trade_classification = SPECULATION` and `Exit review count >= 3`, flag `PM-W12` and recommend full exit at next liquidity. If `Exit review count >= 5` (any classification), flag `PM-W13` and default to full exit unless fresh evidence materially changes the reclaim thesis.
 6. Check whether any `Progress checkpoint date` has passed and evaluate the stored checkpoint failure action.
-7. For each READY symbol carrying `active_recommendation.action = WAIT`, increment `active_recommendation.wait_desk_check_count`, inspect `retest_status`, and return the incremented count plus current trigger/price/opportunity-cost context to parent synthesis:
-   - `wait_desk_check_count < 3`: normal WAIT processing context.
-   - `wait_desk_check_count >= 3`: pass a stale-`WAIT` re-underwrite handoff with the incremented count, `retest_status`, current price versus trigger, and any opportunity-cost context.
-   - `wait_desk_check_count > 5`: pass a hard-expiry handoff in addition to the re-underwrite context.
-   - Parent synthesis owns the final stale-`WAIT` action: fresh `composite_decision`, `PILOT` default if pilot gates pass, `WATCHING` downgrade when they do not, and no `WAIT` renewal after hard expiry.
-8. For each READY symbol where current price is more than 5% above the last recommended entry zone, compute the missed move from that entry zone to current price and record it in `memory/notes/opportunity-cost.md`. A missed move above 10% forces re-underwrite of the setup family, entry zone, and underwriting threshold. `wait_desk_check_count > 5` is hard expiry (see step 7). The opportunity-cost ledger must feed into the WAIT staleness decision — a READY name waiting 3+ desk-checks and still in-zone creates re-underwrite pressure, not just a ledger entry.
+7. For each READY symbol carrying `active_recommendation.action = WAIT`, increment `active_recommendation.wait_desk_check_count`, inspect `retest_status`, and return the incremented count plus current trigger/price/opportunity-cost context to parent synthesis. Parent synthesis owns the stale-`WAIT` ladder and final action.
+8. For each READY symbol where current price is more than 5% above the last recommended entry zone, compute the missed move from that entry zone to current price and record it in `memory/notes/opportunity-cost.md`. Return that missed-move context to parent synthesis for the main prompt's stale-`WAIT` ladder.
 9. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, `regime_aggression`, active IHSG cash target, current cash ratio, cumulative missed opportunity from the opportunity-cost ledger, and recent action context from the tool outputs.
 10. Extend coverage to watchlist symbols required by the active workflow contract.
 11. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, `Entry type`, pilot lifecycle fields, rebalance-band notes, `Last Reviewed`, `active_recommendation`, and other resolved execution-policy fields.
@@ -419,7 +414,7 @@ Checklist: `regime_aggression` resolved, IHSG cash target checked against curren
 13. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
 14. Return `portfolio_constraints`, portfolio findings, portfolio-monitor update content, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, checkpoint failures checked, stale plans checked, WAIT staleness counts incremented and stale-`WAIT` handoff context returned (re-underwrite at `wait_desk_check_count >= 3`, hard expiry at `wait_desk_check_count > 5`), exit-review counts checked (PM-W12 for dead speculation), opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, checkpoint failures checked, stale plans checked, `wait_desk_check_count` incremented and stale-`WAIT` context returned to parent synthesis, exit-review counts checked (PM-W12 for dead speculation), opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
 
 ### Deep Review
 

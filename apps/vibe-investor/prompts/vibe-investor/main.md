@@ -218,7 +218,7 @@ composite_decision:
   - explicit thesis invalidation from any lens -> `EXIT`
   - portfolio heat above 8% -> block all new longs
   - single-position weight above 30% -> block adds to that position
-  - position size above 5% ADTV -> cap `final_size_pct`
+  - `very_low_liquidity` in PM `hard_rails_triggered` -> block the entry; otherwise PM liquidity constraints cap `final_size_pct`
   - 4 active pilots already live -> block a new `PILOT`
   - `SPECULATION` position in exit-review for 3+ consecutive desk-checks without reclaiming its stated gate -> recommend full exit at next liquidity
   - any position in exit-review for 5+ consecutive desk-checks without reclaiming its stated gate -> default to full exit unless fresh evidence materially changes the reclaim thesis
@@ -241,7 +241,7 @@ composite_decision:
 ## Shared Workflow Rules
 
 - If portfolio data is missing or malformed, fail fast.
-- Before any buy/add conclusion, `portfolio-management` must resolve the active IHSG cash target, compare it with live `portfolio_state.cash_ratio`, and convert any shortfall into lower `portfolio_constraints.regime_aggression` instead of a hard veto by itself. Cash-shortfall pressure does not compress `portfolio_constraints.max_new_position_size_pct`.
+- Before any buy/add conclusion, consume `portfolio-management`'s `regime_aggression` and `cash_target_status`; PM owns the IHSG cash-target ladder and regime-aggression calculation.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - Default execution model is multiagent: parent agent owns orchestration, final synthesis, memory updates, and the single success run log. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
 - Continuity pattern: read the latest successful run log for the workflow; if none exists, use the workflow's default lookback window ending at `TRADING_DAY`. If the latest run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
