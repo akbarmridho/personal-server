@@ -11,7 +11,7 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 | 1 | Flip the Default for Stale WAIT Only | done |
 | 2 | Kill 80% of the Prompt (Keep Skill Preflight) | done |
 | 3 | Guardrail Dedupe Only | done |
-| 4 | Single `get_state` Tool + Plugin Run Logs | pending |
+| 4 | Single `get_state` Tool + Plugin Run Logs | done |
 | 5 | Flatten Memory to `symbols/`, `theses/`, `market/`, `digests/` | done |
 | 6 | Retest Fast-Track | done |
 
@@ -94,28 +94,27 @@ TA red flags stay as-is. TA "stop" rules are score caps, not vetoes.
 
 ## 4. Single `get_state` Tool + Plugin Run Logs
 
-**Status:** pending
+**Status:** done
 
-**Scope:** Create custom tool that parses frontmatter from live symbol/thesis files. Create plugin for run logs. Remove registry JSON files and generated view files.
+**Scope:** Create custom tool that parses frontmatter from live symbol/thesis files. Create plugin for run logs. Make derived state views tool-backed and run logs plugin-owned.
 
 **Context prompt:**
 
 ```
 Read these files before starting:
-- prompts/vibe-investor/main.md (registry refresh rules, run log schema, generated view files)
-- .opencode-config/skills/portfolio-management/SKILL.md (registry references, memory file table)
-- opencode-config.json (agent config, for plugin registration)
+- prompts/vibe-investor/main.md (get_state contract, plugin-owned run log schema, memory tree)
+- .opencode-config/skills/portfolio-management/SKILL.md (get_state usage, memory file table)
+- .opencode-config/plugins/run-log.ts (run-log plugin implementation)
 - docs/impact-ranked-approaches.md (item 4, for tool contract and error handling)
 
 Tool contract: get_state({ types: [...] }) returns parsed frontmatter. Error handling: parse what you can, warn on missing required fields, never fail silently on legacy frontmatter.
 Plugin contract: listen to command.executed events, log window_from, window_to, symbols, artifacts to memory/runs/.
-Files to remove: memory/registry/state.json, memory/registry/symbols.json, memory/registry/theses.json, memory/notes/thesis.md, memory/notes/watchlist.md, memory/notes/portfolio-monitor.md.
 ```
 
 **Migration prompt:**
 
 ```
-Run this migration after implementing the get_state tool and before removing registry files:
+Run this migration after implementing the get_state tool:
 
 1. For each symbol plan in memory/symbols/*/plan.md:
    - Parse frontmatter
@@ -129,9 +128,8 @@ Run this migration after implementing the get_state tool and before removing reg
    - Warn on any missing fields
 
 3. After verifying all frontmatter is parseable:
-   - Remove memory/registry/*.json
-   - Remove memory/notes/thesis.md, memory/notes/watchlist.md, memory/notes/portfolio-monitor.md
-   - Update any remaining references to these files in skill files and main.md
+   - Update prompts, skills, docs, templates, and live memory navigation to use get_state for derived views
+   - Keep process ledgers under memory/notes/
 
 4. Test: run get_state({ types: ["symbols"] }) and verify output matches expected frontmatter for all symbols.
 ```
@@ -142,7 +140,7 @@ Run this migration after implementing the get_state tool and before removing reg
 
 **Status:** done
 
-**Scope:** Collapse memory tree. Merge state/symbols + analysis/symbols into one symbols/ directory. Merge IHSG + macro into market/. Remove state/ and analysis/ directories. Keep `memory/registry/` and generated note views until item 4.
+**Scope:** Collapse memory tree. Merge state/symbols + analysis/symbols into one symbols/ directory. Merge IHSG + macro into market/. Remove state/ and analysis/ directories.
 
 **Context prompt:**
 
@@ -194,7 +192,7 @@ Run this migration after updating all file path references in main.md and skill 
    - mv memory/state/theses/* memory/theses/
 
 5. Migrate notes:
-   - Keep memory/notes/thesis.md, memory/notes/watchlist.md, memory/notes/portfolio-monitor.md, and memory/notes/opportunity-cost.md until item 4
+   - Keep memory/notes/agent-performance.md and memory/notes/opportunity-cost.md
    - Keep ihsg.md and macro.md content merged into market/plan.md (step 3)
 
 6. Update all file path references:

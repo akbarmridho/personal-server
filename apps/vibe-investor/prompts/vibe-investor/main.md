@@ -46,16 +46,10 @@ workdir/
 │   │           └── {SUBTHESIS_ID}.md
 │   ├── digests/
 │   │   └── {DATE}_news_digest.md
-│   ├── notes/                    # Operational notes and generated views retained until item 4
+│   ├── notes/                    # Operational notes and process ledgers
 │   │   ├── agent-performance.md
 │   │   ├── opportunity-cost.md
-│   │   ├── portfolio-monitor.md
-│   │   ├── thesis.md
-│   │   └── watchlist.md
-│   ├── registry/
-│   │   ├── state.json
-│   │   ├── symbols.json
-│   │   └── theses.json
+│   │   └── *.md
 │   ├── runs/{DATE}/{TIME}_{WORKFLOW}.json
 └── work/                         # Temporary scratch
 ```
@@ -64,7 +58,7 @@ Memory semantics:
 
 - `memory/MEMORY.md`: static strategic context only (investment philosophy, active thesis themes, risk posture, structural priorities). Read at session start.
 - `work/`: disposable scratch for data pulls, one-off scripts, and intermediate charts. Promote only durable outputs into `memory/`.
-- Before broad market strategy work or desk-check preparation, consult `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `memory/notes/portfolio-monitor.md`.
+- Before broad market strategy work or desk-check preparation, consult `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `get_state({ types: ["portfolio-monitor"] })`.
 
 Slow-moving notes freshness:
 
@@ -79,14 +73,14 @@ Portfolio memory:
 - Portfolio tools are the live truth for holdings, fills, and P/L.
 - `memory/symbols/{SYMBOL}/plan.md` is the durable operating plan (holding mode, exit baseline, resolved execution policy, active scenarios).
 - One-off portfolio calculations go in `work/`, not as permanent scripts.
-- `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json` is a success log written by the parent workflow only.
+- `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json` is a plugin-managed success log written after top-level command execution.
 
-State and registry:
+Durable state and lookup:
 
 - Durable machine state: `memory/symbols/{SYMBOL}/plan.md` and `memory/theses/{THESIS_ID}/thesis.md`.
-- `memory/registry/*.json`: derived current-state for fast lookup. Refresh after any state mutation.
-- `memory/notes/watchlist.md` and `memory/notes/thesis.md`: human-readable summary views derived from symbol plans and thesis state. Regenerate from `memory/symbols/**/plan.md`, `memory/theses/**/thesis.md`, and live `portfolio_state` during review workflows.
-- `memory/notes/portfolio-monitor.md`: generated view of open-book classification, active monitor rules, health flags, and next portfolio-level focus. Regenerate from symbol plans, `portfolio_state`, and current `portfolio_constraints` during review workflows.
+- Use `get_state({ types: ["symbols", "theses"] })` for live frontmatter lookup from durable symbol and thesis files.
+- Use `get_state({ types: ["watchlist"] })` for derived watchlist/leader lookup.
+- Use `get_state({ types: ["portfolio-monitor"] })` for derived holdings + portfolio health flags joined from symbol plans and `portfolio_state`.
 - `memory/notes/agent-performance.md`: rolling decision-quality tracker.
 - `memory/notes/opportunity-cost.md`: missed-move and WAIT-age ledger.
 
@@ -95,7 +89,7 @@ Thesis structure:
 - Use `type: THESIS` for umbrella theses and `type: SUBTHESIS` for narrower expressions.
 - Use `parent_thesis_id` only for `SUBTHESIS`.
 - Store thesis files under `memory/theses/{THESIS_ID}/thesis.md`, with subtheses under `subtheses/{SUBTHESIS_ID}.md`.
-- In `memory/notes/thesis.md`, keep `ACTIVE` and `INACTIVE` sections, each row with `Type`, `Parent`, and link.
+- `get_state({ types: ["theses"] })` is the summary surface for thesis status, parent linkage, symbols, and source files.
 - Prefer creating a `SUBTHESIS` under an existing parent when the idea is a narrower expression.
 
 Frontmatter rules:
@@ -111,7 +105,7 @@ Filesystem retrieval:
 
 - Prefer `rg` for content search.
 - Prefer `rg --files` for file discovery.
-- Prefer `jq` for registry JSON reads.
+- Use `get_state` for symbol, thesis, watchlist, and portfolio-monitor lookup before opening many files manually.
 
 Memory write rules:
 
@@ -124,7 +118,7 @@ Evidence-backed updates:
 
 - Evidence-backed means supported by at least one verifiable data point from MCP tools, documents, or filings, not agent inference alone.
 - This requirement applies to thesis changes, status changes, plan changes, new recommendations, and invalidation updates.
-- This requirement does not apply to `last_reviewed` / `Last reviewed` timestamp bumps, `watchlist.md` view refreshes, `portfolio-monitor.md` view refreshes, registry derivation, or run-log writes.
+- This requirement does not apply to `last_reviewed` / `Last reviewed` timestamp bumps or plugin-managed run-log writes.
 
 ## Scenario Discipline
 
@@ -259,18 +253,15 @@ composite_decision:
 - If portfolio data is missing or malformed, fail fast.
 - Before any buy/add conclusion, consume `portfolio-management`'s `regime_aggression` and `cash_target_status`; PM owns the IHSG cash-target ladder and regime-aggression calculation.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
-- Default execution model is multiagent: parent agent owns orchestration, final synthesis, memory updates, and the single success run log. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
+- Default execution model is multiagent: parent agent owns orchestration, final synthesis, and memory updates. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return. The run-log plugin writes the single top-level success log.
 - Continuity pattern: read the latest successful run log for the workflow; if none exists, use the workflow's default lookback window ending at `TRADING_DAY`. If the latest run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory for review workflows (`desk-check`, `deep-review`): review IHSG structure/regime, macro/news tone, and leader breadth deterioration.
-- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/market/*`, `memory/digests/*`, `memory/symbols/{SYMBOL}/*`, `memory/theses/{THESIS_ID}/*`, and generated note views under `memory/notes/`.
+- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/market/*`, `memory/digests/*`, `memory/symbols/{SYMBOL}/*`, `memory/theses/{THESIS_ID}/*`, `memory/notes/agent-performance.md`, and `memory/notes/opportunity-cost.md`.
 - When `memory/symbols/{SYMBOL}/plan.md` is updated, refresh resolved execution-policy fields when the live operating plan changes materially.
-- After all memory mutations succeed, refresh `memory/registry/state.json`, `memory/registry/symbols.json`, and `memory/registry/theses.json` before writing the success run log.
 - Symbol artifacts belong under `memory/symbols/{SYMBOL}/`, updated in place. Archive prior `technical.md`, `narrative.md`, `flow.md`, and evidence artifacts to `memory/symbols/{SYMBOL}/archive/` when invalidation level changes, `setup_family` changes, or `thesis_status` moves to `invalidated`.
 - Market artifacts belong under `memory/market/`, and digest artifacts belong under `memory/digests/`. Archive prior market artifacts to `memory/market/archive/` when IHSG regime, macro stance, or operating plan changes materially.
-- Success run-log `artifacts` must reference actual memory paths, not scratch files.
-- Success logs must include only `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
-- Write exactly one success log per workflow at `memory/runs/{TRADING_DAY}/{HHMMSS}_{WORKFLOW}.json` after all required scopes succeed.
-- On every successful `desk-check` or `deep-review`, refresh `memory/notes/portfolio-monitor.md`, refresh `memory/notes/agent-performance.md`, review/update `memory/market/plan.md`, and review/update `memory/MEMORY.md`.
+- Success run logs are written by the run-log plugin at `memory/runs/{TRADING_DAY}/{HHMMSS}_{WORKFLOW}.json` with `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
+- On every successful `desk-check` or `deep-review`, refresh `memory/notes/agent-performance.md`, review/update `memory/market/plan.md`, and review/update `memory/MEMORY.md`.
 
 ## WAIT Staleness
 
@@ -284,7 +275,14 @@ composite_decision:
 
 ## Tools
 
-Tools are available via MCP (stock data, knowledge base, social, web), custom tools (`fetch-ohlcv`, `fetch-broker-flow`, `deep-doc-extract`, portfolio tools), and filesystem operations. Use tool schemas for parameter names and types.
+Tools are available via MCP (stock data, knowledge base, social, web), custom tools (`get_state`, `fetch-ohlcv`, `fetch-broker-flow`, `deep-doc-extract`, portfolio tools), and filesystem operations. Use tool schemas for parameter names and types.
+
+### `get_state`
+
+- Reads live frontmatter from `memory/symbols/{SYMBOL}/plan.md` and `memory/theses/**.md`, then derives watchlist and portfolio-monitor views on demand.
+- Use `types: ["symbols"]` or `types: ["theses"]` for full frontmatter lists, `types: ["watchlist"]` for READY/leader lookup, and `types: ["portfolio-monitor"]` for holdings plus PM health flags joined from symbol plans and `portfolio_state`.
+- Use `types: ["symbol"]` or `types: ["thesis"]` with `ids: [...]` for targeted lookup.
+- If legacy frontmatter is incomplete, the tool returns the available fields plus a `warnings` array on affected records.
 
 ### `fetch-ohlcv`
 

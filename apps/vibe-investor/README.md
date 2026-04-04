@@ -27,6 +27,8 @@ apps/vibe-investor/
     │       ├── fundamental-analysis/
     │       ├── narrative-analysis/
     │       └── portfolio-management/
+    ├── plugins/
+    │   └── run-log.ts                # Plugin-managed workflow run logs
 ├── prompts/
 │   └── vibe-investor/
 │       └── main.md               # Base agent prompt
@@ -41,23 +43,29 @@ apps/vibe-investor/
 $OPENCODE_CWD/
 ├── memory/                       # Persistent memory
 │   ├── MEMORY.md                 # Global memory index and pointer file
+│   ├── market/
+│   │   ├── plan.md               # IHSG regime + macro operating stance
+│   │   ├── technical.md          # Current market TA
+│   │   ├── narrative.md          # Current market narrative
+│   │   ├── desk_check.md
+│   │   ├── deep_review.md
+│   │   ├── explore_idea.md
+│   │   └── archive/
+│   ├── symbols/{SYMBOL}/         # Durable plans + current symbol artifacts
+│   │   ├── plan.md
+│   │   ├── technical.md
+│   │   ├── narrative.md
+│   │   ├── flow.md
+│   │   └── archive/
+│   ├── theses/{THESIS_ID}/       # Durable thesis state
+│   │   ├── thesis.md
+│   │   └── subtheses/
+│   ├── digests/
+│   │   └── {DATE}_news_digest.md
 │   ├── notes/
-│   │   ├── ihsg.md               # IHSG regime map and key levels
-│   │   ├── macro.md              # Macro and geopolitical context affecting IDX
-│   │   ├── portfolio-monitor.md  # Open-book classification and monitoring rules
-│   │   ├── thesis.md             # Human-readable thesis summary view
-│   │   └── watchlist.md          # Human-readable watchlist summary view
-│   ├── registry/
-│   │   ├── state.json            # Derived current-state summary
-│   │   ├── symbols.json          # Derived symbol registry
-│   │   └── theses.json           # Derived thesis registry
+│   │   ├── agent-performance.md
+│   │   └── opportunity-cost.md
 │   ├── runs/                     # Successful workflow run logs
-│   ├── state/
-│   │   ├── symbols/{SYMBOL}.md   # Trading plan, thesis, key levels
-│   │   └── theses/{THESIS_ID}/thesis.md
-│   ├── analysis/
-│   │   ├── symbols/{SYMBOL}/{DATE}/
-│   │   └── market/{DATE}/        # desk_check.md, deep_review.md, explore_idea.md, news_digest.md, top-down outputs
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
@@ -71,9 +79,9 @@ $OPENCODE_CWD/
   - Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting.
 - `/news-digest`
   - Reading-oriented digest from new documents and memory continuity.
-  - Writes a retained digest artifact plus its run log.
+  - Writes a retained digest artifact.
 - `/digest-sync`
-  - Applies evidence-backed digest updates to thesis/watchlist memory.
+  - Applies evidence-backed digest updates to thesis and symbol-plan memory.
 - `/ta {SYMBOL} {INTENT}`
   - Manual technical deep dive when one symbol needs closer review.
 
@@ -128,7 +136,7 @@ sudo apt install ripgrep jq fzf fd-find
 Notes:
 
 - `rg` is the default fast search tool for memory recall.
-- `jq` is useful for inspecting `memory/registry/*.json`.
+- `jq` is useful for inspecting tool output and run logs.
 - `fzf` is optional for interactive selection.
 - On some Debian-based systems, `fd-find` installs the binary as `fdfind` instead of `fd`.
 
@@ -153,32 +161,33 @@ Skills are loaded as tool results and are protected from session compaction — 
 Filesystem-based memory using markdown files.
 
 - **`memory/MEMORY.md`** — Loaded at session start as the concise index and pointer file
-- **`memory/notes/ihsg.md`** — Current IHSG regime map and key levels
-- **`memory/notes/macro.md`** — Geopolitical and macro conditions affecting IDX
-- **`memory/notes/portfolio-monitor.md`** — Current open-book classification and monitoring rules
-- **`memory/notes/watchlist.md`** — Human-readable watchlist summary view
-- **`memory/notes/thesis.md`** — Human-readable thesis summary view
-- **`memory/registry/`** — Derived machine-readable current-state files for fast lookup
-- **`memory/runs/`** — One JSON log per successful top-level workflow run
-- **`memory/state/symbols/`** — Authoritative durable per-symbol plans; add strict YAML frontmatter to new files
-- **`memory/state/theses/`** — Authoritative durable per-thesis state, including top-level theses and subtheses stored flat with parent metadata
-- **`memory/analysis/`** — Dated analysis outputs organized by symbol
+- **`memory/market/plan.md`** — IHSG regime map, macro stance, and operating levels
+- **`memory/symbols/{SYMBOL}/plan.md`** — Authoritative durable per-symbol plans with strict YAML frontmatter
+- **`memory/theses/{THESIS_ID}/thesis.md`** — Authoritative durable per-thesis state
+- **`memory/digests/{DATE}_news_digest.md`** — Retained digest artifact
+- **`memory/runs/`** — Plugin-managed JSON log per successful top-level workflow run
+- **`memory/notes/agent-performance.md`** — Rolling process-quality notes
+- **`memory/notes/opportunity-cost.md`** — WAIT-age and missed-move ledger
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 
 Source-of-truth split:
 
 - Portfolio tools own live holdings, fills, and realized actions.
-- `memory/state/symbols/` and `memory/state/theses/` own durable symbol/thesis state.
-- `memory/notes/watchlist.md` and `memory/notes/thesis.md` remain useful as readable dashboards, but they are not the authoritative machine state.
-- `memory/registry/*.json` is derived from durable memory and should be refreshed after workflows that mutate watchlist, symbol, or thesis state.
+- `memory/symbols/{SYMBOL}/plan.md` and `memory/theses/{THESIS_ID}/thesis.md` own durable symbol/thesis state.
+- `get_state` derives symbol, thesis, watchlist, and portfolio-monitor views on demand from live frontmatter.
+- The run-log plugin writes one JSON log per top-level command under `memory/runs/`.
 
 Recommended local CLI tools for memory work:
 
 - `rg` for fast content recall across memory
-- `jq` for inspecting registry JSON
+- `jq` for inspecting `get_state` output and `memory/runs/*.json`
 - optional: `fzf` for interactive file/result selection
 
 ## Custom Tools
+
+### get_state
+
+Reads live symbol/thesis frontmatter and derives watchlist or portfolio-monitor views on demand.
 
 ### fetch-ohlcv
 

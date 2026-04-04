@@ -7,11 +7,11 @@ Use commands in OpenCode TUI with `/command-name`.
 - `/desk-check`
   - Main operating routine for holdings, `READY` watchlist names, leaders, and market context.
   - Uses `portfolio-management`, `technical-analysis`, and `narrative-analysis` internally.
-  - Writes retained analysis artifacts, `memory/market/desk_check.md`, and a success run log.
+  - Writes retained analysis artifacts and `memory/market/desk_check.md`.
 
 - `/news-digest`
   - Builds a reading-oriented digest from new high-signal documents since the last successful digest.
-  - Writes `memory/digests/{TODAY}_news_digest.md` and its success run log.
+  - Writes `memory/digests/{TODAY}_news_digest.md`.
 
 - `/digest-sync`
   - Applies the latest digest to thesis and watchlist memory when changes are evidence-backed.
@@ -25,20 +25,20 @@ Use commands in OpenCode TUI with `/command-name`.
 `/desk-check`
 
 - Coverage: holdings from `portfolio_state`, watchlist names in `READY`, leaders, and top-down market context
-- Prep context: consult `memory/market/plan.md` and `memory/notes/portfolio-monitor.md`
-- Continuity: uses the latest successful `desk-check` run log
-- Main outputs: retained symbol and market artifacts, `desk_check.md`, success run log
+- Prep context: consult `memory/market/plan.md` and `get_state({ types: ["portfolio-monitor", "watchlist"] })`
+- Continuity: uses the latest plugin-managed `desk-check` run log
+- Main outputs: retained symbol and market artifacts, `desk_check.md`
 
 `/news-digest`
 
 - Coverage: new high-signal documents, market regime, macro context, thesis-relevant developments
-- Memory context: start from `memory/MEMORY.md` and the dedicated market context notes under `memory/notes/`
-- Main outputs: digest artifact and success run log
+- Memory context: start from `memory/MEMORY.md`, `memory/market/plan.md`, and `get_state({ types: ["symbols", "theses", "watchlist", "portfolio-monitor"] })`
+- Main outputs: digest artifact
 
 `/digest-sync`
 
 - Input: latest digest artifact
-- Main outputs: evidence-backed thesis and watchlist updates plus a success run log
+- Main outputs: evidence-backed thesis and symbol-plan updates
 - If evidence is ambiguous, stop and report `Needs Verification`
 
 `/ta`
@@ -65,3 +65,4 @@ Use commands in OpenCode TUI with `/command-name`.
 - Prefer `/desk-check` as the default portfolio routine
 - Use `/news-digest` and `/digest-sync` together when digest findings should update memory
 - All workflows fail fast on required dependency failures
+- Run logs are written by the OpenCode plugin under `memory/runs/`

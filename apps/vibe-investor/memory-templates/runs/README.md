@@ -1,6 +1,6 @@
 # Run Logs
 
-Store one file per successful top-level workflow run.
+The run-log plugin writes one file per successful top-level workflow run.
 
 Path pattern:
 
@@ -15,4 +15,4 @@ Fields used by every workflow:
 - `symbols`
 - `artifacts`
 
-Only write a run log after the full workflow succeeds.
+Run logs are plugin-managed.

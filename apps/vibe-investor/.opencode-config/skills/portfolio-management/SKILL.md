@@ -18,6 +18,7 @@ Tool source of truth:
 - Use `portfolio_state` as the source of truth for current holdings, cash, equity, and compact portfolio summary fields such as position count, cash ratio, top positions, and recent actions.
 - Use `portfolio_trade_history` for raw trade rows and realized analytics depending on `view`.
 - Use `portfolio_symbol_trade_journey` for symbol-level lifecycle review, current-position context, and postmortem setup.
+- Use `get_state` for symbol/thesis frontmatter lookup, watchlist/leader discovery, and derived portfolio-monitor state.
 - Use symbol memory as the durable operating plan, not as the live execution ledger.
 - If a one-off calculation is still needed after using the portfolio tools, create and run a temporary script under `work/` and treat it as disposable scratch, not as a permanent skill script.
 
@@ -35,7 +36,7 @@ Tool source of truth:
 - Use durable `Active Scenarios` in symbol and thesis state when they exist. Scenario transitions can justify adds, trims, de-risking, or thesis retirement before hard invalidation is hit.
 - Portfolio management does not own raw symbol exits. It owns portfolio-level sizing constraints, de-risking rails, and hard safety rails when heat, concentration, liquidity, or regime require tighter exposure than the symbol-level baseline.
 - Run workflow discipline end-to-end (entry, add, exit, rebalance, review) while consuming TA-owned invalidation and the parent prompt's final exit contract.
-- Use durable state files as the system of record; decisions are only complete when portfolio/watchlist/symbol/thesis states are updated and the derived registry is refreshed.
+- Use durable state files as the system of record; decisions are only complete when symbol or thesis memory is updated.
 - Consume technical exit doctrine from `technical-analysis`; this skill does not redefine raw chart-level TP rules.
 - Keep the durable symbol plan separate from live portfolio truth. Store the intended operating plan in memory; store actual holdings, fills, remaining size, and P/L in portfolio tools.
 
@@ -230,10 +231,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 | File | Purpose |
 |------|---------|
-| `memory/notes/portfolio-monitor.md` | Generated view: open-book classification, active monitor rules, health flags, and next portfolio-level focus. Regenerated from symbol plans + `portfolio_state` + `portfolio_constraints` during review workflows. |
 | `memory/notes/opportunity-cost.md` | Missed-move ledger for READY symbols, WAIT age, and re-underwrite pressure from inaction |
-| `memory/notes/watchlist.md` | Generated view: human-readable watchlist summary. Regenerated from `memory/symbols/**/plan.md` + live `portfolio_state` during review workflows. |
-| `memory/registry/symbols.json` | Derived current-state symbol registry for fast watchlist and leader lookup |
 | `memory/symbols/{SYMBOL}/plan.md` | Per-symbol plan, thesis, invalidation, sizing, and resolved execution policy |
 | `memory/runs/{DATE}/{TIME}_desk-check.json` | Successful desk-check continuity log written by the parent workflow |
 | `memory/symbols/{SYMBOL}/` | Supporting symbol artifacts (`technical.md`, `narrative.md`, `flow.md`, charts, `archive/`) |
@@ -261,7 +259,7 @@ Stop: if fetch fails, stop the task and report dependency failure.
 
 Before any new long exposure, resolve `regime_aggression`.
 
-Evidence: `fetch-ohlcv` on market proxy + leader basket from `memory/registry/symbols.json` (fallback: `memory/notes/watchlist.md` when registry is missing or stale).
+Evidence: `fetch-ohlcv` on market proxy + leader basket from `get_state({ types: ["watchlist"] })`.
 
 Compute one `regime_aggression` multiplier from IHSG structure and breadth:
 
@@ -392,10 +390,9 @@ Rebalancing protocol:
 5. Validate sizing against portfolio constraints (`risk_per_trade`, `portfolio_heat`, `50:30:10` for `FULL` entries, theme/correlation clustering, and ADTV liquidity).
 6. Load `trading-plan-template.md`, fill all required fields including `Entry type`, `Holding mode`, and final exit precedence. For `PILOT`, also fill `Reduced pilot gates used`, `Scale-up trigger`, and `Pilot expiry`.
 7. Write plan to `memory/symbols/{SYMBOL}/plan.md`.
-8. Regenerate `memory/notes/watchlist.md` from current symbol plans and live portfolio state when the plan changes watchlist status or trigger conditions.
-9. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
+8. If the plan changes watchlist status or trigger conditions, use `get_state({ types: ["watchlist"] })` for the fresh derived view.
 
-Checklist: `regime_aggression` resolved, IHSG cash target checked against current cash ratio, `entry_type` selected, pilot constraints enforced when relevant, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated, registry refreshed.
+Checklist: `regime_aggression` resolved, IHSG cash target checked against current cash ratio, `entry_type` selected, pilot constraints enforced when relevant, `holding_mode` posture applied, sizing validated, liquidity cleared, hidden concentration checked, resolved execution policy written, memory files updated.
 
 ### Desk Check Review
 
@@ -411,10 +408,9 @@ Checklist: `regime_aggression` resolved, IHSG cash target checked against curren
 10. Extend coverage to watchlist symbols required by the active workflow contract.
 11. Where the live operating plan changed materially, prepare symbol-memory updates for `holding_mode`, exit precedence, non-TA exit drivers, `Entry type`, pilot lifecycle fields, rebalance-band notes, `Last Reviewed`, `active_recommendation`, and other resolved execution-policy fields.
 12. Prepare the updated portfolio-monitor state, opportunity-cost ledger, and `portfolio_constraints` for the parent workflow.
-13. If watchlist or symbol state changes, refresh the derived registry before the parent workflow writes the success log.
-14. Return `portfolio_constraints`, portfolio findings, portfolio-monitor update content, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
+13. Return `portfolio_constraints`, portfolio findings, opportunity-cost update content, watchlist changes, and any required follow-up actions to the parent workflow.
 
-Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, checkpoint failures checked, stale plans checked, `wait_desk_check_count` incremented and stale-`WAIT` context returned to parent synthesis, exit-review counts checked (PM-W12 for dead speculation), opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, portfolio-monitor and opportunity-cost update content prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, checkpoint failures checked, stale plans checked, `wait_desk_check_count` incremented and stale-`WAIT` context returned to parent synthesis, exit-review counts checked (PM-W12 for dead speculation), opportunity cost checked, active pilot count and pilot expiry checked, hidden concentration checked, portfolio constraints produced, resolved execution-policy drift checked, opportunity-cost update content prepared, portfolio findings returned to the parent workflow.
 
 ### Deep Review
 
@@ -427,21 +423,18 @@ Checklist: all holdings reviewed, risk budgets checked, current `portfolio_heat`
 7. Check portfolio-level: current `portfolio_heat`, concentration, hidden clustering, sizing flags, `regime_aggression`, active IHSG cash target, current cash ratio, benchmark behavior versus `IHSG` and relevant leaders, and current best-ideas density.
 8. Review system quality, not only holdings: equity-curve behavior, realized versus unrealized contribution mix, style drift, repeated re-entry mistakes, stale plans, redundant names, cluttered watchlist entries, and process debt.
 9. Prepare cleanup proposals for watchlist status, symbol-plan refreshes, thesis hygiene, portfolio-monitor state, and any portfolio hard-rail or size-cap changes backed by the review evidence.
-10. If watchlist, symbol, or thesis state changes, refresh the derived registry before the parent workflow writes the success log.
-11. Return portfolio findings, neglected-name resurfacing findings, process-quality findings, cleanup actions, and portfolio-monitor update content to the parent workflow.
+10. Return portfolio findings, neglected-name resurfacing findings, process-quality findings, and cleanup actions to the parent workflow.
 
-Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio constraints assessed, cleanup actions prepared, registry refresh requirement identified when state changed, portfolio findings returned to the parent workflow.
+Checklist: holdings reviewed, stale or neglected names resurfaced, realized and unrealized context checked, best-ideas density assessed, current `portfolio_heat` reported, active IHSG cash target checked against current cash ratio, hidden concentration checked, benchmark and leader comparison completed, style drift checked, portfolio constraints assessed, cleanup actions prepared, portfolio findings returned to the parent workflow.
 
 ### Position Exit
 
 1. Determine exit type: cut-loss, profit-taking, or early exit.
 2. Confirm whether the exit is coming from the symbol-level baseline (`technical_plan` / thesis invalidation) or from a portfolio hard rail (heat breach, concentration breach, liquidity breach).
 3. Execute exit, update `memory/symbols/{SYMBOL}/plan.md` with close details and any final execution-policy outcome that matters for future review.
-4. Regenerate `memory/notes/watchlist.md` when the exit changes watchlist status or follow-up monitoring state.
-5. Refresh `memory/registry/state.json` and `memory/registry/symbols.json` after the state change.
-6. Post-exit: evaluate process quality, not outcome.
+4. Post-exit: evaluate process quality, not outcome.
 
-Checklist: exit source documented (symbol baseline vs portfolio hard rail), symbol/watchlist memory updated where needed, registry refreshed, process review noted.
+Checklist: exit source documented (symbol baseline vs portfolio hard rail), symbol memory updated where needed, process review noted.
 
 ### Rebalance Check
 

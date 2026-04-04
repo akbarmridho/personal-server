@@ -1,12 +1,14 @@
 # Global Memory Index
 
-Last updated:
+Last materially changed:
+Last reviewed:
 
 ## Current Focus
 
 ## Portfolio State
 - Current portfolio state: use `portfolio_state`
 - Trade history: use `portfolio_trade_history`
+- Live symbol/thesis/watchlist/portfolio-monitor state: use `get_state`
 - Latest desk-check run:
 - Latest news digest:
 
@@ -15,13 +17,7 @@ Last updated:
 ## Active Risks
 
 ## Pointers
-- Market context: `notes/ihsg.md`
-- Macro context: `notes/macro.md`
-- Portfolio monitor: `notes/portfolio-monitor.md`
-- Thesis summary view: `notes/thesis.md`
-- Thesis contract: `state/theses/README.md`
-- Symbol plan contract: `state/symbols/README.md`
-- Watchlist summary view: `notes/watchlist.md`
-- Registry contract: `registry/README.md`
-- Registry snapshot: `registry/state.json`
+- Market context: `market/plan.md`
+- Thesis contract: `theses/README.md`
+- Symbol plan contract: `symbols/README.md`
 - Run logs: `runs/`

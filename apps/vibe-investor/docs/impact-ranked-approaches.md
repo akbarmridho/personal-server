@@ -126,7 +126,7 @@ get_state({ types: ["symbol"], ids: ["DSNG"] })
 
 Error handling: the tool parses what it can from each frontmatter, warns on missing required fields, and never fails silently. Symbol plans with legacy frontmatter (missing fields, `scope: symbol` still present, no exit-review fields) are returned with available data plus a warning flag — the tool does not block the session.
 
-No pre-built cache. No drift. No refresh step. No separate generated view files (`thesis.md`, `watchlist.md`, `portfolio-monitor.md`) — the tool derives them on demand from live frontmatter.
+No pre-built cache. No drift. No refresh step. Derived state views come from live frontmatter on demand.
 
 **The plugin:** OpenCode plugin listens to `command.executed` events and logs the command, timestamp, and outcome to `memory/runs/`. The plugin captures run continuity data: `window_from`, `window_to`, `symbols`, and `artifacts` — matching the current contract in main.md lines 252-260.
 
@@ -192,7 +192,7 @@ memory/
 - **Theses = `theses/` directly under `memory/`.** No more `state/` nesting.
 - **`notes/` for user notes.** Custom notes, ad-hoc observations, and anything that doesn't fit the structured directories. No generated views here — just user-written content.
 - **News digests = separate entity.** `digests/` directory with date-based naming. Different lifecycle from symbols.
-- **No generated view files.** `notes/thesis.md`, `notes/watchlist.md`, and `notes/portfolio-monitor.md` are gone. Per-thesis source files remain under `theses/{THESIS_ID}/thesis.md`. The `get_state` tool derives summary views on demand.
+- **Derived views are tool-backed.** Per-thesis source files remain under `theses/{THESIS_ID}/thesis.md`. The `get_state` tool derives summary views on demand.
 - **No registry.** Gone. Replaced by the tool.
 - **No run log writes by AI.** Plugin handles it.
 
