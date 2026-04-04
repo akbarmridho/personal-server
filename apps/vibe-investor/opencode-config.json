@@ -91,32 +91,32 @@
     "ta": {
       "description": "Technical analysis with WIB trading-session-aware date context (arg1=symbol, remaining args=user intent sentence)",
       "agent": "vibe-investor",
-      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run `technical-analysis` for the symbol and intent from command input: $ARGUMENTS.\n\nFirst token is symbol. Remaining text is required user intent sentence. If intent sentence is missing, fail and ask user to provide it."
+      "template": "{file:./prompts/workflows/ta.md}\n\nCommand input: $ARGUMENTS"
     },
     "desk-check": {
       "description": "Main operator routine for holdings, watchlist, market context, and portfolio discipline with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `desk-check` workflow. Command input: $ARGUMENTS"
+      "template": "{file:./prompts/workflows/desk-check.md}\n\nCommand input: $ARGUMENTS"
     },
     "deep-review": {
       "description": "Slower full audit of portfolio quality, watchlist hygiene, neglected names, and process quality with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `deep-review` workflow. Command input: $ARGUMENTS"
+      "template": "{file:./prompts/workflows/deep-review.md}\n\nCommand input: $ARGUMENTS"
     },
     "explore-idea": {
       "description": "Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting",
       "agent": "vibe-investor",
-      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `explore-idea` workflow. Command input: $ARGUMENTS"
+      "template": "{file:./prompts/workflows/explore-idea.md}\n\nCommand input: $ARGUMENTS"
     },
     "news-digest": {
       "description": "Reading-oriented digest from full memory scope plus all new high-signal documents with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `news-digest` workflow. Command input: $ARGUMENTS"
+      "template": "{file:./prompts/workflows/news-digest.md}\n\nCommand input: $ARGUMENTS"
     },
     "digest-sync": {
       "description": "Sync thesis/watchlist memory from the latest news digest with WIB trading-session-aware date context",
       "agent": "vibe-investor",
-      "template": "Resolve the effective `TRADING_DAY` and review mode in WIB using the prompt's trading-day clock. Then run the `digest-sync` workflow. Command input: $ARGUMENTS"
+      "template": "{file:./prompts/workflows/digest-sync.md}\n\nCommand input: $ARGUMENTS"
     }
   },
   "mcp": {

@@ -9,7 +9,7 @@ Tracks execution order, status, context prompts, and migration prompts for each 
 | # | Item | Status |
 |---|------|--------|
 | 1 | Flip the Default for Stale WAIT Only | done |
-| 2 | Kill 80% of the Prompt (Keep Skill Preflight) | pending |
+| 2 | Kill 80% of the Prompt (Keep Skill Preflight) | done |
 | 3 | Guardrail Dedupe Only | pending |
 | 4 | Single `get_state` Tool + Plugin Run Logs | pending |
 | 5 | Flatten Memory to `symbols/`, `theses/`, `market/`, `digests/` | pending |
@@ -39,9 +39,9 @@ The mechanism exists. The fix is enforcement discipline. Do not add new gates or
 
 ## 2. Kill 80% of the Prompt (Keep Skill Preflight)
 
-**Status:** pending
+**Status:** done
 
-**Scope:** Move workflow contracts to command markdown files, tools to references, memory details to references. Keep main.md as workflow owner and keep skill preflight.
+**Scope:** Move workflow contracts to command markdown files. Keep tools and memory details in main.md. Keep main.md as workflow owner and keep skill preflight.
 
 **Context prompt:**
 ```

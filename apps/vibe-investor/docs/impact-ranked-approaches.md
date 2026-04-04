@@ -40,17 +40,17 @@ These change the fundamental decision math. Without these, nothing else matters 
 
 **The move:**
 
-1. **Workflow contracts → command markdown files.** Each workflow gets its own file under `prompts/vibe-investor/workflows/`. The command template loads the file as the user prompt:
+1. **Workflow contracts → command markdown files.** Each workflow gets its own file under `prompts/workflows/`. The command template loads the file as the user prompt:
    ```json
    "desk-check": {
-     "template": "{file:./prompts/vibe-investor/workflows/desk-check.md}\n\nCommand input: $ARGUMENTS"
+     "template": "{file:./prompts/workflows/desk-check.md}\n\nCommand input: $ARGUMENTS"
    }
    ```
    Commands are always in context when invoked. Main.md remains workflow owner for cross-cutting rules.
 
-2. **Tools + usage rules → `references/tools.md`.** Loaded on demand when the agent needs tool guidance.
+2. **Tools + usage rules → keep in main.md.** Main.md owns tool descriptions, call patterns, and execution discipline.
 
-3. **Memory structure → simplified in main.md, details in `references/memory.md`.** Main.md keeps just the directory tree. File rules, frontmatter schema, and registry rules move to reference.
+3. **Memory structure → keep in main.md.** Main.md owns the memory tree, file rules, frontmatter schema, and registry rules.
 
 4. **Keep skill preflight.** Mandatory skill loading (main.md line 143) stays. Skills are loaded on demand for the active workflow, not always in context.
 
@@ -65,9 +65,9 @@ These change the fundamental decision math. Without these, nothing else matters 
 - Agent mode behavior
 
 **What moves:**
-- 5 workflow contracts → `prompts/vibe-investor/workflows/{workflow}.md`
-- Tool descriptions + usage rules → `references/tools.md`
-- Memory details → `references/memory.md`
+- 5 workflow contracts → `prompts/workflows/{workflow}.md`
+- Tool descriptions + usage rules stay in `prompts/vibe-investor/main.md`
+- Memory details stay in `prompts/vibe-investor/main.md`
 
 **Expected outcome:** Main prompt drops from 462 lines to ~100 lines. The agent reads decision logic, not filesystem instructions. Scores stop being contaminated by operational anxiety. Skill preflight ensures domain-specific doctrine is loaded when needed.
 
