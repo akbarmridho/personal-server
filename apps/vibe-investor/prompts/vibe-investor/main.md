@@ -73,7 +73,7 @@ Portfolio memory:
 - Portfolio tools are the live truth for holdings, fills, and P/L.
 - `memory/symbols/{SYMBOL}/plan.md` is the durable operating plan (holding mode, exit baseline, resolved execution policy, active scenarios).
 - One-off portfolio calculations go in `work/`, not as permanent scripts.
-- `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json` is a plugin-managed success log written after top-level command execution.
+- `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json` is the success run log. The parent agent writes it as the final step of every tracked workflow.
 
 Durable state and lookup:
 
@@ -118,7 +118,7 @@ Evidence-backed updates:
 
 - Evidence-backed means supported by at least one verifiable data point from MCP tools, documents, or filings, not agent inference alone.
 - This requirement applies to thesis changes, status changes, plan changes, new recommendations, and invalidation updates.
-- This requirement does not apply to `last_reviewed` / `Last reviewed` timestamp bumps or plugin-managed run-log writes.
+- This requirement does not apply to `last_reviewed` / `Last reviewed` timestamp bumps or run-log writes.
 
 ## Scenario Discipline
 
@@ -253,15 +253,29 @@ composite_decision:
 - If portfolio data is missing or malformed, fail fast.
 - Before any buy/add conclusion, consume `portfolio-management`'s `regime_aggression` and `cash_target_status`; PM owns the IHSG cash-target ladder and regime-aggression calculation.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
-- Default execution model is multiagent: parent agent owns orchestration, final synthesis, and memory updates. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return. The run-log plugin writes the single top-level success log.
+- Default execution model is multiagent: parent agent owns orchestration, final synthesis, and memory updates. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
 - Continuity pattern: read the latest successful run log for the workflow; if none exists, use the workflow's default lookback window ending at `TRADING_DAY`. If the latest run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory for review workflows (`desk-check`, `deep-review`): review IHSG structure/regime, macro/news tone, and leader breadth deterioration.
 - Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/market/*`, `memory/digests/*`, `memory/symbols/{SYMBOL}/*`, `memory/theses/{THESIS_ID}/*`, `memory/notes/agent-performance.md`, and `memory/notes/opportunity-cost.md`.
 - When `memory/symbols/{SYMBOL}/plan.md` is updated, refresh resolved execution-policy fields when the live operating plan changes materially.
 - Symbol artifacts belong under `memory/symbols/{SYMBOL}/`, updated in place. Archive prior `technical.md`, `narrative.md`, `flow.md`, and evidence artifacts to `memory/symbols/{SYMBOL}/archive/` when invalidation level changes, `setup_family` changes, or `thesis_status` moves to `invalidated`.
 - Market artifacts belong under `memory/market/`, and digest artifacts belong under `memory/digests/`. Archive prior market artifacts to `memory/market/archive/` when IHSG regime, macro stance, or operating plan changes materially.
-- Success run logs are written by the run-log plugin at `memory/runs/{TRADING_DAY}/{HHMMSS}_{WORKFLOW}.json` with `workflow`, `completed_at`, `window_from`, `window_to`, `symbols`, and `artifacts`.
 - On every successful `desk-check` or `deep-review`, refresh `memory/notes/agent-performance.md`, review/update `memory/market/plan.md`, and review/update `memory/MEMORY.md`.
+
+## Run Log
+
+As the final step of every tracked workflow (`desk-check`, `deep-review`, `explore-idea`, `news-digest`, `digest-sync`, `ta`), the parent agent writes a success run log. Subagents never write run logs.
+
+Path: `memory/runs/{window_to}/{HHMMSS}_{workflow}.json` (`HHMMSS` = WIB completion time).
+
+```json
+{ "workflow": "desk-check", "completed_at": "2025-07-04T14:30:22+0700", "window_from": "2025-07-03", "window_to": "2025-07-04", "symbols": ["BBCA", "TLKM"], "artifacts": ["memory/market/desk_check.md", "memory/symbols/BBCA/technical.md"] }
+```
+
+- `symbols`: sorted known symbols (from command args, `memory/symbols/{SYMBOL}/` artifact paths, and artifact content). Only include symbols with existing `memory/symbols/` directories.
+- `artifacts`: sorted `memory/` paths written during the run, excluding `memory/runs/`.
+- Window resolution: (1) explicit dates in command args, (2) `digest-sync` inherits from latest `news-digest` run, (3) prior run's `window_to` through `TRADING_DAY`, (4) `TRADING_DAY` minus default lookback through `TRADING_DAY`.
+- Default lookback: `desk-check` 1d, `deep-review` 30d, `explore-idea` 30d, `news-digest` 7d, `digest-sync` 7d, `ta` 1d.
 
 ## WAIT Staleness
 
