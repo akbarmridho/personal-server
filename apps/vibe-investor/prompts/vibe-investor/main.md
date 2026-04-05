@@ -312,6 +312,7 @@ Tools are available via MCP (stock data, knowledge base, social, web), custom to
 ### `fetch-broker-flow`
 
 - Writes a UTF-8 `.json` file containing a normalized daily broker-flow series for the requested symbol and trading-day window. Treat output as JSON only.
+- `trading_days` must be an integer from `1` to `60`. Use `60` when you need the full default flow-analysis window, and never request more than `60`.
 - The backend resolves trading dates from OHLCV and returns one broker snapshot per trading day.
 - `flow-analysis` uses `fetch-broker-flow` plus `fetch-ohlcv`, then runs `apps/vibe-investor/.opencode-config/skills/flow-analysis/scripts/build_flow_context.py` before interpretation.
 

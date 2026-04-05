@@ -13,7 +13,15 @@
       },
       "models": {
         "claude-opus-4-6": {
-          "name": "Claude Opus 4.6"
+          "name": "Claude Opus 4.6",
+          "limit": {
+            "context": 400000,
+            "output": 65536
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          }
         }
       }
     }

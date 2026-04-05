@@ -26,6 +26,10 @@ import { stockbitAuth } from "./stockbit/auth.js";
 import { getUnifiedChartbitRawData } from "./stockbit/chartbit.js";
 import { removeKeysRecursive } from "./utils.js";
 
+const isBrokerFlowRequestValidationError = (message: string): boolean =>
+  message.startsWith("Invalid trading_days ") ||
+  message.startsWith('Invalid as_of_date "');
+
 export const setupStockRoutes = () =>
   new Elysia({ prefix: "/stock-market-id" })
     .get(
@@ -201,8 +205,9 @@ export const setupStockRoutes = () =>
           return { success: true, data };
         } catch (err) {
           logger.error({ err }, "Get raw broker flow data failed");
-          set.status = 500;
-          return { success: false, error: (err as Error).message };
+          const message = (err as Error).message;
+          set.status = isBrokerFlowRequestValidationError(message) ? 400 : 500;
+          return { success: false, error: message };
         }
       },
       {

@@ -39,6 +39,8 @@ type BrokerFlowResponse = {
 };
 
 const DEFAULT_TRADING_DAYS = 60;
+const MIN_TRADING_DAYS = 1;
+const MAX_TRADING_DAYS = 60;
 
 export default tool({
   description:
@@ -63,9 +65,12 @@ export default tool({
     trading_days: tool.schema
       .number()
       .int()
-      .positive()
+      .min(MIN_TRADING_DAYS)
+      .max(MAX_TRADING_DAYS)
       .optional()
-      .describe("Optional number of trading days to fetch. Defaults to 60."),
+      .describe(
+        "Optional number of trading days to fetch. Use an integer from 1 to 60. Defaults to 60.",
+      ),
   },
   async execute(args, context) {
     const { symbol, output_path, as_of_date } = args;
@@ -90,9 +95,13 @@ export default tool({
       );
     }
 
-    if (!Number.isInteger(tradingDays) || tradingDays <= 0) {
+    if (
+      !Number.isInteger(tradingDays) ||
+      tradingDays < MIN_TRADING_DAYS ||
+      tradingDays > MAX_TRADING_DAYS
+    ) {
       throw new Error(
-        `Invalid trading_days: "${tradingDays}". Use a positive integer.`,
+        `Invalid trading_days: "${tradingDays}". Use an integer between ${MIN_TRADING_DAYS} and ${MAX_TRADING_DAYS}.`,
       );
     }
 
