@@ -9,7 +9,7 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 - Purpose: full audit of the current operating system: portfolio quality, process quality, and cleanup.
 - Coverage universe: all holdings from `portfolio_state`, active theses, watchlist symbols in `READY`, watchlist symbols marked as leaders, and a required resurfacing set of stale or neglected watchlist names and symbol plans.
 - Continuity window: 30 calendar days.
-- Mandatory memory context: `memory/MEMORY.md`, `memory/market/plan.md`, `memory/notes/agent-performance.md`, `get_state({ types: ["symbols", "theses", "watchlist", "portfolio-monitor"] })`, and the latest prior deep review if found.
+- Mandatory memory context: `memory/market/plan.md`, `memory/notes/agent-performance.md`, `get_state({ types: ["symbols", "theses", "watchlist", "portfolio-monitor"] })`, and the latest prior deep review if found.
 - Additional top-down: portfolio behavior versus `IHSG` plus relevant leaders.
 - Run order: `portfolio-management` first for holdings, realized and unrealized review, concentration/heat/cash-overlay checks, stale-plan detection, best-ideas-density review, and neglected-watchlist resurfacing; then delegated symbol or thesis review batches plus top-down market review in parallel; then parent synthesis.
 - Required review dimensions: current book coherence, best-ideas density, equity-curve and decision-process review, benchmark and leader comparison, stale plans, style drift, re-entry discipline, hidden clustering, scenario review-back, thesis hygiene, and watchlist cleanup.

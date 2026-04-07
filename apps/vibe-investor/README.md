@@ -42,7 +42,6 @@ apps/vibe-investor/
 ```
 $OPENCODE_CWD/
 ├── memory/                       # Persistent memory
-│   ├── MEMORY.md                 # Global memory index and pointer file
 │   ├── market/
 │   │   ├── plan.md               # IHSG regime + macro operating stance
 │   │   ├── technical.md          # Current market TA
@@ -160,7 +159,6 @@ Skills are loaded as tool results and are protected from session compaction — 
 
 Filesystem-based memory using markdown files.
 
-- **`memory/MEMORY.md`** — Loaded at session start as the concise index and pointer file
 - **`memory/market/plan.md`** — IHSG regime map, macro stance, and operating levels
 - **`memory/symbols/{SYMBOL}/plan.md`** — Authoritative durable per-symbol plans with strict YAML frontmatter
 - **`memory/theses/{THESIS_ID}/thesis.md`** — Authoritative durable per-thesis state
@@ -250,7 +248,6 @@ Vibe-investor uses a separate `XDG_DATA_HOME` so its sessions don't mix with you
 2. Resolver expands `{env:...}` and `{file:...}` placeholders with EJS
 3. Bash exports resolved config, sets `XDG_DATA_HOME`, and `exec`s opencode
 4. OpenCode loads custom tools from `.opencode-config/tools/` and skills from `.opencode-config/skills/`
-5. Agent loads `memory/MEMORY.md` at session start for context continuity
 
 ## References
 

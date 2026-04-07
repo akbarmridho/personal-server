@@ -21,7 +21,6 @@ Your workspace has persistent memory under `memory/` and disposable scratch unde
 ```text
 workdir/
 ├── memory/                       # Persistent memory
-│   ├── MEMORY.md                 # Static strategic context
 │   ├── market/                   # IHSG + macro state and current market artifacts
 │   │   ├── plan.md
 │   │   ├── technical.md
@@ -56,13 +55,12 @@ workdir/
 
 Memory semantics:
 
-- `memory/MEMORY.md`: static strategic context only (investment philosophy, active thesis themes, risk posture, structural priorities). Read at session start.
 - `work/`: disposable scratch for data pulls, one-off scripts, and intermediate charts. Promote only durable outputs into `memory/`.
 - Before broad market strategy work or desk-check preparation, consult `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `get_state({ types: ["portfolio-monitor"] })`.
 
 Slow-moving notes freshness:
 
-- `memory/MEMORY.md` and `memory/market/plan.md` maintain `Last materially changed` and `Last reviewed` timestamps.
+- `memory/market/plan.md` maintains `Last materially changed` and `Last reviewed` timestamps.
 - Update `Last reviewed` to `TRADING_DAY` when content is still valid.
 - Update `Last materially changed` only when substance changes.
 - Do not rewrite for cosmetic freshness.
@@ -81,8 +79,8 @@ Durable state and lookup:
 - Use `get_state({ types: ["symbols", "theses"] })` for live frontmatter lookup from durable symbol and thesis files.
 - Use `get_state({ types: ["watchlist"] })` for derived watchlist/leader lookup.
 - Use `get_state({ types: ["portfolio-monitor"] })` for derived holdings + portfolio health flags joined from symbol plans and `portfolio_state`.
-- `memory/notes/agent-performance.md`: rolling decision-quality tracker.
-- `memory/notes/opportunity-cost.md`: missed-move and WAIT-age ledger.
+- `memory/notes/agent-performance.md`: rolling decision-quality tracker. Read existing content before updating; append new decision notes and update metrics in place. Never rewrite the file from scratch.
+- `memory/notes/opportunity-cost.md`: missed-move and WAIT-age ledger. Read existing content before updating; append or update rows per symbol in place. Never rewrite the file from scratch.
 
 Thesis structure:
 
@@ -256,11 +254,11 @@ composite_decision:
 - Default execution model is multiagent: parent agent owns orchestration, final synthesis, and memory updates. Subagents may use `work/` for temporary files only. Retained artifacts must be saved to memory paths before subagents return.
 - Continuity pattern: read the latest successful run log for the workflow; if none exists, use the workflow's default lookback window ending at `TRADING_DAY`. If the latest run already has `window_to = TRADING_DAY`, rerun with `window_from = TRADING_DAY` and `window_to = TRADING_DAY`.
 - Top-down context is mandatory for review workflows (`desk-check`, `deep-review`): review IHSG structure/regime, macro/news tone, and leader breadth deterioration.
-- Evidence-backed memory updates may touch only `memory/MEMORY.md`, `memory/market/*`, `memory/digests/*`, `memory/symbols/{SYMBOL}/*`, `memory/theses/{THESIS_ID}/*`, `memory/notes/agent-performance.md`, and `memory/notes/opportunity-cost.md`.
+- Evidence-backed memory updates may touch only `memory/market/*`, `memory/digests/*`, `memory/symbols/{SYMBOL}/*`, `memory/theses/{THESIS_ID}/*`, `memory/notes/agent-performance.md`, and `memory/notes/opportunity-cost.md`.
 - When `memory/symbols/{SYMBOL}/plan.md` is updated, refresh resolved execution-policy fields when the live operating plan changes materially.
 - Symbol artifacts belong under `memory/symbols/{SYMBOL}/`, updated in place. Archive prior `technical.md`, `narrative.md`, `flow.md`, and evidence artifacts to `memory/symbols/{SYMBOL}/archive/` when invalidation level changes, `setup_family` changes, or `thesis_status` moves to `invalidated`.
 - Market artifacts belong under `memory/market/`, and digest artifacts belong under `memory/digests/`. Archive prior market artifacts to `memory/market/archive/` when IHSG regime, macro stance, or operating plan changes materially.
-- On every successful `desk-check` or `deep-review`, refresh `memory/notes/agent-performance.md`, review/update `memory/market/plan.md`, and review/update `memory/MEMORY.md`.
+- On every successful `desk-check` or `deep-review`, read `memory/notes/agent-performance.md` and update metrics and decision notes in place, then review/update `memory/market/plan.md`.
 
 ## Run Log
 

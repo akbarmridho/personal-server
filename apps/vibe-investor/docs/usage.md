@@ -32,7 +32,7 @@ Use commands in OpenCode TUI with `/command-name`.
 `/news-digest`
 
 - Coverage: new high-signal documents, market regime, macro context, thesis-relevant developments
-- Memory context: start from `memory/MEMORY.md`, `memory/market/plan.md`, and `get_state({ types: ["symbols", "theses", "watchlist", "portfolio-monitor"] })`
+- Memory context: start from `memory/market/plan.md` and `get_state({ types: ["symbols", "theses", "watchlist", "portfolio-monitor"] })`
 - Main outputs: digest artifact
 
 `/digest-sync`
