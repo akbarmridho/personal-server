@@ -6,6 +6,7 @@
   "description": "OpenCode config resolver with EJS templating",
   "scripts": {
     "cli": "./bin/cli.sh",
+    "cli:backtest": "./bin/cli-backtest.sh",
     "web": "./bin/web.sh"
   },
   "dependencies": {

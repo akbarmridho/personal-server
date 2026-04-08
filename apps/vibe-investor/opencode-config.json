@@ -91,6 +91,32 @@
           "vibe-investor": "allow"
         }
       }
+    },
+    "backtest": {
+      "description": "Backtesting variant of vibe-investor with date-locked tools, isolated memory, and no live portfolio state",
+      "mode": "all",
+      "prompt": "{file:./prompts/vibe-investor/backtest.md}",
+      "tools": {
+        "write": true,
+        "edit": true,
+        "bash": true,
+        "read": true,
+        "grep": true,
+        "glob": true,
+        "list": true,
+        "task": true,
+        "skill": true,
+        "lsp": false,
+        "exa_*": false,
+        "portfolio_*": false
+      },
+      "permission": {
+        "webfetch": "deny",
+        "task": {
+          "*": "deny",
+          "backtest": "allow"
+        }
+      }
     }
   },
   "command": {
