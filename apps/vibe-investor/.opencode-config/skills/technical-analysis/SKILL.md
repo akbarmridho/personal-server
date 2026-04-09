@@ -5,47 +5,13 @@ description: Technical-analysis helper for IDX stocks used to refine entry, exit
 
 ## Scope
 
-Use this skill to perform technical analysis for:
+Entry/exit timing, invalidation, and risk map for swing to long-term positions. Daily owns thesis direction; 15m owns trigger and confirmation. This skill does not own final trade action — that belongs to the parent workflow.
 
-- entry timing
-- exit timing
-- invalidation
-- trade path and risk map
+## Data And Deterministic Build
 
-Time horizon: swing, medium-term position, long-term position.
+Use `fetch-ohlcv` as the only chart-data source. Required: `daily[]`, `intraday_1m[]`. Optional: `corp_actions[]`. Prices are split-style adjusted, not dividend-adjusted. If required data is missing, stop.
 
-Use:
-
-- `daily[]` for thesis direction and main risk map
-- raw `intraday_1m[]` as the intraday source
-- internally derived `15m` bars for trigger, confirmation, and tactical timing
-- optional `corp_actions[]` when available
-
-## Required Data And Fail-Fast
-
-Use `fetch-ohlcv` as the only chart-data source.
-
-Required arrays: `daily[]`, `intraday_1m[]`. Optional: `corp_actions[]`.
-
-Expected price fields: `timestamp`, `datetime`, `date`, `open`, `high`, `low`, `close`, `volume`, `value`.
-
-If any required array is missing or empty, stop analysis and report dependency failure. If `fetch-ohlcv` fails, stop analysis.
-
-Intraday handling: treat `intraday_1m[]` as raw source contract; derive `15m` internally inside TA scripts.
-
-Price-adjustment contract: prices are split-style adjusted, not dividend-adjusted.
-
-## Deterministic Runtime Steps
-
-The deterministic layer is mandatory.
-
-1. fetch and validate OHLCV
-2. build `ta_context`
-3. generate chart artifacts
-4. read chart artifacts before final synthesis
-5. cross-check chart observations against deterministic evidence
-
-Do not skip chart generation. Do not skip chart reading.
+The deterministic layer is mandatory. Do not skip chart generation or chart reading.
 
 ### Context Build
 
@@ -56,8 +22,6 @@ python3 scripts/build_ta_context.py \
   --outdir work \
   --modules core,vpvr,breakout
 ```
-
-`--input` must use the exact JSON returned by `fetch-ohlcv`. Output: deterministic `ta_context` JSON. If the active workflow specifies a retained artifact directory, write outputs there instead of `work/`.
 
 ### Chart Build
 
@@ -70,139 +34,118 @@ python3 scripts/generate_ta_charts.py \
   --ma-mode {DAILY_MA_MODE}
 ```
 
-Daily chart MA mode:
+MA modes: `hybrid` (default) = EMA21 + SMA50 + SMA200 + adaptive SMA{n}; `baseline` = EMA21 + SMA50 + SMA200 only. Use artifact paths from the chart evidence manifest.
 
-- `hybrid` (default) → `EMA21` + `SMA50` + `SMA200` plus highlighted chosen `SMA{n}`
-- `baseline` → `EMA21` + `SMA50` + `SMA200`
+If the active workflow specifies a retained artifact directory, write outputs there instead of `work/`.
 
-Default to `hybrid`. Use `baseline` only when a lean static read is preferred. Read the chart evidence manifest for the selected MA mode, adaptive period, and respect details.
-
-Default chart set: `daily_structure`, `intraday_structure`, `structure_events`, `wyckoff_history`, optional `vpvr_profile`. Use artifact paths from the chart evidence manifest; do not hardcode chart names.
-
-## Core Runtime Rules
-
-- treat `daily` as thesis authority
-- treat `15m` as timing authority
-- use one setup family or `NO_VALID_SETUP`
-- produce one final `technical_assessment` with a 0-100 `conviction_score`, score drivers, risk map, key levels, and monitoring triggers
-- default to a lower conviction score under unresolved contradiction
-- keep baseline MA context lean
-- treat hybrid charting as default visual context, not as automatic decision weight
-
-## Execution Defaults
-
-- parse JSON directly
-- when invoked by a parent workflow, use the mode and output paths provided by that workflow
-- for `UPDATE` and `POSTMORTEM`, require prior thesis context
-- after the technical answer, add one short plain-language wrap-up with bias, key level, and what would raise or lower conviction next
-- for a constructive setup score, always include invalidation and stop-loss
-- when evidence is mixed, lower `conviction_score` and state the unresolved contradiction
-
-## Workflow Spine
-
-Runtime workflow owner. Defines canonical analysis order, phase gates, stop rules, and daily/15m reconciliation.
-
-### Purpose Mode
+## Purpose Modes
 
 - `INITIAL` — fresh thesis
-- `UPDATE` — refresh active thesis (requires prior thesis context)
-- `POSTMORTEM` — review failed/exited thesis (requires prior thesis context)
+- `UPDATE` — refresh active thesis. Must produce `thesis_status`, `review_reason`, delta assessment. Check `retest_level` if prior WAIT exists: `tested_held`, `tested_failed`, or `not_tested`.
+- `POSTMORTEM` — review failed/exited thesis. Must produce failure point, missed warning, handling improvement.
 
-If required prior thesis context is missing, stop and report missing dependency.
+If prior context is required and missing, stop.
 
-#### `UPDATE` Requirements
+## Canonical Phase Order
 
-Must produce: `thesis_status`, `review_reason`, and explicit delta assessment covering structure, levels, volume/participation, setup quality, and risk.
+`MODE → STATE → LOCATION → SETUP → TRIGGER → CONFIRMATION → RISK → ASSESSMENT → MONITORING`
 
-If prior symbol context contains `active_recommendation.action = WAIT` with a `retest_level`, check whether price visited that level since the prior review before repeating the same setup:
+Each phase has a stop condition. If a phase cannot produce a clean answer, cap conviction and state why. Do not force a narrative through a broken phase.
 
-- `tested_held`: price reached the retest zone and showed acceptance or defense; state this explicitly and evaluate whether it satisfies `upgrade_trigger`
-- `tested_failed`: price reached the retest zone and broke it; state this explicitly and downgrade the setup or update invalidation
-- `not_tested`: price did not reach the retest zone; state this explicitly and, on the 3rd+ consecutive unchecked session, assess whether the setup is stale or the entry zone needs adjustment
+| Phase | Job | Stop condition |
+|-------|-----|----------------|
+| STATE | Classify daily state (balance/imbalance), regime, Wyckoff, MA posture | Unclassifiable → low conviction |
+| LOCATION | Map price vs decision zones, value-area acceptance, draw targets | Mid-range noise with no zone → mixed/no-setup score |
+| SETUP | Select one of S1-S5 or NO_VALID_SETUP | No clean fit → NO_VALID_SETUP, low score |
+| TRIGGER | Has the setup triggered? 15m owns trigger quality | No trigger → setup-forming score range |
+| CONFIRMATION | Follow-through, participation, contradiction check | Mixed confirmation → lower score, state contradiction |
+| RISK | Invalidation, next-zone path, RR | Unclear invalidation or no path → cap conviction |
+| ASSESSMENT | Final `technical_assessment` object | — |
+| MONITORING | What confirms, invalidates, or refreshes next | — |
 
-Use `daily[]` and `intraday_1m[]` for this check. A repeated retest-based `WAIT` must state one of `tested_held`, `tested_failed`, or `not_tested`.
+Daily owns STATE, LOCATION, SETUP, risk map. 15m owns TRIGGER, CONFIRMATION, tactical timing. 15m can cap conviction but cannot create a trade against daily thesis.
 
-#### `POSTMORTEM` Requirements
+## Market Structure
 
-Must produce: failure point, missed/absent warning, invalidation path, rule/handling improvement.
+### State And Regime
 
-### Canonical Phase Order
+- Start with balance (accepted in value area) or imbalance (directional repricing).
+- Default: price stays in current value area until close-based acceptance proves otherwise.
+- Breakout acceptance = close outside range + follow-through. Failed acceptance = trap evidence.
+- Uptrend: HH + HL. Downtrend: LH + LL. Mixed swings → range rotation unless MA posture confirms continuation.
+- Wick-only breaks do not change regime without close confirmation.
 
-`MODE` → `STATE` → `LOCATION` → `SETUP` → `TRIGGER` → `CONFIRMATION` → `RISK` → `ASSESSMENT` → `MONITORING`
+### BOS And CHOCH
 
-Chart-first, structure-first. Determine the job → classify daily state → map zones → choose setup or none → demand trigger → confirm → build risk from invalidation backward → score the setup and risk map → define what happens next.
+- Continuation BOS: structural break in trend direction.
+- CHOCH: first opposite-direction structural break. Warning, not confirmation.
+- Confirmation BOS: second break in new direction after CHOCH. Reversal confirmed only after CHOCH + confirmation BOS.
+- CHOCH+ (momentum-failure variant): failed extension first, then opposite break.
+- Wick-only excursion does not qualify.
 
-### Phase Contracts
+### Wyckoff
 
-#### 1. MODE
+One contextual label after state call: accumulation, markup, distribution, markdown. Guidance, not standalone trigger.
 
-What job is being done? Outputs: `purpose_mode`, `position_state`, `intent`. If prior context required and missing, stop.
+### MA Tiebreaker
 
-#### 2. STATE
+When swings are mixed: bullish continuation only if price > SMA200, EMA21 > SMA50, and at least one bullish swing holds. Mirror for bearish. Otherwise range_rotation.
 
-What is the daily market state and regime? Requires: daily structure read, value acceptance/repricing state, Wyckoff cycle + recent sequence, baseline MA posture.
+### No-Resistance Protocol
 
-Stop: if state cannot be classified beyond `unclear`, assign a low conviction score. If `no_trade`, cap conviction at the broken/no-setup range unless `POSTMORTEM`.
+Price in discovery with no overhead resistance: do not force fixed top target. Use structure continuation and invalidation. Downgrade conviction only on structural weakness.
 
-#### 3. LOCATION
+## Levels And Location
 
-Where is price relative to meaningful decision zones? Requires: at least one meaningful nearby zone, current/opposing draw, value-area acceptance state.
+Levels are zones, not lines. Map first, trade second. Practical order:
 
-Stop: if mid-range noise with no meaningful zone active, score the setup in the mixed/no-setup range. If no clear next path exists, cap conviction and state why.
+1. Daily S/R → 2. Structural swing H/L → 3. VPVR (POC/VAH/VAL, HVN/LVN) → 4. Baseline MA context → 5. Liquidity draw map → 6. Time-based/round levels when relevant
 
-#### 4. SETUP
+Key rules:
 
-What setup family matches state and location? Select one of `S1`–`S5` or `NO_VALID_SETUP`.
+- First retest is strongest; repeated tests weaken.
+- Broken S/R can flip role after close-based acceptance.
+- MAs are dynamic context, not entry signals. Adaptive MA refines but never overrides baseline.
+- VPVR: POC = fair-value magnet, accepted above VAH = bullish, below VAL = bearish, rotating inside = balance. VPVR never overrides stop discipline.
+- Liquidity draw: always identify current and opposing draw. Level excursion must be labeled acceptance or rejection. Wick-only excursion is not confirmation.
 
-Stop: if no setup fits cleanly, emit `NO_VALID_SETUP` with a low conviction score. Do not carry multiple final setups into later phases.
+## Setups
 
-#### 5. TRIGGER
+One setup family or `NO_VALID_SETUP`. Setup must fit daily regime and location. Middle-of-range entries usually → NO_VALID_SETUP.
 
-Has the setup actually triggered? `15m` owns trigger quality inside daily thesis. Requires: trigger event tied to selected setup, local acceptance/reclaim/follow-through read.
+| Setup | When | Needs |
+|-------|------|-------|
+| S1 breakout + retest | Continuation regime, resistance challenged | Close beyond level, follow-through, retest hold |
+| S2 pullback to demand | Intact uptrend, price at support | Support hold, acceptable selling pressure |
+| S3 excursion + reclaim | Level excursion snaps back, reversal plausible | Clear excursion, reclaim holding |
+| S4 range edge rotation | Balance regime, price at edge | Edge rejection/acceptance, edge-to-edge path |
+| S5 Wyckoff spring | Accumulation context, support-side excursion | Spring excursion, reclaim, follow-through |
 
-Stop: if trigger is absent, keep the score in the setup-forming or lower range. Do not score an untriggered setup as confirmed.
+Trigger rules: setup area alone is not enough — action requires a trigger. 15m owns trigger quality. Absent trigger caps score in setup-forming range.
 
-#### 6. CONFIRMATION
+Breakout quality: needs close + participation. No follow-through = suspect. Weak base needs stronger confirmation.
 
-Does evidence support the trigger strongly enough? Requires: follow-through, participation read, contradiction check between chart and numeric evidence.
+Reversal: CHOCH alone is warning. Actionable only after CHOCH + confirmation BOS + constructive pullback.
 
-Chart modes: `hybrid` (default) = `21EMA` + `50SMA` + `200SMA` + chosen `SMA{n}`; `baseline` = `21EMA` + `50SMA` + `200SMA`.
+## Risk And Execution
 
-Stop: if confirmation is mixed and contradiction affects action quality, lower `conviction_score` and state the contradiction. If trigger fails immediately, score the setup in the failed/broken range depending on position state.
+- No setup without invalidation.
+- Entry valid only near a mapped zone. Mid-range without confluence = low quality.
+- Primary target = next meaningful zone. Further targets along zone ladder.
+- Stop hierarchy: structural invalidation → ATR fallback → time stop.
+- Stop may tighten, never loosen.
+- Add only when structure valid and PM no-averaging-down rule satisfied.
+- Adaptive MA refines execution only after structural plan exists.
 
-#### 7. RISK
+### Take-Profit
 
-Where is the thesis wrong and what is the level-to-level path? Requires: explicit invalidation, explicit next-zone path, RR at or above threshold.
+- R-TP-01: high-conviction setup includes trade-management plan at entry.
+- R-TP-02: targets from structure/value zones and R-multiples, not oscillators.
+- R-TP-03: partial sizing by family — S1/S2: 25/25/50, S3/S5: 40/30/30, S4: 50/30/20. Pilots: no partial harvest, hold whole until scaled to STARTER or exited.
+- R-TP-04: trail mode from state/regime, setup family, Wyckoff maturity.
+- R-TP-05 through R-TP-10: stop tightens never loosens; after T1 protect remainder; failed acceptance accelerates exit; stale winners need time-stop; discovery mode = trailing over top calls; re-add = fresh entry.
 
-Stop: if invalidation is unclear, no next-zone path exists, or RR is below threshold, cap conviction and state the exact blocker.
-
-#### 8. ASSESSMENT
-
-One final `technical_assessment` object with `conviction_score`, confidence, bull/bear factors, risk map, red flags, key levels, and monitoring triggers. Use the Conviction Scoring Contract section. Unresolved contradiction lowers `conviction_score`.
-
-#### 9. MONITORING
-
-What confirms, invalidates, or refreshes this thesis next? Every run ends with explicit monitoring conditions.
-
-When the chart has more than one plausible forward path that materially changes execution, include a small optional scenario map in the final report instead of forcing a single-path narrative too early.
-
-### Daily And 15m Authority
-
-Daily owns: STATE, LOCATION, SETUP, main risk map. Daily has final authority on thesis direction.
-
-`15m` owns: TRIGGER, CONFIRMATION, tactical timing, local acceptance/rejection, follow-through quality. `15m` can downgrade timing quality and cap `conviction_score`. `15m` cannot create a trade against daily thesis by itself.
-
-### Workflow Trace
-
-Final response must trace phases used: MODE, STATE, LOCATION, SETUP, TRIGGER, CONFIRMATION, RISK, ASSESSMENT, MONITORING.
-
-Non-initial additions: Previous Thesis Snapshot (UPDATE/POSTMORTEM), Thesis Status + reason (UPDATE), Delta Log (UPDATE), failure + handling notes (POSTMORTEM).
-
-## Conviction Scoring Contract
-
-Runtime technical assessment contract. The parent workflow decides the final trade action.
-
-### Output Shape
+## Conviction Scoring
 
 ```yaml
 technical_assessment:
@@ -219,23 +162,6 @@ technical_assessment:
   monitoring_triggers: []
 ```
 
-### Setup Space
-
-- `S1` breakout and retest continuation
-- `S2` pullback to demand in intact uptrend
-- `S3` sweep and reclaim reversal
-- `S4` range edge rotation
-- `S5` Wyckoff spring with reclaim
-- `NO_VALID_SETUP`
-
-### Required Runtime Inputs
-
-- one `ta_context` packet matching the schema below
-- current position state
-- prior thesis snapshot for `UPDATE` and `POSTMORTEM`
-
-If a required input is missing, stop and report missing dependency.
-
 ### Score Rubric
 
 | Score | Meaning |
@@ -248,361 +174,26 @@ If a required input is missing, stop and report missing dependency.
 | 76-90 | Clean setup, trigger confirmed, good RR |
 | 91-100 | Textbook setup, strong confirmation, excellent RR |
 
-### Scoring Rules
-
-- Score the chart and risk setup directly in `technical_assessment`.
-- `conviction_score` must reflect both structural quality and execution readiness.
-- Use `bull_factors` and `bear_factors` to explain the score in short, evidence-backed bullets.
-- Include `risk_map.invalidation`, `risk_map.target_1`, and `risk_map.rr` whenever a constructive setup exists.
-- Include `key_levels` as the compact decision-zone map the parent workflow can consume.
-- Use `confidence` (`HIGH`, `MEDIUM`, `LOW`) to express evidence quality and contradiction level separately from the numeric score.
-- When the prior symbol plan carries a live `WAIT`, include `upgrade_trigger`, `downgrade_trigger`, `decision_horizon`, and `expiry_action` in `monitoring_triggers`/follow-up text so the parent workflow can refresh `active_recommendation`.
-
-### Validation Gates
-
-#### Hard Gates
-
-1. `G1_MODE` purpose mode is explicit
-2. `G2_DATA` required data is present and usable
-3. `G3_STATE` daily state and regime are classifiable enough to proceed
-4. `G4_LOCATION` price is at a meaningful area or conviction is capped for weak location
-5. `G5_SETUP` exactly one setup family or `NO_VALID_SETUP`
-6. `G6_TRIGGER` high conviction requires a real trigger
-7. `G7_INVALIDATION` constructive scores require explicit invalidation
-8. `G8_PATH` constructive scores require a clear next-zone path
-9. `G9_RR` constructive scores require acceptable reward-to-risk
-10. `G10_CONFLICTS` chart and numeric contradictions are resolved explicitly
-11. `G11_CONVICTION` unresolved decision-critical ambiguity lowers `conviction_score`
-
-#### Conditional Gates
-
-- `C1_PRIOR_CONTEXT` `UPDATE` and `POSTMORTEM` include prior thesis context
-- `C2_DELTA` `UPDATE` includes thesis status, review reason, and delta log
-- `C3_POSTMORTEM` `POSTMORTEM` includes failure point and handling improvement
-- `C4_BREAKOUT` breakout setups include breakout quality and follow-through
-- `C5_VOLUME_PROFILE` VPVR usage includes POC, VAH, VAL, and acceptance state
-- `C6_ADAPTIVE_MA` adaptive MA reporting includes period, justification, and chart mode
-
-#### Advisory
-
-- Lower `conviction_score` instead of forcing a low-quality setup narrative
-- Downgrade confidence when `15m` timing conflicts with daily thesis
-- Treat mid-range noise as weak location
-- Treat weak follow-through as veto or delay, not proof
-- Treat daily candles that finish near IDX auto-rejection limits, or that nearly hit those limits intrabar without finishing there, as mechanically distorted context rather than clean structural proof
+Score must reflect both structural quality and execution readiness. Lower score instead of forcing a low-quality narrative. When prior plan carries a live WAIT, include upgrade/downgrade triggers and horizon in monitoring.
 
 ### Red Flags
 
-#### Core
+Core: F1_STRUCTURE_BREAK | F2_DISTRIBUTION | F3_WEAK_BREAKOUT | F4_LEVEL_EXHAUSTION | F5_MARKET_CONTEXT_MISMATCH | F6_MA_BREAKDOWN | F7_POSITION_RISK | F8_NO_NEARBY_SUPPORT | F9_UNCONFIRMED_STRUCTURE_SHIFT | F10_NO_NEXT_ZONE_PATH | F11_LIQUIDITY_MAP_MISSING | F12_BREAKOUT_STALLING
 
-`F1_STRUCTURE_BREAK` | `F2_DISTRIBUTION` | `F3_WEAK_BREAKOUT` | `F4_LEVEL_EXHAUSTION` | `F5_MARKET_CONTEXT_MISMATCH` | `F6_MA_BREAKDOWN` | `F7_POSITION_RISK` | `F8_NO_NEARBY_SUPPORT` | `F9_UNCONFIRMED_STRUCTURE_SHIFT` | `F10_NO_NEXT_ZONE_PATH` | `F11_LIQUIDITY_MAP_MISSING` | `F12_BREAKOUT_STALLING`
+Conditional: F13_VOLUME_CONFLUENCE_WEAK | F14_BREAKOUT_FILTER_WEAK | F15_MA_WHIPSAW | F16_PRICE_LIMIT_PROXIMITY | F17_LIQUIDITY_WEAK
 
-#### Conditional
+Severity: `low` | `medium` | `high` | `critical`. Key guidance:
 
-`F13_VOLUME_CONFLUENCE_WEAK` | `F14_BREAKOUT_FILTER_WEAK` | `F15_MA_WHIPSAW` | `F16_PRICE_LIMIT_PROXIMITY` | `F17_LIQUIDITY_WEAK`
+- F6: `medium` losing EMA21 only; `high` losing SMA50 or below both
+- F16: `medium` default; `high` when bar finished near limit and is core to interpretation
+- F17: `medium` for low liquidity (Rp1B-10B); `high` for very_low (< Rp1B). PM owns ADTV hard rails.
 
-#### Severity: `low` | `medium` | `high` | `critical`
+Every flag: `flag_id`, `severity`, `why`. Include overall risk summary.
 
-Severity guidance:
+## Output Report
 
-- `F6_MA_BREAKDOWN`: `medium` when price loses `21EMA` only; `high` when price loses `50SMA` or is below both
-- `F3_WEAK_BREAKOUT`: treat more severely when continuation structure is no longer intact
-- `F16_PRICE_LIMIT_PROXIMITY`: use for either `close_near_*` or `intrabar_*_near_*` limit behavior; `medium` by default, escalate to `high` when the day finished near the limit and that bar is core to the breakout or downside-stress interpretation
-- `F17_LIQUIDITY_WEAK`: use 20-day average daily value buckets; `medium` for `low` liquidity (`Rp1B-10B`), `high` for `very_low` liquidity (`< Rp1B`). This is a score reducer and warning flag only; PM owns ADTV hard rails through `very_low_liquidity`.
+Sections: A. Assessment Summary, B. Context, C. State/Location, D. Setup/Trigger, E. Risk/Conviction, F. Trade Management, G. Delta/Monitoring, H. Adaptive MA, I. Evidence/Charts. Optional: scenario map (2-4 branches) when path-dependent.
 
-Every red flag must include `flag_id`, `severity`, `why`. Include an overall risk summary with one short rationale.
+Required fields: `purpose_mode`, `conviction_score`, `confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `bull_factors`, `bear_factors`, `risk_map`, `red_flags`, `key_levels`, `monitoring_triggers`, `chart_artifact_refs`. Add `risk_map.rr` for constructive setups, `current_rr` when long.
 
-### Minimum Final Assessment Output
-
-Required: `purpose_mode`, `technical_assessment.conviction_score`, `technical_assessment.confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `technical_assessment.bull_factors`, `technical_assessment.bear_factors`, `technical_assessment.risk_map`, `technical_assessment.red_flags`, `technical_assessment.key_levels`, `technical_assessment.monitoring_triggers`, `chart_artifact_refs`.
-
-Required when a constructive setup exists: `technical_assessment.risk_map.rr`.
-
-Required when long (`UPDATE`): `current_rr`.
-
-Conditional: prior thesis delta for `UPDATE`, postmortem findings for `POSTMORTEM`, recommendation lifecycle fields in follow-up text when the parent workflow needs `active_recommendation`.
-
-## Market Structure And Trend
-
-Classify market state before setup selection using balance-imbalance logic, then map context with Wyckoff and swing structure.
-
-### State And Regime Rules
-
-- `R-STATE-01` Start with state: `balance` (accepted in value area) or `imbalance` (directional repricing).
-- `R-STATE-02` Default assumption: price remains in current value area until close-based acceptance proves otherwise.
-- `R-STATE-03` Breakout acceptance requires close outside range plus follow-through.
-- `R-STATE-04` Failed acceptance (quick close back in range) is trap evidence, not trend confirmation.
-- `R-REGIME-01` Uptrend: higher highs and higher lows on daily swings.
-- `R-REGIME-02` Downtrend: lower highs and lower lows on daily swings.
-- `R-REGIME-03` Mixed swings default to range rotation when baseline MA posture does not clearly support continuation.
-- `R-REGIME-04` Potential reversal: CHOCH appears without confirmation BOS in the opposite direction.
-- `R-REGIME-05` Mixed swings may still resolve to trend continuation when baseline MA posture confirms the directional bias.
-- `R-REGIME-06` Wick-only breaks do not change regime without close confirmation.
-
-### Strong And Weak Swing Logic
-
-- Strong high/low: pivot that caused structural break.
-- Weak high/low: pivot that failed to break structure and remains liquidity target.
-
-### BOS And CHOCH Taxonomy
-
-- Continuation BOS: break of prior structural level in direction of prevailing trend.
-- CHOCH: first opposite-direction structural break against prevailing trend.
-- Confirmation BOS: second structural break in new direction after CHOCH.
-- Reversal confirmed only after `CHOCH + confirmation BOS`.
-- Wick-only excursion does not qualify as BOS or CHOCH.
-- CHOCH+ (momentum-failure variant): failed extension first, then opposite structural break.
-
-### Reversal Validation Chain
-
-1. Confirm prior trend context.
-2. Detect CHOCH as first opposite close-based break.
-3. Observe pullback behavior (HL for bullish, LH for bearish).
-4. Require confirmation BOS in new direction.
-5. If step 4 fails, keep state unconfirmed — avoid reversal call.
-
-CHOCH without confirmation BOS is a potential reversal warning, not confirmed reversal. If break occurs but price quickly reclaims prior structure without follow-through, classify as deviation/liquidity grab.
-
-### Wyckoff Context Mapping
-
-One label as context after state call: `accumulation` (balance after downtrend, absorption), `markup` (imbalance up, continuation), `distribution` (balance after uptrend, supply), `markdown` (imbalance down, continuation). Contextual guidance, not standalone trigger.
-
-### Baseline MA Tiebreaker
-
-When last swings are mixed:
-
-- `trend_continuation` bullish only if price above `200SMA`, `21EMA` above `50SMA`, and at least one bullish swing condition holds
-- `trend_continuation` bearish only if price below `200SMA`, `21EMA` below `50SMA`, and at least one bearish swing condition holds
-- Otherwise keep `range_rotation`
-
-### No-Resistance Protocol
-
-If price is in discovery with no clear overhead resistance: do not force fixed top target. Keep action tied to structure continuation and invalidation. Downgrade conviction only on structural weakness or distribution evidence.
-
-## Levels And Location
-
-Map meaningful decision zones, then interpret price relative to those zones.
-
-### Horizontal Zones
-
-- Levels are zones, not single lines.
-- Higher-timeframe and repeatedly respected zones matter more.
-- First retest is strongest; repeated tests weaken a level.
-- Broken S/R can flip role after close-based acceptance.
-- Recently broken resistance that holds as support still counts as `accepted_above_resistance`.
-- Map first, trade second.
-
-Zone construction — use one method consistently: fixed-width, ATR-width, or wick-to-body reaction zone. Keep the map small and decision-oriented. Treat proximity against full zone width, not only midpoint.
-
-### Moving Average Context
-
-MAs are dynamic context, not standalone entry signals.
-
-Baseline: `21EMA`, `50SMA`, `200SMA` — read each as `support`, `resistance`, or `noise`.
-
-Adaptive MA — use only when the symbol shows repeated respect to a specific rhythm and baseline is not enough. Adaptive refines the read; it does not replace baseline regime context.
-
-Chart modes: `hybrid` = baseline + highlighted chosen `SMA{n}`; `baseline` = `21EMA` + `50SMA` + `200SMA` only.
-
-### Time-Based And Round Levels
-
-Use when materially relevant: daily open, weekly open, monthly open, round-number levels. Context enhancers, not standalone triggers.
-
-### Volume Profile (VPVR)
-
-Map volume concentration by price to strengthen zone quality.
-
-Components:
-
-- `POC`: highest traded volume price — fair-value magnet
-- `VAH`/`VAL`: value-area boundaries (70%)
-- `HVN`: accepted/fair-value zone (reaction zone)
-- `LVN`: fast-travel zone (continuation toward next HVN)
-
-Rules:
-
-- `R-VP-01` Treat profile levels as zones, not single ticks.
-- `R-VP-02` Prefer confluence: profile level + structure + price reaction.
-- `R-VP-03` POC re-tests attract price; rejection/acceptance defines bias.
-- `R-VP-04` Accepted above VAH → bullish continuation; accepted below VAL → bearish continuation; rotating inside → balance.
-- `R-VP-05` Volume-profile signal never overrides invalidation and stop discipline.
-
-Mapping: build at least one anchor profile on the active structure leg. Add one fixed-range profile on last major consolidation/distribution range. Convert key levels into zones with ATR-aware width.
-
-### Liquidity Draw And Level Excursion
-
-Direction, entry timing, and targets are framed by where obvious resting liquidity is likely to be challenged next.
-
-Compatibility note: runtime fields still use `sweep` naming for schema stability. In interpretation, read those fields as observable level excursions and their acceptance or rejection outcome, not as proof of intentional stop-hunting.
-
-Liquidity pools: swing highs/lows, clustered equal highs/lows, trendline stop clusters, range boundaries (external), internal reaction zones.
-
-- `external_liquidity`: major range highs/lows and structural swing extremes
-- `internal_liquidity`: nearer reaction zones inside the active path
-
-Alternation model (heuristic):
-
-1. Rejected external level excursion → next draw often shifts to internal
-2. Accepted external level excursion → may continue toward external-side objective
-3. After internal tag → depends on acceptance or rejection
-
-Rules:
-
-- `R-LIQ-01` Always identify current draw and opposing draw.
-- `R-LIQ-02` Level excursion must be labeled acceptance or rejection.
-- `R-LIQ-03` Wick-only excursion without follow-through is not directional confirmation.
-- `R-LIQ-04` HTF excursion should pair with LTF execution trigger when available.
-- `R-LIQ-05` If draw target is unclear, downgrade directional conviction.
-- `R-LIQ-06` Liquidity narrative cannot override invalidation and risk rules.
-
-HTF-LTF alignment: define HTF liquidity objective → wait for level excursion signal and classify it → shift to LTF for entry trigger → stop beyond the excursion extreme or structural invalidation → target next mapped liquidity pool.
-
-### Practical Mapping Order
-
-1. Daily support and resistance
-2. Structural swing highs and lows
-3. Value-area references (POC/VAH/VAL, major HVN/LVN)
-4. Baseline MA context
-5. Liquidity draw map (current draw, opposing draw)
-6. Time-based and round levels when relevant
-
-## Setups And Execution
-
-Select one setup family, demand the right trigger, confirm it, then convert into an executable plan with explicit invalidation and level-to-level targets.
-
-### Setup Families
-
-- `S1` breakout and retest continuation
-- `S2` pullback to demand in intact uptrend
-- `S3` excursion and reclaim reversal
-- `S4` range edge rotation
-- `S5` Wyckoff spring with reclaim
-- `NO_VALID_SETUP`
-
-### Setup Selection Rules
-
-- Choose one setup family or `NO_VALID_SETUP`.
-- Setup must fit daily regime and current location.
-- Setup labels without location, trigger, and risk are not tradable.
-- Middle-of-range entries usually downgrade to `NO_VALID_SETUP`.
-- Reversal intent requires structure shift confirmation, not narrative alone.
-
-### Setup Family Guidance
-
-#### `S1` Breakout And Retest Continuation
-
-Use when daily regime supports continuation, resistance is meaningfully challenged or reclaimed, participation supports acceptance. Needs: close beyond level, follow-through, retest hold or continued acceptance.
-
-#### `S2` Pullback To Demand In Intact Uptrend
-
-Use when trend remains intact, price returns to meaningful support/demand, pullback quality is constructive. Needs: support hold, acceptable selling pressure, thesis aligned with daily structure.
-
-#### `S3` Excursion And Reclaim Reversal
-
-Use when level-excursion behavior is central, price briefly trades through a liquidity pocket and snaps back, and reversal context is plausible. Needs: clear excursion, reclaim or rejection, confirmation that reclaim is holding.
-
-#### `S4` Range Edge Rotation
-
-Use when regime is balance, price is at range edge, edge reaction is clean. Needs: rejection or acceptance at edge, edge-to-edge path, avoid mid-range execution.
-
-#### `S5` Wyckoff Spring With Reclaim
-
-Use when range/accumulation context is credible, support-side excursion behaves like a spring, and reclaim is visible. Needs: spring-like excursion, reclaim of relevant level, follow-through strong enough to avoid trap failure.
-
-### Trigger Rules
-
-- A setup area is not enough by itself — action requires a trigger tied to the selected setup family.
-- `15m` owns trigger quality inside the daily thesis.
-- Absent trigger caps the setup score in the setup-forming range.
-
-Trigger types: breakout close, retest hold, reclaim, sweep reclaim, range-edge rejection, `CHOCH` + confirmation `BOS`, spring reclaim.
-
-### Breakout Quality
-
-- Breakout needs close beyond level plus participation support.
-- Breakout without follow-through is suspect; stalling increases trap risk.
-- Avoid weak bases for swing continuation; late/loose bases need stronger confirmation.
-- Volume expansion and fast post-break displacement improve quality.
-- Weak broader market context can downgrade pure breakout setups.
-
-### Reversal And Structure-Shift Rules
-
-For bullish reversal: prior structure damaged/bearish → `CHOCH` appears → pullback holds constructively → confirmation `BOS` → reversal becomes actionable.
-
-- `CHOCH` alone is warning, not confirmation.
-- Structure shift without confirmation stays in a developing-score range.
-
-### Execution And Risk
-
-#### Core Rules
-
-- `R-RISK-01` No setup without invalidation.
-- `R-RISK-02` Every constructive setup score must include explicit stop-loss and invalidator.
-- `R-RISK-03` Entry is valid only near a mapped decision zone.
-- `R-RISK-04` Primary target is the next meaningful zone in path.
-- `R-RISK-05` If no clear next-zone path exists, cap conviction and state the blocker.
-- `R-RISK-06` Mid-range entries without zone confluence are low quality and usually not actionable.
-- `R-RISK-07` Minimum expected reward-to-risk must be stated before execution.
-- `R-RISK-08` Add only when structure remains valid and the PM-owned no-averaging-down rule is satisfied.
-- `R-RISK-09` Adaptive MA may refine execution only after the structural plan exists. It never overrides invalidation, stop, or risk discipline.
-
-#### Level-To-Level Execution
-
-Trade from validated zone to validated zone. Do not trade random mid-range noise.
-
-1. Map top actionable zones
-2. Identify likely next draw and opposing draw
-3. Define candidate entry zone
-4. Place invalidation beyond structural failure of that zone
-5. Require trigger and confirmation before action
-6. Manage toward next zone or invalidate thesis
-
-#### Stop Hierarchy
-
-1. Structural invalidation stop
-2. ATR fallback stop when structure is unclear
-3. Time stop for stale setup
-
-Use stop as thesis invalidation, not arbitrary percentage.
-
-#### Target And Management
-
-- First target: nearest meaningful zone in path.
-- Further targets extend along zone ladder.
-- Partial exits at major S/R transitions.
-- Trailing logic becomes explicit after first target.
-- In price discovery, prefer structural trailing over arbitrary top calls.
-
-### Take-Profit And Trade Management
-
-- `R-TP-01` Every high-conviction constructive setup must include a technical trade-management plan at entry.
-- `R-TP-02` Technical targets come from structure/value zones and R-multiples, not oscillators.
-- `R-TP-03` Partial sizing defaults by setup family:
-  - `S1`/`S2`: `25 / 25 / 50`
-  - `S3`/`S5`: `40 / 30 / 30`
-  - `S4`: `50 / 30 / 20`
-- `R-TP-04` Trail mode is selected deterministically from state/regime, setup family, and Wyckoff maturity.
-- `R-TP-05` Stop may tighten, never loosen.
-- `R-TP-06` After `T1`, the remaining position must be protected at materially lower risk.
-- `R-TP-07` Failed value acceptance, structure damage, and Wyckoff distribution risk can accelerate harvest or exit urgency.
-- `R-TP-08` A stale winner must have a time-stop path, even when the thresholds are still conservative defaults.
-- `R-TP-09` Discovery mode defaults to trailing over arbitrary top calls.
-- `R-TP-10` Re-add is a fresh entry and must still respect `R-RISK-08`.
-
-Trade-management contract:
-
-- `trade_management.technical_plan` is present when `risk_map.actionable = true` or `analysis.position_state = long`.
-- `trade_management.technical_state` is present only when `analysis.position_state = long`.
-- Technical trade management is the chart-driven baseline. Final multi-lens execution policy may further tighten or reinterpret it in the parent workflow.
-
-#### Optional Entry Refinement
-
-Allowed only after base structural plan is valid: local `15m` acceptance/rejection behavior, adaptive MA when valid period available. If unavailable, keep base plan. Do not downgrade solely because refinement is absent.
-
-#### Minimum Actionability
-
-All required for high conviction: valid setup family, meaningful location, valid trigger, confirmation not rejected, explicit invalidation, explicit next-zone path, acceptable RR. Missing prerequisites cap `conviction_score`.
-
-## Output Report Structure
-
-For the full output report structure, see `references/ta-output-structure.md`.
+End with one short plain-language wrap-up: bias, key level, what raises or lowers conviction next.

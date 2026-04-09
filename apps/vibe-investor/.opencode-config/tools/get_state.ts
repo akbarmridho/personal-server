@@ -307,7 +307,7 @@ async function derivePortfolioMonitor(
     );
 
   const healthFlags: string[] = [];
-  if (positions.some((position) => Number(position.weight) > 0.3)) {
+  if (positions.some((position) => Number(position.weight) > 0.25)) {
     healthFlags.push("PM-W01");
   }
 
@@ -316,7 +316,7 @@ async function derivePortfolioMonitor(
       ? sum + Number(position.weight)
       : sum;
   }, 0);
-  if (speculationWeight > 0.1) {
+  if (speculationWeight > 0.2) {
     healthFlags.push("PM-W02");
   }
 
@@ -377,7 +377,9 @@ async function loadFrontmatterRecord<T extends FrontmatterRecord>(
     return {
       id: fallbackId,
       file: toMemoryPath(filePath),
-      warnings: [`Failed to read or parse frontmatter: ${(error as Error).message}`],
+      warnings: [
+        `Failed to read or parse frontmatter: ${(error as Error).message}`,
+      ],
     } as T;
   }
 }

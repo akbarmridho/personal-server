@@ -151,12 +151,12 @@ Crowding is a supporting risk dimension, not primary proof of the story.
 Five factors scored `0-3` each:
 
 - Freshness
-- Market awareness
-- Fundamental support
+- Catalyst quality
+- Fundamental support (scored against the active thesis, not current earnings)
 - Catalyst proximity
-- Flow alignment
+- Evidence quality
 
-This is the backbone narrative score. Do not replace it by collapsing stage, durability, crowding, or premium risk into a second composite score.
+This is the backbone narrative score. Stage, durability, crowding, and premium risk are separate dimensions — do not collapse them into the backbone.
 
 ### Failure Risk Score (0-3)
 

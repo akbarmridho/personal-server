@@ -129,11 +129,11 @@ Assess whether the story is likely to persist:
 
 | Factor | Score | Criteria |
 |--------|-------|----------|
-| Freshness | 0-3 | 0 stale, 3 brand new |
-| Market awareness | 0-3 | 0 everyone knows, 3 under-owned |
-| Fundamental support | 0-3 | 0 pure hype, 3 strong evidence |
-| Catalyst proximity | 0-3 | 0 none, 3 imminent (<1 month) |
-| Flow alignment | 0-3 | 0 visible distribution, 3 clear accumulation |
+| Freshness | 0-3 | 0 stale/recycled, 3 brand new catalyst or material development |
+| Catalyst quality | 0-3 | 0 no concrete catalyst, 3 multiple independent catalysts with clear timelines and verification paths |
+| Fundamental support | 0-3 | 0 pure hype with no business anchor, 3 strong evidence supporting the active thesis. Score against the thesis, not current earnings — if the thesis is about future gold production, weak coal earnings do not reduce this factor |
+| Catalyst proximity | 0-3 | 0 nothing within 6 months, 3 imminent catalyst within 1 month |
+| Evidence quality | 0-3 | 0 rumor-only or tier-6 dependent, 3 anchored by tier-1/2 filings and formal disclosures |
 
 ## Interpretation
 
