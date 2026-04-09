@@ -69,7 +69,9 @@ Load relevant skill(s) and read their runtime references before forming conclusi
 
 ## Workflows
 
-Primary: `desk-check`, `deep-review`, `explore-idea`, `news-digest`, `digest-sync`. Workflow contracts live under `prompts/workflows/`.
+Primary: `desk-check`, `deep-review`, `explore-idea`. Workflow contracts live under `prompts/workflows/`.
+
+`desk-check` includes news digest collection and sync as its first phase (skippable with `skip-digest`).
 
 This prompt owns: synthesis contract, hard rails, trading-day clock, and subagent behavior. Workflow files own: coverage universe, continuity window, run order, lens priorities, artifact requirements.
 
@@ -84,11 +86,22 @@ Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-a
 
 Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (plan.md, notes, run logs, market-level artifacts). Subagents write symbol artifacts (markdown, charts `*.png`, context JSON) directly to `memory/symbols/{SYMBOL}/` — they share the same filesystem. Subagents do not write run logs, thesis/watchlist updates, or cross-cutting notes. Use `work/` only for intermediate scratch that is not retained.
 
-Continuity: read latest run log for the workflow. If none, use default lookback ending at `TRADING_DAY`. Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d, news-digest 7d, digest-sync 7d, ta 1d.
+Continuity: read latest run log for the workflow. If none, use default lookback ending at `TRADING_DAY`. Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
 
 ## Synthesis Contract
 
-For every materially reviewed symbol, produce a `symbol_review`:
+For every reviewed symbol, first classify its review urgency:
+
+| Urgency | When | Output |
+|---------|------|--------|
+| `NO_CHANGE` | Thesis intact, no material new evidence, price within expected range | One-line status. No `human_attention` needed. |
+| `MONITOR` | Something shifted but no decision required yet | Brief note on what changed and what to watch. |
+| `ATTENTION` | Material change, new tension, or thesis weakening | Full `symbol_review` with `human_attention`. |
+| `EXIT_SIGNAL` | Lenses converging negative or hard rail triggered | Full `symbol_review` with direct exit recommendation. |
+
+On a typical desk-check, most symbols should be `NO_CHANGE` or `MONITOR`. Only surface full reviews for `ATTENTION` and `EXIT_SIGNAL`. This keeps the human focused on what matters.
+
+For `ATTENTION` and `EXIT_SIGNAL` symbols, produce a full `symbol_review`:
 
 ```yaml
 symbol_review:

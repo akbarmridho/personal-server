@@ -70,7 +70,7 @@
       "disable": true
     },
     "vibe-investor": {
-      "description": "IDX investment analyst, portfolio manager, and trading desk powered by the Stock Market 2.0 framework",
+      "description": "IDX investment research analyst and risk manager powered by the Stock Market 2.0 framework",
       "mode": "all",
       "prompt": "{file:./prompts/vibe-investor/main.md}",
       "tools": {
@@ -120,13 +120,8 @@
     }
   },
   "command": {
-    "ta": {
-      "description": "Technical analysis with WIB trading-session-aware date context (arg1=symbol, remaining args=user intent sentence)",
-      "agent": "vibe-investor",
-      "template": "{file:./prompts/workflows/ta.md}\n\nCommand input: $ARGUMENTS"
-    },
     "desk-check": {
-      "description": "Main operator routine for holdings, watchlist, market context, and portfolio discipline with WIB trading-session-aware date context",
+      "description": "Daily routine: digest collection + sync + holdings/watchlist review + portfolio discipline (use 'skip-digest' to skip news ingestion)",
       "agent": "vibe-investor",
       "template": "{file:./prompts/workflows/desk-check.md}\n\nCommand input: $ARGUMENTS"
     },
@@ -139,16 +134,6 @@
       "description": "Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting",
       "agent": "vibe-investor",
       "template": "{file:./prompts/workflows/explore-idea.md}\n\nCommand input: $ARGUMENTS"
-    },
-    "news-digest": {
-      "description": "Reading-oriented digest from full memory scope plus all new high-signal documents with WIB trading-session-aware date context",
-      "agent": "vibe-investor",
-      "template": "{file:./prompts/workflows/news-digest.md}\n\nCommand input: $ARGUMENTS"
-    },
-    "digest-sync": {
-      "description": "Sync thesis/watchlist memory from the latest news digest with WIB trading-session-aware date context",
-      "agent": "vibe-investor",
-      "template": "{file:./prompts/workflows/digest-sync.md}\n\nCommand input: $ARGUMENTS"
     }
   },
   "mcp": {
