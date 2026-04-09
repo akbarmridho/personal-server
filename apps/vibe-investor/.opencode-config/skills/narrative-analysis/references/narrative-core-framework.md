@@ -131,7 +131,7 @@ Assess whether the story is likely to persist:
 |--------|-------|----------|
 | Freshness | 0-3 | 0 stale/recycled, 3 brand new catalyst or material development |
 | Catalyst quality | 0-3 | 0 no concrete catalyst, 3 multiple independent catalysts with clear timelines and verification paths |
-| Fundamental support | 0-3 | 0 pure hype with no business anchor, 3 strong evidence supporting the active thesis. Score against the thesis, not current earnings — if the thesis is about future gold production, weak coal earnings do not reduce this factor |
+| Fundamental support | 0-3 | 0 pure hype with no business anchor, 3 strong evidence supporting the active thesis. **Mandatory: identify the active thesis first, then score this factor against it.** If the thesis is about future gold production, weak coal earnings score 0 impact. If the thesis is about coal recovery, weak coal earnings score full negative impact. State what the thesis is and why the evidence is or isn't relevant before scoring. |
 | Catalyst proximity | 0-3 | 0 nothing within 6 months, 3 imminent catalyst within 1 month |
 | Evidence quality | 0-3 | 0 rumor-only or tier-6 dependent, 3 anchored by tier-1/2 filings and formal disclosures |
 

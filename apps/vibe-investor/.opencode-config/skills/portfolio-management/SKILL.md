@@ -19,9 +19,22 @@ Tool source of truth: `portfolio_state` for live holdings/cash/equity, `portfoli
 - Liquidity-aware sizing: exits must remain feasible under stress.
 - Regime-sensitive aggression: weaker market = lower aggression, slower adds, more cash.
 - Review process quality separately from outcome.
+- PM does not own entry decisions — the human decides whether to enter. PM owns portfolio-level sizing constraints, de-risking rails, and hard safety rails.
 - PM does not own symbol-level exits. It owns portfolio-level sizing constraints, de-risking rails, and hard safety rails.
 - Consume TA-owned invalidation; do not redefine chart-level TP rules.
 - Durable symbol plan is the operating plan. Live holdings/P&L live in portfolio tools.
+
+## Role in Synthesis
+
+Portfolio management provides **constraint math and risk context** for the parent synthesis:
+
+- Portfolio heat, concentration, and liquidity constraints
+- Regime aggression from IHSG context
+- Maximum position size available
+- Hard rails that block action regardless of thesis quality
+- Sizing math when the human decides to act (human picks conviction bucket, PM applies mechanical caps)
+
+PM does not produce buy/sell recommendations. It tells the human "here's how much room you have and what the risk math looks like."
 
 ## Health Flags
 
@@ -99,13 +112,13 @@ Escalate +10pp when multiple health warnings, clustering breakdowns, or negative
 
 ## Pilot Entry
 
-Use when composite is in PILOT band but thesis is real and TA invalidation exists.
+Use when the human decides to take a pilot position.
 
 - Base size: 3% of equity, capped at 5% before `regime_aggression`.
 - Gates: thesis quality ≥ MEDIUM, evidence grade 1-3, TA invalidation exists, `regime_aggression >= 0.4`, liquidity acceptable, no hard rail triggered.
 - No harvest on pilots. First action is "add to STARTER" or "exit."
-- Escalation: price holds above stop for 5 sessions + narrative intact → ADD to STARTER.
-- Expiry: no progress for 3+ desk-checks → exit and downgrade to WATCHING.
+- Escalation: when price holds above stop for 5 sessions + narrative intact, flag to human that add to STARTER is available. Human decides.
+- Expiry: no progress for 3+ desk-checks → flag to human for decision (exit or hold with fresh rationale).
 - Max 2 active pilots.
 
 ## Exit-Review Discipline
@@ -144,10 +157,10 @@ Rebalance: quarterly baseline. Drift trigger >20%. Event trigger on thesis break
 ### Desk Check
 
 1. Load `review-watchlist-and-review-logging.md`. Call `portfolio_state`. If missing, stop.
-2. For each position: check thesis, stops, exit-review state, scenarios, sizing compliance, review cadence.
-3. For READY symbols with WAIT: increment `wait_desk_check_count`, check retest status, compute missed moves for opportunity-cost ledger.
+2. For each position: check thesis health, stops, exit-review state, scenarios, sizing compliance, review cadence.
+3. For READY symbols: track price movement, thesis changes, and missed moves for opportunity-cost ledger.
 4. Check portfolio-level: heat, concentration, regime, cash target, opportunity cost.
-5. Return `portfolio_constraints`, findings, and required memory updates to parent workflow.
+5. Return `portfolio_constraints`, findings, and items requiring human attention to parent workflow.
 
 ### Deep Review
 

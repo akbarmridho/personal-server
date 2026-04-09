@@ -7,7 +7,17 @@ description: Broker-flow analysis helper for IDX stocks that derives sponsor qua
 
 This skill owns broker-flow interpretation: gross-versus-net reading, sponsor quality, accumulation/distribution lean, concentration, persistence, anomaly and trust features, and flow-to-price timing context for parent synthesis.
 
-This skill does not own chart structure, setup family, trigger logic, stop/target placement, or final trade action.
+This skill does not own chart structure, setup family, trigger logic, stop/target placement, or trade decisions.
+
+## Role in Synthesis
+
+Flow is **sizing context**, not an entry/exit vote. The flow score measures signal clarity and trust — how readable and trustworthy the flow picture is — NOT whether flow is bullish or bearish.
+
+- Distribution is not automatically "don't enter." It may mean "size smaller" or "institutional rotation expected under this thesis."
+- Accumulation is not automatically "buy." It may be wash trading or low-quality participation.
+- The parent synthesis decides what flow means for the trade. This skill reports what brokers are doing and how much to trust that picture.
+
+When producing the assessment, always include `decision_role`: one of `lead` (flow is thesis-critical, e.g., accumulation-driven rerating), `confirm` (flow supports the thesis direction), `sizing_modifier` (flow informs position size, not direction), or `noise` (flow is unreadable or irrelevant to this thesis).
 
 ## Inputs
 
@@ -69,6 +79,7 @@ flow_assessment:
   conviction_score: 65
   confidence: MEDIUM
   verdict: DISTRIBUTION
+  decision_role: sizing_modifier
   bull_factors: []
   bear_factors: []
   sponsor_quality: {}
@@ -99,6 +110,7 @@ Scoring rules:
 - `bull_factors` from `strongest_support_factors`, `bear_factors` from `strongest_caution_factors`.
 - `confidence` from `trust_regime.trust_level`: `high -> HIGH`, `medium -> MEDIUM`, `low -> LOW`.
 - Always include `verdict` (ACCUMULATION / DISTRIBUTION / NEUTRAL). Parent synthesis needs direction separately from quality.
+- Always include `decision_role` (lead / confirm / sizing_modifier / noise) based on thesis context.
 - Do not emit `BUY`, `HOLD`, `WAIT`, or `EXIT`.
 
 ## Output Report

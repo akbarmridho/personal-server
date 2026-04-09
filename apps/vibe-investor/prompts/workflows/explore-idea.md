@@ -6,7 +6,7 @@ Command input may narrow sectors/themes, tighten the date window, or add output 
 
 ## Contract
 
-- Purpose: discover new interesting names, sectors, mechanisms, and catalysts outside the active operating set, plus resurface dormant internal candidates.
+- Purpose: discover new interesting names, sectors, mechanisms, and catalysts outside the active operating set, plus resurface dormant internal candidates. Present findings as thesis candidates for human review.
 - Discovery lanes are mandatory:
   - External discovery lane: search for names and themes not already central to active holdings, watchlist, or theses.
   - Internal resurfacing lane: rescan dormant watchlist names, inactive theses, or older symbol plans that were reviewed rarely.
@@ -16,5 +16,19 @@ Command input may narrow sectors/themes, tighten the date window, or add output 
 - Mandatory memory context: `memory/market/plan.md`, `get_state({ types: ["symbols", "theses", "watchlist"] })`, and the latest prior explore-idea artifact if found.
 - Run order: broad discovery and clustering first using internal knowledge sources and selected external corroboration; then lightweight symbol triage on shortlisted candidates; then parent synthesis across fresh candidates, resurfaced candidates, and discarded candidates.
 - `narrative-analysis` is the lead discovery lens. `technical-analysis` is the lightweight structural filter. `flow-analysis` is used when sponsor behavior could materially upgrade or disqualify a candidate. `fundamental-analysis` is selective.
+
+## Output
+
+For each candidate, produce a thesis candidate summary:
+
+- What the thesis is (one sentence)
+- Why now (what changed or what was missed)
+- Key evidence for and against
+- What the human would need to believe to act on this
+- Risk map if available (invalidation, key levels)
+- What further work is needed before this is actionable
+
+Do not produce action recommendations. Present candidates for human evaluation.
+
 - Default mutation rule: write the retained exploration artifact only. Promotion into durable watchlist/thesis/symbol state requires an explicit follow-up workflow or explicit user instruction.
 - Market artifacts must include `explore_idea.md`.

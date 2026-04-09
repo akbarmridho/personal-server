@@ -6,7 +6,7 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 
 ## Contract
 
-- Purpose: main operator routine for holdings review, watchlist trigger review, portfolio discipline, and top-down market context.
+- Purpose: daily operator routine. Surface what changed, flag what needs human attention, monitor thesis health, enforce portfolio discipline.
 - Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
 - Continuity window: 1 calendar day.
 - Mandatory memory context: `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `get_state({ types: ["portfolio-monitor", "watchlist"] })`.
@@ -15,10 +15,23 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when the symbol is actively held or near actionable review, sponsor behavior could change conviction materially, or parent synthesis needs lead / confirm / warning context versus TA.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
-- Parent synthesis must reconcile the technical exit baseline with broker-flow context, thesis quality, timeframe intent, narrative changes, optional scenario branches from analysis artifacts, any portfolio hard rail or size-cap constraint, and the stale-`WAIT` ladder from `main.md` before updating symbol memory.
-- During parent synthesis, report cumulative missed opportunity from `memory/notes/opportunity-cost.md` alongside `portfolio_heat`, compare decisions against `memory/notes/agent-performance.md`, flag `systematic under-deployment` when 0 entries persist for 3+ desk-checks while `READY` names exist, and require an explicit justification for continued inaction.
-- On every successful run, read `memory/notes/opportunity-cost.md` and update it in place for `TRADING_DAY`: add new rows for newly READY symbols, update existing rows with current prices, missed moves, WAIT age, and current status. Do not rewrite the file from scratch.
+
+## Synthesis Output
+
+Parent synthesis produces a `symbol_review` (per main.md contract) for each materially reviewed symbol. The synthesis must:
+
+- State the active thesis and whether it is intact, strengthening, weakening, or invalidated.
+- Reconcile the technical risk map with broker-flow context, thesis quality, narrative changes, optional scenario branches, and any portfolio hard rail or size-cap constraint.
+- Surface tensions between lenses honestly — do not collapse them into a single verdict.
+- End each symbol review with `human_attention`: what the human needs to decide or be aware of.
+- For holdings: flag any deterioration, thesis drift, or exit signals. When all lenses converge negative, state the exit case directly.
+- For watchlist symbols: flag material changes, new catalysts, or thesis invalidation. Track missed moves in opportunity-cost ledger.
+- Report cumulative missed opportunity from `memory/notes/opportunity-cost.md` alongside `portfolio_heat`.
+- Compare decisions against `memory/notes/agent-performance.md`.
+
+On every successful run, read `memory/notes/opportunity-cost.md` and update it in place for `TRADING_DAY`: add new rows for newly READY symbols, update existing rows with current prices, missed moves, and current status. Do not rewrite the file from scratch.
+
 - Symbol artifacts must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts must include `desk_check.md`.
-- `memory/market/desk_check.md` must include a `composite_decision` section for each materially reviewed symbol with all lens scores, `composite_score`, `action_tier`, `base_size_pct`, `final_size_pct`, `conflict_note`, and `hard_rails_applied`.
+- `memory/market/desk_check.md` must include a `symbol_review` section for each materially reviewed symbol per the synthesis contract in main.md.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.

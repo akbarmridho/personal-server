@@ -14,6 +14,15 @@ Use this file as the entrypoint. Do not load all references by default.
 5. Execute sequential analysis phases.
 6. Return one `narrative_assessment` object with a 0-100 `conviction_score` and structured evidence.
 
+## Role in Synthesis
+
+Narrative is the **thesis anchor** in most cases. It defines what the opportunity is, what the catalyst path looks like, and what would break the story.
+
+- Narrative owns thesis identification, catalyst mapping, stage classification, and invalidation conditions.
+- All other lenses are interpreted through the lens of the active thesis. If the thesis is gold diversification, weak coal earnings are noise for narrative scoring. If the thesis is coal recovery, weak coal earnings are the signal.
+- Narrative score reflects thesis strength and evidence quality, not generic "story excitement."
+- When scoring backbone factors, always ask: "Is this data point relevant to the active thesis?" before letting it affect the score.
+
 ## Concepts And School Of Thought
 
 - Classify the narrative regime first using the house taxonomy (`THEME_OR_ROTATION`, `TURNAROUND`, `CORPORATE_ACTION`, `POLICY_OR_INDEX_FLOW`, `RERATING_OR_YIELD`, or `SPECULATIVE_HYPE`) before discussing upside.

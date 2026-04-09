@@ -6,7 +6,7 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 
 ## Contract
 
-- Purpose: full audit of the current operating system: portfolio quality, process quality, and cleanup.
+- Purpose: full audit of the current operating system: portfolio quality, thesis health, process quality, and cleanup.
 - Coverage universe: all holdings from `portfolio_state`, active theses, watchlist symbols in `READY`, watchlist symbols marked as leaders, and a required resurfacing set of stale or neglected watchlist names and symbol plans.
 - Continuity window: 30 calendar days.
 - Mandatory memory context: `memory/market/plan.md`, `memory/notes/agent-performance.md`, `get_state({ types: ["symbols", "theses", "watchlist", "portfolio-monitor"] })`, and the latest prior deep review if found.
@@ -16,5 +16,17 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 - Flow analysis is most relevant when holdings or resurfaced names need sponsor-quality refresh or when lead / confirm / warning context could change the conclusion materially.
 - Narrative analysis prioritizes catalyst drift, story decay, crowding changes, and fresh invalidation evidence over full report formatting.
 - Fundamental analysis is selective: use it when thesis quality, accounting quality, ownership risk, or structural deterioration cannot be judged honestly from the existing evidence set.
+
+## Output
+
+For each materially reviewed symbol, produce a `symbol_review` per the synthesis contract in main.md.
+
+Additionally, the deep review must surface:
+
+- Thesis health trends across the portfolio (which theses are strengthening, which are weakening)
+- Process quality observations (missed opportunities, decision patterns, systematic biases)
+- Items requiring human decision (stale positions, conflicting signals, thesis drift)
+- Cleanup proposals (stale plans to archive, watchlist entries to remove, theses to retire)
+
 - Symbol artifacts must include the retained files needed for names reviewed materially in this workflow.
 - Market artifacts must include `deep_review.md`.

@@ -5,7 +5,16 @@ description: Technical-analysis helper for IDX stocks used to refine entry, exit
 
 ## Scope
 
-Entry/exit timing, invalidation, and risk map for swing to long-term positions. Daily owns thesis direction; 15m owns trigger and confirmation. This skill does not own final trade action — that belongs to the parent workflow.
+Entry/exit timing, invalidation, and risk map for swing to long-term positions. Daily owns thesis direction; 15m owns trigger and confirmation. This skill does not own trade decisions — that belongs to the human via the parent workflow.
+
+## Role in Synthesis
+
+Technical analysis is **timing and risk placement**. It answers "how do we express this trade safely?" not "is the thesis true?"
+
+- A low TA score on a working momentum stock means "risk placement is harder and chase risk is higher," not "don't act."
+- TA informs entry zone, stop level, position sizing (via stop distance), and add/trim timing.
+- TA owns structure-break detection for exit signals — when structure breaks, TA should flag it clearly.
+- TA does not veto entries based on extension alone. Being in a working uptrend is not a negative for the thesis — it's a timing consideration.
 
 ## Data And Deterministic Build
 
