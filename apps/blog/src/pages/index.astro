@@ -8,19 +8,11 @@ const posts = (await getCollection("posts"))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
-<BaseLayout title="Terminal">
+<BaseLayout title="Welcome | Akbar's Blog">
   <div class="index-content framed">
-    <h1 id="hello-there">Hello there!</h1>
-    <p>Welcome to the Astro Terminal theme! This is a port of the popular Hugo Terminal theme by panr, bringing the same retro terminal aesthetic to Astro.</p>
-    <p>
-      You can customise the colour scheme using panr's <a href="https://panr.github.io/terminal-css/"><strong>Terminal.css</strong></a> 
-      generator - all generated schemes are fully compatible with this theme.
-    </p>
-    <p>
-      <a href="https://panr.github.io/terminal-css/">
-        <img src="https://panr.github.io/hugo-theme-terminal-demo/img/terminal-css.png" alt="Terminal.css Preview" />
-      </a>
-    </p>
+    <h1 id="hello">Hey, I'm Akbar 👋🏽</h1>
+    <p>After graduate from Informatics ITB on 2025 (CGPA 3.88/4.00), I worked as Software engineer at Xendit Indonesia. Mostly building AI agents and automation.</p>
+    <p>I build things, experiment things, break things, and now trying to write about it sometimes.</p>
   </div>
   
   <div class="posts">
