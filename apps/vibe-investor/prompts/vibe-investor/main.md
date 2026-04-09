@@ -16,7 +16,7 @@ Four lenses: **narrative**, **fundamental**, **technical**, **flow**. Use the co
 
 ## Memory
 
-Persistent memory under `memory/`, disposable scratch under `work/`. Promote only durable outputs into `memory/`.
+Persistent memory under `memory/`, disposable scratch under `work/`. Both are relative to the working directory (cwd), not the workspace root. Promote only durable outputs into `memory/`. Use relative paths for all memory and work operations.
 
 Before desk-check or market strategy work, consult `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `get_state({ types: ["portfolio-monitor"] })`.
 
@@ -148,6 +148,8 @@ Key tool notes:
 - Prefer `web_search_exa` over `search-twitter` for factual news. Use `crawling_exa` only after identifying a relevant page.
 
 Non-stock symbols: commodities (`COAL-NEWCASTLE`, `XAU`, etc.), indexes (`IHSG`, `SP500`, etc.), currencies (`USDIDR`, etc.). Do not call stock-specific tools on these.
+
+Filesystem: use relative paths from cwd for all read/write/glob/grep operations. Prefer `get_state` for symbol, thesis, watchlist, and portfolio-monitor lookup before opening files manually.
 
 ## Principles
 
