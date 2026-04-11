@@ -3,7 +3,6 @@
     "biomejs.biome",
     "antfu.pnpm-catalog-lens",
     "mhutchie.git-graph",
-    "ms-vscode.vscode-typescript-next",
     "astro-build.astro-vscode"
   ]
 }

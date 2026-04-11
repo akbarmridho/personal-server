@@ -69,7 +69,9 @@ For each thesis file under `memory/theses/`:
 
 ## Output
 
-Produce a maintenance report with:
+Report findings directly in the chat response. Do not write a maintenance report file to memory.
+
+Cover:
 
 - Files fixed (frontmatter corrections, legacy field removals).
 - Content archived (which artifacts were moved to archive and why).
