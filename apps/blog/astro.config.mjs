@@ -8,6 +8,7 @@ export default defineConfig({
   site: "https://akbarmr.dev",
   base: "/",
   integrations: [sitemap()],
+
   markdown: {
     shikiConfig: {
       theme: "css-variables",
