@@ -146,8 +146,8 @@ Rebalance: quarterly baseline. Drift trigger >20%. Event trigger on thesis break
 
 1. Load `review-watchlist-and-review-logging.md`. Call `portfolio_state`. If missing, stop.
 2. For each position: check thesis health, stops, scenarios, sizing compliance, review cadence.
-3. For READY symbols: track price movement, thesis changes, and missed moves for opportunity-cost ledger.
-4. Check portfolio-level: heat, concentration, regime, cash target, opportunity cost.
+3. For READY symbols: track price movement and thesis changes.
+4. Check portfolio-level: heat, concentration, regime, cash target.
 5. Return `portfolio_constraints`, findings, and items requiring human attention to parent workflow.
 
 ### Deep Review

@@ -38,8 +38,6 @@ mkdir -p "$OPENCODE_CWD/work"
 echo "Copying memory templates..."
 for f in \
   market/plan.md \
-  notes/agent-performance.md \
-  notes/opportunity-cost.md \
   symbols/README.md \
   theses/README.md
 do

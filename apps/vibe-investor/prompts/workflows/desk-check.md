@@ -66,11 +66,9 @@ The synthesis must:
 - Surface tensions between lenses honestly — do not collapse them into a single verdict.
 - End each symbol review with `human_attention`: what the human needs to decide or be aware of.
 - For holdings: flag any deterioration, thesis drift, or exit signals. When all lenses converge negative, state the exit case directly.
-- For watchlist symbols: flag material changes, new catalysts, or thesis invalidation. Track missed moves in opportunity-cost ledger.
-- Report cumulative missed opportunity from `memory/notes/opportunity-cost.md` alongside `portfolio_heat`.
-- Compare decisions against `memory/notes/agent-performance.md`.
+- For watchlist symbols: flag material changes, new catalysts, or thesis invalidation.
 
-On every successful run, read `memory/notes/opportunity-cost.md` and update it in place for `TRADING_DAY`: add new rows for newly READY symbols, update existing rows with current prices, missed moves, and current status. Do not rewrite the file from scratch.
+On every successful run, update `memory/market/plan.md` if the market context changed materially.
 
 ## Artifacts
 

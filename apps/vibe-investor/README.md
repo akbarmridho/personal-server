@@ -60,8 +60,6 @@ $OPENCODE_CWD/
 │   ├── digests/
 │   │   └── {DATE}_news_digest.md
 │   ├── notes/                    # General-purpose notes (human or agent)
-│   │   ├── agent-performance.md
-│   │   ├── opportunity-cost.md
 │   │   └── archive/
 └── work/                         # Temporary scratch (delete anytime)
 ```
@@ -156,8 +154,7 @@ Filesystem-based memory using markdown files.
 - **`memory/symbols/{SYMBOL}/plan.md`** — Authoritative durable per-symbol plans with strict YAML frontmatter
 - **`memory/theses/{THESIS_ID}/thesis.md`** — Authoritative durable per-thesis state
 - **`memory/digests/{DATE}_news_digest.md`** — Retained digest artifact
-- **`memory/notes/agent-performance.md`** — Rolling process-quality notes
-- **`memory/notes/opportunity-cost.md`** — WAIT-age and missed-move ledger
+- **`memory/notes/`** — General-purpose notes (human or agent)
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
 
 Source-of-truth split:

@@ -38,13 +38,11 @@ Key paths:
 - `memory/theses/{THESIS_ID}/thesis.md` — thesis files (subtheses under `subtheses/`)
 - `memory/market/` — IHSG + macro artifacts
 - `memory/digests/` — news digests (dated by calendar date, not trading day)
-- `memory/notes/agent-performance.md` — decision-quality tracker (append, never rewrite)
-- `memory/notes/opportunity-cost.md` — missed-move ledger (append, never rewrite)
 - `memory/notes/` — general-purpose notes (human or agent). The human may drop deployment plans, trade ideas, or reminders here. `memory/notes/archive/` for retired notes.
 
 Before any workflow, list files in `memory/notes/` and read all non-archive notes. The human writes notes here between sessions — missing them means missing context.
 
-`memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness. On every successful `desk-check` or `deep-review`, review/update `memory/market/plan.md` and update `memory/notes/agent-performance.md` in place.
+`memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness.
 
 Use `get_state` for frontmatter lookup. It returns all symbols, theses, watchlist, and portfolio-monitor in one call with computed review dates.
 
