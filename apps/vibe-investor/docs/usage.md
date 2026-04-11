@@ -17,6 +17,10 @@ Use commands in OpenCode TUI with `/command-name`.
   - Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates.
   - Writes `memory/market/explore_idea.md`. Does not mutate watchlist/thesis state.
 
+- `/memory-maintenance`
+  - Audit memory files for schema drift, fix frontmatter, clean work folder, flag stale and orphaned artifacts.
+  - Accepts optional scope narrowing (e.g., `symbols only`, `cleanup only`).
+
 ## Workflow Notes
 
 `/desk-check`
@@ -57,4 +61,3 @@ Use commands in OpenCode TUI with `/command-name`.
 - Use uppercase 4-letter symbols such as `BBCA`, `TLKM`, `ADRO`
 - `/desk-check` is the default daily routine — handles digest, review, and discipline in one command
 - All workflows fail fast on required dependency failures
-- Run logs are written by the OpenCode plugin under `memory/runs/`

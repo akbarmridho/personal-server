@@ -37,12 +37,9 @@ Key paths:
 - `memory/symbols/{SYMBOL}/plan.md` — durable operating plan
 - `memory/theses/{THESIS_ID}/thesis.md` — thesis files (subtheses under `subtheses/`)
 - `memory/market/` — IHSG + macro artifacts
-- `memory/digests/` — news digests
+- `memory/digests/` — news digests (dated by calendar date, not trading day)
 - `memory/notes/agent-performance.md` — decision-quality tracker (append, never rewrite)
 - `memory/notes/opportunity-cost.md` — missed-move ledger (append, never rewrite)
-- `memory/runs/{DATE}/{TIME}_{WORKFLOW}.json` — success run logs
-
-Run log: as the final step of every tracked workflow, the parent agent writes a success run log. Subagents never write run logs. Path: `memory/runs/{window_to}/{HHMMSS}_{workflow}.json` (HHMMSS = WIB completion time). Required fields: `workflow`, `completed_at`, `window_from`, `window_to`, `symbols` (sorted, only symbols with existing `memory/symbols/` dirs), `artifacts` (sorted `memory/` paths written during the run, excluding `memory/runs/`).
 
 `memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness. On every successful `desk-check` or `deep-review`, review/update `memory/market/plan.md` and update `memory/notes/agent-performance.md` in place.
 
@@ -50,7 +47,7 @@ Use `get_state` for frontmatter lookup: `types: ["symbols", "theses"]` for full 
 
 Frontmatter: symbol plans require `id`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Thesis files require `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`.
 
-Evidence-backed updates: supported by at least one verifiable data point from tools/documents/filings, not agent inference alone. Applies to thesis/status/plan changes. Does not apply to timestamp bumps or run-log writes.
+Evidence-backed updates: supported by at least one verifiable data point from tools/documents/filings, not agent inference alone. Applies to thesis/status/plan changes. Does not apply to timestamp bumps.
 
 Memory writes: `desk-check`, `deep-review`, `digest-sync` include memory updates. `explore-idea` writes exploration artifact only; durable mutation requires explicit promotion. Save both markdown and important charts/evidence artifacts. Archive prior artifacts when invalidation level, setup family, or thesis status changes materially.
 
@@ -69,7 +66,7 @@ Load relevant skill(s) and read their runtime references before forming conclusi
 
 ## Workflows
 
-Primary: `desk-check`, `deep-review`, `explore-idea`. Workflow contracts live under `prompts/workflows/`.
+Primary: `desk-check`, `deep-review`, `explore-idea`. Utility: `memory-maintenance`. Workflow contracts live under `prompts/workflows/`.
 
 `desk-check` includes news digest collection and sync as its first phase (skippable with `skip-digest`).
 
@@ -84,9 +81,9 @@ Shared workflow rules:
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.
 
-Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (plan.md, notes, run logs, market-level artifacts). Subagents write symbol artifacts (markdown, charts `*.png`, context JSON) directly to `memory/symbols/{SYMBOL}/` — they share the same filesystem. Subagents do not write run logs, thesis/watchlist updates, or cross-cutting notes. Use `work/` only for intermediate scratch that is not retained.
+Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (plan.md, notes, market-level artifacts). Subagents write symbol artifacts (markdown, charts `*.png`, context JSON) directly to `memory/symbols/{SYMBOL}/` — they share the same filesystem. Subagents do not write thesis/watchlist updates or cross-cutting notes. Use `work/` only for intermediate scratch that is not retained.
 
-Continuity: read latest run log for the workflow. If none, use default lookback ending at `TRADING_DAY`. Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
+Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
 
 ## Synthesis Contract
 
@@ -189,6 +186,7 @@ Key tool notes:
 - `get-stock-profile`: call once per symbol early in the run.
 - Document types are distinct evidence classes: `news`, `analysis`, `rumours`, `filing`. Use `list-filing`/`get-filing` for official disclosures. Do not merge these into one undifferentiated bucket.
 - For `search-documents`/`list-documents`: keep `query` short and semantic, put filters in structured args (`symbols`, `types`, `date_from`, `date_to`, `source_names`). Set `symbols: ["XXXX"]` instead of repeating the symbol in `query`. Map time periods to `date_from`/`date_to` explicitly.
+- Document IDs: always preserve the full document ID as returned by tools. Never truncate, shorten, or abbreviate UUIDs. The human needs full IDs to trace documents back.
 - Prefer `web_search_exa` over `search-twitter` for factual news. Use `crawling_exa` only after identifying a relevant page.
 
 Non-stock symbols: commodities (`COAL-NEWCASTLE`, `XAU`, etc.), indexes (`IHSG`, `SP500`, etc.), currencies (`USDIDR`, etc.). Do not call stock-specific tools on these.
@@ -208,4 +206,4 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 ## Agent Mode
 
 - Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Write symbol artifacts directly to `memory/symbols/{SYMBOL}/`. Use `work/` for intermediate scratch only. Do not write run logs, thesis/watchlist updates, or cross-cutting notes.
+- Subagent: execute delegated scope only, return structured output. Write symbol artifacts directly to `memory/symbols/{SYMBOL}/`. Use `work/` for intermediate scratch only. Do not write thesis/watchlist updates or cross-cutting notes.

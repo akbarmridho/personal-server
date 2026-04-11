@@ -11,6 +11,6 @@
 - Command markdown files may own the full workflow contract for their command, including execution order, continuity, mutation scope, artifact paths, and required outputs.
 - Command templates should stay thin. They should load the command markdown file and pass minimal command-specific input.
 - Skill entrypoints should own domain-specific method, dependencies, and output expectations. They should not own global workflow routing unless the workflow is truly local to that skill.
-- Deep reference files should contain doctrine, rubrics, checklists, and templates. They should not own orchestration, persistence timing, run-log policy, or other cross-cutting execution rules.
+- Deep reference files should contain doctrine, rubrics, checklists, and templates. They should not own orchestration, persistence timing, or other cross-cutting execution rules.
 - Output templates should define output shape only. Do not hardcode runtime storage locations, temporary-path policy, or workflow-specific persistence rules into templates.
 - If a contract changes, consolidate toward fewer authoritative locations rather than updating every layer with near-duplicate wording.

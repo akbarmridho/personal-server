@@ -27,8 +27,6 @@ apps/vibe-investor/
     │       ├── fundamental-analysis/
     │       ├── narrative-analysis/
     │       └── portfolio-management/
-    ├── plugins/
-    │   └── run-log.ts                # Plugin-managed workflow run logs
 ├── prompts/
 │   └── vibe-investor/
 │       └── main.md               # Base agent prompt
@@ -64,25 +62,19 @@ $OPENCODE_CWD/
 │   ├── notes/
 │   │   ├── agent-performance.md
 │   │   └── opportunity-cost.md
-│   ├── runs/                     # Successful workflow run logs
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
 ## Primary Workflows
 
 - `/desk-check`
-  - Main operator routine for holdings, `READY` watchlist names, leaders, and top-down market context (`IHSG + macro + leaders`).
+  - Main operator routine: news digest → sync → holdings/watchlist review → portfolio discipline.
 - `/deep-review`
   - Slower full audit of portfolio quality, watchlist hygiene, neglected names, thesis freshness, and process quality.
 - `/explore-idea`
   - Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting.
-- `/news-digest`
-  - Reading-oriented digest from new documents and memory continuity.
-  - Writes a retained digest artifact.
-- `/digest-sync`
-  - Applies evidence-backed digest updates to thesis and symbol-plan memory.
-- `/ta {SYMBOL} {INTENT}`
-  - Manual technical deep dive when one symbol needs closer review.
+- `/memory-maintenance`
+  - Audit memory files for schema drift, fix frontmatter, clean work folder, flag stale and orphaned artifacts.
 
 Portfolio state and trade history come from connector-owned normalized files under `AI_CONNECTOR_DATA_ROOT`, exposed to the agent through custom tools.
 
@@ -135,7 +127,7 @@ sudo apt install ripgrep jq fzf fd-find
 Notes:
 
 - `rg` is the default fast search tool for memory recall.
-- `jq` is useful for inspecting tool output and run logs.
+- `jq` is useful for inspecting tool output.
 - `fzf` is optional for interactive selection.
 - On some Debian-based systems, `fd-find` installs the binary as `fdfind` instead of `fd`.
 
@@ -163,7 +155,6 @@ Filesystem-based memory using markdown files.
 - **`memory/symbols/{SYMBOL}/plan.md`** — Authoritative durable per-symbol plans with strict YAML frontmatter
 - **`memory/theses/{THESIS_ID}/thesis.md`** — Authoritative durable per-thesis state
 - **`memory/digests/{DATE}_news_digest.md`** — Retained digest artifact
-- **`memory/runs/`** — Plugin-managed JSON log per successful top-level workflow run
 - **`memory/notes/agent-performance.md`** — Rolling process-quality notes
 - **`memory/notes/opportunity-cost.md`** — WAIT-age and missed-move ledger
 - **`work/`** — Temporary scratch files (data, scripts, intermediate charts)
@@ -173,12 +164,11 @@ Source-of-truth split:
 - Portfolio tools own live holdings, fills, and realized actions.
 - `memory/symbols/{SYMBOL}/plan.md` and `memory/theses/{THESIS_ID}/thesis.md` own durable symbol/thesis state.
 - `get_state` derives symbol, thesis, watchlist, and portfolio-monitor views on demand from live frontmatter.
-- The run-log plugin writes one JSON log per top-level command under `memory/runs/`.
 
 Recommended local CLI tools for memory work:
 
 - `rg` for fast content recall across memory
-- `jq` for inspecting `get_state` output and `memory/runs/*.json`
+- `jq` for inspecting `get_state` output
 - optional: `fzf` for interactive file/result selection
 
 ## Custom Tools

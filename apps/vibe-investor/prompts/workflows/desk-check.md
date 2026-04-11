@@ -12,14 +12,28 @@ Gather and integrate new information before reviewing.
 
 1. **Digest collection.** Gather high-signal news/documents since the last successful digest run.
    - Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
-   - Continuity window: 7 calendar days from last successful digest run.
-   - Write the digest artifact to `memory/digests/{TRADING_DAY}_news_digest.md`.
+   - Continuity: before collecting, read the latest file in `memory/digests/` to determine the prior coverage window endpoint. The new digest window starts from that endpoint. State the prior digest path and its window in the new digest header.
+   - Continuity window: 7 calendar days from the prior digest's window endpoint.
+   - Digest date: use today's calendar date (`YYYY-MM-DD` in WIB), not `TRADING_DAY`. News and analysis arrive on weekends and holidays too.
+   - Write the digest artifact to `memory/digests/{CALENDAR_DATE}_news_digest.md`.
+   - Document references: every document cited in the digest must use the full document ID as returned by tools. Never truncate or shorten UUIDs.
 
-2. **Digest sync.** Update thesis/watchlist memory from the digest.
-   - Update `memory/theses/{THESIS_ID}/thesis.md` only for evidence-backed timeline changes and scenario-branch updates.
-   - Update `memory/symbols/{SYMBOL}/plan.md` only for explicit evidence-backed status or trigger changes.
-   - If evidence is ambiguous, mark `Needs Verification` — do not change thesis/watchlist state.
-   - Link memory changes to the digest path and supporting document URLs.
+   Digest output structure:
+   - Header: date, coverage window (from → to), prior digest path referenced for continuity.
+   - Collection note: state how many documents were found per type and whether pagination was exhausted.
+   - Topline regime read: what is the current market posture? What changed versus the prior digest? Be honest about what is and isn't repaired.
+   - Thesis impact map: for each active thesis, state what changed this window and whether the thesis is strengthening, weakening, or unchanged. Include reasoning, not just labels.
+   - Watchlist and portfolio-relevant flags: material changes to holdings or watchlist names. Flag missed entries, unresolved actions, and status items needing human decision.
+   - Commodity and macro data: key prices and macro developments relevant to active theses.
+   - What to read: curated list of the highest-signal documents from this window, grouped by theme, with full document IDs and one-line descriptions of why each matters.
+   - Bottom line: one paragraph synthesizing the net change in market posture, thesis health, and what the human should focus on.
+
+2. **Digest sync.** After writing the digest, immediately sync memory. This is not optional.
+   - Load active theses via `get_state({ types: ["theses"] })` and the digest just written.
+   - For each active thesis: compare digest findings against the thesis file. If the digest contains evidence that changes timeline, status, scenario branches, or key assumptions, update `memory/theses/{THESIS_ID}/thesis.md` with the new evidence and link to the source document IDs.
+   - For each symbol mentioned in the digest with material changes: update `memory/symbols/{SYMBOL}/plan.md` with evidence-backed status or trigger changes.
+   - If evidence is ambiguous, mark `Needs Verification` in the relevant file — do not silently skip.
+   - Produce a sync summary listing: which files were updated and why, which theses were reviewed but unchanged (one line each), and any items marked `Needs Verification`.
 
 ### Phase 2: Portfolio + Market Context
 
@@ -60,6 +74,6 @@ On every successful run, read `memory/notes/opportunity-cost.md` and update it i
 
 - Symbol artifacts must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
 - Market artifacts must include `desk_check.md`.
-- Digest artifact at `memory/digests/{TRADING_DAY}_news_digest.md` (Phase 1).
+- Digest artifact at `memory/digests/{CALENDAR_DATE}_news_digest.md` (Phase 1).
 - `memory/market/desk_check.md` must include the triaged symbol reviews per the synthesis contract in main.md.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.

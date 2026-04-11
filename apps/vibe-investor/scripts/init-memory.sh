@@ -31,7 +31,6 @@ mkdir -p "$OPENCODE_CWD/memory/market/archive"
 mkdir -p "$OPENCODE_CWD/memory/symbols"
 mkdir -p "$OPENCODE_CWD/memory/theses"
 mkdir -p "$OPENCODE_CWD/memory/digests"
-mkdir -p "$OPENCODE_CWD/memory/runs"
 mkdir -p "$OPENCODE_CWD/work"
 
 # Copy templates (only if target doesn't already exist)
@@ -41,8 +40,7 @@ for f in \
   notes/agent-performance.md \
   notes/opportunity-cost.md \
   symbols/README.md \
-  theses/README.md \
-  runs/README.md
+  theses/README.md
 do
   src="$VIBE_INVESTOR_DIR/memory-templates/$f"
   dst="$OPENCODE_CWD/memory/$f"
@@ -72,9 +70,6 @@ echo "  │   ├── theses/"
 echo "  │   │   └── README.md"
 echo "  │   ├── digests/"
 echo "  │   ├── notes/"
-echo "  │   │   ├── agent-performance.md"
-echo "  │   │   └── opportunity-cost.md"
-echo "  │   ├── runs/"
 echo "  └── work/"
 echo ""
 echo "Start using:"

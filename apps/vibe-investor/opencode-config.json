@@ -134,6 +134,11 @@
       "description": "Discovery workflow for fresh ideas outside the active operating set plus dormant internal candidates worth revisiting",
       "agent": "vibe-investor",
       "template": "{file:./prompts/workflows/explore-idea.md}\n\nCommand input: $ARGUMENTS"
+    },
+    "memory-maintenance": {
+      "description": "Audit memory files for schema drift, fix frontmatter, clean work folder, flag stale and orphaned artifacts",
+      "agent": "vibe-investor",
+      "template": "{file:./prompts/workflows/memory-maintenance.md}\n\nCommand input: $ARGUMENTS"
     }
   },
   "mcp": {
