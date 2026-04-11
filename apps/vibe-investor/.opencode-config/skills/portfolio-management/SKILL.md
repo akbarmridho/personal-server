@@ -38,7 +38,7 @@ PM does not produce buy/sell recommendations. It tells the human "here's how muc
 
 ## Health Flags
 
-`get_state({ types: ["portfolio-monitor"] })` computes W01, W02, W10 deterministically. The rest are agent-checked during desk-check.
+`get_state` computes W01, W02, W10 deterministically. The rest are agent-checked during desk-check.
 
 | Flag | Meaning | Severity |
 |------|---------|----------|
@@ -91,7 +91,7 @@ Concentration checks: correlation > 0.75 with large holding → compress sharply
 
 ## Regime Aggression
 
-Resolve before any new long. Evidence: IHSG OHLCV + leader basket from `get_state({ types: ["watchlist"] })`.
+Resolve before any new long. Evidence: IHSG OHLCV + leader basket from `get_state`.
 
 | IHSG state | Base | Improving breadth | Deteriorating breadth |
 |------------|------|-------------------|-----------------------|

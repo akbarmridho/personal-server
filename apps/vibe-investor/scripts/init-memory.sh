@@ -27,6 +27,7 @@ echo ""
 # Create directory structure
 echo "Creating directory structure..."
 mkdir -p "$OPENCODE_CWD/memory/notes"
+mkdir -p "$OPENCODE_CWD/memory/notes/archive"
 mkdir -p "$OPENCODE_CWD/memory/market/archive"
 mkdir -p "$OPENCODE_CWD/memory/symbols"
 mkdir -p "$OPENCODE_CWD/memory/theses"

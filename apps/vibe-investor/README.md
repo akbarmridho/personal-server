@@ -59,9 +59,10 @@ $OPENCODE_CWD/
 │   │   └── subtheses/
 │   ├── digests/
 │   │   └── {DATE}_news_digest.md
-│   ├── notes/
+│   ├── notes/                    # General-purpose notes (human or agent)
 │   │   ├── agent-performance.md
-│   │   └── opportunity-cost.md
+│   │   ├── opportunity-cost.md
+│   │   └── archive/
 └── work/                         # Temporary scratch (delete anytime)
 ```
 
@@ -175,7 +176,7 @@ Recommended local CLI tools for memory work:
 
 ### get_state
 
-Reads live symbol/thesis frontmatter and derives watchlist or portfolio-monitor views on demand.
+Reads live symbol/thesis frontmatter and returns all state views (symbols, theses, watchlist, portfolio-monitor) with computed review dates. No parameters.
 
 ### fetch-ohlcv
 

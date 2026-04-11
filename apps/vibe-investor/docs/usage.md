@@ -30,7 +30,7 @@ Use commands in OpenCode TUI with `/command-name`.
 - Phase 3: Delegated symbol reviews (TA, flow, narrative) in parallel batches
 - Phase 4: Synthesis with triage — most symbols get a one-liner, only material changes get full reviews
 - Coverage: holdings from `portfolio_state`, watchlist names in `READY`, leaders, top-down market context
-- Prep context: `memory/market/plan.md`, `get_state({ types: ["portfolio-monitor", "watchlist"] })`
+- Prep context: `memory/market/plan.md`, `get_state`
 
 `/deep-review`
 

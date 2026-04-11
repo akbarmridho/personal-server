@@ -13,7 +13,7 @@ Command input may narrow sectors/themes, tighten the date window, or add output 
 - Current holdings, active theses, and active watchlist names are novelty filters, not the primary discovery universe, except for the internal resurfacing lane.
 - Discovery is not news-only: candidate generation may come from filings, analysis, rumours, sector/theme linkages, ownership/governance changes, mechanism-led situations, and neglected internal names.
 - Continuity window: 30 calendar days for external discovery; internal resurfacing is not limited by that window.
-- Mandatory memory context: `memory/market/plan.md`, `get_state({ types: ["symbols", "theses", "watchlist"] })`, and the latest prior explore-idea artifact if found.
+- Mandatory memory context: `memory/market/plan.md`, `get_state`, and the latest prior explore-idea artifact if found.
 - Run order: broad discovery and clustering first using internal knowledge sources and selected external corroboration; then lightweight symbol triage on shortlisted candidates; then parent synthesis across fresh candidates, resurfaced candidates, and discarded candidates.
 - `narrative-analysis` is the lead discovery lens. `technical-analysis` is the lightweight structural filter. `flow-analysis` is used when sponsor behavior could materially upgrade or disqualify a candidate. `fundamental-analysis` is selective.
 

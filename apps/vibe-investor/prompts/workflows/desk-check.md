@@ -29,7 +29,7 @@ Gather and integrate new information before reviewing.
    - Bottom line: one paragraph synthesizing the net change in market posture, thesis health, and what the human should focus on.
 
 2. **Digest sync.** After writing the digest, immediately sync memory. This is not optional.
-   - Load active theses via `get_state({ types: ["theses"] })` and the digest just written.
+   - Load active theses from `get_state` output and the digest just written.
    - For each active thesis: compare digest findings against the thesis file. If the digest contains evidence that changes timeline, status, scenario branches, or key assumptions, update `memory/theses/{THESIS_ID}/thesis.md` with the new evidence and link to the source document IDs.
    - For each symbol mentioned in the digest with material changes: update `memory/symbols/{SYMBOL}/plan.md` with evidence-backed status or trigger changes.
    - If evidence is ambiguous, mark `Needs Verification` in the relevant file — do not silently skip.
@@ -38,7 +38,7 @@ Gather and integrate new information before reviewing.
 ### Phase 2: Portfolio + Market Context
 
 - Run `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks using `portfolio_state` summary plus targeted `portfolio_trade_history` / `portfolio_symbol_trade_journey` calls and current IHSG context.
-- Mandatory memory context: `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `get_state({ types: ["portfolio-monitor", "watchlist"] })`.
+- Mandatory memory context: `memory/market/plan.md`, all files in `memory/notes/` (list and read), and `get_state`.
 
 ### Phase 3: Symbol Reviews (delegated)
 
@@ -58,6 +58,8 @@ Parent synthesis produces output for each reviewed symbol, triaged by urgency pe
 - `ATTENTION` and `EXIT_SIGNAL` symbols: full `symbol_review` per main.md contract.
 
 The synthesis must:
+
+- Start with a digest summary (unless `skip-digest`): topline regime change, key thesis impacts, and any human-attention items from the digest. The human should not need to open the digest file separately to know what happened.
 
 - State the active thesis and whether it is intact, strengthening, weakening, or invalidated.
 - Reconcile the technical risk map with broker-flow context, thesis quality, narrative changes, optional scenario branches, and any portfolio hard rail or size-cap constraint.

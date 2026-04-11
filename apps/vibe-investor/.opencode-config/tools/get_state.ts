@@ -19,6 +19,9 @@ type SymbolRecord = FrontmatterRecord & {
   next_review?: string | null;
   leader?: boolean;
   tags?: unknown[];
+  days_since_review?: number;
+  review_overdue?: boolean;
+  days_overdue?: number;
 };
 
 type ThesisRecord = FrontmatterRecord & {
@@ -31,15 +34,9 @@ type ThesisRecord = FrontmatterRecord & {
   symbols?: unknown[];
   last_updated?: string;
   tags?: unknown[];
+  days_since_update?: number;
+  review_stale?: boolean;
 };
-
-type RequestedType =
-  | "symbols"
-  | "symbol"
-  | "theses"
-  | "thesis"
-  | "watchlist"
-  | "portfolio-monitor";
 
 const SYMBOL_REQUIRED_FIELDS = [
   "id",
@@ -67,137 +64,41 @@ const THESIS_REQUIRED_FIELDS = [
 
 export default tool({
   description:
-    "Read durable symbol/thesis state from live markdown frontmatter and derive watchlist or portfolio-monitor views on demand.",
-  args: {
-    types: tool.schema
-      .array(tool.schema.string())
-      .default(["symbols", "theses"])
-      .describe(
-        "Requested state views. Supported values: symbols, symbol, theses, thesis, watchlist, portfolio-monitor.",
+    "Dump all durable state: symbols, theses, watchlist, and portfolio-monitor with computed review dates.",
+  args: {},
+  async execute(_args, context) {
+    const symbolRecords = await loadSymbolRecords(context.directory);
+    const thesisRecords = await loadThesisRecords(context.directory);
+
+    const payload: Record<string, unknown> = {
+      symbols: symbolRecords,
+      theses: thesisRecords,
+      watchlist: deriveWatchlist(symbolRecords),
+      "portfolio-monitor": await derivePortfolioMonitor(
+        context.directory,
+        symbolRecords,
       ),
-    ids: tool.schema
-      .array(tool.schema.string())
-      .optional()
-      .describe(
-        "Optional symbol/thesis IDs to filter. Required when requesting singular symbol or thesis.",
-      ),
-  },
-  async execute(args, context) {
-    const requestedTypes = normalizeRequestedTypes(args.types);
-    const ids = new Set(
-      (args.ids ?? [])
-        .map((id) => id.trim())
-        .filter(Boolean)
-        .map((id) => id.toUpperCase()),
-    );
-
-    if (
-      requestedTypes.some((type) => type === "symbol" || type === "thesis") &&
-      ids.size === 0
-    ) {
-      throw new Error("ids is required when requesting symbol or thesis");
-    }
-
-    const payload: Record<string, unknown> = {};
-
-    const shouldReadSymbols = requestedTypes.some((type) =>
-      ["symbols", "symbol", "watchlist", "portfolio-monitor"].includes(type),
-    );
-    const shouldReadTheses = requestedTypes.some((type) =>
-      ["theses", "thesis"].includes(type),
-    );
-
-    const symbolRecords = shouldReadSymbols
-      ? await loadSymbolRecords(context.directory)
-      : [];
-    const thesisRecords = shouldReadTheses
-      ? await loadThesisRecords(context.directory)
-      : [];
-
-    for (const requestedType of requestedTypes) {
-      if (requestedType === "symbols") {
-        payload.symbols = ids.size
-          ? symbolRecords.filter((record) =>
-              ids.has((record.id ?? "").toUpperCase()),
-            )
-          : symbolRecords;
-      }
-
-      if (requestedType === "symbol") {
-        payload.symbol = symbolRecords.filter((record) =>
-          ids.has((record.id ?? "").toUpperCase()),
-        );
-      }
-
-      if (requestedType === "theses") {
-        payload.theses = ids.size
-          ? thesisRecords.filter((record) =>
-              ids.has((record.id ?? "").toUpperCase()),
-            )
-          : thesisRecords;
-      }
-
-      if (requestedType === "thesis") {
-        payload.thesis = thesisRecords.filter((record) =>
-          ids.has((record.id ?? "").toUpperCase()),
-        );
-      }
-
-      if (requestedType === "watchlist") {
-        payload.watchlist = deriveWatchlist(symbolRecords, ids);
-      }
-
-      if (requestedType === "portfolio-monitor") {
-        payload["portfolio-monitor"] = await derivePortfolioMonitor(
-          context.directory,
-          symbolRecords,
-        );
-      }
-    }
+    };
 
     return JSON.stringify(payload, null, 2);
   },
 });
 
-function normalizeRequestedTypes(types: string[]): RequestedType[] {
-  const normalized = types
-    .map((type) => type.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (normalized.length === 0) {
-    return ["symbols", "theses"];
-  }
-
-  const invalid = normalized.filter(
-    (type) =>
-      ![
-        "symbols",
-        "symbol",
-        "theses",
-        "thesis",
-        "watchlist",
-        "portfolio-monitor",
-      ].includes(type),
-  );
-  if (invalid.length > 0) {
-    throw new Error(`Unsupported state type(s): ${invalid.join(", ")}`);
-  }
-
-  return normalized as RequestedType[];
-}
-
 async function loadSymbolRecords(directory: string): Promise<SymbolRecord[]> {
   const symbolsRoot = path.resolve(directory, "memory", "symbols");
   const symbolDirs = await safeListDirectory(symbolsRoot);
+  const today = todayWIB();
   const records = await Promise.all(
     symbolDirs.map(async (symbolDir) => {
       const filePath = path.resolve(symbolsRoot, symbolDir, "plan.md");
-      return loadFrontmatterRecord<SymbolRecord>(
+      const record = await loadFrontmatterRecord<SymbolRecord>(
         filePath,
         SYMBOL_REQUIRED_FIELDS,
         symbolDir.toUpperCase(),
         { legacyField: "scope" },
       );
+      enrichSymbolDates(record, today);
+      return record;
     }),
   );
 
@@ -209,14 +110,17 @@ async function loadSymbolRecords(directory: string): Promise<SymbolRecord[]> {
 async function loadThesisRecords(directory: string): Promise<ThesisRecord[]> {
   const thesesRoot = path.resolve(directory, "memory", "theses");
   const thesisFiles = await listMarkdownFiles(thesesRoot);
+  const today = todayWIB();
   const records = await Promise.all(
     thesisFiles.map(async (filePath) => {
       const fallbackId = path.basename(filePath, ".md").toLowerCase();
-      return loadFrontmatterRecord<ThesisRecord>(
+      const record = await loadFrontmatterRecord<ThesisRecord>(
         filePath,
         THESIS_REQUIRED_FIELDS,
         fallbackId,
       );
+      enrichThesisDates(record, today);
+      return record;
     }),
   );
 
@@ -225,13 +129,42 @@ async function loadThesisRecords(directory: string): Promise<ThesisRecord[]> {
     .sort((left, right) => (left.id ?? "").localeCompare(right.id ?? ""));
 }
 
-function deriveWatchlist(symbolRecords: SymbolRecord[], ids: Set<string>) {
+function todayWIB(): string {
+  const now = new Date();
+  const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+  return wib.toISOString().slice(0, 10);
+}
+
+function daysBetween(from: string, to: string): number {
+  const msPerDay = 86_400_000;
+  return Math.floor(
+    (new Date(to).getTime() - new Date(from).getTime()) / msPerDay,
+  );
+}
+
+function enrichSymbolDates(record: SymbolRecord, today: string): void {
+  if (typeof record.last_reviewed === "string") {
+    record.days_since_review = daysBetween(record.last_reviewed, today);
+  }
+  if (typeof record.next_review === "string") {
+    record.review_overdue = record.next_review <= today;
+    record.days_overdue =
+      record.next_review <= today
+        ? daysBetween(record.next_review, today)
+        : undefined;
+  }
+}
+
+function enrichThesisDates(record: ThesisRecord, today: string): void {
+  if (typeof record.last_updated === "string") {
+    record.days_since_update = daysBetween(record.last_updated, today);
+    record.review_stale = daysBetween(record.last_updated, today) > 30;
+  }
+}
+
+function deriveWatchlist(symbolRecords: SymbolRecord[]) {
   return symbolRecords
     .filter((record) => {
-      const symbolId = (record.id ?? "").toUpperCase();
-      if (ids.size > 0 && !ids.has(symbolId)) {
-        return false;
-      }
       return record.watchlist_status === "READY" || record.leader === true;
     })
     .map((record) => {
@@ -261,6 +194,13 @@ function deriveWatchlist(symbolRecords: SymbolRecord[], ids: Set<string>) {
         tags,
         file,
       };
+      if (record.review_overdue) {
+        watchlistRecord.review_overdue = record.review_overdue;
+        watchlistRecord.days_overdue = record.days_overdue;
+      }
+      if (record.days_since_review !== undefined) {
+        watchlistRecord.days_since_review = record.days_since_review;
+      }
       if (warnings && warnings.length > 0) {
         watchlistRecord.warnings = warnings;
       }
@@ -294,6 +234,9 @@ async function derivePortfolioMonitor(
         thesis_id: plan?.thesis_id,
         last_reviewed: plan?.last_reviewed,
         next_review: plan?.next_review,
+        days_since_review: plan?.days_since_review,
+        review_overdue: plan?.review_overdue,
+        days_overdue: plan?.days_overdue,
         leader: plan?.leader,
         tags: plan?.tags,
         file: plan?.file,

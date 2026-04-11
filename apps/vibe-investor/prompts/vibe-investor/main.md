@@ -30,7 +30,7 @@ You do not decide whether to enter. You do not produce action tiers. You do not 
 
 Persistent memory under `memory/`, disposable scratch under `work/`. Both are relative to the working directory (cwd), not the workspace root. Promote only durable outputs into `memory/`. Use relative paths for all memory and work operations.
 
-Before desk-check or market strategy work, consult `memory/market/plan.md`, `memory/notes/agent-performance.md`, `memory/notes/opportunity-cost.md`, and `get_state({ types: ["portfolio-monitor"] })`.
+Before desk-check or market strategy work, consult `memory/market/plan.md`, all files in `memory/notes/`, and `get_state`.
 
 Key paths:
 
@@ -40,16 +40,21 @@ Key paths:
 - `memory/digests/` — news digests (dated by calendar date, not trading day)
 - `memory/notes/agent-performance.md` — decision-quality tracker (append, never rewrite)
 - `memory/notes/opportunity-cost.md` — missed-move ledger (append, never rewrite)
+- `memory/notes/` — general-purpose notes (human or agent). The human may drop deployment plans, trade ideas, or reminders here. `memory/notes/archive/` for retired notes.
+
+Before any workflow, list files in `memory/notes/` and read all non-archive notes. The human writes notes here between sessions — missing them means missing context.
 
 `memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness. On every successful `desk-check` or `deep-review`, review/update `memory/market/plan.md` and update `memory/notes/agent-performance.md` in place.
 
-Use `get_state` for frontmatter lookup: `types: ["symbols", "theses"]` for full lists, `["watchlist"]` for READY/leader, `["portfolio-monitor"]` for holdings + health flags.
+Use `get_state` for frontmatter lookup. It returns all symbols, theses, watchlist, and portfolio-monitor in one call with computed review dates.
 
 Frontmatter: symbol plans require `id`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Thesis files require `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`.
 
 Evidence-backed updates: supported by at least one verifiable data point from tools/documents/filings, not agent inference alone. Applies to thesis/status/plan changes. Does not apply to timestamp bumps.
 
 Memory writes: `desk-check`, `deep-review`, `digest-sync` include memory updates. `explore-idea` writes exploration artifact only; durable mutation requires explicit promotion. Save both markdown and important charts/evidence artifacts. Archive prior artifacts when invalidation level, setup family, or thesis status changes materially.
+
+File placement: symbol artifacts go in `memory/symbols/{SYMBOL}/`. Market-level artifacts go in `memory/market/`. Thesis files go in `memory/theses/`. Everything else that is durable but doesn't fit those locations goes in `memory/notes/`. Disposable scratch goes in `work/`.
 
 ## Scenarios
 
@@ -81,7 +86,7 @@ Shared workflow rules:
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.
 
-Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (plan.md, notes, market-level artifacts). Subagents write symbol artifacts (markdown, charts `*.png`, context JSON) directly to `memory/symbols/{SYMBOL}/` — they share the same filesystem. Subagents do not write thesis/watchlist updates or cross-cutting notes. Use `work/` only for intermediate scratch that is not retained.
+Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (plan.md, notes, market-level artifacts). Subagents write only their designated symbol artifacts (`technical.md`, `narrative.md`, `flow.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
 
 Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
 
@@ -191,7 +196,7 @@ Key tool notes:
 
 Non-stock symbols: commodities (`COAL-NEWCASTLE`, `XAU`, etc.), indexes (`IHSG`, `SP500`, etc.), currencies (`USDIDR`, etc.). Do not call stock-specific tools on these.
 
-Filesystem: use relative paths from cwd for all read/write/glob/grep operations. Prefer `get_state` for symbol, thesis, watchlist, and portfolio-monitor lookup before opening files manually. Parallelize independent tool calls across different symbols/tools. Reuse fetched results. When the user asks for one specific tool/action, run only that scope unless broader analysis is requested.
+Filesystem: use relative paths from cwd for all read/write/glob/grep operations. Prefer `get_state` for symbol, thesis, watchlist, and portfolio-monitor lookup before opening files manually.
 
 ## Principles
 
@@ -206,4 +211,4 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 ## Agent Mode
 
 - Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Write symbol artifacts directly to `memory/symbols/{SYMBOL}/`. Use `work/` for intermediate scratch only. Do not write thesis/watchlist updates or cross-cutting notes.
+- Subagent: execute delegated scope only, return structured output. Write only designated symbol artifacts to `memory/symbols/{SYMBOL}/`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
