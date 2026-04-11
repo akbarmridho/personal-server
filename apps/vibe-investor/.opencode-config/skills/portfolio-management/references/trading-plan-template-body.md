@@ -5,7 +5,7 @@ Full template for `memory/symbols/{SYMBOL}/plan.md`. Load when creating or fully
 ```markdown
 ---
 id: {SYMBOL}
-watchlist_status: {WATCHING / READY / ACTIVE / REMOVED}
+watchlist_status: {WATCHING / READY / ACTIVE}
 trade_classification: {THESIS / TACTICAL / SPECULATION}
 holding_mode: {TACTICAL / THESIS / HYBRID}
 thesis_id: {THESIS_ID}

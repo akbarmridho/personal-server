@@ -6,8 +6,10 @@ Command input may narrow scope to specific areas (e.g., `symbols only`, `theses 
 
 ## Contract
 
-- Purpose: audit memory files for structural correctness, remove stale artifacts, and align memory state with current prompt and skill contracts.
+- Purpose: audit memory files for structural correctness and align memory state with current prompt and skill contracts.
 - This workflow reads and fixes. It does not run analysis, fetch market data, or produce investment conclusions.
+- Do not archive or delete symbol directories, thesis directories, or digest files. Those are retained indefinitely regardless of age or status.
+- Only archive content within active symbol `plan.md` files that references removed prompt concepts (composite scores, action tiers, WAIT loops). Artifact files (`technical.md`, `flow.md`, etc.) stay where they are.
 
 ## Checks
 
@@ -25,47 +27,29 @@ Run all checks unless command input narrows scope.
 - Symbols referencing a `thesis_id` that doesn't exist as a thesis file → flag.
 - Thesis files listing symbols that don't have a corresponding `memory/symbols/{SYMBOL}/plan.md` → flag.
 - Symbol plans with `watchlist_status: ACTIVE` but no matching holding in `portfolio_state` → flag.
-- Symbol plans with `watchlist_status: REMOVED` that still have non-archived artifacts → flag for cleanup.
 
-### 3. Content archival review
+### 3. Content cleanup
 
-For each symbol directory under `memory/symbols/{SYMBOL}/`:
+For each symbol `plan.md`:
 
-- Read `plan.md` body content and all sibling artifacts (`technical.md`, `narrative.md`, `flow.md`, charts, context JSON).
-- Identify content that is superseded or no longer current:
-  - Artifact files (`technical.md`, `narrative.md`, `flow.md`) whose analysis references prices, levels, or dates that are significantly outdated compared to `plan.md`'s `last_reviewed`.
-  - Scenario branches in `plan.md` that were already resolved or retired but still written out in full.
-  - Sections referencing removed prompt concepts (composite scores, action tiers, WAIT loops, or any other contract that no longer exists in the current prompt).
-- Move superseded artifacts to `memory/symbols/{SYMBOL}/archive/` with a date prefix (`YYYY-MM-DD_filename`).
-- For `plan.md` body content that contains stale sections: trim the stale content and note what was archived.
-- Apply the same logic to `memory/market/` artifacts: if `desk_check.md`, `deep_review.md`, or `explore_idea.md` contain analysis from a prior regime or outdated context, archive the old version and leave a clean current file.
+- If body content references removed prompt concepts (composite scores, action tiers, WAIT loops, or any contract that no longer exists), clean those sections in place.
 
-For each thesis file under `memory/theses/`:
+For each active thesis file:
 
-- Read body content. If the thesis `status` is `INACTIVE` and `last_updated` is older than 60 days, move the entire thesis directory to an archive location and report it.
-- If active, check for stale scenario branches or sections referencing removed concepts. Clean in place.
+- If body content references removed prompt concepts, clean in place.
 
 ### 4. Review overdue and inactive resurfacing
 
-- Use the computed `review_overdue`, `days_overdue`, and `days_since_review` fields from `get_state` output. These are computed by the tool — no manual date math needed.
+- Use the computed `review_overdue`, `days_overdue`, and `days_since_review` fields from `get_state` output.
 - Symbols with `review_overdue: true` → list with days overdue.
 - Symbols with `days_since_review > 30` → flag as stale.
-- Thesis files with `review_stale: true` (computed by `get_state` when `days_since_update > 30`) → flag.
-- Inactive or WATCHING/REMOVED symbols: do a lightweight check via `list-documents` for recent news or filings mentioning these symbols in the last 30 days. If material documents exist, flag the symbol as worth revisiting with a one-line summary of what was found. This catches interesting developments in names the active workflows skip.
+- Thesis files with `review_stale: true` → flag.
+- Inactive or WATCHING symbols with `holding_mode: no-position`: do a lightweight check via `list-documents` for recent news or filings mentioning these symbols in the last 30 days. If material documents exist, flag the symbol as worth revisiting with a one-line summary of what was found.
 
-### 5. Stale content detection
-
-- Digests older than 30 days in `memory/digests/` → list for optional cleanup.
-- Market artifacts (`desk_check.md`, `deep_review.md`, `explore_idea.md`) older than 14 days → flag as stale.
-
-### 6. Work folder cleanup
+### 5. Work folder cleanup
 
 - List all files under `work/`.
 - Delete everything in `work/`. This folder is disposable scratch by definition.
-
-### 7. Archive hygiene
-
-- Check `memory/symbols/*/archive/` and `memory/market/archive/` for files older than 90 days → list for optional cleanup (do not auto-delete archives without confirmation).
 
 ## Output
 
@@ -73,12 +57,9 @@ Report findings directly in the chat response. Do not write a maintenance report
 
 Cover:
 
-- Files fixed (frontmatter corrections, legacy field removals).
-- Content archived (which artifacts were moved to archive and why).
+- Files fixed (frontmatter corrections, legacy field removals, stale concept cleanup).
 - Orphans and inconsistencies found.
 - Review overdue: symbols and theses past their review dates.
 - Resurfaced: inactive/dormant symbols with recent interesting documents worth revisiting.
-- Stale items flagged.
 - Work folder: what was deleted.
-- Archive items listed for optional cleanup.
 - Summary: overall memory health assessment in 2-3 sentences.

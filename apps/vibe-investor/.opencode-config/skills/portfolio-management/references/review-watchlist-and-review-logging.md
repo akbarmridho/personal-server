@@ -95,10 +95,9 @@ Watchlist statuses use the labels defined in `SKILL.md`.
 
 | Status | Criteria | Action |
 |--------|----------|--------|
-| WATCHING | Thesis interesting but not actionable yet | Monitor catalyst/flow/price trigger |
+| WATCHING | Thesis interesting but not actionable yet, or position exited but name still worth tracking | Monitor catalyst/flow/price trigger |
 | READY | Trigger conditions are close | Prepare plan and alerts |
 | ACTIVE | Triggered and position is open | Execute and monitor |
-| REMOVED | Thesis broken or better option available | Document removal reason |
 
 ```markdown
 ## Watchlist
