@@ -52,8 +52,6 @@ PM does not produce buy/sell recommendations. It tells the human "here's how muc
 | `PM-W09` | Multiple leaders invalidated in same window | `HIGH` |
 | `PM-W10` | Thesis stale (no review within cadence) | `MEDIUM` |
 | `PM-W11` | Cash ratio below IHSG cash target | `HIGH` |
-| `PM-W12` | SPECULATION in exit-review 3+ desk-checks without reclaiming gate | `HIGH` |
-| `PM-W13` | Any position in exit-review 5+ desk-checks without reclaiming gate | `HIGH` |
 
 ## Portfolio Constraints Contract
 
@@ -69,7 +67,7 @@ portfolio_constraints:
 
 - `max_new_position_size_pct`: caps from concentration, correlation, liquidity, theme pressure.
 - `regime_aggression` (0.4-1.5): caps from IHSG regime, breadth, beta, cash shortfall.
-- `hard_rails_triggered`: binary stops only — `portfolio_heat_breach`, `single_position_cap_breach`, `thesis_invalidated`, `very_low_liquidity`, `pilot_slot_limit`, `dead_speculation_exit`, `stale_exit_review`.
+- `hard_rails_triggered`: binary stops only — `portfolio_heat_breach`, `single_position_cap_breach`, `thesis_invalidated`, `very_low_liquidity`, `pilot_slot_limit`.
 
 ## Sizing
 
@@ -121,16 +119,6 @@ Use when the human decides to take a pilot position.
 - Expiry: no progress for 3+ desk-checks → flag to human for decision (exit or hold with fresh rationale).
 - Max 2 active pilots.
 
-## Exit-Review Discipline
-
-When a position degrades to de-risk posture but hard invalidation hasn't fired:
-
-- Set `Exit review state = in_review`, define `Exit review gate` (concrete reclaim level).
-- Increment `Exit review count` each desk-check the gate isn't reclaimed.
-- SPECULATION + count ≥ 3 → PM-W12 → full exit at next liquidity.
-- Any classification + count ≥ 5 → PM-W13 → full exit unless fresh evidence materially changes the thesis.
-- Reset when gate is reclaimed or position exits.
-
 ## Entry, Exit, Rebalance
 
 Entry: prefer drawdowns when thesis intact. Do not average down after thesis break. Pyramid only when prior tranche is green and structure valid.
@@ -157,7 +145,7 @@ Rebalance: quarterly baseline. Drift trigger >20%. Event trigger on thesis break
 ### Desk Check
 
 1. Load `review-watchlist-and-review-logging.md`. Call `portfolio_state`. If missing, stop.
-2. For each position: check thesis health, stops, exit-review state, scenarios, sizing compliance, review cadence.
+2. For each position: check thesis health, stops, scenarios, sizing compliance, review cadence.
 3. For READY symbols: track price movement, thesis changes, and missed moves for opportunity-cost ledger.
 4. Check portfolio-level: heat, concentration, regime, cash target, opportunity cost.
 5. Return `portfolio_constraints`, findings, and items requiring human attention to parent workflow.

@@ -13,17 +13,6 @@ last_reviewed: {YYYY-MM-DD}
 next_review: {YYYY-MM-DD}
 leader: {true / false}
 tags: [{TAG_1}, {TAG_2}]
-active_recommendation:
-  action: {WAIT}
-  issued: {YYYY-MM-DD}
-  horizon_expires: {YYYY-MM-DD}
-  upgrade_trigger: {Concrete condition that upgrades WAIT to BUY/HOLD}
-  downgrade_trigger: {Concrete condition that downgrades or removes the setup}
-  expiry_action: {Re-underwrite with fresh levels or downgrade to WATCHING}
-  wait_desk_check_count: {0+}
-  retest_level: {PRICE}
-  retest_status: {not_tested / tested_held / tested_failed}
-  retest_checked: {YYYY-MM-DD}
 ---
 
 # {SYMBOL} - Trading Plan
@@ -51,10 +40,7 @@ active_recommendation:
 - Flow: {0-100} - {one-line score driver summary}
 - Narrative: {0-100} - {one-line score driver summary}
 - Fundamental: {0-100} - {valuation anchor / quality summary}
-- Portfolio fit: {0-100} - {heat budget, concentration, correlation, liquidity, and hard-rail headroom — not regime or cash-floor}
-- Composite: {0-100} -> {NO_TRADE / WATCHLIST / PILOT / STARTER / STANDARD / HIGH_CONVICTION}
-- Aggression multiplier: {0.25-1.5}
-- Final size: {X%}
+- Portfolio fit: {0-100} - {heat budget, concentration, correlation, liquidity, and hard-rail headroom}
 
 ## Plan
 - Entry type: {FULL / PILOT}
@@ -93,9 +79,6 @@ active_recommendation:
 - Thesis status: {intact / improving / degrading / invalidated}
 - Active scenario: {scenario name or single-path setup}
 - Scenario switch trigger: {what would move the operating plan to another branch}
-- Exit review state: {not_in_review / in_review}
-- Exit review gate: {price level that must be reclaimed to exit review state, or omit if not in review}
-- Exit review count: {0+, number of consecutive desk-checks in exit-review without reclaiming gate}
 - Next catalyst: {date/event}
 - Add trigger: {what would justify add}
 - Reduce trigger: {what would justify trim / reduce}
@@ -104,12 +87,3 @@ active_recommendation:
 ## Notes
 {Additional context, key dates, items to monitor}
 ```
-
-## Frontmatter Rules
-
-- Include `active_recommendation` when the symbol carries a live `WAIT` recommendation.
-- Keep `active_recommendation` limited to the current recommendation lifecycle: `action`, `issued`, `horizon_expires`, `upgrade_trigger`, `downgrade_trigger`, `expiry_action`, `wait_desk_check_count`, `retest_level`, `retest_status`, and `retest_checked`.
-- Use `wait_desk_check_count` to track how many desk-checks the same `WAIT` has persisted.
-- Use `retest_level`, `retest_status`, and `retest_checked` when the live `WAIT` is anchored to a concrete retest zone.
-- Omit `retest_level`, `retest_status`, and `retest_checked` when the live recommendation is not retest-based.
-- Omit `active_recommendation` when there is no live recommendation lifecycle to track.

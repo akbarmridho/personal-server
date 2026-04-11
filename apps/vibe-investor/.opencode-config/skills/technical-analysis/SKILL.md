@@ -50,7 +50,7 @@ If the active workflow specifies a retained artifact directory, write outputs th
 ## Purpose Modes
 
 - `INITIAL` — fresh thesis
-- `UPDATE` — refresh active thesis. Must produce `thesis_status`, `review_reason`, delta assessment. Check `retest_level` if prior WAIT exists: `tested_held`, `tested_failed`, or `not_tested`.
+- `UPDATE` — refresh active thesis. Must produce `thesis_status`, `review_reason`, delta assessment.
 - `POSTMORTEM` — review failed/exited thesis. Must produce failure point, missed warning, handling improvement.
 
 If prior context is required and missing, stop.
@@ -183,7 +183,7 @@ technical_assessment:
 | 76-90 | Clean setup, trigger confirmed, good RR |
 | 91-100 | Textbook setup, strong confirmation, excellent RR |
 
-Score must reflect both structural quality and execution readiness. Lower score instead of forcing a low-quality narrative. When prior plan carries a live WAIT, include upgrade/downgrade triggers and horizon in monitoring.
+Score must reflect both structural quality and execution readiness. Lower score instead of forcing a low-quality narrative.
 
 ### Red Flags
 

@@ -9,7 +9,7 @@ New symbol plans should start with YAML frontmatter:
 id: {SYMBOL}
 watchlist_status: {WATCHING | READY | ACTIVE}
 trade_classification: {THESIS | TACTICAL | SPECULATION}
-holding_mode: {TACTICAL | THESIS | HYBRID | no-position | hold | exit-review}
+holding_mode: {TACTICAL | THESIS | HYBRID | no-position | hold}
 thesis_id: {thesis-id or null}
 last_reviewed: {YYYY-MM-DD}
 next_review: {YYYY-MM-DD or null}
