@@ -262,11 +262,12 @@ If a plan is stale: flag `PM-W10`, downgrade confidence in the stored plan, requ
 
 | Status | Criteria | Action |
 |--------|----------|--------|
+| ARCHIVED | Reference material from one-off analysis or retired names | Not actively tracked. Resurfaced on digest match or deep-review sweep |
 | WATCHING | Thesis interesting but not actionable yet, or position exited but name still worth tracking | Monitor catalyst/flow/price trigger |
 | READY | Trigger conditions are close | Prepare plan and alerts |
 | ACTIVE | Triggered and position is open | Execute and monitor |
 
-Treat the watchlist as attention-budgeted inventory, not a dumping ground. Keep `READY` inventory tight enough to match realistic monitoring capacity. Any watchlist name without a clear `why now`, trigger, invalidation, or recent review should be refreshed, demoted, or removed.
+Treat the watchlist as attention-budgeted inventory, not a dumping ground. Keep `READY` inventory tight enough to match realistic monitoring capacity. Any watchlist name without a clear `why now`, trigger, invalidation, or recent review should be refreshed, demoted to `ARCHIVED`, or removed.
 
 Watchlist table format:
 

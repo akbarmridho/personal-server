@@ -7,9 +7,8 @@ New symbol plans should start with YAML frontmatter:
 ```yaml
 ---
 id: {SYMBOL}
-watchlist_status: {WATCHING | READY | ACTIVE}
+watchlist_status: {ARCHIVED | WATCHING | READY | ACTIVE}
 trade_classification: {THESIS | TACTICAL | SPECULATION}
-holding_mode: {TACTICAL | THESIS | HYBRID | no-position | hold}
 thesis_id: {thesis-id or null}
 last_reviewed: {YYYY-MM-DD}
 next_review: {YYYY-MM-DD or null}
@@ -22,8 +21,12 @@ Rules:
 
 - Keep the schema small and strict. `id` doubles as the symbol ticker. `scope` is implicit from file location.
 - When an older symbol plan is edited, remove legacy `scope` and `symbol` frontmatter fields and add any missing fields from the current schema.
-- `watchlist_status` is the durable watchlist label for the symbol. Valid values: `WATCHING`, `READY`, `ACTIVE`.
-- When a position is exited, set `watchlist_status` to `WATCHING` and `holding_mode` to `no-position`. The symbol stays on the watchlist for future monitoring — exiting a position does not mean removing the name.
+- `watchlist_status` is the durable watchlist label for the symbol. Valid values: `ARCHIVED`, `WATCHING`, `READY`, `ACTIVE`.
+- `ARCHIVED`: reference material from one-off analysis or retired names. Not actively tracked. Resurfaced only on digest match or deep-review sweep.
+- `WATCHING`: thesis interesting but not actionable yet, or position exited but name still worth tracking.
+- `READY`: trigger conditions are close, plan prepared.
+- `ACTIVE`: position is open.
+- When a position is exited, set `watchlist_status` to `WATCHING`. The symbol stays on the watchlist for future monitoring — exiting a position does not mean removing the name. Use `ARCHIVED` instead if the name no longer warrants active monitoring.
 - Use `leader: true` only for active leadership names that matter to breadth/regime checks.
 - Do not store live fills, current P/L, or temporary execution state here.
 
@@ -34,9 +37,8 @@ All agents (parent and subagent) writing or rewriting `plan.md` must follow this
 ```markdown
 ---
 id: {SYMBOL}
-watchlist_status: {WATCHING / READY / ACTIVE}
+watchlist_status: {ARCHIVED / WATCHING / READY / ACTIVE}
 trade_classification: {THESIS / TACTICAL / SPECULATION}
-holding_mode: {TACTICAL / THESIS / HYBRID / no-position / hold}
 thesis_id: {THESIS_ID}
 last_reviewed: {YYYY-MM-DD}
 next_review: {YYYY-MM-DD}

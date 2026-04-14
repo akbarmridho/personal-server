@@ -46,7 +46,7 @@ Before any workflow, list files in `memory/notes/` and read all non-archive note
 
 Use `get_state` for frontmatter lookup. It returns all symbols, theses, watchlist, and portfolio-monitor in one call with computed review dates.
 
-Frontmatter: symbol plans require `id`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Thesis files require `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`.
+Frontmatter: symbol plans require `id`, `watchlist_status`, `trade_classification`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Thesis files require `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`.
 
 Symbol plan body structure is defined in `memory/symbols/README.md` under "Symbol Plan Body Template". All agents (parent and subagent) must read it before writing or rewriting `plan.md`.
 

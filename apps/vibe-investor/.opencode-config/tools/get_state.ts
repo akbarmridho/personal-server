@@ -13,7 +13,6 @@ type SymbolRecord = FrontmatterRecord & {
   id?: string;
   watchlist_status?: string;
   trade_classification?: string;
-  holding_mode?: string;
   thesis_id?: string | null;
   last_reviewed?: string;
   next_review?: string | null;
@@ -42,7 +41,6 @@ const SYMBOL_REQUIRED_FIELDS = [
   "id",
   "watchlist_status",
   "trade_classification",
-  "holding_mode",
   "thesis_id",
   "last_reviewed",
   "next_review",
@@ -172,7 +170,6 @@ function deriveWatchlist(symbolRecords: SymbolRecord[]) {
         id,
         watchlist_status,
         trade_classification,
-        holding_mode,
         thesis_id,
         last_reviewed,
         next_review,
@@ -186,7 +183,6 @@ function deriveWatchlist(symbolRecords: SymbolRecord[]) {
         id,
         watchlist_status,
         trade_classification,
-        holding_mode,
         thesis_id,
         last_reviewed,
         next_review,
@@ -230,7 +226,6 @@ async function derivePortfolioMonitor(
         unrealized_gain: position.unrealized_gain,
         watchlist_status: plan?.watchlist_status,
         trade_classification: plan?.trade_classification,
-        holding_mode: plan?.holding_mode,
         thesis_id: plan?.thesis_id,
         last_reviewed: plan?.last_reviewed,
         next_review: plan?.next_review,

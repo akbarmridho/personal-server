@@ -18,7 +18,7 @@ Run all checks unless command input narrows scope.
 ### 1. Frontmatter schema compliance
 
 - Load all symbol plans and thesis files from `get_state` output.
-- For each symbol plan, verify frontmatter matches the contract in `memory/symbols/README.md`: required fields `id`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Remove legacy fields (`scope`, `symbol`, or any field not in the current schema). Add missing fields with sensible defaults and flag them in the report.
+- For each symbol plan, verify frontmatter matches the contract in `memory/symbols/README.md`: required fields `id`, `watchlist_status`, `trade_classification`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Remove legacy fields (`scope`, `symbol`, `holding_mode`, or any field not in the current schema). Add missing fields with sensible defaults and flag them in the report.
 - For each thesis file, verify frontmatter matches the contract in `memory/theses/README.md`: required fields `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`. Same cleanup rules.
 - Fix files in place. Report what was changed.
 
@@ -27,6 +27,7 @@ Run all checks unless command input narrows scope.
 - Symbols referencing a `thesis_id` that doesn't exist as a thesis file → flag.
 - Thesis files listing symbols that don't have a corresponding `memory/symbols/{SYMBOL}/plan.md` → flag.
 - Symbol plans with `watchlist_status: ACTIVE` but no matching holding in `portfolio_state` → flag.
+- Symbol plans with `watchlist_status: ARCHIVED` and `leader: true` → flag (archived symbols should not be leaders).
 
 ### 3. Content cleanup
 
@@ -44,7 +45,9 @@ For each active thesis file:
 - Symbols with `review_overdue: true` → list with days overdue.
 - Symbols with `days_since_review > 30` → flag as stale.
 - Thesis files with `review_stale: true` → flag.
-- Inactive or WATCHING symbols with `holding_mode: no-position`: do a lightweight check via `list-documents` for recent news or filings mentioning these symbols in the last 30 days. If material documents exist, flag the symbol as worth revisiting with a one-line summary of what was found.
+- `WATCHING` symbols without a matching holding in `portfolio_state`: do a lightweight check via `list-documents` for recent news or filings mentioning these symbols in the last 30 days. If material documents exist, flag the symbol as worth revisiting with a one-line summary of what was found.
+- `ARCHIVED` symbols: same lightweight check. If material documents exist, flag as worth promoting to `WATCHING`.
+- Symbols with `watchlist_status` values not in `{ARCHIVED, WATCHING, READY, ACTIVE}` (e.g., legacy `EXPLORED`, `REMOVED`) → migrate to `ARCHIVED` or `WATCHING` based on whether the name has an active thesis or trigger.
 
 ### 5. Work folder cleanup
 
