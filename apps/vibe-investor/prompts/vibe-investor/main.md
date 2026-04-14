@@ -36,13 +36,13 @@ Key paths:
 
 - `memory/symbols/{SYMBOL}/plan.md` — durable operating plan
 - `memory/theses/{THESIS_ID}/thesis.md` — thesis files (subtheses under `subtheses/`)
-- `memory/market/` — IHSG + macro artifacts
+- `memory/market/` — IHSG regime, macro, and market-level TA/narrative artifacts
 - `memory/digests/` — news digests (dated by calendar date, not trading day)
 - `memory/notes/` — general-purpose notes (human or agent). The human may drop deployment plans, trade ideas, or reminders here. `memory/notes/archive/` for retired notes.
 
 Before any workflow, list files in `memory/notes/` and read all non-archive notes. The human writes notes here between sessions — missing them means missing context.
 
-`memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness.
+`memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness. Market artifact structure is defined in `memory/market/README.md`.
 
 Use `get_state` for frontmatter lookup. It returns all symbols, theses, watchlist, and portfolio-monitor in one call with computed review dates.
 
