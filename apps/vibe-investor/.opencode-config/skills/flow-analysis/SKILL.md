@@ -123,3 +123,7 @@ Keep concise. Required sections: Flow Assessment Summary, Context, Core Metrics,
 - Be explicit about what is deterministic versus heuristic.
 - Call out low coverage or high anomaly risk plainly.
 - Do not oversell broker-flow as a standalone trigger engine.
+
+## Artifact Persistence
+
+Write the output report as `flow.md` and the deterministic context as `flow_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

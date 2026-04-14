@@ -361,3 +361,7 @@ Scoring rules:
 - For annual-report-heavy work, first run a fast screen on cash, inventory or receivables pressure, ROA/ROE or ROCE, and operating cash flow before going deeper into notes and governance.
 - Reuse fetched data; do not re-query the same symbol without reason.
 - If evidence is mixed, lower confidence and keep the final posture conservative.
+
+## Artifact Persistence
+
+Write the output report as `fundamental.md` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

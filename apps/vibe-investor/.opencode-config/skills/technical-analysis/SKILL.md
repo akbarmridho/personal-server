@@ -45,8 +45,6 @@ python3 scripts/generate_ta_charts.py \
 
 MA modes: `hybrid` (default) = EMA21 + SMA50 + SMA200 + adaptive SMA{n}; `baseline` = EMA21 + SMA50 + SMA200 only. Use artifact paths from the chart evidence manifest.
 
-If the active workflow specifies a retained artifact directory, write outputs there instead of `work/`.
-
 ## Purpose Modes
 
 - `INITIAL` — fresh thesis
@@ -206,3 +204,7 @@ Sections: A. Assessment Summary, B. Context, C. State/Location, D. Setup/Trigger
 Required fields: `purpose_mode`, `conviction_score`, `confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `bull_factors`, `bear_factors`, `risk_map`, `red_flags`, `key_levels`, `monitoring_triggers`, `chart_artifact_refs`. Add `risk_map.rr` for constructive setups, `current_rr` when long.
 
 End with one short plain-language wrap-up: bias, key level, what raises or lowers conviction next.
+
+## Artifact Persistence
+
+Write the output report as `technical.md`, chart PNGs (`*.png`), and `ta_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

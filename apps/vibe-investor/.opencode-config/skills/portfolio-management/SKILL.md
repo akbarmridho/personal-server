@@ -6,8 +6,7 @@ description: Internal trading-desk and portfolio operations subsystem for IDX eq
 ## How To Use This Skill
 
 1. Classify the request by workflow type (entry, desk-check, deep-review, exit, rebalance).
-2. Resolve reference files for the selected workflow.
-3. Read references before running the workflow.
+2. Read this skill before running the workflow.
 
 Tool source of truth: `portfolio_state` for live holdings/cash/equity, `portfolio_trade_history` for trade rows and realized analytics, `portfolio_symbol_trade_journey` for symbol-level lifecycle, `get_state` for frontmatter lookup and derived portfolio-monitor state. Symbol memory is the durable operating plan, not the live ledger.
 
@@ -127,12 +126,156 @@ Exit: PM consumes symbol-level exits and applies portfolio hard rails. Exit sour
 
 Rebalance: quarterly baseline. Drift trigger >20%. Event trigger on thesis break, governance risk, or liquidity deterioration. Skip tiny trades with no material risk impact.
 
-## References
+## Trading Discipline
 
-| File | Topics |
-|------|--------|
-| [trading-plan-template.md](references/trading-plan-template.md) | Per-symbol plan structure, trade classification, underwriting fields, invalidation, winner management |
-| [review-watchlist-and-review-logging.md](references/review-watchlist-and-review-logging.md) | Review cadence, watchlist management, benchmark discipline, re-entry, postmortem loop |
+### Trade Classification Gate
+
+Before endorsing any new buy, add, or hold escalation, explicitly classify the trade:
+
+- `THESIS` for durable multi-driver views with higher-tier evidence and longer holding tolerance
+- `TACTICAL` for setup-driven or catalyst-window trades with shorter holding intent
+- `SPECULATION` for low-evidence, rumor-led, or optionality-heavy trades where uncertainty dominates
+
+Do not let these categories blur. If a trade changes category, say so explicitly. `SPECULATION` should not silently drift into `THESIS` because price moved favorably first.
+
+### Evidence Hierarchy
+
+Grade thesis quality in this order:
+
+1. official filings / company disclosures
+2. company profile / financials / hard operating data
+3. internal analysis documents
+4. external news / web sources
+5. social discussion
+6. rumor
+
+Do not treat rumor as the base thesis unless the trade is explicitly labeled `SPECULATION`. Treat rumor as optionality unless supported by higher-tier evidence. If size is high while evidence quality is low, warn clearly. Size must scale with evidence quality, not excitement.
+
+### Invalidation And Winner Discipline
+
+- If technical structure breaks, say it clearly. Do not let narrative hope override invalidation.
+- No averaging down below broken structure unless evidence is better than before and chart repair is visible.
+- Build and reduce size in tranches, not all-in / all-out by default.
+- Add only when thesis and structure remain valid and either the prior tranche is working or the plan explicitly allows a staged pullback add near a predefined favorable zone with unchanged invalidation.
+- Reduce progressively when evidence weakens, even before full invalidation, if the plan defines that downgrade path.
+- Require staged trim logic for trades with clear upside targets.
+- Warn against target drift after planned targets are reached. Do not let a winning trade silently mutate into a round-trip loser.
+- If the trade requires active monitoring and the investor is unlikely to provide it, reduce aggression.
+
+### Minimum Required Fields (New Entry)
+
+Trade Classification, Entry type, Thesis, Catalyst, Invalidation, Expected holding period, Position size and stop loss, Expected R:R, Entry build, Size reason, Monitoring requirement, Timeframe + `Last Reviewed` + review cadence, Progress checkpoint and failure action, Trade-management policy (`Holding mode` + `Final exit precedence`). For `PILOT`: also Reduced pilot gates used, Scale-up trigger, Pilot expiry.
+
+No entry should be executed without these fields filled. If missing, treat the trade as underdefined and downgrade conviction.
+
+### Cross-Skill Dependencies
+
+Lens score fields come from multiple sources:
+
+- Technical score: `technical_assessment.conviction_score` plus one-line driver summary.
+- Flow score: `flow_assessment.conviction_score` plus sponsor/trust/timing context from `flow_context`.
+- Narrative score: `narrative_assessment.conviction_score` plus catalyst and failure-risk context.
+- Fundamental score: `fundamental_assessment.conviction_score` plus valuation anchor / quality context when loaded.
+- Portfolio fit score, composite score, aggression multiplier, and final size: parent workflow synthesis using `portfolio_constraints`.
+- Correlation Role: computed from `fetch-ohlcv` rolling correlation (deterministic).
+
+If a contributing skill is not active, fill the field with best available assessment and note the source limitation.
+
+Default holding-mode inference for first-pass workflows: `CORE` + `LONG_TERM` → `THESIS`, `SPECULATIVE` + `SWING` → `TACTICAL`, everything else → `HYBRID`. The workflow may override this.
+
+## Symbol Plan Template
+
+The full plan template lives in `memory/symbols/README.md` under "Symbol Plan Body Template". Read it before creating or fully rewriting a symbol plan. The template defines frontmatter schema and all body sections (Thesis, Catalyst, Active Scenarios, Lens Scores, Plan, Trade Management, Invalidation, Open Position Monitoring, Notes, Digest Sync).
+
+## Review Discipline
+
+### Benchmark And Style Discipline
+
+- During reviews, compare portfolio behavior against `IHSG` and relevant sector leaders.
+- Watch for frustration-driven style drift.
+- Prefer best-ideas density over activity; if the book is cluttered with mediocre or redundant names, say it explicitly and push for fewer, higher-quality exposures.
+- If the investor is rotating styles without a framework, say it explicitly.
+
+### Re-Entry Discipline
+
+- After a major loss, do not endorse re-entry unless thesis, sponsorship, and structure have all reset.
+- Re-entry must be treated as a new trade, not emotional continuation of the old one.
+
+### Postmortem Upgrade Loop
+
+Use postmortems as system upgrades, not blame sessions. Extract repeated behavioral mistakes, convert them into operating rules, improve both the human decision process and the assistant workflow.
+
+## Review Cadence
+
+### Daily (Quick Check)
+
+- Check stop loss levels and triggered invalidations.
+- Check whether any progress checkpoint date has passed and whether the required checkpoint condition was met.
+- Scan news/filings for held positions.
+- Check flow changes on key positions.
+- Review current P&L, exposure, and current `portfolio_heat` from the portfolio tools.
+
+### Weekly
+
+- Review all open positions: thesis intact or broken.
+- Check sizing compliance against position caps.
+- Check rolling correlation changes among top holdings.
+- Check for stale plans that have not been reviewed within their expected cadence.
+- Compare portfolio behavior versus `IHSG` and relevant sector leaders.
+- Check whether any active tactical trades demand more monitoring than the investor is realistically providing.
+- Update watchlist and trigger status.
+- Record weekly portfolio heat and action items in the retained review summary.
+
+### Monthly
+
+- Full performance review: realized and unrealized.
+- Review the portfolio equity curve and decision process as a system, not only as isolated symbol outcomes.
+- Sector allocation and concentration check.
+- Rebalance check: cadence, drift, thesis validity.
+- Strategy quality review: what worked and what failed.
+- Review whether style drift, attention mismatch, or repeated re-entry mistakes are recurring.
+- Capture durable lessons in long-term memory.
+
+## Leader Breadth Risk Monitor
+
+Track a small leader basket (from active/watchlist universe) and count fresh invalidations.
+
+- If multiple leaders break structure/stop in the same review window, treat this as regime deterioration. (Flag PM-W09)
+- When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
+- Record the signal and resulting action in the retained review summary.
+
+Portfolio health red flag: if portfolio is flat/red while IHSG prints new highs, strategy likely has structural misalignment and needs overhaul. (Flag PM-W08)
+
+## Plan Staleness Discipline
+
+Each symbol plan should carry an explicit review cadence and last-reviewed date.
+
+Practical thresholds:
+
+- `SWING`: stale after 7 calendar days without review
+- `POSITION`: stale after 30 calendar days without review
+- `LONG_TERM`: stale after 90 calendar days without review
+
+If a plan is stale: flag `PM-W10`, downgrade confidence in the stored plan, require refresh before allowing aggressive adds.
+
+## Watchlist Management
+
+| Status | Criteria | Action |
+|--------|----------|--------|
+| WATCHING | Thesis interesting but not actionable yet, or position exited but name still worth tracking | Monitor catalyst/flow/price trigger |
+| READY | Trigger conditions are close | Prepare plan and alerts |
+| ACTIVE | Triggered and position is open | Execute and monitor |
+
+Treat the watchlist as attention-budgeted inventory, not a dumping ground. Keep `READY` inventory tight enough to match realistic monitoring capacity. Any watchlist name without a clear `why now`, trigger, invalidation, or recent review should be refreshed, demoted, or removed.
+
+Watchlist table format:
+
+```markdown
+| Symbol | Status | Thesis | Trigger | Invalidation | Added | Leader | Notes |
+|--------|--------|--------|---------|--------------|-------|--------|-------|
+| BBCA | READY | Rate cut beneficiary | Break above 10,000 with volume | Closes below 9,650 | 2025-01-15 | Yes | Waiting for volume confirmation |
+| ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | ASP weakens while volume distribution expands | 2025-01-20 | No | Monitor catalyst window |
+```
 
 ## Common Workflows
 
@@ -140,11 +283,11 @@ Rebalance: quarterly baseline. Drift trigger >20%. Event trigger on thesis break
 
 1. Resolve `regime_aggression`. Check IHSG cash target vs current cash ratio.
 2. Choose `entry_type` (FULL or PILOT). Validate sizing against constraints.
-3. Load `trading-plan-template.md`, fill required fields, write to symbol memory.
+3. Fill required fields from the Symbol Plan Template, write to symbol memory.
 
 ### Desk Check
 
-1. Load `review-watchlist-and-review-logging.md`. Call `portfolio_state`. If missing, stop.
+1. Call `portfolio_state`. If missing, stop.
 2. For each position: check thesis health, stops, scenarios, sizing compliance, review cadence.
 3. For READY symbols: track price movement and thesis changes.
 4. Check portfolio-level: heat, concentration, regime, cash target.
@@ -163,6 +306,42 @@ Rebalance: quarterly baseline. Drift trigger >20%. Event trigger on thesis break
 ### Rebalance
 
 1. Check drift and event triggers. Validate replacement correlation. Skip immaterial trades.
+
+## Review Summary Template
+
+```markdown
+# Desk Check: {YYYY-MM-DD}
+
+## Market Context
+- IHSG: {level} ({change%})
+- Key news: {1-2 headlines}
+- Regime aggression: {0.25-1.5}
+- Current portfolio heat: {X%}
+
+## Actions Taken
+- {action 1}
+- {action 2}
+
+## Positions Updated
+| Symbol | Action | Price | Notes |
+|--------|--------|-------|-------|
+| ... | ... | ... | ... |
+
+## Watchlist Changes
+- Added: {symbols + reason}
+- Removed: {symbols + reason}
+- Triggered: {symbols}
+
+## Key Observations
+- {insight 1}
+- {insight 2}
+- Checkpoint failures: {symbols or none}
+- Stale plans: {symbols or none}
+- Style drift: {none or what changed}
+
+## Next Actions
+- {next checks and actions}
+```
 
 ## Execution Defaults
 

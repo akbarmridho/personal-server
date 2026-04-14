@@ -352,7 +352,11 @@ Field rules:
 - For full analysis, fetch hard dependencies in parallel.
 - Prefer internal documents and Exa web sources for factual event confirmation and article-level evidence.
 - Use `search-twitter` only when social spread, rumor propagation, or saturation is material to the thesis.
-- When invoked by a parent workflow, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting. Write retained outputs to the path specified by the active workflow.
+- When invoked by a parent workflow, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
 - Use fail-fast behavior: if a required dependency retrieval fails, stop and report the missing dependency.
 - Load specialized references only when the mechanism is thesis-critical, not by default.
 - Output must be structured enough for parent synthesis. Do not stop at prose verdicts when the workflow needs machine-readable narrative fields.
+
+## Artifact Persistence
+
+Write the output report as `narrative.md` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

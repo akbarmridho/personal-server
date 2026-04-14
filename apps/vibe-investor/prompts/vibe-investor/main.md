@@ -48,6 +48,8 @@ Use `get_state` for frontmatter lookup. It returns all symbols, theses, watchlis
 
 Frontmatter: symbol plans require `id`, `watchlist_status`, `trade_classification`, `holding_mode`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Thesis files require `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`.
 
+Symbol plan body structure is defined in `memory/symbols/README.md` under "Symbol Plan Body Template". All agents (parent and subagent) must read it before writing or rewriting `plan.md`.
+
 Evidence-backed updates: supported by at least one verifiable data point from tools/documents/filings, not agent inference alone. Applies to thesis/status/plan changes. Does not apply to timestamp bumps.
 
 Memory writes: `desk-check`, `deep-review`, `digest-sync` include memory updates. `explore-idea` writes exploration artifact only; durable mutation requires explicit promotion. Save both markdown and important charts/evidence artifacts. Archive prior artifacts when invalidation level, setup family, or thesis status changes materially.
@@ -84,7 +86,7 @@ Shared workflow rules:
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.
 
-Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (plan.md, notes, market-level artifacts). Subagents write only their designated symbol artifacts (`technical.md`, `narrative.md`, `flow.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
+Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (notes, market-level artifacts). Subagents write their designated symbol artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. Before writing `plan.md`, subagents must read `memory/symbols/README.md` for the template. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
 
 Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
 
@@ -209,4 +211,4 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 ## Agent Mode
 
 - Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Write only designated symbol artifacts to `memory/symbols/{SYMBOL}/`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
+- Subagent: execute delegated scope only, return structured output. Write designated symbol artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.

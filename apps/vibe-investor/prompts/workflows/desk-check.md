@@ -43,7 +43,7 @@ Gather and integrate new information before reviewing.
 ### Phase 3: Symbol Reviews (delegated)
 
 - Coverage universe: holdings from `portfolio_state`, plus watchlist symbols in `READY`, plus watchlist symbols marked as leaders.
-- Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols and writes retained artifacts to memory before returning. The parent agent must not run symbol-level TA/flow/narrative inline.
+- Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols, reads `memory/symbols/README.md` for the plan template, and writes retained artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/` before returning. The parent agent must not run symbol-level TA/flow/narrative inline.
 - Top-down market review is a separate subagent delegation, run in parallel with symbol batches when possible.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when the symbol is actively held or near actionable review, sponsor behavior could change conviction materially, or parent synthesis needs lead / confirm / warning context versus TA.
@@ -72,8 +72,7 @@ On every successful run, update `memory/market/plan.md` if the market context ch
 
 ## Artifacts
 
-- Symbol artifacts must include at least `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed).
-- Market artifacts must include `desk_check.md`.
+- Symbol artifacts must include at least `plan.md`, `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed). Write `fundamental.md` when fundamental analysis is run for the symbol.
 - Digest artifact at `memory/digests/{CALENDAR_DATE}_news_digest.md` (Phase 1).
-- `memory/market/desk_check.md` must include the triaged symbol reviews per the synthesis contract in main.md.
+- Desk-check synthesis artifact at `memory/digests/{CALENDAR_DATE}_desk_check.md` — must include the triaged symbol reviews per the synthesis contract in main.md.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.
