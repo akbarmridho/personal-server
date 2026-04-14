@@ -48,9 +48,10 @@ PM does not produce buy/sell recommendations. It tells the human "here's how muc
 | `PM-W06` | Correlation clustering (corr > 0.75) between large holdings | `MEDIUM` |
 | `PM-W07` | Position size exceeds 5% of ADTV | `HIGH` |
 | `PM-W08` | Portfolio flat/red while IHSG at new highs | `HIGH` |
-| `PM-W09` | Multiple leaders invalidated in same window | `HIGH` |
-| `PM-W10` | Thesis stale (no review within cadence) | `MEDIUM` |
+| `PM-W09` | Multiple key names invalidated in same window | `HIGH` |
+| `PM-W10` | Symbol review stale (>5 days for active symbols, >10 days for archived) | `MEDIUM` |
 | `PM-W11` | Cash ratio below IHSG cash target | `HIGH` |
+| `PM-W12` | Symbol missing required artifact | `MEDIUM` |
 
 ## Portfolio Constraints Contract
 
@@ -88,7 +89,7 @@ Concentration checks: correlation > 0.75 with large holding → compress sharply
 
 ## Regime Aggression
 
-Resolve before any new long. Evidence: IHSG OHLCV + leader basket from `get_state`.
+Resolve before any new long. Evidence: IHSG OHLCV + key holdings and watchlist names.
 
 | IHSG state | Base | Improving breadth | Deteriorating breadth |
 |------------|------|-------------------|-----------------------|
@@ -97,7 +98,7 @@ Resolve before any new long. Evidence: IHSG OHLCV + leader basket from `get_stat
 | Below SMA50, above SMA200 | 0.5 | 0.7 | 0.4 |
 | Below SMA200 | 0.4 | 0.5 | 0.4 |
 
-Floor is 0.4. Adjust for leader health, breakdown clustering, rate of change, and portfolio-weighted beta. If deteriorating, reduce before damage is fully expressed.
+Floor is 0.4. Adjust for key-name health, breakdown clustering, rate of change, and portfolio-weighted beta. If deteriorating, reduce before damage is fully expressed.
 
 IHSG cash overlay (soft budget, not hard wall):
 
@@ -236,11 +237,11 @@ Use postmortems as system upgrades, not blame sessions. Extract repeated behavio
 - Review whether style drift, attention mismatch, or repeated re-entry mistakes are recurring.
 - Capture durable lessons in long-term memory.
 
-## Leader Breadth Risk Monitor
+## Breadth Risk Monitor
 
-Track a small leader basket (from active/watchlist universe) and count fresh invalidations.
+Track key names from the active/watchlist universe and count fresh invalidations.
 
-- If multiple leaders break structure/stop in the same review window, treat this as regime deterioration. (Flag PM-W09)
+- If multiple key names break structure/stop in the same review window, treat this as regime deterioration. (Flag PM-W09)
 - When deterioration appears, reduce portfolio heat, tighten stops, and delay aggressive adds.
 - Record the signal and resulting action in the retained review summary.
 
@@ -248,15 +249,12 @@ Portfolio health red flag: if portfolio is flat/red while IHSG prints new highs,
 
 ## Plan Staleness Discipline
 
-Each symbol plan should carry an explicit review cadence and last-reviewed date.
+`get_state` computes staleness automatically from `last_reviewed`:
 
-Practical thresholds:
+- Non-archived symbols (`WATCHING`, `READY`, `ACTIVE`): stale after 5 days
+- `ARCHIVED` symbols: stale after 10 days
 
-- `SWING`: stale after 7 calendar days without review
-- `POSITION`: stale after 30 calendar days without review
-- `LONG_TERM`: stale after 90 calendar days without review
-
-If a plan is stale: flag `PM-W10`, downgrade confidence in the stored plan, require refresh before allowing aggressive adds.
+If a plan is stale: `get_state` flags it with a warning and sets `review_stale: true`. Health flag `PM-W10` fires if any held position is stale.
 
 ## Watchlist Management
 
@@ -272,10 +270,10 @@ Treat the watchlist as attention-budgeted inventory, not a dumping ground. Keep 
 Watchlist table format:
 
 ```markdown
-| Symbol | Status | Thesis | Trigger | Invalidation | Added | Leader | Notes |
-|--------|--------|--------|---------|--------------|-------|--------|-------|
-| BBCA | READY | Rate cut beneficiary | Break above 10,000 with volume | Closes below 9,650 | 2025-01-15 | Yes | Waiting for volume confirmation |
-| ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | ASP weakens while volume distribution expands | 2025-01-20 | No | Monitor catalyst window |
+| Symbol | Status | Thesis | Trigger | Invalidation | Added | Notes |
+|--------|--------|--------|---------|--------------|-------|-------|
+| BBCA | READY | Rate cut beneficiary | Break above 10,000 with volume | Closes below 9,650 | 2025-01-15 | Waiting for volume confirmation |
+| ADRO | WATCHING | Coal cycle + restructuring | Foreign accumulation signal | ASP weakens while volume distribution expands | 2025-01-20 | Monitor catalyst window |
 ```
 
 ## Common Workflows
@@ -288,7 +286,7 @@ Watchlist table format:
 
 ### Desk Check
 
-1. Call `portfolio_state`. If missing, stop.
+1. Call `portfolio_state` and `get_state`. If portfolio missing, stop. Surface any `get_state` warnings (staleness, status mismatches).
 2. For each position: check thesis health, stops, scenarios, sizing compliance, review cadence.
 3. For READY symbols: track price movement and thesis changes.
 4. Check portfolio-level: heat, concentration, regime, cash target.

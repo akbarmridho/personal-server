@@ -13,26 +13,20 @@ type SymbolRecord = FrontmatterRecord & {
   id?: string;
   watchlist_status?: string;
   trade_classification?: string;
-  thesis_id?: string | null;
+  thesis_id?: unknown[];
   last_reviewed?: string;
-  next_review?: string | null;
-  leader?: boolean;
-  tags?: unknown[];
   days_since_review?: number;
-  review_overdue?: boolean;
-  days_overdue?: number;
+  review_stale?: boolean;
 };
 
 type ThesisRecord = FrontmatterRecord & {
   id?: string;
-  scope?: string;
   title?: string;
   type?: string;
   parent_thesis_id?: string | null;
   status?: string;
   symbols?: unknown[];
   last_updated?: string;
-  tags?: unknown[];
   days_since_update?: number;
   review_stale?: boolean;
 };
@@ -43,21 +37,16 @@ const SYMBOL_REQUIRED_FIELDS = [
   "trade_classification",
   "thesis_id",
   "last_reviewed",
-  "next_review",
-  "leader",
-  "tags",
 ];
 
 const THESIS_REQUIRED_FIELDS = [
   "id",
-  "scope",
   "title",
   "type",
   "parent_thesis_id",
   "status",
   "symbols",
   "last_updated",
-  "tags",
 ];
 
 export default tool({
@@ -96,6 +85,12 @@ async function loadSymbolRecords(directory: string): Promise<SymbolRecord[]> {
         { legacyField: "scope" },
       );
       enrichSymbolDates(record, today);
+      // Normalize thesis_id to always be an array
+      if (record.thesis_id === null || record.thesis_id === undefined) {
+        record.thesis_id = [];
+      } else if (!Array.isArray(record.thesis_id)) {
+        record.thesis_id = [record.thesis_id];
+      }
       return record;
     }),
   );
@@ -143,27 +138,45 @@ function daysBetween(from: string, to: string): number {
 function enrichSymbolDates(record: SymbolRecord, today: string): void {
   if (typeof record.last_reviewed === "string") {
     record.days_since_review = daysBetween(record.last_reviewed, today);
-  }
-  if (typeof record.next_review === "string") {
-    record.review_overdue = record.next_review <= today;
-    record.days_overdue =
-      record.next_review <= today
-        ? daysBetween(record.next_review, today)
-        : undefined;
+    const staleThreshold = record.watchlist_status === "ARCHIVED" ? 10 : 5;
+    if (record.days_since_review > staleThreshold) {
+      record.review_stale = true;
+      const warnings = record.warnings ?? [];
+      warnings.push(
+        `Stale: last reviewed ${record.days_since_review} days ago (threshold ${staleThreshold}d)`,
+      );
+      record.warnings = warnings;
+    }
   }
 }
 
 function enrichThesisDates(record: ThesisRecord, today: string): void {
   if (typeof record.last_updated === "string") {
     record.days_since_update = daysBetween(record.last_updated, today);
-    record.review_stale = daysBetween(record.last_updated, today) > 30;
+    const status = record.status?.toUpperCase();
+    let staleThreshold: number | null = null;
+    if (status === "ACTIVE") {
+      staleThreshold = 5;
+    } else if (status === "DORMANT") {
+      staleThreshold = 10;
+    } else if (status === "INACTIVE") {
+      staleThreshold = 30;
+    }
+    if (staleThreshold !== null && record.days_since_update > staleThreshold) {
+      record.review_stale = true;
+      const warnings = record.warnings ?? [];
+      warnings.push(
+        `Stale: last updated ${record.days_since_update} days ago (threshold ${staleThreshold}d for ${status})`,
+      );
+      record.warnings = warnings;
+    }
   }
 }
 
 function deriveWatchlist(symbolRecords: SymbolRecord[]) {
   return symbolRecords
     .filter((record) => {
-      return record.watchlist_status === "READY" || record.leader === true;
+      return record.watchlist_status === "READY";
     })
     .map((record) => {
       const {
@@ -172,9 +185,6 @@ function deriveWatchlist(symbolRecords: SymbolRecord[]) {
         trade_classification,
         thesis_id,
         last_reviewed,
-        next_review,
-        leader,
-        tags,
         file,
         warnings,
       } = record;
@@ -185,14 +195,10 @@ function deriveWatchlist(symbolRecords: SymbolRecord[]) {
         trade_classification,
         thesis_id,
         last_reviewed,
-        next_review,
-        leader,
-        tags,
         file,
       };
-      if (record.review_overdue) {
-        watchlistRecord.review_overdue = record.review_overdue;
-        watchlistRecord.days_overdue = record.days_overdue;
+      if (record.review_stale) {
+        watchlistRecord.review_stale = record.review_stale;
       }
       if (record.days_since_review !== undefined) {
         watchlistRecord.days_since_review = record.days_since_review;
@@ -228,12 +234,8 @@ async function derivePortfolioMonitor(
         trade_classification: plan?.trade_classification,
         thesis_id: plan?.thesis_id,
         last_reviewed: plan?.last_reviewed,
-        next_review: plan?.next_review,
         days_since_review: plan?.days_since_review,
-        review_overdue: plan?.review_overdue,
-        days_overdue: plan?.days_overdue,
-        leader: plan?.leader,
-        tags: plan?.tags,
+        review_stale: plan?.review_stale,
         file: plan?.file,
         warnings: plan?.warnings,
       };
@@ -243,6 +245,36 @@ async function derivePortfolioMonitor(
         Object.entries(position).filter(([, value]) => value !== undefined),
       ),
     );
+
+  const heldSymbols = new Set(
+    positions.map((p) => (p.symbol as string).toUpperCase()),
+  );
+
+  // Flag positions where frontmatter watchlist_status is not ACTIVE
+  for (const position of positions) {
+    if (position.watchlist_status && position.watchlist_status !== "ACTIVE") {
+      const positionWarnings = (position.warnings as string[]) ?? [];
+      positionWarnings.push(
+        `Held position but watchlist_status is ${position.watchlist_status}, expected ACTIVE`,
+      );
+      position.warnings = positionWarnings;
+    }
+  }
+
+  // Flag symbols that claim ACTIVE but have no matching position
+  for (const record of symbolRecords) {
+    if (
+      record.watchlist_status === "ACTIVE" &&
+      record.id &&
+      !heldSymbols.has(record.id.toUpperCase())
+    ) {
+      const warnings = record.warnings ?? [];
+      warnings.push(
+        "watchlist_status is ACTIVE but no matching holding in portfolio_state",
+      );
+      record.warnings = warnings;
+    }
+  }
 
   const healthFlags: string[] = [];
   if (positions.some((position) => Number(position.weight) > 0.25)) {
@@ -258,13 +290,7 @@ async function derivePortfolioMonitor(
     healthFlags.push("PM-W02");
   }
 
-  if (
-    positions.some(
-      (position) =>
-        typeof position.next_review === "string" &&
-        position.next_review < snapshot.as_of,
-    )
-  ) {
+  if (positions.some((position) => position.review_stale === true)) {
     healthFlags.push("PM-W10");
   }
 

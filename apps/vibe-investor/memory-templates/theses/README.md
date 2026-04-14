@@ -8,24 +8,27 @@ Use:
 - `type: THESIS` for umbrella views
 - `type: SUBTHESIS` for narrower expressions of a parent thesis
 - `parent_thesis_id:` only for `SUBTHESIS`
+- `status: ACTIVE` — thesis is live, driving decisions
+- `status: DORMANT` — thesis is valid but no catalyst or urgency right now. Check occasionally.
+- `status: INACTIVE` — thesis is dead, invalidated, or retired.
 
-When an older thesis file is edited, add the frontmatter during that write.
+When an older thesis file is edited, remove legacy fields (`scope`, `tags`, or any field not in the current schema) and add any missing fields.
+
+```yaml
+---
+id: {thesis-id}
+title: {Title}
+type: {THESIS | SUBTHESIS}
+parent_thesis_id: {parent-thesis-id or null}
+status: {ACTIVE | DORMANT | INACTIVE}
+symbols: [{SYMBOL}, ...]
+last_updated: {YYYY-MM-DD}
+---
+```
 
 Suggested thesis-file structure:
 
 ```markdown
----
-id: {thesis-id}
-scope: thesis
-title: {Title}
-type: {THESIS | SUBTHESIS}
-parent_thesis_id: {parent-thesis-id or null}
-status: {ACTIVE | INACTIVE}
-symbols: [{SYMBOL}, ...]
-last_updated: {YYYY-MM-DD}
-tags: [{tag}, ...]
----
-
 # {Title}
 
 ## Summary

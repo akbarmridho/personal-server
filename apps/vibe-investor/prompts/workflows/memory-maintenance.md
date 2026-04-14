@@ -18,8 +18,8 @@ Run all checks unless command input narrows scope.
 ### 1. Frontmatter schema compliance
 
 - Load all symbol plans and thesis files from `get_state` output.
-- For each symbol plan, verify frontmatter matches the contract in `memory/symbols/README.md`: required fields `id`, `watchlist_status`, `trade_classification`, `thesis_id`, `last_reviewed`, `next_review`, `leader`, `tags`. Remove legacy fields (`scope`, `symbol`, `holding_mode`, or any field not in the current schema). Add missing fields with sensible defaults and flag them in the report.
-- For each thesis file, verify frontmatter matches the contract in `memory/theses/README.md`: required fields `id`, `scope: thesis`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`, `tags`. Same cleanup rules.
+- For each symbol plan, verify frontmatter matches the contract in `memory/symbols/README.md`: required fields `id`, `watchlist_status`, `trade_classification`, `thesis_id`, `last_reviewed`. Remove legacy fields (`scope`, `symbol`, `holding_mode`, `leader`, `tags`, `next_review`, or any field not in the current schema). Add missing fields with sensible defaults and flag them in the report.
+- For each thesis file, verify frontmatter matches the contract in `memory/theses/README.md`: required fields `id`, `title`, `type`, `parent_thesis_id`, `status`, `symbols`, `last_updated`. Remove legacy fields (`scope`, `tags`, or any field not in the current schema). Same cleanup rules.
 - Fix files in place. Report what was changed.
 
 ### 2. Orphan and consistency checks
@@ -27,7 +27,7 @@ Run all checks unless command input narrows scope.
 - Symbols referencing a `thesis_id` that doesn't exist as a thesis file → flag.
 - Thesis files listing symbols that don't have a corresponding `memory/symbols/{SYMBOL}/plan.md` → flag.
 - Symbol plans with `watchlist_status: ACTIVE` but no matching holding in `portfolio_state` → flag.
-- Symbol plans with `watchlist_status: ARCHIVED` and `leader: true` → flag (archived symbols should not be leaders).
+- Symbols in `portfolio_state` but `watchlist_status` is not `ACTIVE` → flag and fix to `ACTIVE`.
 
 ### 3. Content cleanup
 
@@ -39,17 +39,22 @@ For each active thesis file:
 
 - If body content references removed prompt concepts, clean in place.
 
-### 4. Review overdue and inactive resurfacing
+### 4. Review staleness and inactive resurfacing
 
-- Use the computed `review_overdue`, `days_overdue`, and `days_since_review` fields from `get_state` output.
-- Symbols with `review_overdue: true` → list with days overdue.
-- Symbols with `days_since_review > 30` → flag as stale.
+- Use the computed `review_stale` and `days_since_review` fields from `get_state` output.
+- Symbols with `review_stale: true` → list with days since last review.
 - Thesis files with `review_stale: true` → flag.
 - `WATCHING` symbols without a matching holding in `portfolio_state`: do a lightweight check via `list-documents` for recent news or filings mentioning these symbols in the last 30 days. If material documents exist, flag the symbol as worth revisiting with a one-line summary of what was found.
 - `ARCHIVED` symbols: same lightweight check. If material documents exist, flag as worth promoting to `WATCHING`.
 - Symbols with `watchlist_status` values not in `{ARCHIVED, WATCHING, READY, ACTIVE}` (e.g., legacy `EXPLORED`, `REMOVED`) → migrate to `ARCHIVED` or `WATCHING` based on whether the name has an active thesis or trigger.
 
-### 5. Work folder cleanup
+### 5. Artifact completeness
+
+- For each non-`ARCHIVED` symbol, check that all required artifacts exist: `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_flow_context.json`, chart PNGs.
+- Any symbol missing artifacts → flag `PM-W12` with the missing files listed.
+- Report a summary table of artifact gaps.
+
+### 6. Work folder cleanup
 
 - List all files under `work/`.
 - Delete everything in `work/`. This folder is disposable scratch by definition.
