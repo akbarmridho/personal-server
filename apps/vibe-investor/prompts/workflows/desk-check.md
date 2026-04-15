@@ -12,14 +12,14 @@ Gather and integrate new information before reviewing.
 
 1. **Digest collection.** Gather high-signal news/documents since the last successful digest run.
    - Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
-   - Continuity: before collecting, read the latest file in `memory/digests/` to determine the prior coverage window endpoint. The new digest window starts from that endpoint. State the prior digest path and its window in the new digest header.
-   - Continuity window: 7 calendar days from the prior digest's window endpoint.
+   - Continuity: before collecting, read the latest file in `memory/digests/` to determine the prior coverage window endpoint. Set `date_from` to that endpoint when calling `list-documents`. This captures everything from the prior endpoint through today, including documents scraped on the current day.
+   - Max lookback: if the prior digest is more than 7 calendar days old, cap `date_from` at 7 days ago and note the gap in the digest header.
    - Digest date: use today's calendar date (`YYYY-MM-DD` in WIB), not `TRADING_DAY`. News and analysis arrive on weekends and holidays too.
    - Write the digest artifact to `memory/digests/{CALENDAR_DATE}_news_digest.md`.
    - Document references: every document cited in the digest must use the full document ID as returned by tools. Never truncate or shorten UUIDs.
 
    Digest output structure:
-   - Header: date, coverage window (from → to), prior digest path referenced for continuity.
+   - Header: date, coverage window (from → to, inclusive of today), prior digest path referenced for continuity.
    - Collection note: state how many documents were found per type and whether pagination was exhausted.
    - Topline regime read: what is the current market posture? What changed versus the prior digest? Be honest about what is and isn't repaired.
    - Thesis impact map: for each active thesis, state what changed this window and whether the thesis is strengthening, weakening, or unchanged. Include reasoning, not just labels.

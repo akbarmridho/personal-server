@@ -188,8 +188,14 @@ MCP tools (stock data, knowledge base, social, web), custom tools (`get_state`, 
 
 Key tool notes:
 
-- `fetch-ohlcv`: daily (3yr) + intraday_1m (7d). Split-adjusted, not dividend-adjusted. Non-stock symbols: daily only.
-- `fetch-broker-flow`: `trading_days` 1-60. Flow skill runs `build_flow_context.py` on the output.
+- `fetch-ohlcv`: daily (3yr) + intraday_1m (7d). Split-adjusted, not dividend-adjusted. Non-stock symbols: daily only. Output is large — save to `{SYMBOL}_ohlcv.json`, never read it manually. Feed it to the skill's preprocessing scripts.
+- `fetch-broker-flow`: `trading_days` 1-60. Output is large — save to `{SYMBOL}_broker_flow.json`, never read it manually. Feed it to `build_flow_context.py`.
+- File reading rules for data artifacts:
+  - `{SYMBOL}_ohlcv.json` — NEVER read. Preprocessing input only.
+  - `{SYMBOL}_broker_flow.json` — NEVER read. Preprocessing input only.
+  - `{SYMBOL}_ta_context.json` — READ FULL. This is the compact preprocessed output. Read it directly.
+  - `{SYMBOL}_flow_context.json` — READ FULL. This is the compact preprocessed output. Read it directly.
+  - Do not use `jq` on context JSONs. They are already compact. Just read them.
 - `deep-doc-extract`: pass `goal` + `sources` array for large PDFs/filings.
 - Portfolio tools: read-only. `portfolio_state` for snapshot, `portfolio_trade_history` for trade rows, `portfolio_symbol_trade_journey` for symbol lifecycle.
 - `get-stock-profile`: call once per symbol early in the run.
@@ -215,4 +221,4 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 ## Agent Mode
 
 - Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Write designated symbol artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
+- Subagent: execute delegated scope only, return structured output. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Write designated symbol artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
