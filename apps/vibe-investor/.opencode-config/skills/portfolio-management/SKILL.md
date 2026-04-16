@@ -49,7 +49,7 @@ PM does not produce buy/sell recommendations. It tells the human "here's how muc
 | `PM-W07` | Position size exceeds 5% of ADTV | `HIGH` |
 | `PM-W08` | Portfolio flat/red while IHSG at new highs | `HIGH` |
 | `PM-W09` | Multiple key names invalidated in same window | `HIGH` |
-| `PM-W10` | Symbol review stale (>5 days for active symbols, >10 days for archived) | `MEDIUM` |
+| `PM-W10` | Symbol review stale | `MEDIUM` |
 | `PM-W11` | Cash ratio below IHSG cash target | `HIGH` |
 | `PM-W12` | Symbol missing required artifact | `MEDIUM` |
 
@@ -251,8 +251,10 @@ Portfolio health red flag: if portfolio is flat/red while IHSG prints new highs,
 
 `get_state` computes staleness automatically from `last_reviewed`:
 
-- Non-archived symbols (`WATCHING`, `READY`, `ACTIVE`): stale after 5 days
-- `ARCHIVED` symbols: stale after 10 days
+- `ACTIVE` and `READY`: stale after 2 days
+- `WATCHING`: stale after 5 days
+- `SHELVED`: stale after 10 days
+- `ARCHIVED`: stale after 20 days
 
 If a plan is stale: `get_state` flags it with a warning and sets `review_stale: true`. Health flag `PM-W10` fires if any held position is stale.
 
@@ -260,12 +262,13 @@ If a plan is stale: `get_state` flags it with a warning and sets `review_stale: 
 
 | Status | Criteria | Action |
 |--------|----------|--------|
-| ARCHIVED | Reference material from one-off analysis or retired names | Not actively tracked. Resurfaced on digest match or deep-review sweep |
+| ARCHIVED | Pure reference material from one-off analysis or retired names | Lowest priority. Resurfaced on digest match or deep-review sweep |
+| SHELVED | Was a real candidate but parked for now. Might come back. | Checked every 10 days. Resurfaced on digest match or deep-review sweep |
 | WATCHING | Thesis interesting but not actionable yet, or position exited but name still worth tracking | Monitor catalyst/flow/price trigger |
 | READY | Trigger conditions are close | Prepare plan and alerts |
 | ACTIVE | Triggered and position is open | Execute and monitor |
 
-Treat the watchlist as attention-budgeted inventory, not a dumping ground. Keep `READY` inventory tight enough to match realistic monitoring capacity. Any watchlist name without a clear `why now`, trigger, invalidation, or recent review should be refreshed, demoted to `ARCHIVED`, or removed.
+Treat the watchlist as attention-budgeted inventory, not a dumping ground. Keep `READY` inventory tight enough to match realistic monitoring capacity. Any watchlist name without a clear `why now`, trigger, invalidation, or recent review should be refreshed, demoted to `SHELVED` or `ARCHIVED`, or removed.
 
 Watchlist table format:
 

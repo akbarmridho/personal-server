@@ -7,7 +7,7 @@ New symbol plans should start with YAML frontmatter:
 ```yaml
 ---
 id: {SYMBOL}
-watchlist_status: {ARCHIVED | WATCHING | READY | ACTIVE}
+watchlist_status: {ARCHIVED | SHELVED | WATCHING | READY | ACTIVE}
 trade_classification: {THESIS | TACTICAL | SPECULATION}
 thesis_id: [{thesis-id}, ...] or []
 last_reviewed: {YYYY-MM-DD}
@@ -18,12 +18,13 @@ Rules:
 
 - Keep the schema small and strict. `id` doubles as the symbol ticker. `scope` is implicit from file location.
 - When an older symbol plan is edited, remove legacy `scope`, `symbol`, `leader`, `tags`, and other fields not in the current schema.
-- `watchlist_status` is the durable watchlist label for the symbol. Valid values: `ARCHIVED`, `WATCHING`, `READY`, `ACTIVE`.
-- `ARCHIVED`: reference material from one-off analysis or retired names. Not actively tracked. Resurfaced only on digest match or deep-review sweep.
+- `watchlist_status` is the durable watchlist label for the symbol. Valid values: `ARCHIVED`, `SHELVED`, `WATCHING`, `READY`, `ACTIVE`.
+- `ARCHIVED`: pure reference material from one-off analysis or retired names. Lowest priority. Checked every 20 days.
+- `SHELVED`: was a real candidate but parked for now. Still somewhat interesting, might come back. Checked every 10 days.
 - `WATCHING`: thesis interesting but not actionable yet, or position exited but name still worth tracking.
 - `READY`: trigger conditions are close, plan prepared.
 - `ACTIVE`: position is open.
-- When a position is exited, set `watchlist_status` to `WATCHING`. The symbol stays on the watchlist for future monitoring — exiting a position does not mean removing the name. Use `ARCHIVED` instead if the name no longer warrants active monitoring.
+- When a position is exited, set `watchlist_status` to `WATCHING`. The symbol stays on the watchlist for future monitoring — exiting a position does not mean removing the name. Use `SHELVED` if the name might come back, or `ARCHIVED` if it's pure reference.
 - Do not store live fills, current P/L, or temporary execution state here.
 
 ## Required Artifacts
@@ -39,7 +40,7 @@ Every symbol directory (`memory/symbols/{SYMBOL}/`) must contain all of these:
 - `*_flow_context.json` — deterministic flow preprocessing
 - chart PNGs — visual evidence from TA skill
 
-Workflows that review a symbol must produce any missing artifacts, not skip them. `ARCHIVED` symbols are exempt — they keep whatever they had at time of archival.
+Workflows that review a symbol must produce any missing artifacts, not skip them. `ARCHIVED` and `SHELVED` symbols are exempt — they keep whatever they had at time of archival.
 
 ## Symbol Plan Body Template
 
@@ -48,7 +49,7 @@ All agents (parent and subagent) writing or rewriting `plan.md` must follow this
 ```markdown
 ---
 id: {SYMBOL}
-watchlist_status: {ARCHIVED / WATCHING / READY / ACTIVE}
+watchlist_status: {ARCHIVED / SHELVED / WATCHING / READY / ACTIVE}
 trade_classification: {THESIS / TACTICAL / SPECULATION}
 thesis_id: [{THESIS_ID}]
 last_reviewed: {YYYY-MM-DD}

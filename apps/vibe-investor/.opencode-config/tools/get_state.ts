@@ -138,7 +138,17 @@ function daysBetween(from: string, to: string): number {
 function enrichSymbolDates(record: SymbolRecord, today: string): void {
   if (typeof record.last_reviewed === "string") {
     record.days_since_review = daysBetween(record.last_reviewed, today);
-    const staleThreshold = record.watchlist_status === "ARCHIVED" ? 10 : 5;
+    const status = record.watchlist_status?.toUpperCase();
+    let staleThreshold: number;
+    if (status === "ACTIVE" || status === "READY") {
+      staleThreshold = 2;
+    } else if (status === "SHELVED") {
+      staleThreshold = 10;
+    } else if (status === "ARCHIVED") {
+      staleThreshold = 20;
+    } else {
+      staleThreshold = 5;
+    }
     if (record.days_since_review > staleThreshold) {
       record.review_stale = true;
       const warnings = record.warnings ?? [];

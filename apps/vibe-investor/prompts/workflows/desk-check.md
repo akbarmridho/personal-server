@@ -23,7 +23,7 @@ Gather and integrate new information before reviewing.
    - Collection note: state how many documents were found per type and whether pagination was exhausted.
    - Topline regime read: what is the current market posture? What changed versus the prior digest? Be honest about what is and isn't repaired.
    - Thesis impact map: for each active thesis, state what changed this window and whether the thesis is strengthening, weakening, or unchanged. Include reasoning, not just labels.
-   - Watchlist and portfolio-relevant flags: material changes to holdings, `READY`, `WATCHING`, or `ARCHIVED` symbols. Flag missed entries, unresolved actions, and status items needing human decision. Explicitly list any `ARCHIVED` symbols with material news so they are included in the Phase 3 coverage universe.
+   - Watchlist and portfolio-relevant flags: material changes to holdings, `READY`, `WATCHING`, `SHELVED`, or `ARCHIVED` symbols. Flag missed entries, unresolved actions, and status items needing human decision. Explicitly list any `SHELVED` or `ARCHIVED` symbols with material news so they are included in the Phase 3 coverage universe.
    - Commodity and macro data: key prices and macro developments relevant to active theses.
    - What to read: curated list of the highest-signal documents from this window, grouped by theme, with full document IDs and one-line descriptions of why each matters.
    - Bottom line: one paragraph synthesizing the net change in market posture, thesis health, and what the human should focus on.
@@ -42,7 +42,7 @@ Gather and integrate new information before reviewing.
 
 ### Phase 3: Symbol Reviews (delegated)
 
-- Coverage universe: holdings from `portfolio_state`, plus all `READY` symbols, plus all `WATCHING` symbols, plus any `ARCHIVED` symbol flagged by the digest in Phase 1 with material news.
+- Coverage universe: holdings from `portfolio_state`, plus all `READY` symbols, plus all `WATCHING` symbols, plus any `SHELVED` or `ARCHIVED` symbol flagged by the digest in Phase 1 with material news.
 - Before delegating each batch, check which symbols are missing artifacts. Subagents must produce all required artifacts (`plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, context JSONs, chart PNGs) for every symbol they review.
 - Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols, reads `memory/symbols/README.md` for the plan template, and writes retained artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/` before returning. The parent agent must not run symbol-level TA/flow/narrative inline.
 - Top-down market review is a separate subagent delegation, run in parallel with symbol batches. The market subagent runs `technical-analysis` on IHSG and `narrative-analysis` at the market level, writes `technical.md` and `narrative.md` to `memory/market/`, and returns a structured summary (IHSG regime, key levels, macro tone, regime change signals) for the parent synthesis. See `memory/market/README.md` for the full contract.

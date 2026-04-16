@@ -7,7 +7,7 @@ Command input may narrow symbol focus, tighten the date window, or add output em
 ## Contract
 
 - Purpose: full audit of the current operating system: portfolio quality, thesis health, process quality, and cleanup.
-- Coverage universe: all symbols with a plan in `memory/symbols/` (every status: `ACTIVE`, `READY`, `WATCHING`, `ARCHIVED`), plus active theses.
+- Coverage universe: all symbols with a plan in `memory/symbols/` (every status: `ACTIVE`, `READY`, `WATCHING`, `SHELVED`, `ARCHIVED`), plus active theses.
 - Continuity window: 30 calendar days.
 - Mandatory memory context: `memory/market/plan.md`, all files in `memory/notes/` (list and read), `get_state`, and the latest prior deep review if found. Surface any `get_state` warnings (staleness, status mismatches) in the synthesis output.
 - Additional top-down: portfolio behavior versus `IHSG` plus relevant leaders.

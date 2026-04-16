@@ -85,7 +85,7 @@ Shared workflow rules:
 - Top-down context is mandatory for review workflows (`desk-check`, `deep-review`): review IHSG structure/regime, macro/news tone, and leader breadth deterioration.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - For every materially reviewed symbol, write or refresh the `symbol_review` in the retained artifact and refresh symbol memory on material changes.
-- Artifact completeness: every symbol (except `ARCHIVED`) must have `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, context JSONs, and chart PNGs. Workflows must produce any missing artifacts when reviewing a symbol. Flag `PM-W12` on any symbol missing artifacts.
+- Artifact completeness: every symbol (except `ARCHIVED` and `SHELVED`) must have `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, context JSONs, and chart PNGs. Workflows must produce any missing artifacts when reviewing a symbol. Flag `PM-W12` on any symbol missing artifacts.
 - `get_state` warnings: every workflow must call `get_state` at the start and surface any warnings in the output. Staleness warnings, status mismatches, and missing fields are computed automatically — the workflow must not ignore them. If `get_state` reports stale symbols or theses, the workflow must address them (review, flag to human, or explain why deferred).
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.

@@ -45,12 +45,12 @@ For each active thesis file:
 - Symbols with `review_stale: true` → list with days since last review.
 - Thesis files with `review_stale: true` → flag.
 - `WATCHING` symbols without a matching holding in `portfolio_state`: do a lightweight check via `list-documents` for recent news or filings mentioning these symbols in the last 30 days. If material documents exist, flag the symbol as worth revisiting with a one-line summary of what was found.
-- `ARCHIVED` symbols: same lightweight check. If material documents exist, flag as worth promoting to `WATCHING`.
-- Symbols with `watchlist_status` values not in `{ARCHIVED, WATCHING, READY, ACTIVE}` (e.g., legacy `EXPLORED`, `REMOVED`) → migrate to `ARCHIVED` or `WATCHING` based on whether the name has an active thesis or trigger.
+- `SHELVED` and `ARCHIVED` symbols: same lightweight check. If material documents exist, flag as worth promoting to `WATCHING`.
+- Symbols with `watchlist_status` values not in `{ARCHIVED, SHELVED, WATCHING, READY, ACTIVE}` (e.g., legacy `EXPLORED`, `REMOVED`) → migrate to `ARCHIVED` or `WATCHING` based on whether the name has an active thesis or trigger.
 
 ### 5. Artifact completeness
 
-- For each non-`ARCHIVED` symbol, check that all required artifacts exist: `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_flow_context.json`, chart PNGs.
+- For each non-`ARCHIVED` and non-`SHELVED` symbol, check that all required artifacts exist: `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_flow_context.json`, chart PNGs.
 - Any symbol missing artifacts → flag `PM-W12` with the missing files listed.
 - Report a summary table of artifact gaps.
 
