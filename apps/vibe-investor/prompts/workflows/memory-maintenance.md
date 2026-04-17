@@ -9,7 +9,7 @@ Command input may narrow scope to specific areas (e.g., `symbols only`, `theses 
 - Purpose: audit memory files for structural correctness and align memory state with current prompt and skill contracts.
 - This workflow reads and fixes. It does not run analysis, fetch market data, or produce investment conclusions.
 - Do not archive or delete symbol directories, thesis directories, or digest files. Those are retained indefinitely regardless of age or status.
-- Only archive content within active symbol `plan.md` files that references removed prompt concepts (composite scores, action tiers, WAIT loops). Artifact files (`technical.md`, `flow.md`, etc.) stay where they are.
+- Only archive content within active symbol `plan.md` files that references removed prompt concepts (composite scores, action tiers, WAIT loops).
 
 ## Checks
 
@@ -50,8 +50,8 @@ For each active thesis file:
 
 ### 5. Artifact completeness
 
-- For each non-`ARCHIVED` and non-`SHELVED` symbol, check that all required artifacts exist: `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_flow_context.json`, chart PNGs.
-- Any symbol missing artifacts → flag `PM-W12` with the missing files listed.
+- For each non-`ARCHIVED` and non-`SHELVED` symbol, check that all required artifacts exist: `plan.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_flow_context.json`, chart PNGs.
+- Any symbol missing required artifacts → flag `PM-W12` with the missing files listed.
 - Report a summary table of artifact gaps.
 
 ### 6. Work folder cleanup

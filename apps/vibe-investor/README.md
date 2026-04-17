@@ -41,18 +41,19 @@ apps/vibe-investor/
 $OPENCODE_CWD/
 ├── memory/                       # Persistent memory
 │   ├── market/
-│   │   ├── plan.md               # IHSG regime + macro operating stance
-│   │   ├── technical.md          # Current market TA
+│   │   ├── plan.md               # IHSG regime + macro operating stance + IHSG TA
 │   │   ├── narrative.md          # Current market narrative
 │   │   ├── desk_check.md
 │   │   ├── deep_review.md
 │   │   ├── explore_idea.md
 │   │   └── archive/
 │   ├── symbols/{SYMBOL}/         # Durable plans + current symbol artifacts
-│   │   ├── plan.md
-│   │   ├── technical.md
+│   │   ├── plan.md               # Consolidated plan (all 4 lens summaries)
 │   │   ├── narrative.md
-│   │   ├── flow.md
+│   │   ├── fundamental.md
+│   │   ├── *_ta_context.json
+│   │   ├── *_flow_context.json
+│   │   ├── *.png
 │   │   └── archive/
 │   ├── theses/{THESIS_ID}/       # Durable thesis state
 │   │   ├── thesis.md

@@ -11,13 +11,20 @@ This skill does not own chart structure, setup family, trigger logic, stop/targe
 
 ## Role in Synthesis
 
-Flow is **sizing context**, not an entry/exit vote. The flow score measures signal clarity and trust — how readable and trustworthy the flow picture is — NOT whether flow is bullish or bearish.
+Flow reports what informed participants are doing. Trust calibration determines how much weight to give it. The parent synthesis decides what it means for the trade.
 
-- Distribution is not automatically "don't enter." It may mean "size smaller" or "institutional rotation expected under this thesis."
-- Accumulation is not automatically "buy." It may be wash trading or low-quality participation.
-- The parent synthesis decides what flow means for the trade. This skill reports what brokers are doing and how much to trust that picture.
+The flow score measures signal clarity and trust — how readable and trustworthy the flow picture is — NOT whether flow is bullish or bearish. Accumulation is not automatically good. Distribution is not automatically bad.
 
-When producing the assessment, always include `decision_role`: one of `lead` (flow is thesis-critical, e.g., accumulation-driven rerating), `confirm` (flow supports the thesis direction), `sizing_modifier` (flow informs position size, not direction), or `noise` (flow is unreadable or irrelevant to this thesis).
+When producing the assessment, always include `decision_role` assigned mechanically from trust regime and flow-price correlation:
+
+| Condition | Role |
+|-----------|------|
+| Trust LOW or flow-price correlation < 0.15 | `noise` — flow is unreadable on this ticker, ignore it |
+| Trust MEDIUM+ and flow aligns with thesis direction | `confirmation` — informed money agrees with the thesis |
+| Trust MEDIUM+ and flow opposes thesis direction | `warning` — someone informed is on the other side of the trade |
+| Trust MEDIUM+ and divergence detected (CADI or MFI) | `early_signal` — flow is shifting before price shows it |
+
+When multiple conditions match, prefer `warning` > `early_signal` > `confirmation` > `noise`.
 
 ## Inputs
 
@@ -66,7 +73,7 @@ Read the full `flow_context.json` output directly. These are the non-obvious sem
 5. **ADVANCED_SIGNALS**: persistence refines conviction. Divergence is context only. Wash/anomaly risk is a discount.
 6. **TRUST_AND_REGIME**: decides whether flow deserves weight on this ticker. High anomaly risk or low coverage discounts trust. High `atr_pct` shifts factor mix to `high_volatility` (more MFI weight).
 7. **FLOW_ASSESSMENT**: produce the output object (see below).
-8. **INTEGRATION_HOOK**: bridge to parent synthesis — `lead`, `confirm`, `warning`, or `unclear`.
+8. **INTEGRATION_HOOK**: bridge to parent synthesis — `confirmation`, `warning`, `early_signal`, or `noise`.
 9. **PARTICIPANT_FLOW**: who is behind the flow (foreign/government/local). Context for the verdict, not a standalone signal. `classified_pct` below 0.70 means partial breakdown.
 10. **MONITORING**: what confirms, weakens, invalidates the read. Next review window. For `UPDATE`: `flow_status` and `review_reason`.
 
@@ -79,7 +86,7 @@ flow_assessment:
   conviction_score: 65
   confidence: MEDIUM
   verdict: DISTRIBUTION
-  decision_role: sizing_modifier
+  decision_role: warning
   bull_factors: []
   bear_factors: []
   sponsor_quality: {}
@@ -110,12 +117,33 @@ Scoring rules:
 - `bull_factors` from `strongest_support_factors`, `bear_factors` from `strongest_caution_factors`.
 - `confidence` from `trust_regime.trust_level`: `high -> HIGH`, `medium -> MEDIUM`, `low -> LOW`.
 - Always include `verdict` (ACCUMULATION / DISTRIBUTION / NEUTRAL). Parent synthesis needs direction separately from quality.
-- Always include `decision_role` (lead / confirm / sizing_modifier / noise) based on thesis context.
+- Always include `decision_role` (confirmation / warning / early_signal / noise) assigned mechanically per the role table above.
 - Do not emit `BUY`, `HOLD`, `WAIT`, or `EXIT`.
 
-## Output Report
+## Output
 
-Keep concise. Required sections: Flow Assessment Summary, Context, Core Metrics, Advanced Signals, Trust/Regime, Integration Hook, Participant Flow, Monitoring. Summarize only what matters from each section — the AI reads the full JSON, the report is for the parent workflow.
+This skill produces:
+
+1. **`flow_context.json`** — deterministic preprocessing output. System of record for all flow structured data (core metrics, advanced signals, trust regime, baseline verdict, integration hook, participant flow, monitoring). Written by the preprocessing script.
+2. **Lens summary for `plan.md`** — the LLM's unique interpretation, written directly into the symbol's `plan.md` under the `## Flow ({score}) — {role}` section.
+
+The lens summary contains ONLY what the LLM uniquely contributes — interpretation of what flow means for the thesis, tensions between mechanical verdict and participant reality, and reasoning continuity via history entries. It must NOT restate structured data that already lives in `flow_context.json` (core metrics tables, persistence driver tables, concentration metrics, trust regime rationale, divergence details, etc.).
+
+### Required fields in the lens summary
+
+- Score, role (assigned mechanically per the role table), verdict, confidence
+- Current state interpretation (3-5 sentences)
+- Key participant read (who is driving flow and why it matters)
+- Monitoring triggers (confirm/weaken/invalidate)
+- History entry (date, score, 1-3 sentences of reasoning)
+
+### Writing to plan.md
+
+- **INITIAL mode**: write the full Flow section using `write` (as part of creating the entire `plan.md`).
+- **UPDATE mode**: use `edit` to surgically update only what changed — score in the header, state paragraph if interpretation materially changed, and append a history entry. Never rewrite the whole section if only the score shifted.
+- **If nothing material changed**: do not touch the Flow section. No update is a valid outcome.
+
+See `memory/symbols/README.md` for the full plan template, edit protocol, and statefulness rules.
 
 ## Execution Defaults
 
@@ -126,4 +154,4 @@ Keep concise. Required sections: Flow Assessment Summary, Context, Core Metrics,
 
 ## Artifact Persistence
 
-Write the output report as `flow.md` and the deterministic context as `flow_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.
+Write `flow_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

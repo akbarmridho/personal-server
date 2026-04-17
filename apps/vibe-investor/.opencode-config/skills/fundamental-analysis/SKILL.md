@@ -19,6 +19,20 @@ This skill answers whether the business is worth owning, whether the financials 
 
 Keep the boundary with `narrative-analysis` strict. This skill does not own catalyst-story framing, hype-cycle interpretation, priced-in narrative judgment, speculative premium analysis, or crowd-attention reads except where they directly change fundamental risk, funding risk, or valuation assumptions.
 
+### Ownership boundary with narrative-analysis
+
+Fundamental owns the **structural facts** about governance and ownership. Narrative owns the **behavioral read** (owner character: aligned/neutral/extractive).
+
+| Content | Owner | Rationale |
+|---|---|---|
+| Governance structure, holder taxonomy, float, minority alignment | **fundamental.md** | Structural, changes on filings |
+| Owner character (aligned/neutral/extractive) | **narrative.md** | Behavioral judgment about controller intent |
+| Valuation math (fair value, methods, MoS) | **fundamental.md** | Numbers exercise |
+| Priced-in judgment ("is the story in the price?") | **narrative.md** | Narrative question, references fundamental's fair value |
+| Scenarios (cross-lens) | **plan.md** | Cross-lens synthesis |
+| Invalidation / kill criteria | **plan.md** | Cross-lens, Position section |
+| Fundamental-specific scenarios (earnings under different conditions) | **fundamental.md** | Conditional valuation |
+
 ## Required Data And Fail-Fast
 
 Use these sources according to the active mode.
@@ -249,7 +263,7 @@ For `OWNERSHIP_REVIEW`, stop if the ownership call depends on unavailable holder
 | `EVIDENCE_TRACE` | separate filing-backed claims, contextual-document claims, news-backed claims, and inference | if a filing-led conclusion depends on unsupported commentary, stop; contextual documents can lead when the task is sectoral, mechanism-led, or about externally reported developments |
 | `THESIS` | synthesize why the asset, sector, or mechanism is attractive or not, plus risks and invalidation | keep the section inside the fundamental lens; if the case depends more on storytelling than economics, keep posture conservative |
 
-When the business outcome is path-dependent (turnaround, commodity cycle, dilution/funding path, pre-profit margin ramp, or regulatory change), include a small scenario map in the final result with named branches, operating assumptions, evidence that would confirm each branch, valuation/quality implication, and optional rough likelihood.
+When the business outcome is path-dependent (turnaround, commodity cycle, dilution/funding path, pre-profit margin ramp, or regulatory change), include fundamental-specific scenarios in the output with named branches, operating assumptions, and valuation/quality implications. These are fundamental scenarios (what happens to earnings/valuation under different conditions), not cross-lens scenarios — cross-lens scenarios live in `plan.md` Active Scenarios.
 
 #### 15. RESULT
 
@@ -362,6 +376,16 @@ Scoring rules:
 - Reuse fetched data; do not re-query the same symbol without reason.
 - If evidence is mixed, lower confidence and keep the final posture conservative.
 
+## Writing Protocol
+
+`fundamental.md` is typically written once (on deep-review or material event) and rarely updated. Full rewrites are acceptable since they are infrequent (quarterly at most).
+
+- **FULL_REVIEW / QUALITY_CHECK / VALUATION_ONLY**: use `write` to create or replace the file.
+- **FILING_REVIEW / incremental update**: use `edit` if only specific sections changed (e.g., new quarterly data updates the financials section but business quality and governance are unchanged).
+- **If nothing changed**: don't touch the file. Fundamental analysis doesn't need daily refreshes.
+
+All document IDs must be full, never truncated. The Evidence Trace section is the primary home for document ID citations in fundamental analysis.
+
 ## Artifact Persistence
 
-Write the output report as `fundamental.md` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.
+Write `fundamental.md` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

@@ -85,12 +85,13 @@ Shared workflow rules:
 - Top-down context is mandatory for review workflows (`desk-check`, `deep-review`): review IHSG structure/regime, macro/news tone, and leader breadth deterioration.
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - For every materially reviewed symbol, write or refresh the `symbol_review` in the retained artifact and refresh symbol memory on material changes.
-- Artifact completeness: every symbol (except `ARCHIVED` and `SHELVED`) must have `plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, context JSONs, and chart PNGs. Workflows must produce any missing artifacts when reviewing a symbol. Flag `PM-W12` on any symbol missing artifacts.
+- Artifact continuity: never rewrite an artifact from scratch. Always read the existing file first, compare with fresh data, and update only what changed. For `plan.md` and `narrative.md` on UPDATE mode, use surgical `edit` calls — never `write` to overwrite. A full rewrite is only acceptable when the artifact doesn't exist yet (INITIAL) or the human explicitly requests it. No update is a valid outcome — if nothing material changed, bump `last_reviewed` and stop.
+- Artifact completeness: every symbol (except `ARCHIVED` and `SHELVED`) must have `plan.md`, `narrative.md`, `fundamental.md`, context JSONs (`*_ta_context.json`, `*_flow_context.json`), and chart PNGs. Workflows must produce any missing artifacts when reviewing a symbol. Flag `PM-W12` on any symbol missing artifacts.
 - `get_state` warnings: every workflow must call `get_state` at the start and surface any warnings in the output. Staleness warnings, status mismatches, and missing fields are computed automatically — the workflow must not ignore them. If `get_state` reports stale symbols or theses, the workflow must address them (review, flag to human, or explain why deferred).
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.
 
-Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (notes, market-level artifacts). Subagents write their designated symbol artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. Before writing `plan.md`, subagents must read `memory/symbols/README.md` for the template. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
+Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (notes, market-level artifacts). Subagents write their designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, subagents use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Before writing `plan.md`, subagents must read `memory/symbols/README.md` for the template. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
 
 Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
 
@@ -117,7 +118,7 @@ symbol_review:
   lens_summary:
     narrative: { score: 78, role: thesis anchor, key_finding: "..." }
     technical: { score: 42, role: timing and risk, key_finding: "..." }
-    flow: { score: 65, role: sizing context, key_finding: "..." }
+    flow: { score: 65, role: flow context, key_finding: "..." }
     fundamental: { score: 50, role: thesis validation, key_finding: "..." }
     portfolio_fit: { score: 80, role: constraint check, key_finding: "..." }
   tensions: "Narrative vs flow: is distribution rotation or informed selling?"
@@ -127,6 +128,11 @@ symbol_review:
   human_attention: "Thesis intact but flow hostile. Sizing question, not entry question."
 ```
 
+Lens data sources:
+
+- For technical and flow: read `*_ta_context.json` and `*_flow_context.json` for structured data (levels, metrics, red flags). Read `plan.md` Technical and Flow sections for interpretation and monitoring triggers.
+- For narrative and fundamental: read `narrative.md` and `fundamental.md` for full analysis. Read `plan.md` Narrative and Fundamental sections for summaries.
+
 ### Lens roles
 
 Before synthesizing, classify each lens's role for this symbol and thesis. Assign the `role` field in each lens summary.
@@ -135,11 +141,11 @@ Before synthesizing, classify each lens's role for this symbol and thesis. Assig
 |------|---------|-------------|
 | Thesis anchor | Most directly validates or invalidates the thesis | Narrative (but flow for accumulation-driven rerating, fundamental for deep-value) |
 | Timing and risk | Informs when/how to act, not whether | Technical |
-| Sizing context | Informs how much, not whether. Not a veto. | Flow |
+| Flow context | What informed participants are doing. Role assigned mechanically by the flow skill (confirmation, warning, early_signal, noise). | Flow |
 | Thesis validation | Scored against the active thesis, not generic quality | Fundamental |
 | Constraint check | Mechanical pass/fail | Portfolio fit |
 
-A low score from a timing/sizing lens means "execution is harder," not "don't act." Score each lens on its own rubric, then state its role. The role determines how the human should weight it.
+A low score from a timing lens means "execution is harder," not "don't act." A flow `warning` means "someone informed disagrees," not "don't act." Score each lens on its own rubric, then state its role. The role determines how the human should weight it.
 
 ### Tensions
 
@@ -148,6 +154,22 @@ When lenses disagree, state plainly: which disagree, what each is saying in cont
 ### `human_attention`
 
 Every symbol review ends with `human_attention`: plain-language statement of what the human needs to decide. For exits where all lenses converge negative, state the exit case directly.
+
+### Bull/Bear forcing
+
+Every lens summary in plan.md MUST have explicit `Bull:` and `Bear:` lines. narrative.md MUST have a `Bull Case` section before Failure Modes. fundamental.md MUST have a `Strengths` section before Red Flags. This is a structural forcing function to prevent NO-as-a-service bias. The AI must articulate the positive case for every lens before listing risks.
+
+### Content ownership (no duplication across files)
+
+- Scenarios (cross-lens): plan.md Active Scenarios ONLY
+- Invalidation / kill criteria: plan.md Position → Thesis kill ONLY
+- Ownership structural facts: fundamental.md Ownership & Governance ONLY
+- Owner character (aligned/neutral/extractive): narrative.md Story section
+- Valuation math: fundamental.md Valuation ONLY
+- Priced-in judgment: narrative.md Priced-In (references fundamental.md fair value)
+- Catalyst dossier: narrative.md Catalysts ONLY
+- TA structured data: ta_context.json (plan.md has interpretation only)
+- Flow structured data: flow_context.json (plan.md has interpretation only)
 
 ## Hard Rails
 
@@ -221,4 +243,4 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 ## Agent Mode
 
 - Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Write designated symbol artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
+- Subagent: execute delegated scope only, return structured output. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Read existing artifacts before writing — update what changed, preserve what's still valid. Never rewrite from scratch unless the artifact doesn't exist. Write designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.

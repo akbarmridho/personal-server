@@ -279,73 +279,63 @@ Add when relevant:
 
 ### Phase 3: Narrative Assessment
 
-Produce output using this structure:
+Produce output using the lean narrative template below.
 
 ```markdown
 ## Narrative Analysis: {SYMBOL}
 
-**Narrative Conviction:** {0-100}
-**Backbone Strength Score:** {X}/15
-**Confidence:** {HIGH / MEDIUM / LOW}
-**Evidence Quality:** {HIGH / MEDIUM / LOW}
+**Score**: {0-100} | **Backbone**: {X}/15 | **Confidence**: {HIGH/MEDIUM/LOW}
+**Regime**: {type} | **Stage**: {stage} | **Durability**: {dur} | **Crowding**: {level}
 
-### Current Narrative
-- Regime: {THEME_OR_ROTATION / TURNAROUND / CORPORATE_ACTION / POLICY_OR_INDEX_FLOW / RERATING_OR_YIELD / SPECULATIVE_HYPE}
-- Stage: {EARLY / BUILDING / LATE / EXHAUSTED}
-- Strength: {X}/15
-- Durability: {LOW / MEDIUM / HIGH}
-- Crowding: {LOW / MEDIUM / HIGH}
-- Story: {1-2 sentence summary}
-- Business excitement: {high / moderate / low}
-
-### Owner And Ownership
-- Owner character: {aligned / neutral / extractive}
-- Key shareholders: {major holders and recent shifts}
+### Story
+{1-2 paragraphs: what the narrative is, why it matters, what makes it work or not. Focus on the market pricing angle, catalyst path, and narrative edge — not a company description (that's fundamental.md).}
 
 ### Catalysts
-| What | When | How to verify | Success criteria | Probability | Impact |
-|------|------|---------------|------------------|-------------|--------|
-| ... | ... | ... | ... | ... | ... |
+| What | When | Verify | Probability | Impact |
+|------|------|--------|-------------|--------|
+{3-5 catalysts max. Primary catalyst gets 1-2 sentence elaboration if needed.}
 
-### Premium And Priced-In Risk
-- Base-value anchor: {fundamental-analysis / keystats / internal research / weak-or-none}
-- Priced in: {no / partial / full}
-- Premium risk: {Moderate / High / Extreme}
-- Current premium vs base-value context: {brief note anchored to the chosen base-value source}
-- Downside if break: {estimated drawdown range}
+### Priced-In
+{2-3 sentences: how much of the story is in the price. Reference fundamental.md's fair value as anchor.}
 
-### Invalidation
-- Primary failure trigger: {explicit invalidation}
-- Kill criteria: {clear conditions that break the story}
-- Failure risk score: {0-3}
-- Binary dependency: {yes/no}
+### Tensions
+{Optional. Only when there's an active narrative contradiction, cross-lens disagreement, or market mispricing. Each tension: question, both sides, your read. Skip if none.}
 
-### Scenarios
-Optional. Use only when one catalyst path is not enough.
+### Failure Modes
+{3-5 bullet list: how the STORY breaks. Narrative failures, not fundamental failures.}
 
-| Scenario | Trigger / evidence | Narrative implication | Likelihood |
-|---|---|---|---|
-| ... | ... | ... | ... |
+### Counter-Evidence
+{2-4 strongest pieces of evidence AGAINST the thesis. Cite document IDs.}
+
+### Evidence
+- Tier 1 (filings): {IDs}
+- Tier 2 (research/analysis): {IDs}
+- Tier 3 (news): {IDs}
+
+### What Changed
+{UPDATE mode only. Append new entries. Cite document IDs.}
+- {YYYY-MM-DD}: {what changed, why it matters}
 ```
 
-Machine-readable output contract:
-
-```yaml
-narrative_assessment:
-  conviction_score: 78
-  confidence: HIGH
-  bull_factors: []
-  bear_factors: []
-  catalyst_map: {}
-  failure_risk: {}
-```
+Size targets: INITIAL 2,000-5,000 bytes. UPDATE delta 200-800 bytes. Maximum 6,000 bytes — if bigger, something is duplicated.
 
 Field rules:
 
 - Derive `conviction_score` from the `0-15` backbone score, then adjust within the mapped band for stage, durability, crowding, evidence quality, and priced-in risk.
-- `bull_factors` and `bear_factors` must be short, evidence-backed bullets.
-- `catalyst_map` should expose the highest-signal catalyst dossier fields and timing.
-- `failure_risk` should include the `0-3` failure score, primary failure trigger, and kill criteria.
+- The plan.md lens summary carries bull/bear factors, catalyst map, and failure risk for parent synthesis. Do not duplicate these in a YAML block inside narrative.md.
+- All document IDs must be full, never truncated.
+
+### Sections explicitly NOT in this template
+
+These are owned by other files:
+
+- **Owner And Ownership** → `fundamental.md` Ownership/Governance section. Narrative may reference owner character (aligned/neutral/extractive) in the Story section but does not produce a standalone ownership section.
+- **Scenarios** → `plan.md` Active Scenarios. Cross-lens synthesis, not narrative-owned.
+- **Invalidation / Kill criteria** → `plan.md` Position section as `Thesis kill`. Narrative owns Failure Modes (how the story breaks), not the mechanical kill criteria.
+- **Premium And Priced-In Risk (full section with keystats)** → replaced by 2-3 sentence Priced-In section. Valuation math lives in `fundamental.md`.
+- **YAML narrative_assessment block** → eliminated. `plan.md` lens summary carries the structured fields.
+- **Backbone Score Breakdown table** → the score is in the header. Show reasoning in the Story section if needed, not a separate table.
+- **Narrative Summary / Conclusion / Wrap-up** → the Story section IS the summary.
 
 ## Execution Defaults
 
@@ -355,8 +345,20 @@ Field rules:
 - When invoked by a parent workflow, prioritize new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
 - Use fail-fast behavior: if a required dependency retrieval fails, stop and report the missing dependency.
 - Load specialized references only when the mechanism is thesis-critical, not by default.
-- Output must be structured enough for parent synthesis. Do not stop at prose verdicts when the workflow needs machine-readable narrative fields.
+
+## Writing Protocol
+
+- **INITIAL mode**: use `write` to create the full file from the template.
+- **UPDATE mode**: use `edit` to surgically update only what changed:
+  - Score in header if changed
+  - Append to What Changed section (this is the primary UPDATE output)
+  - Update Story paragraph only if the narrative interpretation materially changed
+  - Update Catalyst table only if a catalyst status changed (verified, delayed, cancelled)
+  - Update Priced-In only if price moved significantly relative to the story
+  - Add/update Tensions only if a new tension emerged or an existing one resolved
+- **If nothing changed**: don't touch the file. No update is valid.
+- **Never rewrite the whole file on UPDATE.** Story, Catalysts, Failure Modes, Counter-Evidence, and Evidence are semi-static — they change on material events, not daily.
 
 ## Artifact Persistence
 
-Write the output report as `narrative.md` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.
+Write `narrative.md` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

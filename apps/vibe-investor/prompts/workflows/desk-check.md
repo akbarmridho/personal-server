@@ -43,16 +43,20 @@ Gather and integrate new information before reviewing.
 ### Phase 3: Symbol Reviews (delegated)
 
 - Coverage universe: holdings from `portfolio_state`, plus all `READY` symbols, plus all `WATCHING` symbols, plus any `SHELVED` or `ARCHIVED` symbol flagged by the digest in Phase 1 with material news.
-- Before delegating each batch, check which symbols are missing artifacts. Subagents must produce all required artifacts (`plan.md`, `technical.md`, `flow.md`, `narrative.md`, `fundamental.md`, context JSONs, chart PNGs) for every symbol they review.
-- Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols, reads `memory/symbols/README.md` for the plan template, and writes retained artifacts (`plan.md`, `technical.md`, `narrative.md`, `flow.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/` before returning. The parent agent must not run symbol-level TA/flow/narrative inline.
-- Top-down market review is a separate subagent delegation, run in parallel with symbol batches. The market subagent runs `technical-analysis` on IHSG and `narrative-analysis` at the market level, writes `technical.md` and `narrative.md` to `memory/market/`, and returns a structured summary (IHSG regime, key levels, macro tone, regime change signals) for the parent synthesis. See `memory/market/README.md` for the full contract.
+- Before delegating each batch, check which symbols are missing artifacts. Subagents must produce all required artifacts (`plan.md`, `narrative.md`, `fundamental.md`, context JSONs, chart PNGs) for every symbol they review.
+- Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols, reads `memory/symbols/README.md` for the plan template, and writes retained artifacts (`plan.md`, `narrative.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/` before returning. On UPDATE mode, subagents use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. The parent agent must not run symbol-level TA/flow/narrative inline.
+- Top-down market review is a separate subagent delegation, run in parallel with symbol batches. The market subagent runs `technical-analysis` on IHSG and `narrative-analysis` at the market level, writes the IHSG Technical lens summary into `plan.md` and `narrative.md` to `memory/market/`. See `memory/market/README.md` for the contract. The subagent returns a structured summary (IHSG regime, key levels, macro tone, regime change signals) for the parent synthesis.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when the symbol is actively held or near actionable review, sponsor behavior could change conviction materially, or parent synthesis needs lead / confirm / warning context versus TA.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
 
 ### Phase 4: Synthesis
 
-Parent synthesis produces output for each reviewed symbol, triaged by urgency per main.md:
+Parent synthesis produces two outputs: (1) **chat output** — the full synthesis shown to the human, and (2) **desk-check artifact** — a lean session index saved to file.
+
+#### Chat output (shown to human)
+
+Full synthesis for each reviewed symbol, triaged by urgency per main.md:
 
 - `NO_CHANGE` symbols: one-line status in a summary table.
 - `MONITOR` symbols: brief note on what shifted and what to watch.
@@ -61,7 +65,6 @@ Parent synthesis produces output for each reviewed symbol, triaged by urgency pe
 The synthesis must:
 
 - Start with a digest summary (unless `skip-digest`): topline regime change, key thesis impacts, and any human-attention items from the digest. The human should not need to open the digest file separately to know what happened.
-
 - State the active thesis and whether it is intact, strengthening, weakening, or invalidated.
 - Reconcile the technical risk map with broker-flow context, thesis quality, narrative changes, optional scenario branches, and any portfolio hard rail or size-cap constraint.
 - Surface tensions between lenses honestly — do not collapse them into a single verdict.
@@ -70,11 +73,63 @@ The synthesis must:
 - For watchlist symbols: flag material changes, new catalysts, or thesis invalidation.
 - Thesis status evaluation: for each thesis touched by this desk-check (via symbol reviews or digest sync), evaluate whether the current `status` (`ACTIVE` / `DORMANT` / `INACTIVE`) is still correct. If a thesis has no active catalyst, no recent evidence, and no symbol showing momentum, suggest downgrade to `DORMANT`. If a thesis is invalidated or all linked symbols have exited/been archived, suggest `INACTIVE`. Present status change suggestions to the human — do not auto-change thesis status.
 
+#### Desk-check artifact (saved to file)
+
+The desk-check artifact (`memory/digests/{CALENDAR_DATE}_desk_check.md`) is a **session index**, not a full analysis report. Full symbol analysis lives in each symbol's `plan.md`. The artifact captures only what's unique to the session: triage, human decisions, and thesis health.
+
+Target: 1,500-3,000 bytes. Maximum: 4,000 bytes. If bigger, symbol reviews are leaking in.
+
+```markdown
+# Desk-Check — {YYYY-MM-DD}
+
+**IHSG:** {close} ({change}) | Regime: {regime} ({aggression}) | Cash: {pct}%
+
+## Digest Headline
+
+{2-3 sentences: the most important thing from today's news digest. Not a restatement of the full digest — just the headline that matters for positioning.}
+
+## Triage
+
+| Symbol | Urgency | Score Δ | One-liner |
+|--------|---------|---------|-----------|
+| {SYM} | {ATTENTION/MONITOR/NO_CHANGE} | {lens score changes} | {1 sentence: what changed and why it matters} |
+
+## Human Decisions
+
+{Numbered list of decisions the human needs to make or has made. Mark resolved decisions with ✅. This is the most valuable section — it's the action log.}
+
+1. **{SYMBOL}:** {decision needed or made}
+
+## Thesis Health
+
+| Thesis | Status | Change? | Note |
+|--------|--------|---------|------|
+| {thesis} | {ACTIVE/DORMANT} | {→ DORMANT? / —} | {1 sentence} |
+
+## Executed
+
+{Only if trades were executed this session. Otherwise omit.}
+
+- {what was done}
+
+---
+
+*Next: {YYYY-MM-DD} ({context for next session})*
+```
+
+What does NOT go in the desk-check artifact (lives elsewhere):
+
+- Full `symbol_review` YAML blocks → `plan.md` lens summaries
+- Portfolio snapshot/constraints → queryable via `portfolio_state`
+- Market review → `market/plan.md`
+- Key tensions → `plan.md` lens summaries and `narrative.md` Tensions
+- Near-term catalysts → `market/plan.md`
+
 On every successful run, update `memory/market/plan.md` if the market context changed materially.
 
 ## Artifacts
 
-- Symbol artifacts must include at least `plan.md`, `technical.md`, `narrative.md`, and, when flow is used materially, `flow.md` plus important chart/evidence artifacts (`*.png`, context JSON if needed). Write `fundamental.md` when fundamental analysis is run for the symbol.
+- Symbol artifacts must include at least `plan.md`, `narrative.md`, and important chart/evidence artifacts (`*.png`, context JSON). Write `fundamental.md` when fundamental analysis is run for the symbol.
 - Digest artifact at `memory/digests/{CALENDAR_DATE}_news_digest.md` (Phase 1).
-- Desk-check synthesis artifact at `memory/digests/{CALENDAR_DATE}_desk_check.md` — must include the triaged symbol reviews per the synthesis contract in main.md.
+- Desk-check artifact at `memory/digests/{CALENDAR_DATE}_desk_check.md` — lean session index per the Phase 4 template. Not a full analysis report.
 - If a possible fundamental break is detected, record `Needs Manual Fundamental Review` instead of launching a full fundamental workflow inline.

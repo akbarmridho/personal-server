@@ -197,14 +197,37 @@ Severity: `low` | `medium` | `high` | `critical`. Key guidance:
 
 Every flag: `flag_id`, `severity`, `why`. Include overall risk summary.
 
-## Output Report
+## Output
 
-Sections: A. Assessment Summary, B. Context, C. State/Location, D. Setup/Trigger, E. Risk/Conviction, F. Trade Management, G. Delta/Monitoring, H. Adaptive MA, I. Evidence/Charts. Optional: scenario map (2-4 branches) when path-dependent.
+This skill produces:
 
-Required fields: `purpose_mode`, `conviction_score`, `confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `bull_factors`, `bear_factors`, `risk_map`, `red_flags`, `key_levels`, `monitoring_triggers`, `chart_artifact_refs`. Add `risk_map.rr` for constructive setups, `current_rr` when long.
+1. **`ta_context.json`** — deterministic preprocessing output. System of record for all TA structured data (levels, MA posture, Wyckoff, VPVR, setup, red flags, risk map). Written by the preprocessing script.
+2. **Chart PNGs** — visual evidence. Written by the chart generation script.
+3. **Lens summary for `plan.md`** — the LLM's unique interpretation, written directly into the symbol's `plan.md` under the `## Technical ({score}) — {role}` section.
 
-End with one short plain-language wrap-up: bias, key level, what raises or lowers conviction next.
+The lens summary contains ONLY what the LLM uniquely contributes — interpretation, reasoning, bull/bear factors, monitoring triggers, and history entries. It must NOT restate structured data that already lives in `ta_context.json` (levels, MA proximity, Wyckoff phase details, setup scores, red flag codes, etc.).
+
+### Required fields in the lens summary
+
+- Score, role, bias
+- Current state interpretation (3-5 sentences)
+- Bull/bear factors (curated for this thesis)
+- Key levels line (invalidation, stop, targets, R:R)
+- Monitoring triggers (upgrade/downgrade/exit)
+- History entry (date, score, 1-3 sentences of reasoning)
+
+### Required fields in `ta_context.json`
+
+All structured data: `purpose_mode`, `conviction_score`, `confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `bull_factors`, `bear_factors`, `risk_map`, `red_flags`, `key_levels`, `monitoring_triggers`, `chart_artifact_refs`. Add `risk_map.rr` for constructive setups, `current_rr` when long.
+
+### Writing to plan.md
+
+- **INITIAL mode**: write the full Technical section using `write` (as part of creating the entire `plan.md`).
+- **UPDATE mode**: use `edit` to surgically update only what changed — score in the header, state paragraph if interpretation materially changed, and append a history entry. Never rewrite the whole section if only the score shifted.
+- **If nothing material changed**: do not touch the Technical section. No update is a valid outcome.
+
+See `memory/symbols/README.md` for the full plan template, edit protocol, and statefulness rules.
 
 ## Artifact Persistence
 
-Write the output report as `technical.md`, chart PNGs (`*.png`), and `ta_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.
+Write chart PNGs (`*.png`) and `ta_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.

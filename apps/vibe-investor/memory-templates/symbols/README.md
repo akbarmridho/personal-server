@@ -7,7 +7,7 @@ New symbol plans should start with YAML frontmatter:
 ```yaml
 ---
 id: {SYMBOL}
-watchlist_status: {ARCHIVED | SHELVED | WATCHING | READY | ACTIVE}
+watchlist_status: {ARCHIVED | WATCHING | READY | ACTIVE}
 trade_classification: {THESIS | TACTICAL | SPECULATION}
 thesis_id: [{thesis-id}, ...] or []
 last_reviewed: {YYYY-MM-DD}
@@ -18,29 +18,100 @@ Rules:
 
 - Keep the schema small and strict. `id` doubles as the symbol ticker. `scope` is implicit from file location.
 - When an older symbol plan is edited, remove legacy `scope`, `symbol`, `leader`, `tags`, and other fields not in the current schema.
-- `watchlist_status` is the durable watchlist label for the symbol. Valid values: `ARCHIVED`, `SHELVED`, `WATCHING`, `READY`, `ACTIVE`.
-- `ARCHIVED`: pure reference material from one-off analysis or retired names. Lowest priority. Checked every 20 days.
-- `SHELVED`: was a real candidate but parked for now. Still somewhat interesting, might come back. Checked every 10 days.
+- `watchlist_status` is the durable watchlist label for the symbol. Valid values: `ARCHIVED`, `WATCHING`, `READY`, `ACTIVE`.
+- `ARCHIVED`: reference material from one-off analysis or retired names. Not actively tracked. Resurfaced only on digest match or deep-review sweep.
 - `WATCHING`: thesis interesting but not actionable yet, or position exited but name still worth tracking.
 - `READY`: trigger conditions are close, plan prepared.
 - `ACTIVE`: position is open.
-- When a position is exited, set `watchlist_status` to `WATCHING`. The symbol stays on the watchlist for future monitoring — exiting a position does not mean removing the name. Use `SHELVED` if the name might come back, or `ARCHIVED` if it's pure reference.
+- When a position is exited, set `watchlist_status` to `WATCHING`. The symbol stays on the watchlist for future monitoring — exiting a position does not mean removing the name. Use `ARCHIVED` instead if the name no longer warrants active monitoring.
 - Do not store live fills, current P/L, or temporary execution state here.
 
 ## Required Artifacts
 
 Every symbol directory (`memory/symbols/{SYMBOL}/`) must contain all of these:
 
-- `plan.md` — operating plan (template below)
-- `technical.md` — TA skill output
-- `flow.md` — flow skill output
-- `narrative.md` — narrative skill output
-- `fundamental.md` — fundamental skill output
-- `*_ta_context.json` — deterministic TA preprocessing
-- `*_flow_context.json` — deterministic flow preprocessing
+- `plan.md` — consolidated operating plan with all four lens summaries (template below)
+- `narrative.md` — narrative skill output (full analysis, evidence, catalyst dossier)
+- `fundamental.md` — fundamental skill output (full analysis, governance, valuation)
+- `*_ta_context.json` — deterministic TA preprocessing (system of record for TA structured data)
+- `*_flow_context.json` — deterministic flow preprocessing (system of record for flow structured data)
 - chart PNGs — visual evidence from TA skill
 
-Workflows that review a symbol must produce any missing artifacts, not skip them. `ARCHIVED` and `SHELVED` symbols are exempt — they keep whatever they had at time of archival.
+Workflows that review a symbol must produce any missing artifacts, not skip them. `ARCHIVED` symbols are exempt — they keep whatever they had at time of archival.
+
+## Statefulness
+
+**`plan.md` is a living document, not a daily report.** It materializes the AI's accumulated understanding of a symbol across sessions. Per-lens History subsections record what the AI thought, when, and why — so the next session builds on prior reasoning instead of starting from scratch.
+
+- **Never overwrite the file on UPDATE.** Use surgical `edit` calls to update only what changed. Use `write` only on INITIAL (file doesn't exist).
+- **No update is a valid outcome.** If nothing material changed, bump `last_reviewed` and stop.
+- **Build on prior reasoning.** New history entries must reference what was said before.
+- **Preserve evidence trail.** Document IDs and source references are permanent — never remove them during compaction.
+
+## File Architecture
+
+Three files per symbol, complementary, not standalone. No content duplicated across them.
+
+- **`plan.md`** — the hub. Read first every session. Contains lens summaries (3-5 sentences + Bull/Bear each), per-lens reasoning history, Active Scenarios (cross-lens, ONLY place scenarios live), Position management + thesis kill (cross-lens, ONLY place these live), top-level history.
+- **`narrative.md`** — evidence file for the story. Full story interpretation, catalyst dossier, bull case, failure modes, counter-evidence, document ID citations, What Changed.
+- **`fundamental.md`** — evidence file for the numbers. Business quality, financials, valuation, Ownership & Governance (single source of truth), strengths, red flags, document ID citations, What Changed.
+
+Data flow (one direction only): `ta_context.json` → `plan.md`, `flow_context.json` → `plan.md`, `narrative.md` → `plan.md` (summary), `fundamental.md` → `plan.md` (summary), `fundamental.md` → `narrative.md` (Priced-In references fair value). Nothing flows backward.
+
+Context JSONs are the system of record for structured data (levels, metrics, series, red flags, setup details). The plan contains only what the LLM uniquely contributes: interpretation, reasoning, delta, tensions, and synthesis. Never restate what's already in the JSON.
+
+## Edit-First Protocol
+
+### INITIAL mode (file doesn't exist)
+
+Use `write` to create the full file from the template.
+
+### UPDATE mode (file exists)
+
+Use `edit` for surgical changes. **Never use `write` to overwrite an existing plan.md.**
+
+Typical UPDATE edits:
+
+1. Frontmatter `last_reviewed` date bump.
+2. Lens score change in section header (e.g., `## Technical (52)` → `## Technical (48)`).
+3. Lens state paragraph — ONLY if interpretation materially changed. If only the score shifted a few points, update header + append history entry.
+4. History append — new dated entry after the last entry in the relevant `#### History` subsection.
+5. Position updates — specific lines (stop, trail, targets) only if changed.
+6. Scenario updates — specific table rows only if evidence shifted.
+7. Top-level History append — only if a cross-cutting event occurred.
+
+Do NOT on UPDATE: rewrite Thesis, Catalyst, or Notes sections (they change on events, not daily). Do not rewrite unchanged lens paragraphs. Do not append "unchanged" history entries. Do not touch sections where nothing changed.
+
+## Lens Summary Rules
+
+Every lens summary in plan.md MUST have explicit `Bull:` and `Bear:` lines. No exceptions. If no bull factors exist, write "Bull: none identified."
+
+What goes in the lens summary (LLM-unique interpretation only):
+
+- Score + role assignment
+- Current state interpretation (what the data means for the thesis)
+- Bull/bear factors curated for this thesis
+- Monitoring triggers
+- Key levels and invalidation (for TA)
+- Participant read (for flow)
+
+What stays in the context JSON (never restate in plan): full level maps, MA posture details, Wyckoff phase history, VPVR coordinates, setup scores, red flag codes, core metrics tables, persistence driver tables, concentration metrics, trust regime rationale, divergence state details.
+
+## History Rules
+
+### Per-lens history (inside each lens section)
+
+- Each entry: date, score, 1-3 sentences of REASONING in first person.
+- Build on prior entries or explicitly disagree.
+- Cite document IDs when a document changed the read.
+- Do not write an entry if nothing changed. Silence means "prior read still holds."
+- Compaction: when entries exceed ~7, summarize older entries into a "prior context" paragraph and keep the last 5 detailed. Preserve all document IDs during compaction.
+
+### Top-level History (bottom of plan)
+
+- Cross-cutting events only: entries, exits, adds, trims, human decisions, thesis-level status changes.
+- NOT for lens score updates. NOT for "nothing changed."
+- Compaction: summarize older entries when exceeding ~10. Preserve document IDs.
 
 ## Symbol Plan Body Template
 
@@ -49,7 +120,7 @@ All agents (parent and subagent) writing or rewriting `plan.md` must follow this
 ```markdown
 ---
 id: {SYMBOL}
-watchlist_status: {ARCHIVED / SHELVED / WATCHING / READY / ACTIVE}
+watchlist_status: {ARCHIVED / WATCHING / READY / ACTIVE}
 trade_classification: {THESIS / TACTICAL / SPECULATION}
 thesis_id: [{THESIS_ID}]
 last_reviewed: {YYYY-MM-DD}
@@ -70,64 +141,81 @@ last_reviewed: {YYYY-MM-DD}
 {1-2 sentences: why this stock, what is the edge}
 
 ## Catalyst
-{What should happen, by when, and why it matters}
+{What should happen, by when, and why it matters. Bullet list.}
 
 ## Active Scenarios
-{Optional. Use only when one linear plan is not enough. Keep 2-4 decision-relevant branches with scenario name, trigger/evidence, operating implication, and optional rough likelihood.}
+{2-4 decision-relevant branches. Table: scenario, trigger/evidence, implication, likelihood.}
 
-## Lens Scores
-- Technical: {0-100} - {one-line score driver summary}
-- Flow: {0-100} - {one-line score driver summary}
-- Narrative: {0-100} - {one-line score driver summary}
-- Fundamental: {0-100} - {valuation anchor / quality summary}
-- Portfolio fit: {0-100} - {heat budget, concentration, correlation, liquidity, and hard-rail headroom}
+## Technical ({score}) — {role}
+→ `{SYMBOL}_ta_context.json`
 
-## Plan
-- Entry type: {FULL / PILOT}
-- Entry zone: {price range}
-- Position size: {X% of portfolio} ({amount})
-- Entry build: {initial tranche, add conditions, and max exposure condition}
-- Reduced pilot gates used: {Required for PILOT; omit for FULL}
-- Scale-up trigger: {Required for PILOT; omit for FULL}
-- Pilot expiry: {Required for PILOT; omit for FULL}
-- Size reason: {why this size is justified relative to evidence quality, liquidity, and monitoring capacity}
-- Stop loss: {price} (-{X%} from entry)
-- Risk per trade: {Rp amount} ({X%} of portfolio)
-- Target 1: {price} (+{X%}) - sell {X%}
-- Target 2: {price} (+{X%}) - sell {X%}
-- Target 3: {price} (+{X%}) - sell remaining
-- Expected R:R: {X:1} (entry to T1), {X:1} (entry to T2), {X:1} (entry to T3)
-- Monitoring requirement: {LOW / MEDIUM / HIGH} + {what must actually be monitored}
-- Progress checkpoint date: {YYYY-MM-DD}
-- Progress expectation by checkpoint: {what must be true}
-- If checkpoint fails: {hold / trim / exit rule}
+{Current state paragraph: 3-5 sentences of INTERPRETATION — what the chart means for the thesis. Not a restatement of the JSON.}
 
-## Trade Management
-- Holding mode: {TACTICAL / THESIS / HYBRID}
-- Technical trail mode: {STRUCTURE / ZONE / MA / ATR}
-- Technical plan role: {primary exit engine / trim-only / monitoring-only}
-- Reduction ladder: {what causes trim to half, trim to starter, or full exit}
-- Early trim rule: {what gets sold at T1 / T2}
-- Runner policy: {how the remainder is handled}
-- Final exit precedence: {hard invalidation > portfolio hard rail or size-cap constraint > thesis/non-TA exit > technical harvest/trail}
-- Non-TA exit drivers: {valuation / catalyst / flow / thesis aging / opportunity cost}
+Bull: {factors}
+Bear: {factors}
 
-## Invalidation
-{Specific conditions that invalidate thesis}
+{Key levels: invalidation, stop, targets, R:R.}
 
-## Open Position Monitoring
-- Thesis status: {intact / improving / degrading / invalidated}
-- Active scenario: {scenario name or single-path setup}
-- Scenario switch trigger: {what would move the operating plan to another branch}
-- Next catalyst: {date/event}
-- Add trigger: {what would justify add}
-- Reduce trigger: {what would justify trim / reduce}
-- Exit trigger: {what would justify full exit}
+Monitoring:
+- Upgrade if: {condition}
+- Downgrade if: {condition}
+- Exit if: {condition}
+
+#### TA History
+- {YYYY-MM-DD}: {score}. {1-3 sentences of reasoning. Reference prior entries. Cite document IDs if relevant.}
+
+## Flow ({score}) — {role}
+→ `{SYMBOL}_flow_context.json`
+
+{Current state paragraph: 3-5 sentences of INTERPRETATION — verdict, CADI, persistence, participant flow, trust.}
+
+Monitoring:
+- Confirm if: {condition}
+- Weaken if: {condition}
+- Invalidate if: {condition}
+
+#### Flow History
+- {YYYY-MM-DD}: {score}. {reasoning chain.}
+
+## Narrative ({score}) — {role}
+→ `narrative.md`
+
+{3-5 sentence summary. Bull/bear. Kill criteria.}
+
+#### Narrative History
+- {YYYY-MM-DD}: {score}. {reasoning chain. Cite document IDs when new evidence changed the read.}
+
+## Fundamental ({score}) — {role}
+→ `fundamental.md`
+
+{3-5 sentence summary.}
+
+#### Fundamental History
+- {YYYY-MM-DD}: {score}. {reasoning chain. Cite document IDs.}
+
+## Position
+
+{For ACTIVE:}
+- Entry: {type, zone, size, avg price, lots}
+- Size reason: {why this size}
+- Stop: {level} | Trail: {level, mode}
+- Targets: T1 {price} ({action}) | T2 {price} ({action})
+- R:R: {from current trail}
+- Add rule: {condition}
+- Trim rule: {condition}
+- Exit rule: {precedence chain}
+- Thesis kill: {conditions}
+- Checkpoint: {date} — {expectations, failure action}
+
+{For WATCHING:}
+- Re-entry conditions: {what must align}
+- Entry zone: {range} | Stop: {level} | Targets: {levels}
+- Thesis kill: {conditions}
 
 ## Notes
-{Durable qualitative context: governance flags, ownership quirks, sector dynamics, structural considerations that don't fit in structured fields above. Not for transient updates — those go in Digest Sync.}
+{2-5 bullets of durable structural facts only. NOT for session-specific observations, lens findings, or catalyst updates.}
 
-## Digest Sync
-{Dated evidence trail from desk-checks and reviews. Each entry: date, source workflow, what changed and why.}
-- {YYYY-MM-DD}: {workflow} — {what changed, source reference}
+## History
+{Cross-cutting events: entries, exits, adds, trims, human decisions, thesis-level changes. NOT for lens score updates.}
+- {YYYY-MM-DD}: {event} — {what and why}
 ```
