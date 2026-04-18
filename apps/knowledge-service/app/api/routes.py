@@ -144,7 +144,10 @@ async def search_documents(request: InvestmentSearchRequest):
 
     query_vector = None
     if request.use_dense:
-        query_vector = await emb_svc.embed_query(request.query)
+        try:
+            query_vector = await emb_svc.embed_query(request.query)
+        except RuntimeError as e:
+            raise HTTPException(status_code=502, detail=str(e))
 
     # Build filter from request parameters
     filters = {}

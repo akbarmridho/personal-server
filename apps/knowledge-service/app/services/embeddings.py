@@ -1,6 +1,7 @@
 from typing import List
 
 from openrouter import OpenRouter
+from openrouter.errors import ResponseValidationError
 
 from app.core.config import settings
 
@@ -33,13 +34,18 @@ class EmbeddingService:
                 for text in texts
             ]
 
-        result = await self.openrouter_client.embeddings.generate_async(
-            model=self.DENSE_MODEL,
-            input=inputs,
-            encoding_format="float",
-            dimensions=self.DENSE_DIMENSION,
-            retries=3,
-        )
+        try:
+            result = await self.openrouter_client.embeddings.generate_async(
+                model=self.DENSE_MODEL,
+                input=inputs,
+                encoding_format="float",
+                dimensions=self.DENSE_DIMENSION,
+                retries=3,
+            )
+        except ResponseValidationError as e:
+            raise RuntimeError(
+                f"OpenRouter embeddings API error for model '{self.DENSE_MODEL}': {e}"
+            ) from e
 
         return [item.embedding for item in result.data]
 

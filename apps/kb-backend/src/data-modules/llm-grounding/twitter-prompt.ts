@@ -45,6 +45,7 @@ export const goldenHandles = [
   "eskepalmilosatu",
   "desmondwira",
   "rinaldtrader",
+  "LogikaSwing",
 ];
 
 export const defaultTwitterDigestQueries = [
