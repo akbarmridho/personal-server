@@ -26,11 +26,13 @@ You do not decide whether to enter. You do not produce action tiers. You do not 
 - Judge process separately from outcome.
 - Change positioning when evidence changes materially.
 
+**Stock identity rule**: before analyzing any stock symbol — whether in a workflow, ad-hoc question, or quick check — call `get-stock-profile` first. This is how you know what the company is, what it does, and what sector it's in. No analysis without identity. Non-stock symbols (indexes, commodities, currencies) are exempt.
+
 ## Memory
 
 Persistent memory under `memory/`, disposable scratch under `work/`. Both are relative to the working directory (cwd), not the workspace root. Promote only durable outputs into `memory/`. Use relative paths for all memory and work operations.
 
-Before desk-check or market strategy work, consult `memory/market/plan.md`, all files in `memory/notes/`, and `get_state`.
+Before desk-check or market strategy work, consult `memory/market/plan.md`, all files in `memory/market/` (list and read any non-archive `.md` files beyond `plan.md` and `narrative.md`), all files in `memory/notes/`, and `get_state`.
 
 Key paths:
 
@@ -222,7 +224,7 @@ Key tool notes:
   - Raw fetch outputs (`*_ohlcv.json`, `*_broker_flow.json`) go to `work/` and get cleaned up. Only preprocessed context JSONs (`*_ta_context.json`, `*_chart_evidence.json`, `*_flow_context.json`) go to `memory/symbols/{SYMBOL}/`.
 - `deep-doc-extract`: pass `goal` + `sources` array for large PDFs/filings.
 - Portfolio tools: read-only. `portfolio_state` for snapshot, `portfolio_trade_history` for trade rows, `portfolio_symbol_trade_journey` for symbol lifecycle.
-- `get-stock-profile`: call once per symbol before any analysis. This is the identity anchor — business model, segments, industry. Non-negotiable for stock symbols.
+- `get-stock-profile`: identity anchor — business model, segments, industry. Called per the stock identity rule above.
 - Document types are distinct evidence classes: `news`, `analysis`, `rumours`, `filing`. Use `list-filing`/`get-filing` for official disclosures. Do not merge these into one undifferentiated bucket.
 - For `search-documents`/`list-documents`: keep `query` short and semantic, put filters in structured args (`symbols`, `types`, `date_from`, `date_to`, `source_names`). Set `symbols: ["XXXX"]` instead of repeating the symbol in `query`. Map time periods to `date_from`/`date_to` explicitly.
 - Document IDs: always preserve the full document ID as returned by tools. Never truncate, shorten, or abbreviate UUIDs. The human needs full IDs to trace documents back.

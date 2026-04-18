@@ -38,7 +38,7 @@ Gather and integrate new information before reviewing.
 ### Phase 2: Portfolio + Market Context
 
 - Run `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks using `portfolio_state` summary plus targeted `portfolio_trade_history` / `portfolio_symbol_trade_journey` calls and current IHSG context.
-- Mandatory memory context: `memory/market/plan.md`, all files in `memory/notes/` (list and read), and `get_state`. Surface any `get_state` warnings (staleness, status mismatches) in the synthesis output.
+- Mandatory memory context: `memory/market/plan.md`, all other `.md` files in `memory/market/` (list and read), all files in `memory/notes/` (list and read), and `get_state`. Surface any `get_state` warnings (staleness, status mismatches) in the synthesis output.
 
 ### Phase 3: Symbol Reviews (delegated)
 
