@@ -79,15 +79,16 @@ Use this source hierarchy when claims conflict:
 
 1. official filings and formal regulatory disclosures
 2. company guidance, formal presentations, and official corporate communication
-3. reputable newswire / high-quality media / broker research
-4. internal research and vetted contextual analysis
+3. internal `analysis` documents (broker research, curated research notes, synthesized insights from our pipeline) — these are our data edge
+4. reputable newswire / high-quality media
 5. governance and ownership context used as supporting evidence
 6. social chatter, forums, rumors, and unsourced propagation
 
 Rules:
 
 - Tier 1-2 can anchor a high-confidence narrative call.
-- Tier 3-4 can strengthen or weaken a narrative, but should not overrule formal disclosure on factual claims.
+- Tier 3 (`analysis` documents) are the highest-signal non-filing source. Always query for them first (`types: ["analysis"]`). They often contain pre-distilled thesis, catalyst, and valuation work.
+- Tier 4 can strengthen or weaken a narrative, but should not overrule formal disclosure on factual claims.
 - Tier 6 can support crowding or propagation assessment, but cannot validate a narrative by itself.
 - If the narrative depends mainly on Tier 6, confidence must remain low.
 - If a major claim is contradicted by a stronger evidence tier, downgrade the story or mark it broken.
@@ -256,7 +257,8 @@ Routing defaults:
 
 Run in parallel:
 
-- `search-documents` for symbol and key themes
+- `list-documents` with `types: ["analysis"], symbols: ["{SYMBOL}"]` — read these first, they're the highest-signal source
+- `search-documents` for symbol and key themes (broader query across all types)
 - `web_search_exa` for external news/source discovery
 - `get-stock-keystats` for valuation framing
 - `get-stock-governance` for owner and control context

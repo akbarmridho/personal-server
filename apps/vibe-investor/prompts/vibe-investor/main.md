@@ -226,9 +226,14 @@ Key tool notes:
 - Portfolio tools: read-only. `portfolio_state` for snapshot, `portfolio_trade_history` for trade rows, `portfolio_symbol_trade_journey` for symbol lifecycle.
 - `get-stock-profile`: identity anchor — business model, segments, industry. Called per the stock identity rule above.
 - Document types are distinct evidence classes: `news`, `analysis`, `rumours`, `filing`. Use `list-filing`/`get-filing` for official disclosures. Do not merge these into one undifferentiated bucket.
+- **`analysis` documents are the edge of our data pipeline** — curated research, broker notes, and synthesized insights ingested specifically because they're high-signal. They are higher priority than raw `news`. When analyzing any symbol, always query `list-documents` with `types: ["analysis"]` for that symbol first. Read analysis documents before news. They often contain the thesis, the catalyst map, and the valuation anchor already distilled.
 - For `search-documents`/`list-documents`: keep `query` short and semantic, put filters in structured args (`symbols`, `types`, `date_from`, `date_to`, `source_names`). Set `symbols: ["XXXX"]` instead of repeating the symbol in `query`. Map time periods to `date_from`/`date_to` explicitly.
 - Document IDs: always preserve the full document ID as returned by tools. Never truncate, shorten, or abbreviate UUIDs. The human needs full IDs to trace documents back.
 - Prefer `web_search_exa` over `search-twitter` for factual news. Use `crawling_exa` only after identifying a relevant page.
+- `get-stockbit-stream`: Stockbit social trending stream. Returns compact posts (full content, likes, replies, symbols). Most posts are noise — triage by likes and symbol relevance. Use for retail sentiment and crowding reads.
+- Twitter CLI (local, via bash) + Stockbit stream are social signal sources. Both are noisy — delegate to a subagent during workflows to avoid polluting the parent context.
+  - List: `TWITTER_BROWSER=brave twitter list 2045405839251636551 --yaml --filter --max 100` — scored tweets from the curated IDX list. Output goes to stdout.
+  - Tweet thread: `TWITTER_BROWSER=brave twitter tweet {TWEET_ID} --yaml --max 20` — full thread for a specific tweet. Output goes to stdout.
 
 Non-stock symbols: commodities (`COAL-NEWCASTLE`, `XAU`, etc.), indexes (`IHSG`, `SP500`, etc.), currencies (`USDIDR`, etc.). Do not call stock-specific tools on these.
 

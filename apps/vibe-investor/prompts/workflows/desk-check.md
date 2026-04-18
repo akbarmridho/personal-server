@@ -12,11 +12,19 @@ Gather and integrate new information before reviewing.
 
 1. **Digest collection.** Gather high-signal news/documents since the last successful digest run.
    - Data collection is complete only after all paginated `list-documents` results in the window are exhausted for `types: ["news", "analysis", "rumours"]`, relevant documents are read with `get-document`, and any extra web search is used only for material continuity.
+   - Social signal collection is delegated to a subagent (see below) to avoid polluting the parent context with noise.
    - Continuity: before collecting, read the latest file in `memory/digests/` to determine the prior coverage window endpoint. Set `date_from` to that endpoint when calling `list-documents`. This captures everything from the prior endpoint through today, including documents scraped on the current day.
    - Max lookback: if the prior digest is more than 7 calendar days old, cap `date_from` at 7 days ago and note the gap in the digest header.
    - Digest date: use today's calendar date (`YYYY-MM-DD` in WIB), not `TRADING_DAY`. News and analysis arrive on weekends and holidays too.
    - Write the digest artifact to `memory/digests/{CALENDAR_DATE}_news_digest.md`.
    - Document references: every document cited in the digest must use the full document ID as returned by tools. Never truncate or shorten UUIDs.
+
+   **Social signal subagent** (delegated, runs in parallel with document collection):
+   - Runs the Twitter list CLI (`TWITTER_BROWSER=brave twitter list 2045405839251636551 --yaml --filter --max 100`) and `get-stockbit-stream` for today's date.
+   - Triages both sources: filter by relevance to portfolio/watchlist symbols, active theses, and high engagement (Twitter score >50, Stockbit likes >50).
+   - For high-signal tweets, fetches full thread with `twitter tweet {ID} --yaml --max 20`.
+   - Returns a compact social signal summary to the parent: key themes, symbol mentions, sentiment shifts, rotation signals, insider/institutional chatter. Max 2,000 bytes.
+   - The parent integrates this into the digest under a "Social Signals" section. The raw social data stays in the subagent context and is discarded.
 
    Digest output structure:
    - Header: date, coverage window (from → to, inclusive of today), prior digest path referenced for continuity.

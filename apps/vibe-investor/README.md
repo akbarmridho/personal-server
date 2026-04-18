@@ -113,6 +113,10 @@ pnpm cli          # CLI mode
 pnpm web          # Web UI mode
 ```
 
+**Twitter CLI:**
+
+<https://github.com/public-clis/twitter-cli>
+
 ### Optional CLI Tooling
 
 Recommended for faster local memory and file operations:

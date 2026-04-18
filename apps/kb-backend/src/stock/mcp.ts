@@ -15,6 +15,7 @@ import { getStockOwnership } from "./endpoints/stock/ownership.js";
 import { getStockProfileReport } from "./endpoints/stock/profile.js";
 import { getShareholderEntityHoldings } from "./endpoints/stock/shareholder-entity.js";
 import { getFiling, listFilings } from "./stockbit/filing.js";
+import { getStockbitTrendingStream } from "./stockbit/stream.js";
 
 // why yaml instead of json?
 // see: https://www.improvingagents.com/blog/best-nested-data-format
@@ -583,6 +584,42 @@ export const setupStockMcp = async () => {
           { error, args: normalizedArgs },
           "Search documents failed",
         );
+        return {
+          content: [
+            {
+              type: "text",
+              text: error instanceof Error ? error.message : String(error),
+            },
+          ],
+          isError: true,
+        };
+      }
+    },
+  });
+
+  server.addTool({
+    name: "get-stockbit-stream",
+    description:
+      "Returns top 20 trending posts from Stockbit social stream for a given date. Token-efficient: returns compact items with content (max 500 chars), user, likes, replies, symbols mentioned. Use for social sentiment, crowding signals, and retail narrative reads. Most posts are noise — triage by likes count and symbol relevance.",
+    parameters: z.object({
+      date: DateYmdSchema.describe(
+        "Date to fetch trending stream for (YYYY-MM-DD).",
+      ),
+    }),
+    execute: async (args) => {
+      if (!DATE_YMD_REGEX.test(args.date)) {
+        throw new Error("date must be in YYYY-MM-DD format.");
+      }
+      logger.info({ args }, "Executing get-stockbit-stream");
+      try {
+        const data = await getStockbitTrendingStream({ date: args.date });
+        logger.info(
+          { date: args.date, itemCount: data.items.length },
+          "Get stockbit stream completed",
+        );
+        return { type: "text", text: yaml.dump(data) };
+      } catch (error) {
+        logger.error({ error, args }, "Get stockbit stream failed");
         return {
           content: [
             {
