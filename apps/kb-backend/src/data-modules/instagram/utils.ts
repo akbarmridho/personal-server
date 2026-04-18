@@ -21,6 +21,10 @@ export const INSTAGRAM_ACCOUNTS: InstagramAccount[] = [
     url: "https://www.instagram.com/ricky.a.h_2212/",
     username: "ricky.a.h_2212",
   },
+  {
+    url: "https://www.instagram.com/creative.trader.20/",
+    username: "creative.trader.20",
+  },
 ];
 
 export interface InstagramPost {
