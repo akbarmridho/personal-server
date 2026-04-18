@@ -86,7 +86,7 @@ Shared workflow rules:
 - Technical analysis defaults to `UPDATE` when prior symbol plan or thesis context exists and `INITIAL` otherwise, unless the user explicitly requests `POSTMORTEM`.
 - For every materially reviewed symbol, write or refresh the `symbol_review` in the retained artifact and refresh symbol memory on material changes.
 - Artifact continuity: never rewrite an artifact from scratch. Always read the existing file first, compare with fresh data, and update only what changed. For `plan.md` and `narrative.md` on UPDATE mode, use surgical `edit` calls — never `write` to overwrite. A full rewrite is only acceptable when the artifact doesn't exist yet (INITIAL) or the human explicitly requests it. No update is a valid outcome — if nothing material changed, bump `last_reviewed` and stop.
-- Artifact completeness: every symbol (except `ARCHIVED` and `SHELVED`) must have `plan.md`, `narrative.md`, `fundamental.md`, context JSONs (`*_ta_context.json`, `*_flow_context.json`), and chart PNGs. Workflows must produce any missing artifacts when reviewing a symbol. Flag `PM-W12` on any symbol missing artifacts.
+- Artifact completeness: every symbol (except `ARCHIVED` and `SHELVED`) must have `plan.md`, `narrative.md`, `fundamental.md`, context JSONs (`*_ta_context.json`, `*_chart_evidence.json`, `*_flow_context.json`), and chart PNGs. Workflows must produce any missing artifacts when reviewing a symbol. Flag `PM-W12` on any symbol missing artifacts.
 - `get_state` warnings: every workflow must call `get_state` at the start and surface any warnings in the output. Staleness warnings, status mismatches, and missing fields are computed automatically — the workflow must not ignore them. If `get_state` reports stale symbols or theses, the workflow must address them (review, flag to human, or explain why deferred).
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.
@@ -130,7 +130,7 @@ symbol_review:
 
 Lens data sources:
 
-- For technical and flow: read `*_ta_context.json` and `*_flow_context.json` for structured data (levels, metrics, red flags). Read `plan.md` Technical and Flow sections for interpretation and monitoring triggers.
+- For technical and flow: read `*_ta_context.json`, `*_chart_evidence.json`, and `*_flow_context.json` for structured data (levels, metrics, red flags). Read `plan.md` Technical and Flow sections for interpretation and monitoring triggers.
 - For narrative and fundamental: read `narrative.md` and `fundamental.md` for full analysis. Read `plan.md` Narrative and Fundamental sections for summaries.
 
 ### Lens roles
@@ -210,17 +210,19 @@ MCP tools (stock data, knowledge base, social, web), custom tools (`get_state`, 
 
 Key tool notes:
 
-- `fetch-ohlcv`: daily (3yr) + intraday_1m (7d). Split-adjusted, not dividend-adjusted. Non-stock symbols: daily only. Output is large — save to `{SYMBOL}_ohlcv.json`, never read it manually. Feed it to the skill's preprocessing scripts.
-- `fetch-broker-flow`: `trading_days` 1-60. Output is large — save to `{SYMBOL}_broker_flow.json`, never read it manually. Feed it to `build_flow_context.py`.
+- `fetch-ohlcv`: daily (3yr) + intraday_1m (7d). Split-adjusted, not dividend-adjusted. Non-stock symbols: daily only. Output is large — save to `work/{SYMBOL}_ohlcv.json`, never read it manually. Feed it to the skill's preprocessing scripts.
+- `fetch-broker-flow`: `trading_days` 1-60. Output is large — save to `work/{SYMBOL}_broker_flow.json`, never read it manually. Feed it to `build_flow_context.py`.
 - File reading rules for data artifacts:
-  - `{SYMBOL}_ohlcv.json` — NEVER read. Preprocessing input only.
-  - `{SYMBOL}_broker_flow.json` — NEVER read. Preprocessing input only.
+  - `work/{SYMBOL}_ohlcv.json` — NEVER read. Preprocessing input only. Lives in `work/`, not `memory/`.
+  - `work/{SYMBOL}_broker_flow.json` — NEVER read. Preprocessing input only. Lives in `work/`, not `memory/`.
   - `{SYMBOL}_ta_context.json` — READ FULL. This is the compact preprocessed output. Read it directly.
+  - `{SYMBOL}_chart_evidence.json` — READ FULL. Structure events, liquidity map, Wyckoff state from chart preprocessing.
   - `{SYMBOL}_flow_context.json` — READ FULL. This is the compact preprocessed output. Read it directly.
   - Do not use `jq` on context JSONs. They are already compact. Just read them.
+  - Raw fetch outputs (`*_ohlcv.json`, `*_broker_flow.json`) go to `work/` and get cleaned up. Only preprocessed context JSONs (`*_ta_context.json`, `*_chart_evidence.json`, `*_flow_context.json`) go to `memory/symbols/{SYMBOL}/`.
 - `deep-doc-extract`: pass `goal` + `sources` array for large PDFs/filings.
 - Portfolio tools: read-only. `portfolio_state` for snapshot, `portfolio_trade_history` for trade rows, `portfolio_symbol_trade_journey` for symbol lifecycle.
-- `get-stock-profile`: call once per symbol early in the run.
+- `get-stock-profile`: call once per symbol before any analysis. This is the identity anchor — business model, segments, industry. Non-negotiable for stock symbols.
 - Document types are distinct evidence classes: `news`, `analysis`, `rumours`, `filing`. Use `list-filing`/`get-filing` for official disclosures. Do not merge these into one undifferentiated bucket.
 - For `search-documents`/`list-documents`: keep `query` short and semantic, put filters in structured args (`symbols`, `types`, `date_from`, `date_to`, `source_names`). Set `symbols: ["XXXX"]` instead of repeating the symbol in `query`. Map time periods to `date_from`/`date_to` explicitly.
 - Document IDs: always preserve the full document ID as returned by tools. Never truncate, shorten, or abbreviate UUIDs. The human needs full IDs to trace documents back.
@@ -243,4 +245,4 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 ## Agent Mode
 
 - Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Read existing artifacts before writing — update what changed, preserve what's still valid. Never rewrite from scratch unless the artifact doesn't exist. Write designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
+- Subagent: execute delegated scope only, return structured output. Call `get-stock-profile` once per stock symbol before any analysis. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Read existing artifacts before writing — update what changed, preserve what's still valid. Never rewrite from scratch unless the artifact doesn't exist. Write designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.

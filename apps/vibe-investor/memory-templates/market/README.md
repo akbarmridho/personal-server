@@ -43,12 +43,13 @@ The top-down market subagent produces chart PNGs and context JSONs for IHSG:
 - `IHSG_wyckoff_history.png`
 - `IHSG_vpvr_profile.png`
 - `IHSG_ta_context.json`
+- `IHSG_chart_evidence.json`
 
 ## Top-Down Market Subagent
 
 Desk-check and deep-review delegate a top-down market review to a subagent, run in parallel with symbol batches. The subagent must:
 
-1. Run `technical-analysis` on IHSG — fetch IHSG OHLCV, produce `IHSG_ta_context.json` and chart PNGs. Write the IHSG Technical lens summary directly into `plan.md` (using `edit` on UPDATE, `write` on INITIAL).
+1. Run `technical-analysis` on IHSG — fetch IHSG OHLCV, produce `IHSG_ta_context.json`, `IHSG_chart_evidence.json`, and chart PNGs. Write the IHSG Technical lens summary directly into `plan.md` (using `edit` on UPDATE, `write` on INITIAL).
 2. Run `narrative-analysis` at the market level — use the current digest, macro data, and sector context to produce `narrative.md` with ranked narratives, sleeve status, and catalyst outlook.
 3. Write all artifacts to `memory/market/`.
 4. Return a structured summary for the parent synthesis: IHSG regime, key level status, breadth health, macro tone, dominant driver, and any regime change signals.

@@ -50,7 +50,7 @@ For each active thesis file:
 
 ### 5. Artifact completeness
 
-- For each non-`ARCHIVED` and non-`SHELVED` symbol, check that all required artifacts exist: `plan.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_flow_context.json`, chart PNGs.
+- For each non-`ARCHIVED` and non-`SHELVED` symbol, check that all required artifacts exist: `plan.md`, `narrative.md`, `fundamental.md`, `*_ta_context.json`, `*_chart_evidence.json`, `*_flow_context.json`, chart PNGs.
 - Any symbol missing required artifacts → flag `PM-W12` with the missing files listed.
 - Report a summary table of artifact gaps.
 

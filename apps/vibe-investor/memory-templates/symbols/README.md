@@ -34,6 +34,7 @@ Every symbol directory (`memory/symbols/{SYMBOL}/`) must contain all of these:
 - `narrative.md` — narrative skill output (full analysis, evidence, catalyst dossier)
 - `fundamental.md` — fundamental skill output (full analysis, governance, valuation)
 - `*_ta_context.json` — deterministic TA preprocessing (system of record for TA structured data)
+- `*_chart_evidence.json` — deterministic chart preprocessing (structure events, liquidity map, Wyckoff state)
 - `*_flow_context.json` — deterministic flow preprocessing (system of record for flow structured data)
 - chart PNGs — visual evidence from TA skill
 

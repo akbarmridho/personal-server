@@ -52,6 +52,7 @@ $OPENCODE_CWD/
 │   │   ├── narrative.md
 │   │   ├── fundamental.md
 │   │   ├── *_ta_context.json
+│   │   ├── *_chart_evidence.json
 │   │   ├── *_flow_context.json
 │   │   ├── *.png
 │   │   └── archive/

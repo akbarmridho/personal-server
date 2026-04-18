@@ -202,8 +202,9 @@ Every flag: `flag_id`, `severity`, `why`. Include overall risk summary.
 This skill produces:
 
 1. **`ta_context.json`** — deterministic preprocessing output. System of record for all TA structured data (levels, MA posture, Wyckoff, VPVR, setup, red flags, risk map). Written by the preprocessing script.
-2. **Chart PNGs** — visual evidence. Written by the chart generation script.
-3. **Lens summary for `plan.md`** — the LLM's unique interpretation, written directly into the symbol's `plan.md` under the `## Technical ({score}) — {role}` section.
+2. **`chart_evidence.json`** — deterministic chart preprocessing output. Structure events, liquidity map, Wyckoff state, VPVR levels. Written by the chart generation script.
+3. **Chart PNGs** — visual evidence. Written by the chart generation script.
+4. **Lens summary for `plan.md`** — the LLM's unique interpretation, written directly into the symbol's `plan.md` under the `## Technical ({score}) — {role}` section.
 
 The lens summary contains ONLY what the LLM uniquely contributes — interpretation, reasoning, bull/bear factors, monitoring triggers, and history entries. It must NOT restate structured data that already lives in `ta_context.json` (levels, MA proximity, Wyckoff phase details, setup scores, red flag codes, etc.).
 
@@ -230,4 +231,4 @@ See `memory/symbols/README.md` for the full plan template, edit protocol, and st
 
 ## Artifact Persistence
 
-Write chart PNGs (`*.png`) and `ta_context.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.
+Write chart PNGs (`*.png`), `ta_context.json`, and `chart_evidence.json` to `memory/symbols/{SYMBOL}/` when the symbol has an existing plan or is in the coverage universe. Otherwise write to `work/`.
