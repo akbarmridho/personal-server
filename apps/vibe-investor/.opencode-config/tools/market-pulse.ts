@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { tool } from "@opencode-ai/plugin";
-import { readLatestPortfolio, withPortfolioWeights } from "./portfolio.ts";
+import { readLatestPortfolio } from "./portfolio.ts";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -74,36 +74,21 @@ type SymbolFrontmatter = {
   last_reviewed?: string;
 };
 
-type PortfolioPosition = {
-  symbol: string;
-  weight: number;
-  unrealized_gain: number;
-};
-
 type TaContext = {
-  analysis?: { as_of_date?: string };
   risk_map?: {
     stop_level?: number;
     invalidation_level?: number;
     target_ladder?: number[];
   };
-  setup?: { primary_setup?: string };
-  trigger_confirmation?: { trigger_state?: string };
-  daily_thesis?: {
-    current_cycle_phase?: string;
-    current_wyckoff_phase?: string;
-    wyckoff_current_maturity?: string;
+  location?: {
+    support_zones?: Array<{ label?: string; mid?: number; strength?: string }>;
+    resistance_zones?: Array<{
+      label?: string;
+      mid?: number;
+      strength?: string;
+    }>;
+    value_area?: { poc?: number };
   };
-  red_flags?: Array<{ severity?: string }>;
-};
-
-type FlowContext = {
-  analysis?: { as_of_date?: string };
-  baseline_verdict?: { verdict?: string };
-  core_metrics?: { cadi_value?: number; cadi_trend?: string };
-  trust_regime?: { trust_level?: string };
-  advanced_signals?: { divergence_state?: string };
-  integration_hook?: { signal_role?: string };
 };
 
 // ─── Alert types ─────────────────────────────────────────────────────────────
@@ -128,28 +113,15 @@ type SymbolOutput = {
   avg_volume_20d: number | null;
   volume_ratio: number | null;
   atr_20d_pct: number | null;
-  weight_pct: number | null;
-  unrealized_gain_pct: number | null;
-  context_as_of: string | null;
-  lens: {
-    ta: number | null;
-    flow: number | null;
-    narrative: number | null;
-    fundamental: number | null;
-  } | null;
+  // MAs — fresh from OHLCV
+  ema21_dist_pct: number | null;
+  sma50_dist_pct: number | null;
+  sma200_dist_pct: number | null;
+  // Key levels — from ta_context (structural, not daily-fresh)
+  key_levels: string | null;
   stop: number | null;
   invalidation: number | null;
   targets: number[] | null;
-  flow_verdict: string | null;
-  cadi: number | null;
-  cadi_trend: string | null;
-  trust: string | null;
-  divergence: string | null;
-  flow_role: string | null;
-  wyckoff: string | null;
-  setup: string | null;
-  setup_triggered: boolean;
-  red_flags: { count: number; max_severity: string | null } | null;
   alerts: Alert[] | null;
 };
 
@@ -264,9 +236,24 @@ function computeOhlcvFields(bars: OhlcvBar[]) {
       ? sorted.slice(-50).reduce((s: number, b: OhlcvBar) => s + b.close, 0) /
         50
       : null;
+  const sma200 =
+    n >= 200
+      ? sorted.slice(-200).reduce((s: number, b: OhlcvBar) => s + b.close, 0) /
+        200
+      : null;
 
   const aboveEma21 = ema21 !== null ? last > ema21 : null;
   const aboveSma50 = sma50 !== null ? last > sma50 : null;
+
+  // MA distance from price (%)
+  const ema21DistPct =
+    ema21 !== null && ema21 > 0 ? round2(((last - ema21) / ema21) * 100) : null;
+  const sma50DistPct =
+    sma50 !== null && sma50 > 0 ? round2(((last - sma50) / sma50) * 100) : null;
+  const sma200DistPct =
+    sma200 !== null && sma200 > 0
+      ? round2(((last - sma200) / sma200) * 100)
+      : null;
 
   // EMA21 cross in last 2 days
   let ema21Cross = false;
@@ -298,6 +285,10 @@ function computeOhlcvFields(bars: OhlcvBar[]) {
     avgVolume20d: Math.round(avgVolume20d),
     volumeRatio: round2(volumeRatio),
     atr20dPct: round2(atr20dPct),
+    // MA distances
+    ema21DistPct,
+    sma50DistPct,
+    sma200DistPct,
     // Internal alert fields
     _consecutiveUp: consecutiveUp,
     _consecutiveDown: consecutiveDown,
@@ -391,51 +382,6 @@ function parseFrontmatter(raw: string): SymbolFrontmatter {
   return data as SymbolFrontmatter;
 }
 
-function parseLensScores(
-  symbolsRoot: string,
-  symbolDir: string,
-): Promise<{
-  ta: number | null;
-  flow: number | null;
-  narrative: number | null;
-  fundamental: number | null;
-}> {
-  return readFile(path.resolve(symbolsRoot, symbolDir, "plan.md"), "utf8")
-    .then((raw) => {
-      const scores = {
-        ta: null as number | null,
-        flow: null as number | null,
-        narrative: null as number | null,
-        fundamental: null as number | null,
-      };
-      const headerPattern =
-        /^##\s+(Technical|Flow|Narrative|Fundamental)\s*\((\d+)\)/gm;
-      const lensKeyMap: Record<string, string> = {
-        technical: "ta",
-        flow: "flow",
-        narrative: "narrative",
-        fundamental: "fundamental",
-      };
-      let match = headerPattern.exec(raw);
-      while (match !== null) {
-        const captured = match[1].toLowerCase();
-        const key = lensKeyMap[captured] ?? captured;
-        (scores as Record<string, number | null>)[key] = Number.parseInt(
-          match[2],
-          10,
-        );
-        match = headerPattern.exec(raw);
-      }
-      return scores;
-    })
-    .catch(() => ({
-      ta: null,
-      flow: null,
-      narrative: null,
-      fundamental: null,
-    }));
-}
-
 async function readJsonFile<T>(filePath: string): Promise<T | null> {
   try {
     const raw = await readFile(filePath, "utf8");
@@ -467,7 +413,7 @@ function evaluateAlerts(
   const { last, stop, invalidation, targets } = sym;
   const inPortfolio = sym.in_portfolio;
 
-  // Tier 1 — Capital protection
+  // Tier 1 — Capital protection (portfolio positions at risk)
   if (
     inPortfolio &&
     last !== null &&
@@ -506,18 +452,6 @@ function evaluateAlerts(
   }
   if (
     inPortfolio &&
-    sym.flow_verdict === "DISTRIBUTION" &&
-    sym.cadi_trend &&
-    (sym.cadi_trend === "falling" || sym.cadi_trend === "negative")
-  ) {
-    alerts.push({
-      id: "flow_hostile_position",
-      priority: 2,
-      msg: `DISTRIBUTION with CADI ${sym.cadi_trend}`,
-    });
-  }
-  if (
-    inPortfolio &&
     last !== null &&
     stop !== null &&
     stop > 0 &&
@@ -527,7 +461,7 @@ function evaluateAlerts(
     alerts.push({
       id: "approaching_stop",
       priority: 3,
-      msg: `price ${last} within 10% of stop ${stop}`,
+      msg: `price ${last} within 10% of stop ${round2(stop)}`,
     });
   }
   if (inPortfolio && ohlcvInternal && ohlcvInternal._consecutiveDown >= 5) {
@@ -538,12 +472,12 @@ function evaluateAlerts(
     });
   }
 
-  // Tier 2 — Discovery
+  // Tier 2 — Discovery (dormant names waking up)
   const status = sym.status?.toUpperCase();
   if (
     (status === "SHELVED" || status === "ARCHIVED") &&
-    ((sym.pct_1w !== null && Math.abs(sym.pct_1w) > 5) ||
-      (sym.volume_ratio !== null && sym.volume_ratio > 2.0))
+    ((sym.pct_1w !== null && Math.abs(sym.pct_1w) > 10) ||
+      (sym.volume_ratio !== null && sym.volume_ratio > 3.0))
   ) {
     alerts.push({
       id: "shelved_wakeup",
@@ -551,42 +485,20 @@ function evaluateAlerts(
       msg: `${status} moved: 1w=${sym.pct_1w}%, vol_ratio=${sym.volume_ratio}`,
     });
   }
-  if (sym.setup_triggered) {
-    alerts.push({
-      id: "setup_triggered",
-      priority: 5,
-      msg: `setup ${sym.setup} triggered`,
-    });
-  }
-  if (
-    status === "READY" &&
-    last !== null &&
-    invalidation !== null &&
-    invalidation > 0 &&
-    last <= invalidation * 1.05
-  ) {
-    alerts.push({
-      id: "ready_approaching_entry",
-      priority: 5,
-      msg: `READY, price ${last} near entry zone (invalidation ${invalidation})`,
-    });
-  }
 
   // Tier 3 — Position management
-  if (targets && targets.length > 0 && last !== null) {
-    if (last >= targets[0]) {
-      alerts.push({
-        id: "target_hit",
-        priority: 6,
-        msg: `price ${last} >= target ${targets[0]}`,
-      });
-    } else if (last >= targets[0] * 0.96) {
-      alerts.push({
-        id: "approaching_target",
-        priority: 6,
-        msg: `price ${last} approaching target ${targets[0]}`,
-      });
-    }
+  if (
+    inPortfolio &&
+    targets &&
+    targets.length > 0 &&
+    last !== null &&
+    last >= targets[0]
+  ) {
+    alerts.push({
+      id: "target_hit",
+      priority: 6,
+      msg: `price ${last} >= target ${round2(targets[0])}`,
+    });
   }
   if (inPortfolio && ohlcvInternal && ohlcvInternal._consecutiveUp >= 5) {
     alerts.push({
@@ -596,47 +508,22 @@ function evaluateAlerts(
     });
   }
 
-  // Tier 4 — Staleness
-  if (
-    sym.days_since_review !== null &&
-    sym.days_since_review > 2 &&
-    sym.pct_1w !== null &&
-    Math.abs(sym.pct_1w) > 3
-  ) {
-    alerts.push({
-      id: "stale_and_moved",
-      priority: 7,
-      msg: `${sym.days_since_review}d stale, 1w=${sym.pct_1w}%`,
-    });
-  }
-  if (
-    inPortfolio &&
-    sym.days_since_review !== null &&
-    sym.days_since_review > 3
-  ) {
-    alerts.push({
-      id: "stale_position",
-      priority: 7,
-      msg: `held position, ${sym.days_since_review}d since review`,
-    });
-  }
-
-  // Tier 5 — Price action
-  if (sym.pct_1d !== null && Math.abs(sym.pct_1d) > 3) {
+  // Tier 4 — Price action (significant moves only)
+  if (sym.pct_1d !== null && Math.abs(sym.pct_1d) > 5) {
     alerts.push({
       id: "big_daily_move",
       priority: 8,
       msg: `1d=${sym.pct_1d}%`,
     });
   }
-  if (ohlcvInternal && Math.abs(ohlcvInternal._gapPct) > 2) {
+  if (ohlcvInternal && Math.abs(ohlcvInternal._gapPct) > 3) {
     alerts.push({
       id: "gap_move",
       priority: 8,
       msg: `gap ${ohlcvInternal._gapPct}%`,
     });
   }
-  if (sym.volume_ratio !== null && sym.volume_ratio > 2.0) {
+  if (sym.volume_ratio !== null && sym.volume_ratio > 3.0) {
     alerts.push({
       id: "volume_spike",
       priority: 9,
@@ -645,7 +532,7 @@ function evaluateAlerts(
   }
   if (
     ohlcvInternal &&
-    ohlcvInternal._volumeTrend < 0.4 &&
+    ohlcvInternal._volumeTrend < 0.3 &&
     (status === "ACTIVE" || status === "READY")
   ) {
     alerts.push({
@@ -670,15 +557,15 @@ function evaluateAlerts(
     last !== null &&
     sym.low_60d !== null &&
     sym.low_60d > 0 &&
-    last <= sym.low_60d * 1.05
+    last <= sym.low_60d * 1.03
   ) {
     alerts.push({
       id: "near_60d_low",
       priority: 10,
-      msg: `within 5% of 60d low ${sym.low_60d}`,
+      msg: `within 3% of 60d low ${sym.low_60d}`,
     });
   }
-  if (ohlcvInternal && ohlcvInternal._atrCompression < 0.6) {
+  if (ohlcvInternal && ohlcvInternal._atrCompression < 0.5) {
     alerts.push({
       id: "range_compression",
       priority: 10,
@@ -693,13 +580,13 @@ function evaluateAlerts(
     });
   }
   if (ohlcvInternal && ohlcvInternal._rsi14 !== null) {
-    if (ohlcvInternal._rsi14 > 75) {
+    if (ohlcvInternal._rsi14 > 80) {
       alerts.push({
         id: "rsi_extreme",
         priority: 10,
         msg: `RSI=${ohlcvInternal._rsi14} (overbought)`,
       });
-    } else if (ohlcvInternal._rsi14 < 25) {
+    } else if (ohlcvInternal._rsi14 < 20) {
       alerts.push({
         id: "rsi_extreme",
         priority: 10,
@@ -707,14 +594,14 @@ function evaluateAlerts(
       });
     }
   }
-  if (sym.pct_1w !== null && Math.abs(sym.pct_1w) > 7) {
+  if (sym.pct_1w !== null && Math.abs(sym.pct_1w) > 15) {
     alerts.push({
       id: "big_weekly_move",
       priority: 11,
       msg: `1w=${sym.pct_1w}%`,
     });
   }
-  if (sym.pct_1m !== null && Math.abs(sym.pct_1m) > 20) {
+  if (sym.pct_1m !== null && Math.abs(sym.pct_1m) > 30) {
     alerts.push({
       id: "big_monthly_move",
       priority: 11,
@@ -749,28 +636,16 @@ export default tool({
 
     const allSymbols = [...symbolMeta.keys()];
 
-    // 3. Read portfolio
-    let portfolioPositions: PortfolioPosition[] = [];
-    let cashRatioPct = 0;
-    let positionCount = 0;
+    // 3. Read portfolio — only need held symbol set for alert evaluation
+    const heldSymbols = new Set<string>();
     try {
       const snapshot = await readLatestPortfolio(cwd);
-      const weighted = withPortfolioWeights(snapshot);
-      portfolioPositions = weighted.map((p) => ({
-        symbol: p.symbol.toUpperCase(),
-        weight: round2(p.weight * 100),
-        unrealized_gain: round2(p.unrealized_gain * 100),
-      }));
-      positionCount = portfolioPositions.length;
-      cashRatioPct =
-        snapshot.equity > 0
-          ? round2((snapshot.cash / snapshot.equity) * 100)
-          : 0;
+      for (const p of snapshot.positions) {
+        heldSymbols.add(p.symbol.toUpperCase());
+      }
     } catch {
       // Portfolio unavailable — continue without it
     }
-
-    const portfolioMap = new Map(portfolioPositions.map((p) => [p.symbol, p]));
 
     // 4. Call kb-backend market-pulse endpoint
     const response = await fetch(
@@ -810,8 +685,7 @@ export default tool({
         const fm = symbolMeta.get(symbol) ?? {};
         const bars = ohlcvMap.get(symbol);
         const ohlcvFields = bars ? computeOhlcvFields(bars) : null;
-        const portfolioPos = portfolioMap.get(symbol);
-        const inPortfolio = portfolioPos !== undefined;
+        const inPortfolio = heldSymbols.has(symbol);
 
         // Days since review
         let daysSinceReview: number | null = null;
@@ -831,61 +705,28 @@ export default tool({
             `${symbol}_ta_context.json`,
           ),
         );
-        const flowCtx = await readJsonFile<FlowContext>(
-          path.resolve(
-            symbolsRoot,
-            symbol.toLowerCase(),
-            `${symbol}_flow_context.json`,
-          ),
-        );
-        const lens = await parseLensScores(symbolsRoot, symbol.toLowerCase());
 
-        // Context as_of
-        const contextAsOf =
-          taCtx?.analysis?.as_of_date ?? flowCtx?.analysis?.as_of_date ?? null;
-
-        // TA fields
+        // TA fields (stop/invalidation/targets for capital protection alerts)
         const stop = taCtx?.risk_map?.stop_level ?? null;
         const invalidation = taCtx?.risk_map?.invalidation_level ?? null;
         const targets = taCtx?.risk_map?.target_ladder ?? null;
-        const setup = taCtx?.setup?.primary_setup ?? null;
-        const setupTriggered =
-          taCtx?.trigger_confirmation?.trigger_state === "triggered";
 
-        // Wyckoff
-        const wyckoffParts = [
-          taCtx?.daily_thesis?.current_cycle_phase,
-          taCtx?.daily_thesis?.current_wyckoff_phase,
-          taCtx?.daily_thesis?.wyckoff_current_maturity,
-        ].filter(Boolean);
-        const wyckoff = wyckoffParts.length > 0 ? wyckoffParts.join("_") : null;
-
-        // Red flags
-        let redFlags: { count: number; max_severity: string | null } | null =
-          null;
-        if (taCtx?.red_flags && taCtx.red_flags.length > 0) {
-          const severityOrder = ["low", "medium", "high", "critical"];
-          let maxSev: string | null = null;
-          for (const rf of taCtx.red_flags) {
-            if (
-              rf.severity &&
-              (maxSev === null ||
-                severityOrder.indexOf(rf.severity) >
-                  severityOrder.indexOf(maxSev))
-            ) {
-              maxSev = rf.severity;
-            }
-          }
-          redFlags = { count: taCtx.red_flags.length, max_severity: maxSev };
-        }
-
-        // Flow fields
-        const flowVerdict = flowCtx?.baseline_verdict?.verdict ?? null;
-        const cadi = flowCtx?.core_metrics?.cadi_value ?? null;
-        const cadiTrend = flowCtx?.core_metrics?.cadi_trend ?? null;
-        const trust = flowCtx?.trust_regime?.trust_level ?? null;
-        const divergence = flowCtx?.advanced_signals?.divergence_state ?? null;
-        const flowRole = flowCtx?.integration_hook?.signal_role ?? null;
+        // Key levels from ta_context (structural — S1, S2, POC, R1, R2)
+        const keyLevelParts: string[] = [];
+        const supports = taCtx?.location?.support_zones ?? [];
+        const resistances = taCtx?.location?.resistance_zones ?? [];
+        const poc = taCtx?.location?.value_area?.poc;
+        if (supports.length > 0)
+          keyLevelParts.push(`S1 ${Math.round(supports[0].mid ?? 0)}`);
+        if (supports.length > 1)
+          keyLevelParts.push(`S2 ${Math.round(supports[1].mid ?? 0)}`);
+        if (poc) keyLevelParts.push(`POC ${Math.round(poc)}`);
+        if (resistances.length > 0)
+          keyLevelParts.push(`R1 ${Math.round(resistances[0].mid ?? 0)}`);
+        if (resistances.length > 1)
+          keyLevelParts.push(`R2 ${Math.round(resistances[1].mid ?? 0)}`);
+        const keyLevels =
+          keyLevelParts.length > 0 ? keyLevelParts.join(" | ") : null;
 
         const symOut: SymbolOutput = {
           symbol,
@@ -905,29 +746,13 @@ export default tool({
           avg_volume_20d: ohlcvFields?.avgVolume20d ?? null,
           volume_ratio: ohlcvFields?.volumeRatio ?? null,
           atr_20d_pct: ohlcvFields?.atr20dPct ?? null,
-          weight_pct: portfolioPos?.weight ?? null,
-          unrealized_gain_pct: portfolioPos?.unrealized_gain ?? null,
-          context_as_of: contextAsOf,
-          lens:
-            lens.ta !== null ||
-            lens.flow !== null ||
-            lens.narrative !== null ||
-            lens.fundamental !== null
-              ? lens
-              : null,
+          ema21_dist_pct: ohlcvFields?.ema21DistPct ?? null,
+          sma50_dist_pct: ohlcvFields?.sma50DistPct ?? null,
+          sma200_dist_pct: ohlcvFields?.sma200DistPct ?? null,
+          key_levels: keyLevels,
           stop: stop && stop > 0 ? stop : null,
           invalidation: invalidation && invalidation > 0 ? invalidation : null,
           targets: targets && targets.length > 0 ? targets : null,
-          flow_verdict: flowVerdict,
-          cadi: cadi !== null ? round2(cadi) : null,
-          cadi_trend: cadiTrend,
-          trust,
-          divergence,
-          flow_role: flowRole,
-          wyckoff,
-          setup,
-          setup_triggered: setupTriggered,
-          red_flags: redFlags,
           alerts: null,
         };
 
@@ -957,78 +782,107 @@ export default tool({
         return Math.abs(b.pct_1d ?? 0) - Math.abs(a.pct_1d ?? 0);
       });
 
-    // 7. Compress output — strip null fields
-    const compressedItems = [...alerted, ...nonAlerted].map(stripNulls);
+    // 7. Build YAML output
+    const MAX_MOVER_ROWS = 15;
+    const MAX_SCREENER_ROWS = 15;
+    const MIN_MOVER_VALUE = 5_000_000_000; // 5B IDR min transaction value filter
 
-    // 8. Count by status
-    const byStatus: Record<string, number> = {};
-    for (const item of items) {
-      const s = (item.status ?? "UNKNOWN").toUpperCase();
-      byStatus[s] = (byStatus[s] ?? 0) + 1;
+    const lines: string[] = [];
+    const y = (indent: number, text: string) =>
+      lines.push("  ".repeat(indent) + text);
+
+    y(0, `as_of: "${apiResult.data.as_of}"`);
+    y(0, `universe: ${items.length} symbols, ${alerted.length} alerted`);
+
+    // Trending — compact CSV
+    y(0, "trending: # symbol,price,change,pct");
+    for (const t of trending) {
+      y(1, `- ${t.symbol},${t.last},${t.change},${t.pct}`);
     }
 
-    // 9. Compress trending/movers/screeners
-    const compactTrending = trending.map((t) => ({
-      s: t.symbol,
-      p: t.last,
-      c: t.change,
-      pct: t.pct,
-    }));
-
-    const compactMovers: Record<
-      string,
-      Array<{
-        s: string;
-        p: number;
-        c: number;
-        pct: number;
-        v: number;
-        nfb: number;
-        nfs: number;
-      }>
-    > = {};
+    // Movers — top N, filtered by value, CSV rows
     for (const cat of movers.categories) {
-      compactMovers[cat.label] = cat.items.map((m) => ({
-        s: m.symbol,
-        p: m.price,
-        c: m.change,
-        pct: round2(m.change_pct),
-        v: m.value,
-        nfb: m.net_foreign_buy,
-        nfs: m.net_foreign_sell,
-      }));
+      const filtered = cat.items
+        .filter((m) => m.value >= MIN_MOVER_VALUE)
+        .slice(0, MAX_MOVER_ROWS);
+      y(0, `${cat.label}: # symbol,price,chg%,value,nfb,nfs`);
+      for (const m of filtered) {
+        y(
+          1,
+          `- ${m.symbol},${m.price},${round2(m.change_pct)},${compactNum(m.value)},${compactNum(m.net_foreign_buy)},${compactNum(m.net_foreign_sell)}`,
+        );
+      }
     }
 
-    const compactScreeners: Record<
-      string,
-      Array<{ s: string; m: Record<string, number> }>
-    > = {};
+    // Screeners — top N, CSV rows
     for (const scr of screeners) {
-      compactScreeners[scr.preset] = scr.items.map((i) => ({
-        s: i.symbol,
-        m: i.metrics,
-      }));
+      const capped = scr.items.slice(0, MAX_SCREENER_ROWS);
+      if (capped.length === 0) {
+        y(0, `${scr.preset}: [] # ${scr.total} total`);
+        continue;
+      }
+      const metricKeys =
+        capped.length > 0 ? Object.keys(capped[0].metrics) : [];
+      const shortKeys = metricKeys.map((k) => k.replace(/_/g, "").slice(0, 8));
+      y(
+        0,
+        `${scr.preset}: # symbol,${shortKeys.join(",")} (${scr.total} total)`,
+      );
+      for (const item of capped) {
+        const vals = metricKeys.map((k) => compactNum(item.metrics[k]));
+        y(1, `- ${item.symbol},${vals.join(",")}`);
+      }
     }
 
-    const output = {
-      as_of: apiResult.data.as_of,
-      universe: {
-        total: items.length,
-        alerted: alerted.length,
-        by_status: byStatus,
-      },
-      portfolio: {
-        positions: positionCount,
-        cash_ratio_pct: cashRatioPct,
-      },
-      trending: compactTrending,
-      movers: compactMovers,
-      screeners: compactScreeners,
-      items: compressedItems,
-      errors: errors.length > 0 ? errors : undefined,
-    };
+    // Watchlist — alerted symbols get full detail, non-alerted get one-liner
+    y(0, "watchlist:");
+    for (const sym of alerted) {
+      y(1, `- ${sym.symbol}:`);
+      y(
+        2,
+        `price: ${sym.last} (${fmtPct(sym.pct_1d)}d ${fmtPct(sym.pct_1w)}w ${fmtPct(sym.pct_1m)}m)`,
+      );
+      // MAs
+      const maParts: string[] = [];
+      if (sym.ema21_dist_pct !== null)
+        maParts.push(`${fmtPct(sym.ema21_dist_pct)} EMA21`);
+      if (sym.sma50_dist_pct !== null)
+        maParts.push(`${fmtPct(sym.sma50_dist_pct)} SMA50`);
+      if (sym.sma200_dist_pct !== null)
+        maParts.push(`${fmtPct(sym.sma200_dist_pct)} SMA200`);
+      if (maParts.length > 0) y(2, `mas: ${maParts.join(" | ")}`);
+      // Key levels
+      if (sym.key_levels) y(2, `sr: ${sym.key_levels}`);
+      y(
+        2,
+        `vol: ${compactNum(sym.volume_last ?? 0)}/${compactNum(sym.avg_volume_20d ?? 0)} (${sym.volume_ratio}x) atr: ${sym.atr_20d_pct}%`,
+      );
+      // Alerts
+      y(2, "alerts:");
+      for (const a of sym.alerts!) {
+        y(3, `- [P${a.priority}] ${a.id}: ${a.msg}`);
+      }
+    }
 
-    return JSON.stringify(output);
+    // Non-alerted — one-liner each with volume ratio
+    if (nonAlerted.length > 0) {
+      y(1, "# --- no alerts ---");
+      for (const sym of nonAlerted) {
+        y(
+          1,
+          `- ${sym.symbol}: ${sym.last ?? "?"} (${fmtPct(sym.pct_1d)}d ${fmtPct(sym.pct_1w)}w) vol:${sym.volume_ratio ?? "?"}x`,
+        );
+      }
+    }
+
+    if (errors.length > 0) {
+      y(0, "errors:");
+      for (const e of errors) {
+        y(1, `- ${e.symbol}: ${e.error}`);
+      }
+    }
+
+    return lines.join("\n");
   },
 });
 
@@ -1052,10 +906,18 @@ function todayWIB(): string {
   return wib.toISOString().slice(0, 10);
 }
 
-function stripNulls(obj: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== null && v !== undefined) out[k] = v;
-  }
-  return out;
+function compactNum(v: number): string {
+  if (v === 0) return "0";
+  const abs = Math.abs(v);
+  const sign = v < 0 ? "-" : "";
+  if (abs >= 1e12) return `${sign}${round2(abs / 1e12)}T`;
+  if (abs >= 1e9) return `${sign}${round2(abs / 1e9)}B`;
+  if (abs >= 1e6) return `${sign}${round2(abs / 1e6)}M`;
+  if (abs >= 1e3) return `${sign}${round2(abs / 1e3)}K`;
+  return `${sign}${abs}`;
+}
+
+function fmtPct(v: number | null): string {
+  if (v === null) return "?";
+  return v >= 0 ? `+${v}%` : `${v}%`;
 }

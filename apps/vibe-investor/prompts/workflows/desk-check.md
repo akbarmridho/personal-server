@@ -71,7 +71,7 @@ Parent synthesis produces two outputs: (1) **chat output** — the full synthesi
 
 Full synthesis for each reviewed symbol, triaged by urgency per main.md:
 
-- Use `market-pulse` alert triage as the starting point for urgency classification. Symbols with Tier 1-2 alerts map to `ATTENTION` or `EXIT_SIGNAL`. Tier 3-4 map to `MONITOR`. No alerts or Tier 5 only map to `NO_CHANGE` unless subagent review escalates.
+- Use `market-pulse` alert triage as the starting point for urgency classification. Symbols with Tier 1-2 alerts map to `ATTENTION` or `EXIT_SIGNAL`. Tier 3 maps to `MONITOR`. No alerts or Tier 4 only map to `NO_CHANGE` unless subagent review escalates.
 - `NO_CHANGE` symbols: one-line status in a summary table.
 - `MONITOR` symbols: brief note on what shifted and what to watch.
 - `ATTENTION` and `EXIT_SIGNAL` symbols: full `symbol_review` per main.md contract.
