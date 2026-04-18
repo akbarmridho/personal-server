@@ -3,6 +3,7 @@ import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import { KV } from "../../infrastructure/db/kv.js";
 import type { Json } from "../../infrastructure/db/types.js";
+import { logger } from "../../utils/logger.js";
 import { dateToFormatted } from "../utils.js";
 import type { BaseStockbitResponse } from "./auth.js";
 import { stockbitGetJson } from "./client.js";
@@ -14,8 +15,18 @@ const JAKARTA_TIMEZONE = "Asia/Jakarta";
 const INTRADAY_WINDOW_DAYS = 7;
 const DAILY_WINDOW_YEARS = 3;
 const CORP_ACTION_FUTURE_END_DATE = "2037-01-01";
-const DAILY_CHARTBIT_CACHE_TTL_MS = 30 * 60 * 1_000;
-const DAILY_CHARTBIT_CACHE_VERSION = "v2";
+const DAILY_CHARTBIT_CACHE_VERSION = "v3";
+/** Overlap days fetched beyond gap boundary for partial-bar refresh and split detection */
+const DAILY_CACHE_OVERLAP_DAYS = 7;
+
+interface DailyChartbitCache {
+  /** Earliest date in cache (YYYY-MM-DD) */
+  from: string;
+  /** Latest date in cache (YYYY-MM-DD) */
+  to: string;
+  /** All cached bars, sorted ascending by unixdate */
+  bars: ChartbitData[];
+}
 
 /**
  * Represents daily stock trading data (Chartbit format).
@@ -389,43 +400,209 @@ export const getChartbitData = async (input: {
   from: Date;
   to: Date;
 }) => {
-  const fromFormatted = dateToFormatted(input.from);
-  const toFormatted = dateToFormatted(input.to);
+  const requestedFrom = dateToFormatted(input.from);
+  const requestedTo = dateToFormatted(input.to);
+  const cacheKey = buildDailyCacheKey(input.symbol);
 
-  // Single cache key per symbol — daily data is small enough (<2k bars for 3yr).
-  // TTL handles freshness. The from/to range is fixed (3yr lookback) so one key suffices.
-  const cacheKey = [
+  // 1. Read existing cache
+  const existing = (await KV.get(
+    cacheKey,
+  )) as unknown as DailyChartbitCache | null;
+
+  // 2. Compute fetch ranges with overlap
+  const fetchRanges = computeFetchRanges(existing, requestedFrom, requestedTo);
+
+  if (fetchRanges.length === 0 && existing) {
+    // Cache fully covers the requested range — return filtered
+    return filterBarsByRange(existing.bars, input.from, input.to);
+  }
+
+  // 3. Fetch from Stockbit API
+  const fetched = await fetchDailyBars(input.symbol, fetchRanges);
+
+  // 4. Split/adjustment detection on overlap bars
+  if (existing && fetched.length > 0) {
+    const mismatch = detectPriceAdjustment(
+      existing.bars,
+      fetched,
+      input.symbol,
+    );
+    if (mismatch) {
+      // Nuke cache and refetch everything
+      logger.warn(
+        { symbol: input.symbol, mismatch },
+        "Price adjustment detected (split/right issue/merge). Invalidating cache and refetching.",
+      );
+      await KV.set(cacheKey, null as unknown as Json);
+      const fullFetch = await fetchDailyBars(input.symbol, [
+        { from: requestedFrom, to: requestedTo },
+      ]);
+      const sorted = fullFetch.sort((a, b) => a.unixdate - b.unixdate);
+      await writeDailyCache(cacheKey, sorted, requestedFrom, requestedTo);
+      return filterBarsByRange(sorted, input.from, input.to);
+    }
+  }
+
+  // 5. Merge: fetched bars overwrite cached bars for same date (handles partial bar refresh)
+  const merged = mergeBars(existing?.bars ?? [], fetched);
+
+  // 6. Write back
+  await writeDailyCache(cacheKey, merged, requestedFrom, requestedTo);
+
+  // 7. Filter to requested range
+  return filterBarsByRange(merged, input.from, input.to);
+};
+
+function buildDailyCacheKey(symbol: string): string {
+  return [
     "stockbit",
     "chartbit",
     "daily",
     DAILY_CHARTBIT_CACHE_VERSION,
-    input.symbol,
+    symbol,
   ].join(":");
-  const expiresAt = new Date(Date.now() + DAILY_CHARTBIT_CACHE_TTL_MS);
+}
 
-  // somehow stockbit swap the from and to date filtering logic. not sure why they did this
-  const cached = await KV.getOrSet(
-    cacheKey,
-    async () => {
-      const data = await stockbitGetJson<
-        BaseStockbitResponse<{
-          chartbit: ChartbitData[];
-        }>
-      >(
-        `https://exodus.stockbit.com/chartbit/${input.symbol}/price/daily?from=${toFormatted}&to=${fromFormatted}&limit=0`,
+function computeFetchRanges(
+  existing: DailyChartbitCache | null,
+  requestedFrom: string,
+  requestedTo: string,
+): Array<{ from: string; to: string }> {
+  if (!existing) {
+    return [{ from: requestedFrom, to: requestedTo }];
+  }
+
+  const ranges: Array<{ from: string; to: string }> = [];
+
+  // Gap before cached range
+  if (requestedFrom < existing.from) {
+    // Extend into cached range by overlap days for split detection
+    const overlapEnd = dayjs
+      .tz(existing.from, JAKARTA_TIMEZONE)
+      .add(DAILY_CACHE_OVERLAP_DAYS, "day")
+      .format("YYYY-MM-DD");
+    const fetchTo = overlapEnd < existing.to ? overlapEnd : existing.from;
+    ranges.push({ from: requestedFrom, to: fetchTo });
+  }
+
+  // Gap after cached range (always overlap into cached range for partial bar + split detection)
+  if (requestedTo > existing.to) {
+    const overlapStart = dayjs
+      .tz(existing.to, JAKARTA_TIMEZONE)
+      .subtract(DAILY_CACHE_OVERLAP_DAYS, "day")
+      .format("YYYY-MM-DD");
+    const fetchFrom = overlapStart > existing.from ? overlapStart : existing.to;
+    ranges.push({ from: fetchFrom, to: requestedTo });
+  }
+
+  // Edge case: requested range is within cached range but cache.to is today
+  // (partial bar from earlier intraday fetch). Always refetch last overlap window.
+  const todayStr = dayjs().tz(JAKARTA_TIMEZONE).format("YYYY-MM-DD");
+  if (ranges.length === 0 && existing.to >= todayStr) {
+    const overlapStart = dayjs
+      .tz(existing.to, JAKARTA_TIMEZONE)
+      .subtract(DAILY_CACHE_OVERLAP_DAYS, "day")
+      .format("YYYY-MM-DD");
+    ranges.push({ from: overlapStart, to: requestedTo });
+  }
+
+  return ranges;
+}
+
+async function fetchDailyBars(
+  symbol: string,
+  ranges: Array<{ from: string; to: string }>,
+): Promise<ChartbitData[]> {
+  const results: ChartbitData[] = [];
+  for (const range of ranges) {
+    // Stockbit swaps from/to in their API
+    const data = await stockbitGetJson<
+      BaseStockbitResponse<{ chartbit: ChartbitData[] }>
+    >(
+      `https://exodus.stockbit.com/chartbit/${symbol}/price/daily?from=${range.to}&to=${range.from}&limit=0`,
+    );
+    if (Array.isArray(data.data?.chartbit)) {
+      results.push(...data.data.chartbit);
+    }
+  }
+  return results;
+}
+
+function detectPriceAdjustment(
+  cachedBars: ChartbitData[],
+  fetchedBars: ChartbitData[],
+  symbol: string,
+): { date: string; cached_close: number; fetched_close: number } | null {
+  const cachedByDate = new Map<string, ChartbitData>();
+  for (const bar of cachedBars) {
+    cachedByDate.set(bar.date, bar);
+  }
+
+  for (const fetched of fetchedBars) {
+    const cached = cachedByDate.get(fetched.date);
+    if (!cached) continue;
+
+    // Compare close prices — if they differ, prices were retroactively adjusted
+    const cachedClose = toNumber(cached.close);
+    const fetchedClose = toNumber(fetched.close);
+    if (cachedClose > 0 && fetchedClose > 0 && cachedClose !== fetchedClose) {
+      logger.warn(
+        {
+          symbol,
+          date: fetched.date,
+          cached_close: cachedClose,
+          fetched_close: fetchedClose,
+          ratio: Math.round((cachedClose / fetchedClose) * 100) / 100,
+        },
+        "Price mismatch on overlap bar",
       );
+      return {
+        date: fetched.date,
+        cached_close: cachedClose,
+        fetched_close: fetchedClose,
+      };
+    }
+  }
 
-      return data.data.chartbit as unknown as Json;
-    },
-    expiresAt,
-  );
+  return null;
+}
 
-  // Filter to requested range after cache hit (cache stores full 3yr window)
-  const fromTs = Math.floor(input.from.getTime() / 1000);
-  const toTs = Math.floor(input.to.getTime() / 1000);
-  const rows = cached as unknown as ChartbitData[];
-  return rows.filter((row) => row.unixdate >= fromTs && row.unixdate <= toTs);
-};
+function mergeBars(
+  cachedBars: ChartbitData[],
+  fetchedBars: ChartbitData[],
+): ChartbitData[] {
+  const byDate = new Map<string, ChartbitData>();
+  // Cached first, then fetched overwrites (handles partial bar refresh)
+  for (const bar of cachedBars) {
+    byDate.set(bar.date, bar);
+  }
+  for (const bar of fetchedBars) {
+    byDate.set(bar.date, bar);
+  }
+  return [...byDate.values()].sort((a, b) => a.unixdate - b.unixdate);
+}
+
+async function writeDailyCache(
+  cacheKey: string,
+  bars: ChartbitData[],
+  requestedFrom: string,
+  requestedTo: string,
+): Promise<void> {
+  const newFrom = bars.length > 0 ? bars[0].date : requestedFrom;
+  const newTo = bars.length > 0 ? bars[bars.length - 1].date : requestedTo;
+  const payload: DailyChartbitCache = { from: newFrom, to: newTo, bars };
+  await KV.set(cacheKey, payload as unknown as Json);
+}
+
+function filterBarsByRange(
+  bars: ChartbitData[],
+  from: Date,
+  to: Date,
+): ChartbitData[] {
+  const fromTs = Math.floor(from.getTime() / 1000);
+  const toTs = Math.floor(to.getTime() / 1000);
+  return bars.filter((row) => row.unixdate >= fromTs && row.unixdate <= toTs);
+}
 
 export const getUnifiedChartbitRawData = async (
   symbol: string,
