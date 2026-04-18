@@ -208,10 +208,11 @@ Resolve dates in `Asia/Jakarta` (WIB, UTC+7). Non-trading day → use most recen
 
 ## Tools
 
-MCP tools (stock data, knowledge base, social, web), custom tools (`get_state`, `fetch-ohlcv`, `fetch-broker-flow`, `deep-doc-extract`, portfolio tools), and filesystem.
+MCP tools (stock data, knowledge base, social, web), custom tools (`get_state`, `fetch-ohlcv`, `fetch-broker-flow`, `deep-doc-extract`, `market-pulse`, portfolio tools), and filesystem.
 
 Key tool notes:
 
+- `market-pulse`: single-call market overview. Returns trending stocks, market movers (gainer/loser/value/foreign buy/sell), preset screeners (52w high/low, high volume breakout, foreign flow uptrend), and per-symbol watchlist pulse (batch OHLCV computations + memory context + deterministic alerts). No args — reads all symbols from `memory/symbols/`, fetches batch OHLCV from kb-backend, reads portfolio state, reads ta_context/flow_context JSONs, computes price metrics and alert rules. Output is compressed JSON. Use at the start of `desk-check`, `deep-review`, `explore-idea`, or any ad-hoc market check to get fast situational awareness before diving into symbol-level analysis.
 - `fetch-ohlcv`: daily (3yr) + intraday_1m (7d). Split-adjusted, not dividend-adjusted. Non-stock symbols: daily only. Output is large — save to `work/{SYMBOL}_ohlcv.json`, never read it manually. Feed it to the skill's preprocessing scripts.
 - `fetch-broker-flow`: `trading_days` 1-60. Output is large — save to `work/{SYMBOL}_broker_flow.json`, never read it manually. Feed it to `build_flow_context.py`.
 - File reading rules for data artifacts:

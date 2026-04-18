@@ -13,6 +13,7 @@ import { logger } from "../utils/logger.js";
 import { getCompanies } from "./aggregator/companies.js";
 import { getSectorsReport } from "./aggregator/sectors-report.js";
 import { getIHSGOverview } from "./endpoints/ihsg/overview.js";
+import { getMarketPulse } from "./endpoints/market-pulse.js";
 import { getStockBandarmology } from "./endpoints/stock/bandarmology.js";
 import { getStockBrokerFlowRawSeries } from "./endpoints/stock/broker-flow-raw.js";
 import { getStockFinancials } from "./endpoints/stock/financials.js";
@@ -361,6 +362,37 @@ export const setupStockRoutes = () =>
             "Get unified raw chartbit data (daily + intraday_1m + corp actions)",
           description:
             "Returns unified chart data from Stockbit: past 3 years daily candles, past 7 calendar days raw 1-minute intraday candles, and corporate action events. Optional query param as_of_date=YYYY-MM-DD truncates all returned data to that Jakarta calendar date so snapshots never include future bars. When omitted, the snapshot defaults to now in Asia/Jakarta. Fails the whole request if any component fetch fails.",
+        },
+      },
+    )
+    .post(
+      "/market-pulse",
+      async ({ body, set }) => {
+        try {
+          const symbols = body.symbols
+            .map((s) => s.trim().toUpperCase())
+            .filter((s) => s.length > 0);
+          const data = await getMarketPulse(symbols);
+          return { success: true, data };
+        } catch (err) {
+          logger.error({ err }, "Get market pulse failed");
+          set.status = 500;
+          return { success: false, error: (err as Error).message };
+        }
+      },
+      {
+        body: t.Object({
+          symbols: t.Array(t.String(), {
+            description:
+              'Array of stock symbols to fetch batch OHLCV for (e.g., ["BBCA", "TLKM"])',
+          }),
+        }),
+        detail: {
+          tags: ["Market Data"],
+          summary:
+            "Get market pulse: trending, movers, screeners, and batch OHLCV",
+          description:
+            "Returns a combined market snapshot: trending stocks, market movers (gainer/loser/value/foreign), preset screeners (52w high/low, volume breakout, foreign flow uptrend), and batch daily OHLCV for the provided symbol list. Designed for the market-pulse tool to get a full market overview in one call.",
         },
       },
     )

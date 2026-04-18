@@ -15,6 +15,7 @@ Command input may narrow sectors/themes, tighten the date window, or add output 
 - Social discovery (delegated to subagent): runs Twitter list CLI + `get-stockbit-stream` to surface rotation themes, sector chatter, and ticker mentions from curated accounts. Subagent triages and returns only high-signal findings (themes, tickers, engagement spikes). Raw social data stays in subagent context.
 - Continuity window: 30 calendar days for external discovery; internal resurfacing is not limited by that window.
 - Mandatory memory context: `memory/market/plan.md`, all other `.md` files in `memory/market/` (list and read), `get_state`, and the latest prior explore-idea artifact if found. Surface any `get_state` warnings (staleness, status mismatches) in the output.
+- Run `market-pulse` early. Use trending stocks, screener hits (52w highs, volume breakouts, foreign flow uptrend), and mover data as discovery inputs alongside knowledge base and social signals. Screener hits that are not in the current watchlist are prime exploration candidates.
 - Run order: broad discovery and clustering first using internal knowledge sources and selected external corroboration; then lightweight symbol triage on shortlisted candidates; then parent synthesis across fresh candidates, resurfaced candidates, and discarded candidates.
 - `narrative-analysis` is the lead discovery lens. `technical-analysis` is the lightweight structural filter. `flow-analysis` is used when sponsor behavior could materially upgrade or disqualify a candidate. `fundamental-analysis` is selective.
 

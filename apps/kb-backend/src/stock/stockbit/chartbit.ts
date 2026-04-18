@@ -15,7 +15,7 @@ const INTRADAY_WINDOW_DAYS = 7;
 const DAILY_WINDOW_YEARS = 3;
 const CORP_ACTION_FUTURE_END_DATE = "2037-01-01";
 const DAILY_CHARTBIT_CACHE_TTL_MS = 30 * 60 * 1_000;
-const DAILY_CHARTBIT_CACHE_VERSION = "v1";
+const DAILY_CHARTBIT_CACHE_VERSION = "v2";
 
 /**
  * Represents daily stock trading data (Chartbit format).
@@ -391,14 +391,15 @@ export const getChartbitData = async (input: {
 }) => {
   const fromFormatted = dateToFormatted(input.from);
   const toFormatted = dateToFormatted(input.to);
+
+  // Single cache key per symbol — daily data is small enough (<2k bars for 3yr).
+  // TTL handles freshness. The from/to range is fixed (3yr lookback) so one key suffices.
   const cacheKey = [
     "stockbit",
     "chartbit",
     "daily",
     DAILY_CHARTBIT_CACHE_VERSION,
     input.symbol,
-    fromFormatted,
-    toFormatted,
   ].join(":");
   const expiresAt = new Date(Date.now() + DAILY_CHARTBIT_CACHE_TTL_MS);
 
@@ -419,7 +420,11 @@ export const getChartbitData = async (input: {
     expiresAt,
   );
 
-  return cached as unknown as ChartbitData[];
+  // Filter to requested range after cache hit (cache stores full 3yr window)
+  const fromTs = Math.floor(input.from.getTime() / 1000);
+  const toTs = Math.floor(input.to.getTime() / 1000);
+  const rows = cached as unknown as ChartbitData[];
+  return rows.filter((row) => row.unixdate >= fromTs && row.unixdate <= toTs);
 };
 
 export const getUnifiedChartbitRawData = async (

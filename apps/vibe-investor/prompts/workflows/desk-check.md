@@ -45,6 +45,11 @@ Gather and integrate new information before reviewing.
 
 ### Phase 2: Portfolio + Market Context
 
+- Run `market-pulse` first. This returns trending stocks, market movers, preset screeners, and per-symbol watchlist pulse (batch OHLCV + memory context + deterministic alerts) in one call. Use the output to:
+  - Triage the coverage universe: symbols with Tier 1-2 alerts get priority review. `NO_CHANGE` symbols with no alerts can be skimmed.
+  - Identify market-level signals: trending names, foreign flow direction, screener hits (52w highs/lows, volume breakouts, foreign flow uptrend).
+  - Cross-reference screener hits against the watchlist — flag any watchlist/portfolio symbol appearing in screeners.
+  - Feed the alert-sorted items into Phase 3 delegation: batch symbols by alert urgency and theme affinity.
 - Run `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks using `portfolio_state` summary plus targeted `portfolio_trade_history` / `portfolio_symbol_trade_journey` calls and current IHSG context.
 - Mandatory memory context: `memory/market/plan.md`, all other `.md` files in `memory/market/` (list and read), all files in `memory/notes/` (list and read), and `get_state`. Surface any `get_state` warnings (staleness, status mismatches) in the synthesis output.
 
@@ -66,6 +71,7 @@ Parent synthesis produces two outputs: (1) **chat output** — the full synthesi
 
 Full synthesis for each reviewed symbol, triaged by urgency per main.md:
 
+- Use `market-pulse` alert triage as the starting point for urgency classification. Symbols with Tier 1-2 alerts map to `ATTENTION` or `EXIT_SIGNAL`. Tier 3-4 map to `MONITOR`. No alerts or Tier 5 only map to `NO_CHANGE` unless subagent review escalates.
 - `NO_CHANGE` symbols: one-line status in a summary table.
 - `MONITOR` symbols: brief note on what shifted and what to watch.
 - `ATTENTION` and `EXIT_SIGNAL` symbols: full `symbol_review` per main.md contract.
