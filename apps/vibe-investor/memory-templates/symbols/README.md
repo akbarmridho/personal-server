@@ -129,10 +129,7 @@ last_reviewed: {YYYY-MM-DD}
 
 # {SYMBOL} - Trading Plan
 
-**Date**: {YYYY-MM-DD}
-**Last Reviewed**: {YYYY-MM-DD}
 **Category**: {CORE / VALUE / GROWTH / SPECULATIVE}
-**Trade Classification**: {THESIS / TACTICAL / SPECULATION}
 **Timeframe**: {SWING / POSITION / LONG_TERM}
 **Expected Holding Period**: {days / weeks / months}
 **Review Cadence**: {WEEKLY / MONTHLY / QUARTERLY}

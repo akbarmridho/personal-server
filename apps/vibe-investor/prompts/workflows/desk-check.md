@@ -19,12 +19,33 @@ Gather and integrate new information before reviewing.
    - Write the digest artifact to `memory/digests/{CALENDAR_DATE}_news_digest.md`.
    - Document references: every document cited in the digest must use the full document ID as returned by tools. Never truncate or shorten UUIDs.
 
-   **Social signal subagent** (delegated, runs in parallel with document collection):
+   **Social signal subagent** (delegated via `task`, runs in parallel with document collection):
+   - Spawn with: `task(agent: "vibe-investor", prompt: "<social signal prompt below>")`
    - Runs the Twitter list CLI (`TWITTER_BROWSER=brave twitter list 2045405839251636551 --yaml --filter --max 100`) and `get-stockbit-stream` for today's date.
    - Triages both sources: filter by relevance to portfolio/watchlist symbols, active theses, and high engagement (Twitter score >50, Stockbit likes >50).
    - For high-signal tweets, fetches full thread with `twitter tweet {ID} --yaml --max 20`.
    - Returns a compact social signal summary to the parent: key themes, symbol mentions, sentiment shifts, rotation signals, insider/institutional chatter. Max 2,000 bytes.
    - The parent integrates this into the digest under a "Social Signals" section. The raw social data stays in the subagent context and is discarded.
+
+   Social signal subagent prompt template:
+
+   ```
+   You are a social signal triage subagent. Collect and filter social signals for the desk-check digest.
+
+   Portfolio symbols: {list from portfolio_state}
+   Watchlist symbols: {list of READY + WATCHING from get_state}
+   Active theses: {list from get_state}
+   Date: {CALENDAR_DATE}
+
+   Steps:
+   1. Run: TWITTER_BROWSER=brave twitter list 2045405839251636551 --yaml --filter --max 100
+   2. Run: get-stockbit-stream for today's date
+   3. Filter both by: relevance to portfolio/watchlist symbols, active theses, high engagement (Twitter score >50, Stockbit likes >50)
+   4. For high-signal tweets, fetch full thread: TWITTER_BROWSER=brave twitter tweet {ID} --yaml --max 20
+   5. Return a compact summary (max 2,000 bytes): key themes, symbol mentions, sentiment shifts, rotation signals, insider/institutional chatter.
+
+   Do NOT write any files. Return your summary as text output only.
+   ```
 
    Digest output structure:
    - Header: date, coverage window (from → to, inclusive of today), prior digest path referenced for continuity.
@@ -53,15 +74,59 @@ Gather and integrate new information before reviewing.
 - Run `portfolio-management` for holdings, discipline, and IHSG cash-overlay checks using `portfolio_state` summary plus targeted `portfolio_trade_history` / `portfolio_symbol_trade_journey` calls and current IHSG context.
 - Mandatory memory context: `memory/market/plan.md`, all other `.md` files in `memory/market/` (list and read), all files in `memory/notes/` (list and read), and `get_state`. Surface any `get_state` warnings (staleness, status mismatches) in the synthesis output.
 
-### Phase 3: Symbol Reviews (delegated)
+### Phase 3: Symbol Reviews (delegated via `task` tool)
 
 - Coverage universe: holdings from `portfolio_state`, plus all `READY` symbols, plus all `WATCHING` symbols, plus any `SHELVED` or `ARCHIVED` symbol flagged by the digest in Phase 1 with material news.
 - Before delegating each batch, check which symbols are missing artifacts. Subagents must produce all required artifacts (`plan.md`, `narrative.md`, `fundamental.md`, context JSONs, chart PNGs) for every symbol they review.
-- Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent. Each subagent calls `get-stock-profile` once per symbol before any analysis, then runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols, reads `memory/symbols/README.md` for the plan template, and writes retained artifacts (`plan.md`, `narrative.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/` before returning. On UPDATE mode, subagents use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. The parent agent must not run symbol-level TA/flow/narrative inline.
-- Top-down market review is a separate subagent delegation, run in parallel with symbol batches. The market subagent runs `technical-analysis` on IHSG and `narrative-analysis` at the market level, writes the IHSG Technical lens summary into `plan.md` and `narrative.md` to `memory/market/`. See `memory/market/README.md` for the contract. The subagent returns a structured summary (IHSG regime, key levels, macro tone, regime change signals) for the parent synthesis.
+- Group the coverage universe into batches of 3-5 symbols by theme, sector, or thesis affinity when possible and delegate each batch to a subagent using `task(agent: "vibe-investor", prompt: "<symbol batch prompt>")`. Each subagent calls `get-stock-profile` once per symbol before any analysis, then runs `technical-analysis`, `flow-analysis`, and `narrative-analysis` for its assigned symbols, reads `memory/symbols/README.md` for the plan template, and writes retained artifacts (`plan.md`, `narrative.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/` before returning. On UPDATE mode, subagents use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. The parent agent must not run symbol-level TA/flow/narrative inline.
+- Top-down market review is a separate `task` call, run in parallel with symbol batches. The market subagent runs `technical-analysis` on IHSG and `narrative-analysis` at the market level, writes the IHSG Technical lens summary into `plan.md` and `narrative.md` to `memory/market/`. See `memory/market/README.md` for the contract. The subagent returns a structured summary (IHSG regime, key levels, macro tone, regime change signals) for the parent synthesis.
+- Spawn all `task` calls (symbol batches + market subagent) in the same turn for parallel execution. Do not wait for one batch to finish before starting the next.
 - Flow analysis should fetch broker-flow plus OHLCV, build deterministic `flow_context`, and reason from that packet rather than from raw broker tables.
 - Flow analysis is most relevant when the symbol is actively held or near actionable review, sponsor behavior could change conviction materially, or parent synthesis needs lead / confirm / warning context versus TA.
 - Narrative analysis prioritizes new evidence, catalyst changes, and thesis-invalidating developments over full report formatting.
+
+Symbol batch subagent prompt template:
+
+```
+You are a symbol review subagent for the desk-check workflow.
+
+Assigned symbols: {SYMBOL_1}, {SYMBOL_2}, {SYMBOL_3}
+Mode: UPDATE (all have existing plan.md)
+Trading day: {TRADING_DAY}
+IHSG context: {1-2 sentence regime summary from Phase 2}
+Digest context: {relevant thesis impact lines from Phase 1 digest for these symbols}
+
+For each symbol:
+1. Call get-stock-profile once.
+2. Load and run technical-analysis skill (fetch OHLCV, preprocess, write ta_context.json + chart_evidence.json + chart PNGs).
+3. Load and run flow-analysis skill (fetch broker-flow + OHLCV, preprocess, write flow_context.json).
+4. Load and run narrative-analysis skill (query list-documents for recent analysis/news, write narrative.md updates).
+5. Read memory/symbols/README.md for the plan template.
+6. Read existing plan.md, then use edit calls to update: frontmatter last_reviewed, lens scores, lens state paragraphs (only if materially changed), history entries (only if new reasoning).
+7. If any required artifact is missing (plan.md, narrative.md, fundamental.md, context JSONs, chart PNGs), create it.
+
+Return a structured summary per symbol: { symbol, urgency, lens_scores, key_finding, alerts }.
+Write symbol artifacts to memory/symbols/{SYMBOL}/. Write intermediate work to work/.
+Do NOT write to memory/market/, memory/notes/, or memory/theses/.
+```
+
+Market subagent prompt template:
+
+```
+You are the market review subagent for the desk-check workflow.
+
+Trading day: {TRADING_DAY}
+Current market/plan.md summary: {key lines from Phase 2 market plan read}
+
+Steps:
+1. Load and run technical-analysis skill on IHSG (fetch OHLCV, preprocess, write IHSG_ta_context.json + IHSG_chart_evidence.json + chart PNGs to memory/market/).
+2. Load and run narrative-analysis skill at market level (query list-documents for market-level analysis/news).
+3. Update memory/market/plan.md IHSG Technical section and memory/market/narrative.md with fresh data using edit calls.
+4. Return structured summary: { ihsg_close, ihsg_change, regime, key_levels, macro_tone, regime_change_signals }.
+
+Write market artifacts to memory/market/. Write intermediate work to work/.
+Do NOT write to memory/symbols/, memory/notes/, or memory/theses/.
+```
 
 ### Phase 4: Synthesis
 

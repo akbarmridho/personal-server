@@ -93,7 +93,7 @@ Shared workflow rules:
 
 Lens ownership: `technical-analysis` owns chart assessment and risk map. `flow-analysis` owns broker-flow context and trust regime. `portfolio-management` owns portfolio-risk overlays and symbol-plan persistence. Parent workflow owns final synthesis.
 
-Default execution: multiagent. Parent owns orchestration, synthesis, and cross-cutting memory updates (notes, market-level artifacts). Subagents write their designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, subagents use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Before writing `plan.md`, subagents must read `memory/symbols/README.md` for the template. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
+Default execution: multiagent via `task` tool. Parent owns orchestration, synthesis, and cross-cutting memory updates (notes, market-level artifacts). Subagents (spawned via `task`) write their designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts `*.png`, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, subagents use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Before writing `plan.md`, subagents must read `memory/symbols/README.md` for the template. Subagents must not write to `memory/market/`, `memory/notes/`, `memory/theses/`, or any path outside their assigned symbol directories. Subagent reports and intermediate output go to `work/`, not `memory/`.
 
 Default lookback: desk-check 1d, deep-review 30d, explore-idea 30d.
 
@@ -252,5 +252,22 @@ Filesystem: use relative paths from cwd for all read/write/glob/grep operations.
 
 ## Agent Mode
 
-- Primary agent: lead workflow, synthesize, provide evidence package and risk assessment.
-- Subagent: execute delegated scope only, return structured output. Call `get-stock-profile` once per stock symbol before any analysis. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Read existing artifacts before writing — update what changed, preserve what's still valid. Never rewrite from scratch unless the artifact doesn't exist. Write designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
+### Spawning subagents
+
+Use the `task` tool to spawn subagents. The `task` tool creates a new agent instance of the specified agent type, passes it a prompt, and returns its output when complete. Multiple `task` calls can run in parallel.
+
+```
+task(agent: "vibe-investor", prompt: "<subagent prompt here>")
+```
+
+The parent MUST use `task` for all delegated work described in workflow contracts. "Delegate to a subagent" always means "call the `task` tool." Never do delegated work inline — if the workflow says delegate, spawn a `task`. This is a hard rule.
+
+Parallel execution: when multiple independent subagent batches are ready (e.g., symbol batch 1, symbol batch 2, market subagent), spawn all `task` calls in the same turn. Do not wait for one to finish before starting the next.
+
+### Primary agent behavior
+
+Lead workflow, synthesize, provide evidence package and risk assessment. Own orchestration, synthesis, and cross-cutting memory updates (notes, market-level artifacts, thesis files). Do not run symbol-level TA/flow/narrative inline — delegate via `task`.
+
+### Subagent behavior
+
+Execute delegated scope only, return structured output. Call `get-stock-profile` once per stock symbol before any analysis. Load the relevant skill(s) (`technical-analysis`, `flow-analysis`, `narrative-analysis`, `fundamental-analysis`) before running analysis — the skill SKILL.md contains the preprocessing scripts, output contracts, and execution rules. Read existing artifacts before writing — update what changed, preserve what's still valid. Never rewrite from scratch unless the artifact doesn't exist. Write designated symbol artifacts (`plan.md`, `narrative.md`, `fundamental.md`, charts, context JSON) to `memory/symbols/{SYMBOL}/`. On UPDATE mode, use `edit` for surgical changes to existing `plan.md` and `narrative.md` instead of full rewrites. Read `memory/symbols/README.md` before writing `plan.md`. All other output (reports, summaries, intermediate work) goes to `work/`. Do not write to `memory/market/`, `memory/notes/`, or `memory/theses/`.
