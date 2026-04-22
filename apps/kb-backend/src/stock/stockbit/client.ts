@@ -21,6 +21,7 @@ const DROP_HEADER_KEYS = new Set([
 ]);
 
 const REQUEST_TIMEOUT_MS = 30_000;
+const NETWORK_RETRY_LIMIT = 5;
 const STOCKBIT_REQUEST_SPACING_MS = 200;
 const STOCKBIT_PER_SECOND_LIMIT = 5;
 const STOCKBIT_PER_MINUTE_LIMIT = 250;
@@ -199,7 +200,20 @@ function createStockbitClient(
   return got.extend({
     http2: true,
     retry: {
-      limit: 0,
+      limit: NETWORK_RETRY_LIMIT,
+      errorCodes: [
+        "ETIMEDOUT",
+        "ECONNRESET",
+        "EADDRINUSE",
+        "ECONNREFUSED",
+        "EPIPE",
+        "ENOTFOUND",
+        "ENETUNREACH",
+        "EAI_AGAIN",
+        "UND_ERR_SOCKET",
+        "UND_ERR_CONNECT_TIMEOUT",
+      ],
+      statusCodes: [502, 503, 504],
     },
     timeout: {
       request: REQUEST_TIMEOUT_MS,
