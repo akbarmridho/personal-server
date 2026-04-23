@@ -29,8 +29,11 @@ python3 scripts/build_ta_context.py \
   --input {FETCH_OHLCV_OUTPUT_PATH} \
   --symbol {SYMBOL} \
   --outdir work \
-  --modules core,vpvr,breakout
+  --modules core,vpvr,breakout \
+  --ihsg-regime {IHSG_REGIME_SCORE}
 ```
+
+`--ihsg-regime` (float, 0.0-1.0): IHSG regime score from market context. When provided, breakout setup scores (S1, S3 when breakout-driven) are mechanically modified: >= 0.50 → 1.0x (full), 0.35-0.49 → 0.7x, <= 0.34 → 0.4x. Surfaced as `regime_breakout_modifier` in `ta_context.json`. When modifier < 0.7, the LLM skill should require 2 consecutive closes above breakout level before confirming.
 
 ### Chart Build
 
@@ -130,7 +133,7 @@ One setup family or `NO_VALID_SETUP`. Setup must fit daily regime and location. 
 
 Trigger rules: setup area alone is not enough — action requires a trigger. 15m owns trigger quality. Absent trigger caps score in setup-forming range.
 
-Breakout quality: needs close + participation. No follow-through = suspect. Weak base needs stronger confirmation.
+Breakout quality: needs close + participation. No follow-through = suspect. Weak base needs stronger confirmation. Breakout statuses: `valid_breakout` (close + follow-through + volume >= 1.2x), `weak_breakout` (close but volume < 1.0x or weak close position), `failed_breakout` (close but no follow-through), `failed_breakout_intraday` (opened beyond level but closed back same day). Volume confirmed (`volume_confirmed`) requires >= 1.5x vol_ma20. Close position quality: `strong` (upper 25%), `moderate` (middle 50%), `weak` (lower 25%).
 
 Reversal: CHOCH alone is warning. Actionable only after CHOCH + confirmation BOS + constructive pullback.
 
@@ -181,11 +184,11 @@ technical_assessment:
 | 76-90 | Clean setup, trigger confirmed, good RR |
 | 91-100 | Textbook setup, strong confirmation, excellent RR |
 
-Score must reflect both structural quality and execution readiness. Lower score instead of forcing a low-quality narrative.
+Score must reflect both structural quality and execution readiness. Lower score instead of forcing a low-quality narrative. When `trend_health` is present with `annotation: "trend_intact_no_entry_setup"`, scores in the 46-60 range mean "risk placement is harder and chase risk is higher" — the trend is working but there is no clean entry. For held positions this is hold quality, not exit quality.
 
 ### Red Flags
 
-Core: F1_STRUCTURE_BREAK | F2_DISTRIBUTION | F3_WEAK_BREAKOUT | F4_LEVEL_EXHAUSTION | F5_MARKET_CONTEXT_MISMATCH | F6_MA_BREAKDOWN | F7_POSITION_RISK | F8_NO_NEARBY_SUPPORT | F9_UNCONFIRMED_STRUCTURE_SHIFT | F10_NO_NEXT_ZONE_PATH | F11_LIQUIDITY_MAP_MISSING | F12_BREAKOUT_STALLING
+Core: F1_STRUCTURE_BREAK | F2_DISTRIBUTION | F3_WEAK_BREAKOUT | F4_LEVEL_EXHAUSTION | F5_MARKET_CONTEXT_MISMATCH | F6_MA_BREAKDOWN | F7_POSITION_RISK | F8_NO_NEARBY_SUPPORT | F9_UNCONFIRMED_STRUCTURE_SHIFT | F10_NO_NEXT_ZONE_PATH | F11_LIQUIDITY_MAP_MISSING | F12_BREAKOUT_STALLING | F18_EXTENDED_MOVE
 
 Conditional: F13_VOLUME_CONFLUENCE_WEAK | F14_BREAKOUT_FILTER_WEAK | F15_MA_WHIPSAW | F16_PRICE_LIMIT_PROXIMITY | F17_LIQUIDITY_WEAK
 
@@ -194,6 +197,7 @@ Severity: `low` | `medium` | `high` | `critical`. Key guidance:
 - F6: `medium` losing EMA21 only; `high` losing SMA50 or below both
 - F16: `medium` default; `high` when bar finished near limit and is core to interpretation
 - F17: `medium` for low liquidity (Rp1B-10B); `high` for very_low (< Rp1B). PM owns ADTV hard rails.
+- F18: `medium` always. Warning for extended moves (>30% in 30 bars without >5% pullback). Not a stop signal — trends can stay extended.
 
 Every flag: `flag_id`, `severity`, `why`. Include overall risk summary.
 
@@ -219,7 +223,7 @@ The lens summary contains ONLY what the LLM uniquely contributes — interpretat
 
 ### Required fields in `ta_context.json`
 
-All structured data: `purpose_mode`, `conviction_score`, `confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `bull_factors`, `bear_factors`, `risk_map`, `red_flags`, `key_levels`, `monitoring_triggers`, `chart_artifact_refs`. Add `risk_map.rr` for constructive setups, `current_rr` when long.
+All structured data: `purpose_mode`, `conviction_score`, `confidence`, `bias`, `setup_family`, `key_active_level`, `trigger_status`, `invalidation`, `next_trigger`, `bull_factors`, `bear_factors`, `risk_map`, `red_flags`, `key_levels`, `monitoring_triggers`, `chart_artifact_refs`. Add `risk_map.rr` for constructive setups, `current_rr` when long. Add `trend_persistence_bonus` (object with `bonus`, `markup_duration_bars`, `markup_confidence`) when Wyckoff markup confidence > 75% and duration > 10 bars — use it to separate "hold/trail" from "add" guidance. Add `trend_health` (object with `phase`, `confidence`, `duration_bars`, `all_mas_below`, `annotation`) when markup confidence > 75% and setup is NO_VALID_SETUP — use it to distinguish "hold quality" from "position deteriorating".
 
 ### Writing to plan.md
 

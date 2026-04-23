@@ -782,6 +782,52 @@ def _persistence(
     return score, state, broker_drivers
 
 
+def _persistence_momentum(primary_days: list[dict[str, Any]]) -> dict[str, Any]:
+    n = len(primary_days)
+    recent_n = min(RECENT_WINDOW_DAYS, n)
+    prior_n = n - recent_n
+    if prior_n < 3 or recent_n < 3:
+        return {
+            "recent_5d_net_persistence": 0.0,
+            "prior_25d_net_persistence": 0.0,
+            "shift": "unclear",
+        }
+
+    def _window_net_persistence(window_days: list[dict[str, Any]]) -> float:
+        total_buy = 0.0
+        total_sell = 0.0
+        for day in window_days:
+            market_value = float(day["market_value"])
+            for _broker, net_value in day["sanitized_net_by_broker"].items():
+                ratio = abs(net_value) / market_value if market_value > 0 else 0.0
+                if net_value > 0:
+                    total_buy += ratio
+                elif net_value < 0:
+                    total_sell += ratio
+        total = total_buy + total_sell
+        if total == 0:
+            return 0.0
+        return ((total_buy - total_sell) / total) * 100.0
+
+    recent = _window_net_persistence(primary_days[-recent_n:])
+    prior = _window_net_persistence(primary_days[:prior_n])
+
+    if recent >= 12 and prior <= -12:
+        shift = "bullish_turn"
+    elif recent <= -12 and prior >= 12:
+        shift = "bearish_turn"
+    elif abs(recent - prior) >= 25:
+        shift = "strengthening" if abs(recent) > abs(prior) else "weakening"
+    else:
+        shift = "stable"
+
+    return {
+        "recent_5d_net_persistence": round(recent, 2),
+        "prior_25d_net_persistence": round(prior, 2),
+        "shift": shift,
+    }
+
+
 def _correlation_state(value: float) -> str:
     score = abs(value)
     if score >= 0.60:
@@ -1294,6 +1340,7 @@ def _baseline_verdict(
     volume_regime: dict[str, Any],
     cadi_recency: dict[str, Any],
     cadi_acceleration: dict[str, Any],
+    persistence_momentum: dict[str, Any],
 ) -> tuple[str, float, str, list[str], list[str]]:
     divergence_bias = (
         0.08
@@ -1426,6 +1473,11 @@ def _baseline_verdict(
     if cadi_acceleration.get("momentum_fading"):
         caution_factors.append(
             "CADI momentum fading — recent 10D slope magnitude dropped >50% vs prior 20D slope"
+        )
+    pm_shift = persistence_momentum.get("shift", "stable")
+    if pm_shift in {"bullish_turn", "bearish_turn"}:
+        caution_factors.append(
+            f"persistence momentum shift — recent 5D persistence flipped to {pm_shift.replace('_', ' ')}"
         )
 
     return verdict, conviction_pct, sponsor_quality, support_factors[:4], caution_factors[:4]
@@ -1772,6 +1824,7 @@ def build_flow_context_result(
     frequency_score, frequency_profile = _frequency_profile(primary_buy_rows, primary_sell_rows)
 
     persistence_score, persistence_state, persistence_drivers = _persistence(primary_days)
+    persistence_momentum = _persistence_momentum(primary_days)
     concentration_state = _gini_asymmetry_state(
         avg_gini_asymmetry,
         avg_buy_hhi,
@@ -1878,6 +1931,7 @@ def build_flow_context_result(
             volume_regime=volume_regime,
             cadi_recency=cadi_recency,
             cadi_acceleration=cadi_acceleration,
+            persistence_momentum=persistence_momentum,
         )
     )
 
@@ -1963,6 +2017,7 @@ def build_flow_context_result(
                 "score": round(persistence_score, 2),
                 "state": persistence_state,
                 "drivers": persistence_drivers,
+                "momentum": persistence_momentum,
             },
             "concentration": {
                 "gini_asymmetry": round(avg_gini_asymmetry, 6),

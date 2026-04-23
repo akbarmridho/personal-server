@@ -137,6 +137,24 @@ def detect_ma_whipsaw(
     return diagnostics
 
 
+def _has_pullback(df: pd.DataFrame, lookback: int = 30, threshold: float = 0.05) -> bool:
+    """Check whether any swing high in the last *lookback* bars was followed
+    by a pullback of at least *threshold* (fraction) before price recovered."""
+    x = df.tail(lookback)
+    if x.empty or "swing_high" not in x.columns:
+        return False
+    swing_highs = x[x["swing_high"].notna()]
+    for _, row in swing_highs.iterrows():
+        sh = float(row["swing_high"])
+        subsequent = x.loc[row.name:]  # type: ignore[arg-type]
+        if subsequent.empty:
+            continue
+        min_low = float(subsequent["low"].min())
+        if sh > 0 and (sh - min_low) / sh >= threshold:
+            return True
+    return False
+
+
 def build_red_flags(
     regime: str,
     breakout_state: str,
@@ -153,6 +171,8 @@ def build_red_flags(
     price_limit_proximity_mode: str | None = None,
     breakout_displacement_state: str | None = None,
     ma_whipsaw_flags: list[dict[str, Any]] | None = None,
+    price_change_30d_pct: float | None = None,
+    daily_df: pd.DataFrame | None = None,
 ) -> dict[str, Any]:
     flags: list[dict[str, Any]] = []
     breakout_failure_severity = (
@@ -180,6 +200,22 @@ def build_red_flags(
                 "flag_id": "F3_WEAK_BREAKOUT",
                 "severity": breakout_failure_severity,
                 "why": "breakout_failed_follow_through",
+            }
+        )
+    if breakout_state == "failed_breakout_intraday":
+        flags.append(
+            {
+                "flag_id": "F3_WEAK_BREAKOUT",
+                "severity": "HIGH",
+                "why": "breakout_reversed_same_day",
+            }
+        )
+    if breakout_state == "weak_breakout":
+        flags.append(
+            {
+                "flag_id": "F3_WEAK_BREAKOUT",
+                "severity": "MEDIUM",
+                "why": "breakout_low_volume_or_weak_close_position",
             }
         )
     if level_touches >= 4:
@@ -256,7 +292,7 @@ def build_red_flags(
                 "why": f"{distribution_day_count}_distribution_days_detected",
             }
         )
-    if breakout_state == "valid_breakout" and breakout_displacement_state == "stalling":
+    if breakout_state in {"valid_breakout", "weak_breakout"} and breakout_displacement_state == "stalling":
         flags.append(
             {
                 "flag_id": "F12_BREAKOUT_STALLING",
@@ -318,6 +354,20 @@ def build_red_flags(
             str(flag["flag_id"]),
             str(flag["severity"]),
             str(flag["why"]),
+        )
+    # F18: extended move without meaningful pullback
+    if (
+        price_change_30d_pct is not None
+        and daily_df is not None
+        and price_change_30d_pct > 30.0
+        and not _has_pullback(daily_df, lookback=30, threshold=0.05)
+    ):
+        flags.append(
+            {
+                "flag_id": "F18_EXTENDED_MOVE",
+                "severity": "MEDIUM",
+                "why": f"price_up_{price_change_30d_pct:.1f}pct_in_30d_without_5pct_pullback",
+            }
         )
     severity_rank = {"LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
     overall = "LOW"

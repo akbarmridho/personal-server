@@ -13,9 +13,12 @@ from ta_common import add_atr14, add_ma_stack, add_swings, add_volume_features
 
 MIN_HISTORY_BARS = 70
 RANGE_WINDOW = 35
+RANGE_WINDOW_HIGH_VOL = 50
+ATR_PCT_HIGH_THRESHOLD = 0.06
+ATR_PCT_LOW_THRESHOLD = 0.03
 PRIOR_WINDOW = 20
 RECENT_WINDOW = 12
-STATE_CONFIRM_BARS = 2
+STATE_CONFIRM_BARS = 4
 MIN_SEGMENT_BARS = 4
 
 # Event detection thresholds (ATR/RVOL-normalized, IDX-calibrated)
@@ -103,8 +106,30 @@ def _effort_result_counts(window: pd.DataFrame) -> dict[str, int]:
     }
 
 
-def _range_stats(window: pd.DataFrame) -> dict[str, float]:
-    rng = window.tail(RANGE_WINDOW)
+def _adaptive_range_window(window: pd.DataFrame) -> int:
+    """Choose range window based on ATR regime. High-volatility names get a
+    wider context window so parabolic moves don't compress into a meaningless
+    35-bar range."""
+    if len(window) < 20:
+        return RANGE_WINDOW
+    last = window.iloc[-1]
+    close_price = float(last["close"])
+    atr14 = (
+        float(last["ATR14"])
+        if pd.notna(last.get("ATR14")) and float(last["ATR14"]) > 0
+        else 0.0
+    )
+    if close_price <= 0 or atr14 <= 0:
+        return RANGE_WINDOW
+    atr_pct = atr14 / close_price
+    if atr_pct > ATR_PCT_HIGH_THRESHOLD:
+        return RANGE_WINDOW_HIGH_VOL
+    return RANGE_WINDOW
+
+
+def _range_stats(window: pd.DataFrame, range_window: int | None = None) -> dict[str, float]:
+    rw = range_window if range_window is not None else RANGE_WINDOW
+    rng = window.tail(rw)
     range_high = float(rng["high"].max())
     range_low = float(rng["low"].min())
     close_price = float(rng["close"].iloc[-1])
@@ -148,10 +173,11 @@ def _trend_snapshot(window: pd.DataFrame) -> dict[str, Any]:
     }
 
 
-def _prior_trend_bias(window: pd.DataFrame) -> str:
-    if len(window) < RANGE_WINDOW + PRIOR_WINDOW:
+def _prior_trend_bias(window: pd.DataFrame, range_window: int | None = None) -> str:
+    rw = range_window if range_window is not None else RANGE_WINDOW
+    if len(window) < rw + PRIOR_WINDOW:
         return "unclear"
-    prior = window.iloc[-(RANGE_WINDOW + PRIOR_WINDOW) : -RANGE_WINDOW]
+    prior = window.iloc[-(rw + PRIOR_WINDOW) : -rw]
     if prior.empty:
         return "unclear"
     last = prior.iloc[-1]
@@ -571,10 +597,11 @@ def _dedupe_events(raw_events: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _classify_state(window: pd.DataFrame) -> dict[str, Any]:
-    stats = _range_stats(window)
+    rw = _adaptive_range_window(window)
+    stats = _range_stats(window, range_window=rw)
     trend = _trend_snapshot(window)
     effort = _effort_result_counts(window)
-    prior_bias = _prior_trend_bias(window)
+    prior_bias = _prior_trend_bias(window, range_window=rw)
     event_flags = _spring_or_upthrust(window, stats["range_low"], stats["range_high"])
 
     range_like = bool(stats["range_span_pct"] <= 0.28 and abs(trend["slope_pct"]) <= 0.12)
@@ -646,7 +673,7 @@ def _classify_state(window: pd.DataFrame) -> dict[str, Any]:
     elif max(acc_score, dist_score) >= 18.0:
         cycle_phase = "accumulation" if acc_score >= dist_score else "distribution"
         confidence_base = min(88.0, 38.0 + max(acc_score, dist_score))
-        recent_range = window.tail(RANGE_WINDOW)
+        recent_range = window.tail(rw)
         bars_near_range = int(len(recent_range))
         if cycle_phase == "accumulation":
             if event_flags["spring"]:
@@ -674,6 +701,13 @@ def _classify_state(window: pd.DataFrame) -> dict[str, Any]:
             else:
                 schematic_phase = "B"
                 transition_reason = "range_building"
+
+    # Cap confidence when the range window captures a move too wide to be
+    # a meaningful Wyckoff range (e.g. parabolic moves where the entire
+    # advance IS the range).
+    if stats["range_span_pct"] > 0.40 and cycle_phase in ("accumulation", "distribution"):
+        confidence_base = min(confidence_base, 55.0)
+        transition_reason = f"{transition_reason}|low_confidence_range"
 
     confidence = int(round(np.clip(confidence_base, 25.0, 95.0)))
     return {

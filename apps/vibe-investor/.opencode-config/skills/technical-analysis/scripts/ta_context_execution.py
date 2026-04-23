@@ -232,7 +232,9 @@ def breakout_quality_payload(
     raw_status = str(breakout.get("status", "no_breakout"))
     if raw_status == "valid_breakout":
         status = "clean" if displacement == "clean_displacement" else "adequate"
-    elif raw_status == "failed_breakout":
+    elif raw_status == "weak_breakout":
+        status = "weak"
+    elif raw_status in {"failed_breakout", "failed_breakout_intraday"}:
         status = "failed"
     else:
         status = "stalling"
@@ -240,6 +242,9 @@ def breakout_quality_payload(
         "status": status,
         "trigger_vol_ratio": breakout.get("trigger_vol_ratio"),
         "follow_through_close": breakout.get("follow_close"),
+        "volume_confirmed": breakout.get("volume_confirmed", False),
+        "close_position_quality": breakout.get("close_position_quality", "moderate"),
+        "same_day_reversal": breakout.get("same_day_reversal", False),
         "base_quality": "strong" if raw_status == "valid_breakout" else "weak",
         "market_context": "supportive" if regime == "trend_continuation" else "neutral",
     }
@@ -386,7 +391,11 @@ def build_trigger_confirmation(
             trigger_state = "triggered"
             confirmation_state = "confirmed"
             participation_quality = "strong"
-        elif breakout.get("status") == "failed_breakout":
+        elif breakout.get("status") == "weak_breakout":
+            trigger_state = "triggered"
+            confirmation_state = "mixed"
+            participation_quality = "weak"
+        elif breakout.get("status") in {"failed_breakout", "failed_breakout_intraday"}:
             trigger_state = "failed"
             confirmation_state = "rejected"
             participation_quality = "contradictory"
@@ -418,7 +427,10 @@ def build_trigger_confirmation(
                 or (prev_close is not None and last_close > prev_close)
             )
         )
-        breakout_failed = breakout.get("status") == "failed_breakout"
+        breakout_failed = breakout.get("status") in {
+            "failed_breakout",
+            "failed_breakout_intraday",
+        }
         if (
             regime == "trend_continuation"
             and support_touch

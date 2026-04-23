@@ -149,7 +149,8 @@ The synthesis must:
 - Surface tensions between lenses honestly — do not collapse them into a single verdict.
 - End each symbol review with `human_attention`: what the human needs to decide or be aware of.
 - For holdings: flag any deterioration, thesis drift, or exit signals. When all lenses converge negative, state the exit case directly.
-- For watchlist symbols: flag material changes, new catalysts, or thesis invalidation.
+- For watchlist symbols: flag material changes, new catalysts, or thesis invalidation. When `entry_zone_hit` or `entry_zone_near` alerts fire, surface the re-entry decision: is the thesis still intact? If yes, present the entry zone, stop, and targets from the plan. If thesis was broken at exit, require fresh evidence before re-entry.
+- For recently exited symbols: apply the re-entry classification from the plan's Position section. Thesis-intact exits (stop hit, thesis not killed) should be `READY` with specific re-entry levels. Thesis-broken exits (all lenses negative) stay `WATCHING` with monthly review. Do not re-enter broken theses on price action alone.
 - Thesis status evaluation: for each thesis touched by this desk-check (via symbol reviews or digest sync), evaluate whether the current `status` (`ACTIVE` / `DORMANT` / `INACTIVE`) is still correct. If a thesis has no active catalyst, no recent evidence, and no symbol showing momentum, suggest downgrade to `DORMANT`. If a thesis is invalidated or all linked symbols have exited/been archived, suggest `INACTIVE`. Present status change suggestions to the human — do not auto-change thesis status.
 
 #### Desk-check artifact (saved to file)

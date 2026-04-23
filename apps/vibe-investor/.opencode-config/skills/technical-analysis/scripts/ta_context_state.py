@@ -149,6 +149,9 @@ def breakout_snapshot(df: pd.DataFrame, levels: list[dict[str, Any]]) -> dict[st
                 if pd.notna(trigger_bar["vol_ratio"])
                 else None
             ),
+            "volume_confirmed": False,
+            "close_position_quality": "moderate",
+            "same_day_reversal": False,
         }
 
     return {
@@ -161,7 +164,24 @@ def breakout_snapshot(df: pd.DataFrame, levels: list[dict[str, Any]]) -> dict[st
         "follow_dt": proof["follow_dt"],
         "follow_close": proof["follow_close"],
         "trigger_vol_ratio": proof["trigger_vol_ratio"],
+        "volume_confirmed": proof.get("volume_confirmed", False),
+        "close_position_quality": proof.get("close_position_quality", "moderate"),
+        "same_day_reversal": proof.get("same_day_reversal", False),
     }
+
+
+def _close_position_quality(bar: pd.Series) -> str:
+    """Classify where the close sits in the bar's range."""
+    hi = float(bar["high"])
+    lo = float(bar["low"])
+    if hi <= lo:
+        return "moderate"
+    pos = (float(bar["close"]) - lo) / (hi - lo)
+    if pos >= 0.75:
+        return "strong"
+    if pos <= 0.25:
+        return "weak"
+    return "moderate"
 
 
 def breakout_quality(
@@ -178,23 +198,48 @@ def breakout_quality(
     else:
         trigger = float(trigger_bar["close"]) < level
         follow = float(follow_bar["close"]) <= level
-    vol_ok = pd.notna(trigger_bar["vol_ratio"]) and float(trigger_bar["vol_ratio"]) >= 1.2
-    if trigger and follow and vol_ok:
-        quality = "valid_breakout"
+
+    vol_ratio = (
+        float(trigger_bar["vol_ratio"])
+        if pd.notna(trigger_bar["vol_ratio"])
+        else None
+    )
+    vol_ok = vol_ratio is not None and vol_ratio >= 1.2
+    volume_confirmed = vol_ratio is not None and vol_ratio >= 1.5
+    close_pos = _close_position_quality(trigger_bar)
+
+    # Same-day reversal: trigger bar opened beyond the level but closed back
+    trigger_open = float(trigger_bar["open"])
+    if side == "up":
+        same_day_reversal = trigger_open > level and float(trigger_bar["close"]) < level
+    else:
+        same_day_reversal = trigger_open < level and float(trigger_bar["close"]) > level
+
+    if same_day_reversal:
+        quality = "failed_breakout_intraday"
+    elif trigger and follow and vol_ok:
+        # Downgrade to weak_breakout when volume is below average or close
+        # position is weak, even if the basic 1.2x threshold passed.
+        if (vol_ratio is not None and vol_ratio < 1.0) or close_pos == "weak":
+            quality = "weak_breakout"
+        else:
+            quality = "valid_breakout"
     elif trigger and not follow:
         quality = "failed_breakout"
+    elif trigger and not vol_ok:
+        quality = "weak_breakout"
     else:
         quality = "no_breakout"
+
     proof = {
         "trigger_dt": str(trigger_bar["datetime"]),
         "trigger_close": float(trigger_bar["close"]),
         "follow_dt": str(follow_bar["datetime"]),
         "follow_close": float(follow_bar["close"]),
-        "trigger_vol_ratio": (
-            float(trigger_bar["vol_ratio"])
-            if pd.notna(trigger_bar["vol_ratio"])
-            else None
-        ),
+        "trigger_vol_ratio": vol_ratio,
+        "volume_confirmed": volume_confirmed,
+        "close_position_quality": close_pos,
+        "same_day_reversal": same_day_reversal,
     }
     return quality, proof
 

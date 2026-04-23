@@ -208,6 +208,10 @@ Monitoring:
 {For WATCHING:}
 - Re-entry conditions: {what must align}
 - Entry zone: {range} | Stop: {level} | Targets: {levels}
+- Re-entry classification:
+  - Thesis intact (stop hit, thesis not killed) → `READY` with specific re-entry levels
+  - Thesis broken (all lenses negative) → `WATCHING` with monthly review
+  - Thesis broken but rotation possible (>20% rally on >2x volume) → `WATCHING` + rotation alert
 - Thesis kill: {conditions}
 
 ## Notes

@@ -135,6 +135,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--swing-n", type=int, default=2, help="Swing pivot lookback (default 2)."
     )
+    parser.add_argument(
+        "--ihsg-regime",
+        type=float,
+        default=None,
+        help="IHSG regime score (0.0-1.0). When provided, breakout setup scores are mechanically modified.",
+    )
     return parser.parse_args()
 
 
@@ -188,6 +194,7 @@ def build_ta_context_result(
     review_reason: str | None = None,
     swing_n: int = 2,
     timeframe_mode: str = "full",
+    ihsg_regime: float | None = None,
 ) -> dict[str, Any]:
     daily = add_ma_stack(daily)
     daily = add_atr14(daily)
@@ -279,7 +286,7 @@ def build_ta_context_result(
             ),
             side=breakout_snapshot_value.get("side") or "up",
         )
-        if breakout_snapshot_value.get("status") == "valid_breakout"
+        if breakout_snapshot_value.get("status") in {"valid_breakout", "weak_breakout"}
         else None
     )
     spring = detect_wyckoff_spring(
@@ -304,6 +311,7 @@ def build_ta_context_result(
         intraday_timing=intraday_timing,
         supports=supports,
         displacement=breakout_displacement_value,
+        ihsg_regime=ihsg_regime,
     )
     setup_id = str(setup_selection["primary_setup"])
     risk_map = build_risk_map(
@@ -336,6 +344,14 @@ def build_ta_context_result(
         prior_thesis=prior_thesis,
     )
 
+    # Price change overview (1d, 7d, 30d, 90d) — computed early so F18 can use it
+    price_changes: dict[str, Any] = {}
+    for label, lookback in [("1d", 1), ("7d", 7), ("30d", 30), ("90d", 90)]:
+        if len(daily) > lookback:
+            ref = float(daily.iloc[-(lookback + 1)]["close"])
+            pct = round((last_close - ref) / ref * 100, 2)
+            price_changes[label] = {"from": ref, "to": last_close, "pct": pct}
+
     max_touches = max((level["touches"] for level in levels), default=0)
     red_flags = build_red_flags(
         regime=regime["regime"],
@@ -365,6 +381,12 @@ def build_ta_context_result(
         ),
         breakout_displacement_state=breakout_displacement_value,
         ma_whipsaw_flags=ma_whipsaw_flags,
+        price_change_30d_pct=(
+            float(price_changes["30d"]["pct"])
+            if "30d" in price_changes
+            else None
+        ),
+        daily_df=daily,
     )
 
     external_levels = [float(level["zone_mid"]) for level in levels]
@@ -453,14 +475,6 @@ def build_ta_context_result(
         breakout=breakout_result,
     )
 
-    # Price change overview (1d, 7d, 30d, 90d)
-    price_changes: dict[str, Any] = {}
-    for label, lookback in [("1d", 1), ("7d", 7), ("30d", 30), ("90d", 90)]:
-        if len(daily) > lookback:
-            ref = float(daily.iloc[-(lookback + 1)]["close"])
-            pct = round((last_close - ref) / ref * 100, 2)
-            price_changes[label] = {"from": ref, "to": last_close, "pct": pct}
-
     analysis_payload: dict[str, Any] = {
         "symbol": symbol,
         "as_of_date": str(daily["datetime"].iloc[-1].date()),
@@ -471,6 +485,16 @@ def build_ta_context_result(
         "min_rr_required": float(min_rr_required),
         "price_changes": price_changes,
     }
+    if ihsg_regime is not None:
+        _rbm = 1.0
+        if ihsg_regime >= 0.50:
+            _rbm = 1.0
+        elif ihsg_regime >= 0.35:
+            _rbm = 0.7
+        else:
+            _rbm = 0.4
+        analysis_payload["ihsg_regime"] = round(float(ihsg_regime), 4)
+        analysis_payload["regime_breakout_modifier"] = _rbm
     if timeframe_mode == "daily_only":
         analysis_payload["timeframe_mode"] = "daily_only"
     else:
@@ -543,6 +567,38 @@ def build_ta_context_result(
         "risk_map": risk_map,
         "red_flags": normalize_red_flags(enriched_red_flags),
     }
+    # Trend persistence bonus: when markup is confirmed and sustained,
+    # surface a bonus so the LLM skill can distinguish "hold/trail" from "add".
+    _wyckoff_phase = str(wyckoff_state["current_cycle_phase"])
+    _wyckoff_conf = int(wyckoff_state["wyckoff_current_confidence"])
+    _wyckoff_history = list(wyckoff_state["wyckoff_history"])
+    _current_seg = _wyckoff_history[-1] if _wyckoff_history else None
+    _markup_duration = int(_current_seg["duration_bars"]) if _current_seg else 0
+    if _wyckoff_phase == "markup" and _wyckoff_conf > 75 and _markup_duration > 10:
+        bonus = 8 if _markup_duration > 20 else 5
+        result["daily_thesis"]["trend_persistence_bonus"] = {
+            "bonus": bonus,
+            "markup_duration_bars": _markup_duration,
+            "markup_confidence": _wyckoff_conf,
+        }
+    # Trend health: when markup is strong but no valid entry setup exists,
+    # annotate so the LLM skill reads the score as "hold quality" not
+    # "position deteriorating".
+    if (
+        _wyckoff_phase == "markup"
+        and _wyckoff_conf > 75
+        and setup_id == "NO_VALID_SETUP"
+    ):
+        result["daily_thesis"]["trend_health"] = {
+            "phase": "markup",
+            "confidence": _wyckoff_conf,
+            "duration_bars": _markup_duration,
+            "all_mas_below": bool(
+                posture.get("above_ema21", False)
+                and posture.get("above_sma50", False)
+            ),
+            "annotation": "trend_intact_no_entry_setup",
+        }
     if trade_management is not None:
         result["trade_management"] = trade_management
 
@@ -607,6 +663,7 @@ def main() -> None:
         review_reason=args.review_reason,
         swing_n=args.swing_n,
         timeframe_mode="full",
+        ihsg_regime=args.ihsg_regime,
     )
 
     output_path = (

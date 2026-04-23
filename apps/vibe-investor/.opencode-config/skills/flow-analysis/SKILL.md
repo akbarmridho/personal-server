@@ -74,7 +74,7 @@ Read the `flow_context.json` output directly. The JSON is ordered verdict-first:
 **flow_signals** — supporting detail, grouped by signal type:
 
 - `cadi.*`: cumulative flow direction, trend, recency (last 5 sessions), acceleration (slope fading). `slope_r2` measures how well the trend line fits — low R² means the trend is noisy and the slope is unreliable.
-- `persistence.*`: how consistently brokers stay on one side, recency-weighted (recent days count more). `drivers[]` names the top brokers.
+- `persistence.*`: how consistently brokers stay on one side, recency-weighted (recent days count more). `drivers[]` names the top brokers. `momentum.shift` decomposes persistence into recent 5 sessions vs prior 25 — `bullish_turn` or `bearish_turn` means the recent window flipped direction from the prior window.
 - `concentration.*`: Gini/HHI asymmetry between buy and sell sides. `gini_asymmetry_state` is the primary read.
 - `execution.*`: are buyers/sellers paying above or below VWAP.
 - `mfi.*`: money flow exhaustion (low = bullish for price, high = bearish for price).

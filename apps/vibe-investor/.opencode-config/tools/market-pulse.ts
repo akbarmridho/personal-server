@@ -79,6 +79,7 @@ type TaContext = {
     stop_level?: number;
     invalidation_level?: number;
     target_ladder?: number[];
+    entry_zone?: { low?: number; mid?: number; high?: number };
   };
   location?: {
     support_zones?: Array<{ label?: string; mid?: number; strength?: string }>;
@@ -122,6 +123,8 @@ type SymbolOutput = {
   stop: number | null;
   invalidation: number | null;
   targets: number[] | null;
+  entry_zone_low: number | null;
+  entry_zone_high: number | null;
   alerts: Alert[] | null;
 };
 
@@ -486,6 +489,38 @@ function evaluateAlerts(
     });
   }
 
+  // Tier 2 — Entry zone hit (WATCHING/READY symbols reaching planned entry)
+  if (
+    !inPortfolio &&
+    (status === "WATCHING" || status === "READY") &&
+    last !== null &&
+    sym.entry_zone_low !== null &&
+    sym.entry_zone_high !== null
+  ) {
+    if (last >= sym.entry_zone_low && last <= sym.entry_zone_high) {
+      alerts.push({
+        id: "entry_zone_hit",
+        priority: 5,
+        msg: `price ${last} inside entry zone ${round2(sym.entry_zone_low)}-${round2(sym.entry_zone_high)}`,
+      });
+    } else if (
+      last > sym.entry_zone_high &&
+      last <= sym.entry_zone_high * 1.03
+    ) {
+      alerts.push({
+        id: "entry_zone_near",
+        priority: 7,
+        msg: `price ${last} within 3% above entry zone ${round2(sym.entry_zone_low)}-${round2(sym.entry_zone_high)}`,
+      });
+    } else if (last < sym.entry_zone_low && last >= sym.entry_zone_low * 0.97) {
+      alerts.push({
+        id: "entry_zone_near",
+        priority: 7,
+        msg: `price ${last} within 3% below entry zone ${round2(sym.entry_zone_low)}-${round2(sym.entry_zone_high)}`,
+      });
+    }
+  }
+
   // Tier 3 — Position management
   if (
     inPortfolio &&
@@ -710,6 +745,11 @@ export default tool({
         const stop = taCtx?.risk_map?.stop_level ?? null;
         const invalidation = taCtx?.risk_map?.invalidation_level ?? null;
         const targets = taCtx?.risk_map?.target_ladder ?? null;
+        const entryZone = taCtx?.risk_map?.entry_zone ?? null;
+        const entryZoneLow =
+          entryZone?.low && entryZone.low > 0 ? entryZone.low : null;
+        const entryZoneHigh =
+          entryZone?.high && entryZone.high > 0 ? entryZone.high : null;
 
         // Key levels from ta_context (structural — S1, S2, POC, R1, R2)
         const keyLevelParts: string[] = [];
@@ -753,6 +793,8 @@ export default tool({
           stop: stop && stop > 0 ? stop : null,
           invalidation: invalidation && invalidation > 0 ? invalidation : null,
           targets: targets && targets.length > 0 ? targets : null,
+          entry_zone_low: entryZoneLow,
+          entry_zone_high: entryZoneHigh,
           alerts: null,
         };
 

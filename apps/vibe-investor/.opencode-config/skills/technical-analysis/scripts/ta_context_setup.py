@@ -108,6 +108,17 @@ def candidate_setup_ids_from_evaluations(
     )
 
 
+def _regime_breakout_modifier(ihsg_regime: float | None) -> float:
+    """Mechanical modifier for breakout setup scores based on IHSG regime."""
+    if ihsg_regime is None:
+        return 1.0
+    if ihsg_regime >= 0.50:
+        return 1.0
+    if ihsg_regime >= 0.35:
+        return 0.7
+    return 0.4
+
+
 def evaluate_setup_candidates(
     regime: str,
     trend_bias: str,
@@ -118,6 +129,7 @@ def evaluate_setup_candidates(
     intraday_timing: dict[str, Any],
     supports: list[dict[str, Any]],
     displacement: str | None,
+    ihsg_regime: float | None = None,
 ) -> list[dict[str, Any]]:
     candidates: list[dict[str, Any]] = []
     bullish_continuation = regime == "trend_continuation" and trend_bias == "bullish"
@@ -125,7 +137,8 @@ def evaluate_setup_candidates(
     above_resistance = location_state == "accepted_above_resistance"
     at_range_edge = location_state == "at_range_edge"
     breakout_valid = breakout_state == "valid_breakout"
-    breakout_failed = breakout_state == "failed_breakout"
+    breakout_weak = breakout_state == "weak_breakout"
+    breakout_failed = breakout_state in {"failed_breakout", "failed_breakout_intraday"}
     structure_confirmed = structure_state == "choch_plus_bos_confirmed"
     structure_warning = structure_state == "choch_only"
     nearest_support = supports[0] if supports else None
@@ -142,6 +155,9 @@ def evaluate_setup_candidates(
             if breakout_valid:
                 s1_score += 4
                 s1_drivers.append("valid_breakout")
+            elif breakout_weak:
+                s1_score += 2
+                s1_drivers.append("weak_breakout")
             if above_resistance:
                 s1_score += 3
                 s1_drivers.append("accepted_above_resistance")
@@ -156,9 +172,18 @@ def evaluate_setup_candidates(
                 s1_status = "valid"
             elif breakout_valid or above_resistance:
                 s1_status = "watchlist_only"
+            elif breakout_weak and (above_resistance or at_support):
+                s1_status = "watchlist_only"
     s1_status, s1_score, s1_drivers = apply_intraday_setup_adjustment(
         "S1", s1_status, s1_score, s1_drivers, intraday_timing
     )
+    # Apply IHSG regime modifier to breakout setups
+    rbm = _regime_breakout_modifier(ihsg_regime)
+    if rbm < 1.0 and s1_score > 0:
+        s1_score = max(1, int(round(s1_score * rbm)))
+        s1_drivers.append(f"regime_breakout_modifier_{rbm}")
+        if rbm <= 0.4 and s1_status == "valid":
+            s1_status = "watchlist_only"
     candidates.append(setup_candidate_payload("S1", s1_status, s1_score, s1_drivers))
 
     s2_status = "invalid"
@@ -211,6 +236,10 @@ def evaluate_setup_candidates(
     s3_status, s3_score, s3_drivers = apply_intraday_setup_adjustment(
         "S3", s3_status, s3_score, s3_drivers, intraday_timing
     )
+    # Apply IHSG regime modifier to S3 when triggered by breakout context
+    if rbm < 1.0 and s3_score > 0 and breakout_valid:
+        s3_score = max(1, int(round(s3_score * rbm)))
+        s3_drivers.append(f"regime_breakout_modifier_{rbm}")
     candidates.append(setup_candidate_payload("S3", s3_status, s3_score, s3_drivers))
 
     s4_status = "invalid"
@@ -268,6 +297,7 @@ def select_setup(
     intraday_timing: dict[str, Any],
     supports: list[dict[str, Any]],
     displacement: str | None,
+    ihsg_regime: float | None = None,
 ) -> dict[str, Any]:
     ranked_candidates = evaluate_setup_candidates(
         regime=regime,
@@ -279,6 +309,7 @@ def select_setup(
         intraday_timing=intraday_timing,
         supports=supports,
         displacement=displacement,
+        ihsg_regime=ihsg_regime,
     )
     viable_candidates = [
         candidate
