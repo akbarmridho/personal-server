@@ -44,6 +44,13 @@ FREQ_GINI_MIN_SELL_GINI = 0.55
 
 HIGH_VOLATILITY_ATR_PCT_THRESHOLD = 0.045
 
+CONTROLLER_RISK_TOP_SHARE_THRESHOLD = 0.15
+VOLUME_BREAKOUT_MULTIPLIER = 2.0
+VOLUME_BREAKOUT_RECENT_DAYS = 3
+CADI_RECENT_DAYS = 5
+CADI_ACCELERATION_RECENT_DAYS = 10
+CADI_ACCELERATION_FADE_THRESHOLD = 0.50
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -173,12 +180,46 @@ def _series_slope(values: list[float]) -> float:
     return numer / denom
 
 
+def _series_slope_with_r2(values: list[float]) -> tuple[float, float]:
+    if len(values) < 3:
+        return _series_slope(values), 0.0
+    series = pd.Series(values, dtype="float64")
+    x = pd.Series(range(len(series)), dtype="float64")
+    ss_xx = float(((x - x.mean()) ** 2).sum())
+    if ss_xx == 0:
+        return 0.0, 0.0
+    ss_xy = float(((x - x.mean()) * (series - series.mean())).sum())
+    slope = ss_xy / ss_xx
+    ss_yy = float(((series - series.mean()) ** 2).sum())
+    if ss_yy == 0:
+        return slope, 1.0 if ss_xy == 0 else 0.0
+    r_squared = (ss_xy ** 2) / (ss_xx * ss_yy)
+    return slope, _clip(r_squared, 0.0, 1.0)
+
+
 def _spearman_corr(left: list[float], right: list[float]) -> float:
     if len(left) < 3 or len(left) != len(right):
         return 0.0
     left_series = pd.Series(left, dtype="float64")
     right_series = pd.Series(right, dtype="float64")
     corr = left_series.rank().corr(right_series.rank(), method="pearson")
+    if corr is None or not math.isfinite(float(corr)):
+        return 0.0
+    return float(corr)
+
+
+def _pearson_on_changes(left: list[float], right: list[float]) -> float:
+    if len(left) < 4 or len(left) != len(right):
+        return 0.0
+    left_diff = pd.Series(left, dtype="float64").diff().dropna()
+    right_pct = pd.Series(right, dtype="float64").pct_change().dropna()
+    if len(left_diff) != len(right_pct):
+        min_len = min(len(left_diff), len(right_pct))
+        left_diff = left_diff.iloc[-min_len:]
+        right_pct = right_pct.iloc[-min_len:]
+    if len(left_diff) < 3:
+        return 0.0
+    corr = left_diff.corr(right_pct, method="pearson")
     if corr is None or not math.isfinite(float(corr)):
         return 0.0
     return float(corr)
@@ -199,10 +240,12 @@ def _money_flow_index(days: list[dict[str, Any]], period: int = 14) -> float:
         high = _to_float(day.get("high"))
         low = _to_float(day.get("low"))
         close = _to_float(day.get("close"))
-        volume = _to_float(day.get("market_volume"))
+        net_flow = _to_float(day.get("net_flow_visible_value"))
+        market_value = _to_float(day.get("market_value"))
         typical_price = (high + low + close) / 3.0
         typical_prices.append(typical_price)
-        raw_money_flows.append(typical_price * volume)
+        flow_weight = abs(net_flow) if market_value > 0 else typical_price * _to_float(day.get("market_volume"))
+        raw_money_flows.append(flow_weight)
 
     positive_flow = 0.0
     negative_flow = 0.0
@@ -493,11 +536,11 @@ def _wash_component(
     sell_row: dict[str, Any],
     vwap_day: float,
     market_value: float,
-) -> tuple[bool, float]:
+) -> tuple[bool, float, float]:
     buy_value = _to_float(buy_row.get("value"))
     sell_value = _to_float(sell_row.get("value"))
     if buy_value <= 0 or sell_value <= 0 or vwap_day <= 0 or market_value <= 0:
-        return False, 0.0
+        return False, 0.0, 0.0
     overlap_share = _safe_ratio(min(buy_value, sell_value), market_value)
     volume_symmetry = 1.0 - abs(buy_value - sell_value) / (buy_value + sell_value)
     price_gap_ratio = abs(
@@ -516,8 +559,9 @@ def _wash_component(
         and price_gap_ratio <= 0.001
         and freq_ratio >= 0.80
     )
-    risk_score = overlap_share if flagged else 0.0
-    return flagged, risk_score
+    sanitize_score = overlap_share if flagged else 0.0
+    soft_score = overlap_share * volume_symmetry * max(1.0 - price_gap_ratio, 0.0) * freq_ratio
+    return flagged, sanitize_score, soft_score
 
 
 def _daily_metrics(
@@ -549,6 +593,7 @@ def _daily_metrics(
     overlapping = set(buy_map).intersection(sell_map)
 
     wash_risk_raw = 0.0
+    wash_risk_soft_raw = 0.0
     sanitized_net_by_broker: dict[str, float] = {}
     visible_gross_by_broker: dict[str, float] = {}
 
@@ -559,10 +604,11 @@ def _daily_metrics(
         sell_value = _to_float(sell_row.get("value")) if sell_row else 0.0
         visible_gross_by_broker[broker] = buy_value + sell_value
         if buy_row and sell_row:
-            flagged, risk_component = _wash_component(
+            flagged, sanitize_component, soft_component = _wash_component(
                 buy_row, sell_row, vwap_day=vwap_day, market_value=market_value
             )
-            wash_risk_raw += risk_component
+            wash_risk_raw += sanitize_component
+            wash_risk_soft_raw += soft_component
             sanitized_net_by_broker[broker] = 0.0 if flagged else (buy_value - sell_value)
         else:
             sanitized_net_by_broker[broker] = buy_value - sell_value
@@ -620,6 +666,7 @@ def _daily_metrics(
         "net_flow_visible_value": sum(sanitized_net_by_broker.values()),
         "cadi_increment": cadi_increment,
         "wash_risk_pct": _clip(wash_risk_raw * 100.0, 0.0, 100.0),
+        "wash_risk_soft_pct": _clip(wash_risk_soft_raw * 100.0, 0.0, 100.0),
         "overlap_count": len(overlapping),
         "sanitized_net_by_broker": sanitized_net_by_broker,
         "visible_gross_by_broker": visible_gross_by_broker,
@@ -671,15 +718,16 @@ def _persistence(
     broker_signs: dict[str, list[int]] = {}
     broker_weights: dict[str, float] = {}
 
-    for day in primary_days:
+    primary_len = len(primary_days)
+    for day_idx, day in enumerate(primary_days):
         market_value = float(day["market_value"])
+        recency_weight = (day_idx + 1) / primary_len
         nets = day["sanitized_net_by_broker"]
         for broker, net_value in nets.items():
             signs = broker_signs.setdefault(broker, [])
             signs.append(1 if net_value > 0 else -1 if net_value < 0 else 0)
-            broker_weights[broker] = broker_weights.get(broker, 0.0) + abs(net_value) / market_value
+            broker_weights[broker] = broker_weights.get(broker, 0.0) + (abs(net_value) / market_value) * recency_weight
 
-    primary_len = len(primary_days)
     total_broker_weight = sum(broker_weights.values())
     buy_persistence = 0.0
     sell_persistence = 0.0
@@ -800,7 +848,7 @@ def _mfi_state(mfi_value: float) -> str:
     return "extreme_bearish"
 
 
-def _divergence_states(primary_days: list[dict[str, Any]]) -> dict[str, str]:
+def _divergence_states(primary_days: list[dict[str, Any]], atr_pct: float = 0.0) -> dict[str, str]:
     if len(primary_days) < 5:
         return {
             "cadi_divergence_state": "unclear",
@@ -808,6 +856,10 @@ def _divergence_states(primary_days: list[dict[str, Any]]) -> dict[str, str]:
             "freq_gini_divergence_state": "unclear",
             "divergence_summary": "unclear",
         }
+
+    vol_scale = max(atr_pct / 0.03, 0.5) if atr_pct > 0 else 1.0
+    price_slope_threshold = 0.001 * vol_scale
+    cadi_slope_threshold = 0.0025 * vol_scale
 
     window = primary_days[-min(DIVERGENCE_WINDOW_DAYS, len(primary_days)) :]
     price_values = [float(day["close"]) for day in window]
@@ -821,23 +873,24 @@ def _divergence_states(primary_days: list[dict[str, Any]]) -> dict[str, str]:
     avg_price = sum(price_values) / len(price_values)
     normalized_price_slope = _safe_ratio(price_slope, avg_price)
 
-    if normalized_price_slope <= -0.001 and cadi_slope >= 0.0025:
+    if normalized_price_slope <= -price_slope_threshold and cadi_slope >= cadi_slope_threshold:
         cadi_divergence_state = "bullish_divergence"
-    elif normalized_price_slope >= 0.001 and cadi_slope <= -0.0025:
+    elif normalized_price_slope >= price_slope_threshold and cadi_slope <= -cadi_slope_threshold:
         cadi_divergence_state = "bearish_divergence"
     else:
         cadi_divergence_state = "none"
 
     mfi_values = _mfi_series(primary_days)[-len(window) :]
     mfi_slope = _series_slope(mfi_values)
+    mfi_slope_threshold = MFI_DIVERGENCE_SLOPE_THRESHOLD * vol_scale
     if (
-        normalized_price_slope <= -0.001
-        and mfi_slope >= MFI_DIVERGENCE_SLOPE_THRESHOLD
+        normalized_price_slope <= -price_slope_threshold
+        and mfi_slope >= mfi_slope_threshold
     ):
         mfi_divergence_state = "bullish_divergence"
     elif (
-        normalized_price_slope >= 0.001
-        and mfi_slope <= -MFI_DIVERGENCE_SLOPE_THRESHOLD
+        normalized_price_slope >= price_slope_threshold
+        and mfi_slope <= -mfi_slope_threshold
     ):
         mfi_divergence_state = "bearish_divergence"
     else:
@@ -1127,6 +1180,99 @@ def _verdict_weight_profile(
     }
 
 
+def _cadi_recency(primary_days: list[dict[str, Any]], cadi_value: float) -> dict[str, Any]:
+    recent = primary_days[-min(CADI_RECENT_DAYS, len(primary_days)) :]
+    cadi_recent_5d = sum(float(day["cadi_increment"]) for day in recent)
+    cadi_sign = 1 if cadi_value > 0 else -1 if cadi_value < 0 else 0
+    recent_sign = 1 if cadi_recent_5d > 0 else -1 if cadi_recent_5d < 0 else 0
+    momentum_shift = cadi_sign != 0 and recent_sign != 0 and cadi_sign != recent_sign
+    return {
+        "cadi_recent_5d": round(cadi_recent_5d, 6),
+        "cadi_momentum_shift": momentum_shift,
+    }
+
+
+def _cadi_acceleration(primary_cadi_series: list[float]) -> dict[str, Any]:
+    n = len(primary_cadi_series)
+    recent_n = min(CADI_ACCELERATION_RECENT_DAYS, n)
+    prior_n = n - recent_n
+    if prior_n < 5 or recent_n < 5:
+        return {
+            "cadi_slope_recent_10d": 0.0,
+            "cadi_slope_prior_20d": 0.0,
+            "momentum_fading": False,
+        }
+    recent_slice = primary_cadi_series[-recent_n:]
+    prior_slice = primary_cadi_series[:prior_n]
+    slope_recent = _series_slope(recent_slice)
+    slope_prior = _series_slope(prior_slice)
+    same_sign = (slope_recent > 0 and slope_prior > 0) or (slope_recent < 0 and slope_prior < 0)
+    fading = (
+        same_sign
+        and abs(slope_prior) > 0
+        and abs(slope_recent) / abs(slope_prior) < CADI_ACCELERATION_FADE_THRESHOLD
+    )
+    return {
+        "cadi_slope_recent_10d": round(slope_recent, 6),
+        "cadi_slope_prior_20d": round(slope_prior, 6),
+        "momentum_fading": fading,
+    }
+
+
+def _controller_risk(
+    *,
+    market_cap_profile: str,
+    top_buyer_share_pct: float,
+    top_seller_share_pct: float,
+    trust_level: str,
+) -> dict[str, Any]:
+    flagged = (
+        market_cap_profile in {"small", "micro"}
+        and max(top_buyer_share_pct, top_seller_share_pct) >= CONTROLLER_RISK_TOP_SHARE_THRESHOLD
+        and trust_level != "high"
+    )
+    dominant_side = (
+        "buy" if top_buyer_share_pct >= top_seller_share_pct else "sell"
+    )
+    dominant_share = max(top_buyer_share_pct, top_seller_share_pct)
+    return {
+        "flagged": flagged,
+        "dominant_side": dominant_side,
+        "dominant_share_pct": round(dominant_share, 6),
+        "cadi_discount": 0.50 if flagged else 1.0,
+    }
+
+
+def _volume_regime(
+    primary_days: list[dict[str, Any]],
+    recent_days: list[dict[str, Any]],
+    cadi_value: float,
+) -> dict[str, Any]:
+    primary_volumes = [float(day["market_value"]) for day in primary_days]
+    median_volume = float(pd.Series(primary_volumes, dtype="float64").median())
+    recent_volumes = [float(day["market_value"]) for day in recent_days[:VOLUME_BREAKOUT_RECENT_DAYS]]
+    if not recent_volumes or median_volume <= 0:
+        return {
+            "volume_breakout": False,
+            "recent_vs_median_ratio": 0.0,
+            "regime_shift_risk": False,
+        }
+    avg_recent_volume = sum(recent_volumes) / len(recent_volumes)
+    ratio = avg_recent_volume / median_volume
+    volume_breakout = ratio >= VOLUME_BREAKOUT_MULTIPLIER
+
+    recent_net = sum(float(day["net_flow_visible_value"]) for day in recent_days[:VOLUME_BREAKOUT_RECENT_DAYS])
+    cadi_sign = 1 if cadi_value > 0 else -1 if cadi_value < 0 else 0
+    recent_sign = 1 if recent_net > 0 else -1 if recent_net < 0 else 0
+    regime_shift_risk = volume_breakout and cadi_sign != 0 and recent_sign != 0 and cadi_sign != recent_sign
+
+    return {
+        "volume_breakout": volume_breakout,
+        "recent_vs_median_ratio": round(ratio, 4),
+        "regime_shift_risk": regime_shift_risk,
+    }
+
+
 def _baseline_verdict(
     *,
     cadi_value: float,
@@ -1144,6 +1290,10 @@ def _baseline_verdict(
     wash_risk_state: str,
     correlation_state: str,
     weight_profile: dict[str, float],
+    controller_risk: dict[str, Any],
+    volume_regime: dict[str, Any],
+    cadi_recency: dict[str, Any],
+    cadi_acceleration: dict[str, Any],
 ) -> tuple[str, float, str, list[str], list[str]]:
     divergence_bias = (
         0.08
@@ -1153,21 +1303,35 @@ def _baseline_verdict(
         else 0.0
     )
     trust_bias = 0.0
-    cadi_component = _clip(cadi_value, -1.0, 1.0)
+    cadi_discount = float(controller_risk.get("cadi_discount", 1.0))
+    if correlation_state in {"weak", "minimal"}:
+        cadi_discount *= 0.40
+    cadi_component = _clip(cadi_value, -1.0, 1.0) * cadi_discount
     persistence_component = _clip(persistence_score / 100.0, -1.0, 1.0)
     mfi_component = _clip((50.0 - mfi_value) / 50.0, -1.0, 1.0)
     execution_component = _clip(buy_vwap_dev / 0.01, -1.0, 1.0)
     gvpr_component = _clip(gvpr_bias * 8.0, -1.0, 1.0)
     concentration_component = _clip(concentration_bias, -1.0, 1.0)
     frequency_component = _clip(frequency_score, -1.0, 1.0)
+
+    effective_weights = dict(weight_profile)
+    if correlation_state in {"weak", "minimal"}:
+        cadi_original = effective_weights["cadi"]
+        cadi_reduced = cadi_original * 0.40
+        redistributed = cadi_original - cadi_reduced
+        effective_weights["cadi"] = cadi_reduced
+        effective_weights["persistence"] += redistributed * 0.45
+        effective_weights["concentration"] += redistributed * 0.30
+        effective_weights["execution"] += redistributed * 0.25
+
     score = (
-        cadi_component * weight_profile["cadi"]
-        + mfi_component * weight_profile["mfi"]
-        + persistence_component * weight_profile["persistence"]
-        + execution_component * weight_profile["execution"]
-        + gvpr_component * weight_profile["gvpr"]
-        + concentration_component * weight_profile["concentration"]
-        + frequency_component * weight_profile["frequency"]
+        cadi_component * effective_weights["cadi"]
+        + mfi_component * effective_weights["mfi"]
+        + persistence_component * effective_weights["persistence"]
+        + execution_component * effective_weights["execution"]
+        + gvpr_component * effective_weights["gvpr"]
+        + concentration_component * effective_weights["concentration"]
+        + frequency_component * effective_weights["frequency"]
         + divergence_bias
         + trust_bias
     )
@@ -1180,7 +1344,10 @@ def _baseline_verdict(
     else:
         verdict = "NEUTRAL"
 
-    conviction_pct = round(min(50.0 + abs(score) * 50.0, 100.0), 2)
+    if verdict == "NEUTRAL":
+        conviction_pct = round(max(15.0, 20.0 + abs(score) * 80.0), 2)
+    else:
+        conviction_pct = round(min(20.0 + abs(score) * 80.0, 100.0), 2)
 
     if abs(persistence_score) >= 35 and abs(concentration_bias) >= 0.20 and trust_level != "low":
         sponsor_quality = "strong"
@@ -1241,6 +1408,25 @@ def _baseline_verdict(
         caution_factors.append("flow is deteriorating while price still holds up")
     elif divergence_state == "mixed":
         caution_factors.append("divergence signals are mixed across CADI, MFI, and frequency-Gini")
+
+    if controller_risk.get("flagged"):
+        caution_factors.append(
+            f"controller risk flagged — single broker holds {controller_risk['dominant_share_pct']:.1%} "
+            f"on {controller_risk['dominant_side']} side, CADI weight discounted 50%"
+        )
+    if volume_regime.get("regime_shift_risk"):
+        caution_factors.append(
+            f"volume regime shift — recent volume {volume_regime['recent_vs_median_ratio']:.1f}x "
+            f"median with net flow contradicting 30D CADI direction"
+        )
+    if cadi_recency.get("cadi_momentum_shift"):
+        caution_factors.append(
+            "CADI momentum shift — last 5 sessions' flow direction contradicts the 30D cumulative CADI"
+        )
+    if cadi_acceleration.get("momentum_fading"):
+        caution_factors.append(
+            "CADI momentum fading — recent 10D slope magnitude dropped >50% vs prior 20D slope"
+        )
 
     return verdict, conviction_pct, sponsor_quality, support_factors[:4], caution_factors[:4]
 
@@ -1519,9 +1705,15 @@ def build_flow_context_result(
     primary_cadi_series = cadi_series[-len(primary_days) :]
 
     cadi_slope = _series_slope(primary_cadi_series)
+    cadi_slope_r2 = _series_slope_with_r2(primary_cadi_series)[1]
     cadi_trend, cadi_slope_strength = _trend_strength_from_slope(
         cadi_slope, primary_cadi_series
     )
+    cadi_recency = _cadi_recency(
+        primary_days,
+        cadi_value=float(primary_cadi_series[-1]) if primary_cadi_series else 0.0,
+    )
+    cadi_acceleration = _cadi_acceleration(primary_cadi_series)
     mfi_value = _money_flow_index(primary_days)
     mfi_state = _mfi_state(mfi_value)
 
@@ -1529,6 +1721,7 @@ def build_flow_context_result(
     avg_coverage_sell = float(pd.Series([day["coverage_sell"] for day in primary_days]).mean())
     avg_coverage = min(avg_coverage_buy, avg_coverage_sell)
     avg_wash_risk = float(pd.Series([day["wash_risk_pct"] for day in primary_days]).mean())
+    avg_wash_risk_soft = float(pd.Series([day["wash_risk_soft_pct"] for day in primary_days]).mean())
 
     net_flow_total_value = float(sum(day["net_flow_visible_value"] for day in primary_days))
     total_market_value_primary = float(sum(day["market_value"] for day in primary_days))
@@ -1567,8 +1760,8 @@ def build_flow_context_result(
     )
     avg_buy_hhi = _hhi_from_rows(primary_buy_rows)
     avg_sell_hhi = _hhi_from_rows(primary_sell_rows)
-    avg_buy_gini = float(pd.Series([day["buy_gini"] for day in primary_days]).mean())
-    avg_sell_gini = float(pd.Series([day["sell_gini"] for day in primary_days]).mean())
+    avg_buy_gini = _gini_from_rows(primary_buy_rows)
+    avg_sell_gini = _gini_from_rows(primary_sell_rows)
     avg_gini_asymmetry = avg_buy_gini - avg_sell_gini
     avg_top_buyer_share = _safe_ratio(
         primary_buy_values[0] if primary_buy_values else 0.0, total_market_value_primary
@@ -1586,20 +1779,23 @@ def build_flow_context_result(
         avg_gvpr_buy,
         avg_gvpr_sell,
     )
-    divergence_states = _divergence_states(primary_days)
+    volatility_metrics = _atr_volatility_metrics(trust_days)
+    divergence_states = _divergence_states(
+        primary_days, atr_pct=float(volatility_metrics["atr_pct"])
+    )
     divergence_summary = divergence_states["divergence_summary"]
     net_accumulation_metrics = _net_accumulation_metrics(primary_days)
     participant_flow = _participant_flow(primary_days)
 
     closes_trust = [float(day["close"]) for day in trust_days]
     flow_price_correlation = _spearman_corr(cadi_series, closes_trust)
+    flow_price_pearson_changes = _pearson_on_changes(cadi_series, closes_trust)
     correlation_state = _correlation_state(flow_price_correlation)
 
     avg_daily_value_for_trust = float(pd.Series([day["market_value"] for day in trust_days]).mean())
     liquidity_profile = _liquidity_profile(avg_daily_value_for_trust)
     latest_market_cap = float(primary_days[-1]["market_cap_close"])
     market_cap_profile = _market_cap_profile(latest_market_cap)
-    volatility_metrics = _atr_volatility_metrics(trust_days)
     beta_metrics = (
         _beta_metrics(
             daily_ohlcv,
@@ -1650,6 +1846,17 @@ def build_flow_context_result(
         -1.0,
         1.0,
     )
+    controller_risk = _controller_risk(
+        market_cap_profile=market_cap_profile,
+        top_buyer_share_pct=avg_top_buyer_share,
+        top_seller_share_pct=avg_top_seller_share,
+        trust_level=trust_level,
+    )
+    volume_regime = _volume_regime(
+        primary_days,
+        recent_days,
+        cadi_value=float(primary_cadi_series[-1]) if primary_cadi_series else 0.0,
+    )
     verdict, conviction_pct, sponsor_quality, support_factors, caution_factors = (
         _baseline_verdict(
             cadi_value=float(primary_cadi_series[-1]) if primary_cadi_series else 0.0,
@@ -1667,6 +1874,10 @@ def build_flow_context_result(
             wash_risk_state=wash_risk_state,
             correlation_state=correlation_state,
             weight_profile=weight_profile,
+            controller_risk=controller_risk,
+            volume_regime=volume_regime,
+            cadi_recency=cadi_recency,
+            cadi_acceleration=cadi_acceleration,
         )
     )
 
@@ -1708,94 +1919,122 @@ def build_flow_context_result(
             "today_snapshot_included": bool(broker_flow.get("today_snapshot_included", False)),
             "today_snapshot_ready_after_wib": "19:00",
         },
-        "history": {
-            "active_30d": _history_block(primary_days),
-            "trust_60d": {
-                "dates": [str(day["date"]) for day in trust_days],
-                "price_close_series": [round(float(day["close"]), 6) for day in trust_days],
-                "cadi_series": [round(value, 6) for value in cadi_series],
-            },
+        "verdict": {
+            "verdict": verdict,
+            "conviction_pct": conviction_pct,
+            "sponsor_quality": sponsor_quality,
+            "decision_role": integration_hook["signal_role"],
+            "timing_relation": integration_hook["timing_relation"],
+            "price_structure_alignment": integration_hook["price_structure_alignment"],
+            "integration_summary": integration_hook["integration_summary"],
+            "strongest_support_factors": support_factors,
+            "strongest_caution_factors": caution_factors,
         },
-        "core_metrics": {
-            "gross_read_note": "gross_primary_net_secondary",
-            "coverage_buy_pct": round(avg_coverage_buy, 6),
-            "coverage_sell_pct": round(avg_coverage_sell, 6),
-            "net_flow_total_value": round(net_flow_total_value, 2),
-            "net_flow_recent_value": round(recent_net_value, 2),
-            "cadi_value": round(float(primary_cadi_series[-1]) if primary_cadi_series else 0.0, 6),
-            "cadi_trend": cadi_trend,
-            "cadi_slope_strength": cadi_slope_strength,
-            "buy_avg_vs_vwap_pct": round(avg_buy_dev, 6),
-            "sell_avg_vs_vwap_pct": round(avg_sell_dev, 6),
-            "buy_execution_quality": _execution_quality("buy", avg_buy_dev),
-            "sell_execution_quality": _execution_quality("sell", avg_sell_dev),
-            "bs_spread_pct": round(avg_bs_spread, 6),
-            "bs_spread_trend": (
-                "widening_buy_pressure"
-                if avg_bs_spread >= 0.003
-                else "widening_sell_pressure"
-                if avg_bs_spread <= -0.003
-                else "mixed"
-                if max(abs(avg_buy_dev), abs(avg_sell_dev)) >= 0.003
-                else "stable"
+        "trust_context": {
+            "trust_level": trust_level,
+            "ticker_flow_usefulness": ticker_flow_usefulness,
+            "cadi_reliability": (
+                "high" if correlation_state in {"strong"} else
+                "moderate" if correlation_state in {"moderate"} else
+                "low"
             ),
-            "gvpr_buy_pct": round(avg_gvpr_buy, 6),
-            "gvpr_sell_pct": round(avg_gvpr_sell, 6),
-            "gvpr_pattern": (
-                "buy_dominant"
-                if avg_gvpr_buy - avg_gvpr_sell >= 0.03
-                else "sell_dominant"
-                if avg_gvpr_sell - avg_gvpr_buy >= 0.03
-                else "mixed"
-                if avg_gvpr_buy >= 0.4 and avg_gvpr_sell >= 0.4
-                else "balanced"
-            ),
-            "top_buyer_share_pct": round(avg_top_buyer_share, 6),
-            "top_seller_share_pct": round(avg_top_seller_share, 6),
-            **net_accumulation_metrics,
-        },
-        "advanced_signals": {
-            "persistence_score": round(persistence_score, 2),
-            "persistence_state": persistence_state,
-            "persistence_drivers": persistence_drivers,
-            "buy_hhi": round(avg_buy_hhi, 2),
-            "sell_hhi": round(avg_sell_hhi, 2),
-            "buy_gini": round(avg_buy_gini, 6),
-            "sell_gini": round(avg_sell_gini, 6),
-            "gini_asymmetry": round(avg_gini_asymmetry, 6),
-            "gini_asymmetry_state": concentration_state,
-            "mfi_value": round(mfi_value, 2),
-            "mfi_state": mfi_state,
-            "frequency_score": round(frequency_score, 6),
-            "frequency_profile": frequency_profile,
-            "flow_price_correlation_spearman": round(flow_price_correlation, 6),
-            "flow_price_correlation_state": correlation_state,
-            **divergence_states,
-            "divergence_state": divergence_summary,
-            "wash_risk_pct": round(avg_wash_risk, 2),
-            "wash_risk_state": wash_risk_state,
-            "anomaly_risk_state": anomaly_risk_state,
-        },
-        "trust_regime": {
+            "verdict_weight_profile": weight_profile_name,
             "liquidity_profile": liquidity_profile,
             "market_cap_profile": market_cap_profile,
             "market_cap_value": round(latest_market_cap, 2),
             "atr_pct": volatility_metrics["atr_pct"],
             "volatility_profile": volatility_metrics["volatility_profile"],
             **beta_metrics,
-            "ticker_flow_usefulness": ticker_flow_usefulness,
-            "trust_level": trust_level,
-            "verdict_weight_profile": weight_profile_name,
+            "controller_risk": controller_risk,
+            "volume_regime": volume_regime,
+            "anomaly_risk_state": anomaly_risk_state,
             "trust_rationale": trust_rationale[:5],
         },
-        "baseline_verdict": {
-            "verdict": verdict,
-            "conviction_pct": conviction_pct,
-            "sponsor_quality": sponsor_quality,
-            "strongest_support_factors": support_factors,
-            "strongest_caution_factors": caution_factors,
+        "flow_signals": {
+            "cadi": {
+                "value": round(float(primary_cadi_series[-1]) if primary_cadi_series else 0.0, 6),
+                "trend": cadi_trend,
+                "slope_strength": cadi_slope_strength,
+                "slope_r2": round(cadi_slope_r2, 6),
+                **cadi_recency,
+                **cadi_acceleration,
+            },
+            "persistence": {
+                "score": round(persistence_score, 2),
+                "state": persistence_state,
+                "drivers": persistence_drivers,
+            },
+            "concentration": {
+                "gini_asymmetry": round(avg_gini_asymmetry, 6),
+                "gini_asymmetry_state": concentration_state,
+                "buy_gini": round(avg_buy_gini, 6),
+                "sell_gini": round(avg_sell_gini, 6),
+                "buy_hhi": round(avg_buy_hhi, 2),
+                "sell_hhi": round(avg_sell_hhi, 2),
+                "gvpr_buy_pct": round(avg_gvpr_buy, 6),
+                "gvpr_sell_pct": round(avg_gvpr_sell, 6),
+                "gvpr_pattern": (
+                    "buy_dominant"
+                    if avg_gvpr_buy - avg_gvpr_sell >= 0.03
+                    else "sell_dominant"
+                    if avg_gvpr_sell - avg_gvpr_buy >= 0.03
+                    else "mixed"
+                    if avg_gvpr_buy >= 0.4 and avg_gvpr_sell >= 0.4
+                    else "balanced"
+                ),
+                "top_buyer_share_pct": round(avg_top_buyer_share, 6),
+                "top_seller_share_pct": round(avg_top_seller_share, 6),
+            },
+            "execution": {
+                "buy_avg_vs_vwap_pct": round(avg_buy_dev, 6),
+                "sell_avg_vs_vwap_pct": round(avg_sell_dev, 6),
+                "buy_quality": _execution_quality("buy", avg_buy_dev),
+                "sell_quality": _execution_quality("sell", avg_sell_dev),
+                "bs_spread_pct": round(avg_bs_spread, 6),
+                "bs_spread_trend": (
+                    "widening_buy_pressure"
+                    if avg_bs_spread >= 0.003
+                    else "widening_sell_pressure"
+                    if avg_bs_spread <= -0.003
+                    else "mixed"
+                    if max(abs(avg_buy_dev), abs(avg_sell_dev)) >= 0.003
+                    else "stable"
+                ),
+            },
+            "mfi": {
+                "value": round(mfi_value, 2),
+                "state": mfi_state,
+            },
+            "frequency": {
+                "score": round(frequency_score, 6),
+                "profile": frequency_profile,
+            },
+            "coverage": {
+                "buy_pct": round(avg_coverage_buy, 6),
+                "sell_pct": round(avg_coverage_sell, 6),
+            },
+            "net_flow": {
+                "total_value": round(net_flow_total_value, 2),
+                "recent_value": round(recent_net_value, 2),
+                **net_accumulation_metrics,
+            },
+            "divergence": {
+                "summary": divergence_summary,
+                "cadi": divergence_states["cadi_divergence_state"],
+                "mfi": divergence_states["mfi_divergence_state"],
+                "freq_gini": divergence_states["freq_gini_divergence_state"],
+            },
+            "wash_risk": {
+                "pct": round(avg_wash_risk, 2),
+                "soft_pct": round(avg_wash_risk_soft, 2),
+                "state": wash_risk_state,
+            },
+            "correlation": {
+                "spearman": round(flow_price_correlation, 6),
+                "pearson_changes": round(flow_price_pearson_changes, 6),
+                "state": correlation_state,
+            },
         },
-        "integration_hook": integration_hook,
         "participant_flow": participant_flow,
         "monitoring": monitoring,
         **(
@@ -1809,6 +2048,14 @@ def build_flow_context_result(
             if purpose_mode == "UPDATE"
             else {}
         ),
+        "history": {
+            "active_30d": _history_block(primary_days),
+            "trust_60d": {
+                "dates": [str(day["date"]) for day in trust_days],
+                "price_close_series": [round(float(day["close"]), 6) for day in trust_days],
+                "cadi_series": [round(value, 6) for value in cadi_series],
+            },
+        },
     }
 
 
