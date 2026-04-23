@@ -564,6 +564,7 @@ def build_ta_context_result(
             ),
         },
         "trigger_confirmation": trigger_confirmation,
+        "breakout": breakout_result or {},
         "risk_map": risk_map,
         "red_flags": normalize_red_flags(enriched_red_flags),
     }
