@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { env } from "../infrastructure/env.js";
+import { logger } from "../utils/logger.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -147,17 +148,32 @@ export function extractTradeEventKeysFromHistoryPayload(
   const data = payload.data as JsonObject;
   const historyGroups = data.history as JsonObject[];
   const eventIds = new Set<string>();
+  let totalRawEvents = 0;
+  let skippedEvents = 0;
 
   for (const rawGroup of historyGroups) {
     const group = rawGroup as JsonObject;
     const historyList = group.history_list as JsonObject[];
     for (const rawEvent of historyList) {
+      totalRawEvents++;
       const normalized = normalizeHistoryEvent(rawEvent as JsonObject);
       if (normalized) {
         eventIds.add(normalized.event_id);
+      } else {
+        skippedEvents++;
       }
     }
   }
+
+  logger.debug(
+    {
+      historyGroupCount: historyGroups.length,
+      totalRawEvents,
+      skippedEvents,
+      uniqueEventIds: eventIds.size,
+    },
+    "stockbit extractTradeEventKeys: parsed history payload",
+  );
 
   return Array.from(eventIds).sort();
 }

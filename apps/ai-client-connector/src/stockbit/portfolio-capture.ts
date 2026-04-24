@@ -48,11 +48,32 @@ export async function runStockbitPortfolioCaptureTaskAtStartup(): Promise<void> 
   try {
     const portfolioCapture = await capturePortfolioResponse(session.page);
     const historyCapture = await captureHistoryResponse(session.page);
+
+    const capturedKeys = extractTradeEventKeysFromHistoryPayload(
+      historyCapture.payload as Record<string, unknown>,
+    );
+    logger.debug(
+      {
+        capturedEventKeyCount: capturedKeys.length,
+        capturedKeySample: capturedKeys.slice(0, 5),
+        capturedHistoryUrl: historyCapture.requestUrl,
+        capturedHistoryPage: historyCapture.page,
+      },
+      "stockbit history capture: extracted event keys from live response",
+    );
+
     const hasTradeUpdates = await historyPayloadDiffersFromLatest(
       historyCapture.payload,
     );
-    const persisted = hasTradeUpdates
-      ? await persistCapturedResponses(portfolioCapture, historyCapture)
+
+    logger.debug(
+      { hasTradeUpdates },
+      "stockbit history capture: diff result against latest raw file",
+    );
+
+    const persisted = await persistPortfolioSnapshot(portfolioCapture);
+    const historyPersisted = hasTradeUpdates
+      ? await persistHistorySnapshot(historyCapture)
       : null;
     captureCompleted = true;
     const materialized = await materializeStockbitNormalizedData();
@@ -60,8 +81,8 @@ export async function runStockbitPortfolioCaptureTaskAtStartup(): Promise<void> 
     logger.info(
       {
         tradeUpdatesDetected: hasTradeUpdates,
-        portfolioPath: persisted?.portfolio.relativePath ?? null,
-        historyPath: persisted?.history.relativePath ?? null,
+        portfolioPath: persisted.relativePath,
+        historyPath: historyPersisted?.relativePath ?? null,
         latestPortfolioPath: materialized.latestPortfolioPath,
         tradesPath: materialized.tradesPath,
         tradeEventCount: materialized.tradeEventCount,
@@ -174,15 +195,14 @@ async function readJsonPayload(response: PlaywrightResponse): Promise<unknown> {
   }
 }
 
-async function persistCapturedResponses(
+async function persistPortfolioSnapshot(
   portfolioCapture: CapturedResponse,
-  historyCapture: CapturedResponse,
-): Promise<{ portfolio: PersistedArtifact; history: PersistedArtifact }> {
+): Promise<PersistedArtifact> {
   const now = new Date();
   const day = formatDate(now);
   const stamp = formatTime(now);
 
-  const portfolio = await persistJsonArtifact({
+  return persistJsonArtifact({
     category: "portfolio",
     day,
     fileName: `${stamp}.json`,
@@ -190,8 +210,16 @@ async function persistCapturedResponses(
     payload: portfolioCapture.payload,
     page: portfolioCapture.page,
   });
+}
 
-  const history = await persistJsonArtifact({
+async function persistHistorySnapshot(
+  historyCapture: CapturedResponse,
+): Promise<PersistedArtifact> {
+  const now = new Date();
+  const day = formatDate(now);
+  const stamp = formatTime(now);
+
+  return persistJsonArtifact({
     category: "history",
     day,
     fileName: `${stamp}_page-${historyCapture.page ?? 1}.json`,
@@ -199,7 +227,6 @@ async function persistCapturedResponses(
     payload: historyCapture.payload,
     page: historyCapture.page,
   });
-  return { portfolio, history };
 }
 
 async function persistJsonArtifact(input: {
@@ -239,21 +266,44 @@ async function historyPayloadDiffersFromLatest(
   const latestHistoryPath = await findLatestRawJsonFile(
     path.resolve(getRawStorageRoot(), "history"),
   );
+
+  logger.debug(
+    { latestHistoryPath },
+    "stockbit history diff: resolved latest raw file",
+  );
+
   if (!latestHistoryPath) {
+    logger.debug(
+      "stockbit history diff: no previous file found, treating as new",
+    );
     return true;
   }
 
   const latestPayload = JSON.parse(
     await readFile(latestHistoryPath, "utf8"),
   ) as Record<string, unknown>;
-  return (
-    JSON.stringify(extractTradeEventKeysFromHistoryPayload(latestPayload)) !==
-    JSON.stringify(
-      extractTradeEventKeysFromHistoryPayload(
-        payload as Record<string, unknown>,
-      ),
-    )
+
+  const previousKeys = extractTradeEventKeysFromHistoryPayload(latestPayload);
+  const currentKeys = extractTradeEventKeysFromHistoryPayload(
+    payload as Record<string, unknown>,
   );
+
+  const newKeys = currentKeys.filter((k) => !previousKeys.includes(k));
+  const removedKeys = previousKeys.filter((k) => !currentKeys.includes(k));
+
+  logger.debug(
+    {
+      previousKeyCount: previousKeys.length,
+      currentKeyCount: currentKeys.length,
+      newKeyCount: newKeys.length,
+      removedKeyCount: removedKeys.length,
+      newKeys: newKeys.slice(0, 10),
+      removedKeys: removedKeys.slice(0, 10),
+    },
+    "stockbit history diff: key comparison detail",
+  );
+
+  return JSON.stringify(previousKeys) !== JSON.stringify(currentKeys);
 }
 
 async function findLatestRawJsonFile(
