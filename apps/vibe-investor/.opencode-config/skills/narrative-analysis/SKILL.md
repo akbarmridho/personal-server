@@ -210,6 +210,7 @@ This is the backbone narrative score. Stage, durability, crowding, and premium r
 - Always state crowding level and evidence quality explicitly.
 - Crowding evidence is supporting evidence only. Social spread, media repetition, or ownership concentration can strengthen or weaken a call, but they cannot prove the story by themselves.
 - If a story is consensus and fully priced, say so — do not manufacture upside.
+- Insider transaction calibration: do not treat insider selling headlines as automatically negative or insider buying as automatically positive. Always normalize the transaction size against the holder's total position before assigning signal weight. A sale of 50M shares by someone holding 5B shares is 1% — that's noise, not distribution. Only flag insider transactions as meaningful when the percentage of holdings sold/bought is material, or when the pattern (repeated, accelerating, clustered timing) tells a story beyond the headline number.
 - Late-cycle and exit-liquidity risk must be flagged when detected, even if the narrative is still "intact."
 - All derived labels and structured status values must use the values defined in this file.
 

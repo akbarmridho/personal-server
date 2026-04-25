@@ -57,12 +57,12 @@ Gather and integrate new information before reviewing.
    - What to read: curated list of the highest-signal documents from this window, grouped by theme, with full document IDs and one-line descriptions of why each matters.
    - Bottom line: one paragraph synthesizing the net change in market posture, thesis health, and what the human should focus on.
 
-2. **Digest sync.** After writing the digest, immediately sync memory. This is not optional.
+2. **Digest sync.** After writing the digest, immediately sync memory. This is a blocking gate — Phase 2 cannot start until the sync summary is produced and printed in chat.
    - Load active theses from `get_state` output and the digest just written.
-   - For each active thesis: compare digest findings against the thesis file. If the digest contains evidence that changes timeline, status, scenario branches, or key assumptions, update `memory/theses/{THESIS_ID}/thesis.md` with the new evidence and link to the source document IDs.
+   - For each active thesis: read the thesis file, compare digest findings against it. If the digest contains evidence that changes timeline, status, scenario branches, or key assumptions, update `memory/theses/{THESIS_ID}/thesis.md` — append to the `Evidence Log` section with date, finding, and source document IDs. Update frontmatter `last_updated` when substance changes.
    - For each symbol mentioned in the digest with material changes: update `memory/symbols/{SYMBOL}/plan.md` with evidence-backed status or trigger changes.
    - If evidence is ambiguous, mark `Needs Verification` in the relevant file — do not silently skip.
-   - Produce a sync summary listing: which files were updated and why, which theses were reviewed but unchanged (one line each), and any items marked `Needs Verification`.
+   - Produce a sync summary listing every active thesis by name with either "updated (reason)" or "unchanged (checked against: [doc IDs from digest])". No thesis may be omitted. Also list: which symbol files were updated and why, and any items marked `Needs Verification`.
 
 ### Phase 2: Portfolio + Market Context
 
@@ -148,7 +148,7 @@ The synthesis must:
 - Reconcile the technical risk map with broker-flow context, thesis quality, narrative changes, optional scenario branches, and any portfolio hard rail or size-cap constraint.
 - Surface tensions between lenses honestly — do not collapse them into a single verdict.
 - End each symbol review with `human_attention`: what the human needs to decide or be aware of.
-- For holdings: flag any deterioration, thesis drift, or exit signals. When all lenses converge negative, state the exit case directly.
+- For holdings: flag any deterioration, thesis drift, or exit signals. When all lenses converge negative, state the exit case directly. Flag any position that has exceeded its `expected_timeframe` without hitting target or exit as "overstayed" — force a re-underwrite with a new reason and refreshed timeframe, or recommend exit.
 - For watchlist symbols: flag material changes, new catalysts, or thesis invalidation. When `entry_zone_hit` or `entry_zone_near` alerts fire, surface the re-entry decision: is the thesis still intact? If yes, present the entry zone, stop, and targets from the plan. If thesis was broken at exit, require fresh evidence before re-entry.
 - For recently exited symbols: apply the re-entry classification from the plan's Position section. Thesis-intact exits (stop hit, thesis not killed) should be `READY` with specific re-entry levels. Thesis-broken exits (all lenses negative) stay `WATCHING` with monthly review. Do not re-enter broken theses on price action alone.
 - Thesis status evaluation: for each thesis touched by this desk-check (via symbol reviews or digest sync), evaluate whether the current `status` (`ACTIVE` / `DORMANT` / `INACTIVE`) is still correct. If a thesis has no active catalyst, no recent evidence, and no symbol showing momentum, suggest downgrade to `DORMANT`. If a thesis is invalidated or all linked symbols have exited/been archived, suggest `INACTIVE`. Present status change suggestions to the human — do not auto-change thesis status.
@@ -185,6 +185,10 @@ Target: 1,500-3,000 bytes. Maximum: 4,000 bytes. If bigger, symbol reviews are l
 | Thesis | Status | Change? | Note |
 |--------|--------|---------|------|
 | {thesis} | {ACTIVE/DORMANT} | {→ DORMANT? / —} | {1 sentence} |
+
+## Stale Coverage
+
+{How many stale items found, how many reviewed, how many deferred and why. Required every run.}
 
 ## Executed
 

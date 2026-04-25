@@ -33,4 +33,5 @@ For each candidate, produce a thesis candidate summary:
 Do not produce action recommendations. Present candidates for human evaluation.
 
 - Default mutation rule: write the retained exploration artifact only. Promotion into durable watchlist/thesis/symbol state requires an explicit follow-up workflow or explicit user instruction.
+- Exploration artifact location: save to `memory/digests/{DATE}_explore_idea.md`, not `memory/market/explore_idea.md`. This keeps explore-idea outputs date-stamped alongside other digest artifacts.
 - Market artifacts must include `explore_idea.md`.

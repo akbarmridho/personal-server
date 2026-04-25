@@ -41,5 +41,11 @@ Suggested thesis-file structure:
 
 ## Linked Symbols
 
+## Evidence Log
+
+{Append-only. Each entry: date, finding, source document IDs. Newest first.}
+
+- {YYYY-MM-DD}: {what changed, why it matters} — [doc IDs]
+
 ## Timeline
 ```
