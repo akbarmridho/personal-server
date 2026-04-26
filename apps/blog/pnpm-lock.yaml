@@ -11,6 +11,9 @@ importers:
       astro:
         specifier: ^6.1.5
         version: 6.1.5(@types/node@24.12.2)(rollup@4.60.1)(typescript@5.9.3)(yaml@2.8.3)
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
     devDependencies:
       '@astrojs/check':
         specifier: ^0.9.8
@@ -24,18 +27,6 @@ importers:
       wrangler:
         specifier: ^4.81.1
         version: 4.81.1
-
-  ../..: {}
-
-  ../ai-client-connector: {}
-
-  ../ai-frontend: {}
-
-  ../filen: {}
-
-  ../kb-backend: {}
-
-  ../vibe-investor: {}
 
 packages:
 

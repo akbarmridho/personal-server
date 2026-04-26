@@ -97,6 +97,44 @@
   margin-top: 30px;
 }
 
+.post-content img {
+  max-width: 80%;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.post-content p:has(> img) {
+  text-align: center;
+  font-size: 0.85em;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+  margin: 25px 0;
+}
+
+.post-content figure {
+  display: block;
+  margin: 25px auto;
+  padding: 0;
+  border: none;
+  text-align: center;
+}
+
+.post-content figure img {
+  margin-bottom: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.post-content figure figcaption {
+  font-size: 0.9em;
+  color: var(--foreground) !important;
+  background: none !important;
+  padding: 8px 0 0 !important;
+  margin-top: 0 !important;
+  font-style: italic;
+}
+
 /* Post navigation */
 .post-nav {
   display: flex;

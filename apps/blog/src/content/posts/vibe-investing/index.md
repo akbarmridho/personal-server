@@ -1,5 +1,5 @@
 ---
-title: 'Vibe Investing AI: Lesson Learned building AI Agent that Became No-as-a-Service'
+title: 'Vibe Investing AI: Building an AI Agent that Became No-as-a-Service'
 description: 'Building an AI-powered investment analyst for the Indonesian stock market — from data pipelines and custom tooling to memory architecture, skill design, and what 80+ sessions taught me about where LLMs actually break down.'
 pubDate: 2026-04-09
 author: 'Akbar Maulana Ridho'
@@ -39,11 +39,19 @@ STRUCTURE:
 6. Verdict (close the loop)
 -->
 
-As an "investor" who taught to focus on fundamental stocks. I only know BBCA and BMRI. Other stocks? too scary. Until the stock prices goes down and down and down ... and I keep averaging down. Thinking it's a good fundamental stock and it will go up eventually. Until I began to see "Why IHSG rally more than 20% meanwhile my portfolio is negative?" and someone on social media said "Even monkey can gain profit in this market". So, I was dumber than monkey? (maybe yes). So I joined the IDX late-stage rally. Betting on crowded and rumour stocks at ATH with no discipline, borrowed conviction, and no market understanding. There goes the MSCI freeze and the rest is history.
+As an apestor who was taught to focus on fundamentals, I only knew two stocks: BBCA and BMRI. Everything else? too scary. So when the prices went down, I averaged down. Dollar Cost Averaging (DCA) as people says. Good fundamental stock will recover eventually, right? maybe in 3 years, 5 years, or even 10 years.
 
-In short, it's an expensive lesson. Since I already paid the price, at least learn from it, right? there goes the post-mortem: no system, lack of research, borrowed conviction, no discipline, etc. To do this properly, we have to set up a system, rules, proper research, and many things. For sure it'll take some time to do efficiently.
+Around September or October 2025, IHSG rallied 20%+ and **my portfolio was still red**. Bull market euphoria is peaking to the point I'm seeing someone on social media says "even a monkey can profit in this market". So, I was dumber than a monkey? (maybe yes).
 
-That being said, I don't even know what the system should look like. So, instead, let's materialize our system and workflow into prompts, AI skill, you name it; making it a second brain for us to do investing. As we are in the Agentic AI era, instead of doing everything manually, can we utilize LLMs in our process? Two birds in one stone; learning and doing investment process effectively and testing the limit of Agentic AI. Hence the naming, Vibe Investing (similar to Vibe Coding, but for investment).
+Naturally, I did the smartest thing possible: joined the late-stage rally. Bought crowded, rumour-driven stocks at all-time highs. No thesis, no discipline, just borrowed conviction from strangers on the internet. IDX is an interesting gambling arena. Then the MSCI rebalancing freeze hit, and the rest is history. Maybe we forgot that gambler loses in the end.
+
+![Index Harga Saham Gorengan](./ihsg.png)
+
+Expensive lesson. But since I already paid the tuition upfront, might as well learn from it. The post-mortem was obvious: no system, no real research process, no position sizing rules, no invalidation criteria — just vibes and hope. Heck, even the post-mortem is full of LLM judging and roasting me for all the stupid decisions. To do this properly, I'd need a structured workflow: thesis formation, evidence gathering, risk management, ongoing monitoring. That's a lot of work for one person tracking 20+ stocks.
+
+So here's the idea: what if I don't do it alone? What if I build an AI that does the homework — gathers the evidence, runs the analysis frameworks, maintains the notes — and I make the decisions? Materialize the entire investment process into prompts, skills, and tools. A second brain. We're in the **Agentic AI** era anyway. Complex workflow can be automated. We can give an AI agent the same information streams that a human use and let it run our system.
+
+Yes, we are re-experimenting other people experiment on "can LLM used for investment?". We'll see how it goes, and more importantly, at least it's useful for me. And thus, the **Vibe Investing** term. Like "vibe coding", but for the stock market.
 
 ## Why Agentic AI?
 
