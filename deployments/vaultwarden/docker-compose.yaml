@@ -1,0 +1,20 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.35.8
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://pass.akbarmr.dev"
+      SIGNUPS_ALLOWED: false
+      INVITATIONS_ALLOWED: false
+      DATABASE_URL: postgresql://postgres:postgres@postgres_main:5432/vaultwarden
+    volumes:
+      - ./vw-data/:/data/
+    ports:
+      - 8026:80
+    networks:
+      - personal_network
+
+networks:
+  personal_network:
+    external: true

@@ -112,3 +112,7 @@ docker network create personal_network
 ### Openclaw
 
 - `8025` Openclaw
+
+### VaultWarden
+
+- `8026` VaultWarden
