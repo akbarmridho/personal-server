@@ -5,7 +5,7 @@ Unified fitness dashboard combining Garmin health data, Ryot workout logging, an
 ## Architecture
 
 ```
-Grafana (:8028)
+Grafana (:8029)
 ├── Garmin Dashboard (InfluxDB) — HR, sleep, steps, stress, activities, strength sets
 └── Ryot Postgres — workouts, body measurements (InBody)
 
@@ -17,7 +17,7 @@ Ryot (:8027) — PWA for logging workouts + body measurements at the gym
 | Service | Port | Purpose |
 |---|---|---|
 | Ryot | 8027 | Workout & measurement tracker (PWA) |
-| Grafana | 8028 | Unified dashboard |
+| Grafana | 8029 | Unified dashboard |
 | InfluxDB | internal | Garmin time-series data |
 | garmin-fetch-data | internal | Auto-fetches from Garmin Connect every 5min (built locally) |
 

@@ -120,4 +120,5 @@ docker network create personal_network
 ### Fitness Tracker
 
 - `8027` Ryot (workout + body measurement tracker).
-- `8028` Grafana (unified fitness dashboard).
+- `8028` (reserved).
+- `8029` Grafana (unified fitness dashboard).
