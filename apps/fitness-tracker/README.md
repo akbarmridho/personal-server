@@ -43,6 +43,36 @@ docker compose up -d
 
 If you have 2FA enabled on Garmin Connect, the first run will still prompt for the MFA code interactively. Run `docker compose run --rm garmin-fetch-data` once to complete the 2FA flow, then `docker compose up -d` for continuous mode.
 
+### Garmin login from local machine (recommended)
+
+Garmin rate-limits datacenter IPs aggressively. If the server gets 429 errors during login, generate tokens from your local machine (residential IP) instead:
+
+```bash
+cd apps/fitness-tracker
+uv sync
+uv run python -c "
+from garminconnect import Garmin
+g = Garmin('your_email@example.com', 'your_actual_password')
+g.login('./garminconnect-tokens')
+print('Login successful, tokens saved')
+"
+```
+
+Then copy the tokens to the server:
+
+```bash
+scp -r garminconnect-tokens/ your-server:~/personal-server/apps/fitness-tracker/garminconnect-tokens/
+```
+
+On the server:
+
+```bash
+chown -R 1000:1000 garminconnect-tokens/
+docker compose up -d
+```
+
+Tokens are valid for ~1 year. When they expire, repeat this process.
+
 ## Garmin Scripts
 
 ### garmin_fetch.py — Main data fetcher
