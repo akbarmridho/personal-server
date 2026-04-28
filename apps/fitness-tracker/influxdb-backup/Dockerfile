@@ -1,4 +1,4 @@
-FROM influxdb:1.11.9
+FROM influxdb:1.11.8
 
 USER root
 
