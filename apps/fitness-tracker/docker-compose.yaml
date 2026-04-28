@@ -1,0 +1,91 @@
+services:
+  # --- Garmin data fetcher (built locally) ---
+  garmin-fetch-data:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fitness_garmin_fetch
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    volumes:
+      - ./garminconnect-tokens:/home/appuser/.garminconnect
+    environment:
+      - INFLUXDB_HOST=fitness_influxdb
+      - INFLUXDB_PORT=8086
+      - INFLUXDB_USERNAME=${INFLUXDB_USERNAME}
+      - INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD}
+      - INFLUXDB_DATABASE=${INFLUXDB_DATABASE}
+      - GARMINCONNECT_IS_CN=False
+      - USER_TIMEZONE=Asia/Jakarta
+      - FETCH_SELECTION=daily_avg,sleep,steps,heartrate,stress,breathing,hrv,vo2,activity,race_prediction,body_composition
+      - GARMINCONNECT_EMAIL=${GARMINCONNECT_EMAIL}
+      - GARMINCONNECT_BASE64_PASSWORD=${GARMINCONNECT_BASE64_PASSWORD}
+    networks:
+      - personal_network
+
+  # --- InfluxDB for Garmin time-series data ---
+  influxdb:
+    image: influxdb:1.11
+    container_name: fitness_influxdb
+    hostname: fitness_influxdb
+    restart: unless-stopped
+    environment:
+      - INFLUXDB_DB=${INFLUXDB_DATABASE}
+      - INFLUXDB_USER=${INFLUXDB_USERNAME}
+      - INFLUXDB_USER_PASSWORD=${INFLUXDB_PASSWORD}
+      - INFLUXDB_DATA_INDEX_VERSION=tsi1
+    expose:
+      - "8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    networks:
+      - personal_network
+
+  # --- Ryot: workout + body measurement tracker ---
+  # Uses shared postgres_main from deployments/postgres
+  # Create the database first: CREATE DATABASE ryot;
+  ryot:
+    image: ignisda/ryot:v10
+    container_name: fitness_ryot
+    pull_policy: always
+    restart: unless-stopped
+    ports:
+      - "8027:8000"
+    environment:
+      - TZ=Asia/Jakarta
+      - FRONTEND_URL=${RYOT_FRONTEND_URL}
+      - DATABASE_URL=postgres://${RYOT_DB_USER}:${RYOT_DB_PASSWORD}@${RYOT_DB_HOST}:5432/${RYOT_DB_NAME}
+      - SERVER_ADMIN_ACCESS_TOKEN=${RYOT_ADMIN_TOKEN}
+      - DISABLE_TELEMETRY=true
+    networks:
+      - personal_network
+
+  # --- Grafana: unified dashboard ---
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fitness_grafana
+    hostname: fitness_grafana
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    ports:
+      - "8028:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD}
+      - GF_PLUGINS_PREINSTALL=marcusolsson-hourly-heatmap-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - personal_network
+
+volumes:
+  influxdb_data:
+  grafana_data:
+
+networks:
+  personal_network:
+    external: true

@@ -116,3 +116,8 @@ docker network create personal_network
 ### VaultWarden
 
 - `8026` VaultWarden
+
+### Fitness Tracker
+
+- `8027` Ryot (workout + body measurement tracker).
+- `8028` Grafana (unified fitness dashboard).

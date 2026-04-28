@@ -1,0 +1,29 @@
+apiVersion: 1
+datasources:
+  - name: Garmin-InfluxDB
+    uid: garmin_influxdb
+    type: influxdb
+    access: proxy
+    url: http://fitness_influxdb:8086
+    user: influxdb_user
+    database: GarminStats
+    isDefault: true
+    editable: true
+    secureJsonData:
+      password: influxdb_secret_password
+    jsonData:
+      httpMode: GET
+
+  - name: Ryot-Postgres
+    uid: ryot_postgres
+    type: postgres
+    access: proxy
+    url: postgres_main:5432
+    user: postgres
+    database: ryot
+    editable: true
+    secureJsonData:
+      password: postgres
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1700

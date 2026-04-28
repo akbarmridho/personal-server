@@ -12,6 +12,7 @@ This repository contains several applications in the `apps/` directory:
 - **kb-backend** - Backend for managing document knowledge base with AI/LLM integrations
 - **knowledge-service** - Investment knowledge service with Qdrant vector storage for documents, news, filings, analysis, and rumors
 - **trilium-mcp** - Model Context Protocol server for TriliumNext Notes
+- **fitness-tracker** - Unified fitness dashboard with Garmin health data, Ryot workout tracking, and Grafana visualization (Ports 8027, 8028)
 
 See individual app AGENTS.md files for detailed information:
 
