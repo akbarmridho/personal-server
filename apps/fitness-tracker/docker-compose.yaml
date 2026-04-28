@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: fitness_garmin_fetch
     restart: unless-stopped
+    env_file: .env
     depends_on:
       - influxdb
     volumes:
@@ -31,6 +32,7 @@ services:
     container_name: fitness_influxdb
     hostname: fitness_influxdb
     restart: unless-stopped
+    env_file: .env
     environment:
       - INFLUXDB_DB=${INFLUXDB_DATABASE}
       - INFLUXDB_USER=${INFLUXDB_USERNAME}
@@ -38,7 +40,6 @@ services:
       - INFLUXDB_DATA_INDEX_VERSION=tsi1
     expose:
       - "8086"
-      - "8088"
       - "8088"
     volumes:
       - influxdb_data:/var/lib/influxdb
@@ -52,6 +53,7 @@ services:
       dockerfile: Dockerfile
     container_name: fitness_influxdb_backup
     restart: unless-stopped
+    env_file: .env
     depends_on:
       - influxdb
     environment:
@@ -69,6 +71,7 @@ services:
     image: ignisda/ryot:v10.3.9
     container_name: fitness_ryot
     restart: unless-stopped
+    env_file: .env
     ports:
       - "8027:8000"
     environment:
@@ -86,6 +89,7 @@ services:
     container_name: fitness_grafana
     hostname: fitness_grafana
     restart: unless-stopped
+    env_file: .env
     depends_on:
       - influxdb
     ports:
