@@ -21,6 +21,7 @@ services:
       - FETCH_SELECTION=daily_avg,sleep,steps,heartrate,stress,breathing,hrv,vo2,activity,race_prediction,body_composition
       - GARMINCONNECT_EMAIL=${GARMINCONNECT_EMAIL}
       - GARMINCONNECT_BASE64_PASSWORD=${GARMINCONNECT_BASE64_PASSWORD}
+      - UPDATE_INTERVAL_SECONDS=1800
     networks:
       - personal_network
 
