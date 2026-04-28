@@ -26,7 +26,7 @@ services:
 
   # --- InfluxDB for Garmin time-series data ---
   influxdb:
-    image: influxdb:1.11
+    image: influxdb:1.11.9
     container_name: fitness_influxdb
     hostname: fitness_influxdb
     restart: unless-stopped
@@ -37,18 +37,35 @@ services:
       - INFLUXDB_DATA_INDEX_VERSION=tsi1
     expose:
       - "8086"
+      - "8088"
     volumes:
       - influxdb_data:/var/lib/influxdb
     networks:
       - personal_network
 
+  # --- InfluxDB daily backup ---
+  influxdb-backup:
+    build:
+      context: ./influxdb-backup
+      dockerfile: Dockerfile
+    container_name: fitness_influxdb_backup
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    environment:
+      - INFLUXDB_HOST=fitness_influxdb
+      - INFLUXDB_DATABASE=${INFLUXDB_DATABASE}
+      - CLEANUP_DAYS=30
+      - TZ=Asia/Jakarta
+    volumes:
+      - /root/filen-sync/influxdb_backup:/backups
+    networks:
+      - personal_network
+
   # --- Ryot: workout + body measurement tracker ---
-  # Uses shared postgres_main from deployments/postgres
-  # Create the database first: CREATE DATABASE ryot;
   ryot:
-    image: ignisda/ryot:v10
+    image: ignisda/ryot:v10.3.9
     container_name: fitness_ryot
-    pull_policy: always
     restart: unless-stopped
     ports:
       - "8027:8000"
@@ -63,7 +80,7 @@ services:
 
   # --- Grafana: unified dashboard ---
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.0
     container_name: fitness_grafana
     hostname: fitness_grafana
     restart: unless-stopped

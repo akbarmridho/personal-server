@@ -129,6 +129,26 @@ FROM workout
 ORDER BY start_time
 ```
 
+## Backup & Restore
+
+InfluxDB is backed up daily by the `influxdb-backup` sidecar to `/root/filen-sync/influxdb_backup/`. Backups older than 30 days are auto-pruned. Ryot data lives in `postgres_main` which is already backed up by `postgres_main_backup`.
+
+Manual backup:
+
+```bash
+docker exec fitness_influxdb influxd backup -portable -db GarminStats /tmp/backup
+docker cp fitness_influxdb:/tmp/backup ./influxdb_backup_$(date +%F)
+docker exec fitness_influxdb rm -rf /tmp/backup
+```
+
+Restore from backup:
+
+```bash
+docker cp ./influxdb_backup_2026-04-28 fitness_influxdb:/tmp/backup
+docker exec fitness_influxdb influxd restore -portable -db GarminStats /tmp/backup
+docker exec fitness_influxdb rm -rf /tmp/backup
+```
+
 ## Update
 
 ```bash
