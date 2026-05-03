@@ -44,7 +44,7 @@ Key paths:
 
 Before any workflow, list files in `memory/notes/` and read all non-archive notes. The human writes notes here between sessions — missing them means missing context.
 
-`memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `TRADING_DAY` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness. Market artifact structure is defined in `memory/market/README.md`.
+`memory/market/plan.md` freshness: maintains `Last materially changed` and `Last reviewed` timestamps. Update `Last reviewed` to `CALENDAR_DATE` when content is still valid. Update `Last materially changed` only when substance changes. Do not rewrite for cosmetic freshness. Market artifact structure is defined in `memory/market/README.md`.
 
 Use `get_state` for frontmatter lookup. It returns all symbols, theses, watchlist, and portfolio-monitor in one call with computed review dates.
 
@@ -217,7 +217,14 @@ If a position exceeds its `expected_timeframe` without hitting its target or exi
 
 ## Trading-Day Clock
 
-Resolve dates in `Asia/Jakarta` (WIB, UTC+7). Non-trading day → use most recent prior trading day. Trading day before 09:00 → previous day. 09:00-16:00 → current day intraday. After 16:00 → post-close review. State when evidence is intraday and incomplete.
+Resolve dates in `Asia/Jakarta` (WIB, UTC+7).
+
+Two date concepts — do not conflate them:
+
+- `TRADING_DAY`: the most recent completed trading session. Used for market data context (which session's OHLCV, flow, and price data we're analyzing). On a non-trading day, this is the last trading day. On a trading day before 09:00, this is the previous trading day. Between 09:00-16:00, this is the current day (intraday — state when evidence is incomplete). After 16:00, this is the current day (post-close).
+- `CALENDAR_DATE`: today's actual date in WIB (`YYYY-MM-DD`). Used for all timestamps that record when work was done: `last_reviewed`, `last_updated`, file naming (`{CALENDAR_DATE}_news_digest.md`, `{CALENDAR_DATE}_desk_check.md`), and history entries. If you review a symbol on Sunday May 3, `last_reviewed` is `2025-05-03`, not `2025-04-30`.
+
+The rule is simple: **`TRADING_DAY` answers "what data are we looking at?" `CALENDAR_DATE` answers "when did we do the work?"** Reviews, timestamps, and file names always use `CALENDAR_DATE`.
 
 ## Tools
 
@@ -225,7 +232,7 @@ MCP tools (stock data, knowledge base, social, web), custom tools (`get_state`, 
 
 Key tool notes:
 
-- `market-pulse`: single-call market overview. Returns trending stocks, market movers (gainer/loser/value/foreign buy/sell, filtered by value >1B, top 15), preset screeners (52w high/low, high volume breakout, foreign flow uptrend, top 15), and per-symbol watchlist pulse (batch OHLCV computations + memory context + deterministic alerts). No args — reads all symbols from `memory/symbols/`, fetches batch OHLCV from kb-backend, reads portfolio state, reads ta_context/flow_context JSONs, computes price metrics and alert rules. Output is YAML — compact, token-efficient. Use at the start of `desk-check`, `deep-review`, `explore-idea`, or any ad-hoc market check to get fast situational awareness before diving into symbol-level analysis.
+- `market-pulse`: single-call market overview. Returns trending stocks, market movers (gainer/loser/value/foreign buy/sell, filtered by value >1B, top 15), preset screeners (52w high/low, high volume breakout, foreign flow uptrend, top 15), and per-symbol watchlist pulse (batch OHLCV computations + memory context + deterministic alerts). No args — reads all symbols from `memory/symbols/`, fetches batch OHLCV from kb-backend, reads portfolio state, reads ta_context/flow_context JSONs, computes price metrics and alert rules. Output is YAML — compact, token-efficient. Use at the start of `desk-check`, `deep-review`, `explore-idea`, or any ad-hoc market check to get fast situational awareness before diving into symbol-level analysis. **Boundary with digest:** `market-pulse` owns all quantitative market data (prices, returns, volume, foreign flow, screeners, alerts). The news digest (Phase 1 of desk-check) owns all qualitative information (news, analysis, documents, social signals, narrative developments). These do not overlap — the digest must never summarize price movements, gainer/loser lists, or foreign flow numbers.
 - `fetch-ohlcv`: daily (3yr) + intraday_1m (7d). Split-adjusted, not dividend-adjusted. Non-stock symbols: daily only. Output is large — save to `work/{SYMBOL}_ohlcv.json`, never read it manually. Feed it to the skill's preprocessing scripts.
 - `fetch-broker-flow`: `trading_days` 1-60. Output is large — save to `work/{SYMBOL}_broker_flow.json`, never read it manually. Feed it to `build_flow_context.py`.
 - File reading rules for data artifacts:

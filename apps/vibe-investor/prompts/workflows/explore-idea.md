@@ -1,6 +1,6 @@
 # Explore Idea Workflow
 
-Resolve the effective `TRADING_DAY` and review mode in WIB using the parent prompt's trading-day clock, then run `explore-idea`.
+Resolve the effective `TRADING_DAY` (most recent completed trading session) and `CALENDAR_DATE` (today in WIB) using the parent prompt's trading-day clock, then run `explore-idea`. Use `TRADING_DAY` for market data context. Use `CALENDAR_DATE` for all timestamps (`last_reviewed`, `last_updated`) and file naming.
 
 Command input may narrow sectors/themes, tighten the date window, or add output emphasis if that remains compatible with this contract.
 

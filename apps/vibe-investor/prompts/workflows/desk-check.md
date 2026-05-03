@@ -1,6 +1,6 @@
 # Desk Check Workflow
 
-Resolve the effective `TRADING_DAY` and review mode in WIB using the parent prompt's trading-day clock, then run `desk-check`.
+Resolve the effective `TRADING_DAY` (most recent completed trading session) and `CALENDAR_DATE` (today in WIB) using the parent prompt's trading-day clock, then run `desk-check`. Use `TRADING_DAY` for market data context. Use `CALENDAR_DATE` for all timestamps (`last_reviewed`, `last_updated`) and file naming.
 
 Command input may narrow symbol focus, tighten the date window, or add output emphasis if that remains compatible with this contract. Include `skip-digest` in command input to skip Phase 1 (useful for mid-day re-checks or when digest was already run).
 
@@ -47,15 +47,18 @@ Gather and integrate new information before reviewing.
    Do NOT write any files. Return your summary as text output only.
    ```
 
-   Digest output structure:
+   Digest output structure (news and documents only — no price data, no gainer/loser summaries, no foreign flow numbers):
+
+   The digest is a **qualitative information layer**. Price movements, technical levels, foreign flow metrics, screener hits, and market regime reads belong in `market-pulse` (Phase 2). The digest covers what `market-pulse` cannot: news stories, analyst research, corporate actions, regulatory changes, macro policy shifts, social chatter, and narrative developments.
+
    - Header: date, coverage window (from → to, inclusive of today), prior digest path referenced for continuity.
    - Collection note: state how many documents were found per type and whether pagination was exhausted.
-   - Topline regime read: what is the current market posture? What changed versus the prior digest? Be honest about what is and isn't repaired.
-   - Thesis impact map: for each active thesis, state what changed this window and whether the thesis is strengthening, weakening, or unchanged. Include reasoning, not just labels.
-   - Watchlist and portfolio-relevant flags: material changes to holdings, `READY`, `WATCHING`, `SHELVED`, or `ARCHIVED` symbols. Flag missed entries, unresolved actions, and status items needing human decision. Explicitly list any `SHELVED` or `ARCHIVED` symbols with material news so they are included in the Phase 3 coverage universe.
-   - Commodity and macro data: key prices and macro developments relevant to active theses.
+   - Key developments: the most important news, analysis, and rumours from this window. Organize by theme (sector rotation, policy/regulation, corporate actions, macro events, commodity supply/demand narratives). Each item cites the source document ID and states what happened and why it matters — not price reactions.
+   - Thesis impact map: for each active thesis, state what **new information** (news, filings, analysis, social signals) arrived this window and whether it strengthens, weakens, or is neutral to the thesis. Include reasoning and source document IDs, not price movements.
+   - Watchlist and portfolio-relevant flags: material **news or corporate actions** affecting holdings, `READY`, `WATCHING`, `SHELVED`, or `ARCHIVED` symbols. Flag missed entries, unresolved actions, and status items needing human decision. Explicitly list any `SHELVED` or `ARCHIVED` symbols with material news so they are included in the Phase 3 coverage universe.
+   - Social signals: integrated from the social signal subagent — key themes, narrative shifts, insider/institutional chatter, crowding signals. Not price commentary.
    - What to read: curated list of the highest-signal documents from this window, grouped by theme, with full document IDs and one-line descriptions of why each matters.
-   - Bottom line: one paragraph synthesizing the net change in market posture, thesis health, and what the human should focus on.
+   - Bottom line: one paragraph synthesizing the net change in **information landscape** — what new evidence arrived, what theses are affected, and what the human should focus on. Not a market posture summary (that's `market-pulse`'s job).
 
 2. **Digest sync.** After writing the digest, immediately sync memory. This is a blocking gate — Phase 2 cannot start until the sync summary is produced and printed in chat.
    - Load active theses from `get_state` output and the digest just written.
@@ -93,6 +96,7 @@ You are a symbol review subagent for the desk-check workflow.
 Assigned symbols: {SYMBOL_1}, {SYMBOL_2}, {SYMBOL_3}
 Mode: UPDATE (all have existing plan.md)
 Trading day: {TRADING_DAY}
+Calendar date: {CALENDAR_DATE}
 IHSG context: {1-2 sentence regime summary from Phase 2}
 Digest context: {relevant thesis impact lines from Phase 1 digest for these symbols}
 
@@ -102,7 +106,7 @@ For each symbol:
 3. Load and run flow-analysis skill (fetch broker-flow + OHLCV, preprocess, write flow_context.json).
 4. Load and run narrative-analysis skill (query list-documents for recent analysis/news, write narrative.md updates).
 5. Read memory/symbols/README.md for the plan template.
-6. Read existing plan.md, then use edit calls to update: frontmatter last_reviewed, lens scores, lens state paragraphs (only if materially changed), history entries (only if new reasoning).
+6. Read existing plan.md, then use edit calls to update: frontmatter last_reviewed to CALENDAR_DATE, lens scores, lens state paragraphs (only if materially changed), history entries (only if new reasoning).
 7. If any required artifact is missing (plan.md, narrative.md, fundamental.md, context JSONs, chart PNGs), create it.
 
 Return a structured summary per symbol: { symbol, urgency, lens_scores, key_finding, alerts }.
@@ -116,12 +120,13 @@ Market subagent prompt template:
 You are the market review subagent for the desk-check workflow.
 
 Trading day: {TRADING_DAY}
+Calendar date: {CALENDAR_DATE}
 Current market/plan.md summary: {key lines from Phase 2 market plan read}
 
 Steps:
 1. Load and run technical-analysis skill on IHSG (fetch OHLCV, preprocess, write IHSG_ta_context.json + IHSG_chart_evidence.json + chart PNGs to memory/market/).
 2. Load and run narrative-analysis skill at market level (query list-documents for market-level analysis/news).
-3. Update memory/market/plan.md IHSG Technical section and memory/market/narrative.md with fresh data using edit calls.
+3. Update memory/market/plan.md IHSG Technical section and memory/market/narrative.md with fresh data using edit calls. Set Last reviewed to CALENDAR_DATE.
 4. Return structured summary: { ihsg_close, ihsg_change, regime, key_levels, macro_tone, regime_change_signals }.
 
 Write market artifacts to memory/market/. Write intermediate work to work/.
@@ -143,7 +148,7 @@ Full synthesis for each reviewed symbol, triaged by urgency per main.md:
 
 The synthesis must:
 
-- Start with a digest summary (unless `skip-digest`): topline regime change, key thesis impacts, and any human-attention items from the digest. The human should not need to open the digest file separately to know what happened.
+- Start with a digest summary (unless `skip-digest`): key news developments, thesis impacts, and any human-attention items from the digest. The human should not need to open the digest file separately to know what happened. Do not restate price data here — `market-pulse` already covers that.
 - State the active thesis and whether it is intact, strengthening, weakening, or invalidated.
 - Reconcile the technical risk map with broker-flow context, thesis quality, narrative changes, optional scenario branches, and any portfolio hard rail or size-cap constraint.
 - Surface tensions between lenses honestly — do not collapse them into a single verdict.
@@ -166,7 +171,7 @@ Target: 1,500-3,000 bytes. Maximum: 4,000 bytes. If bigger, symbol reviews are l
 
 ## Digest Headline
 
-{2-3 sentences: the most important thing from today's news digest. Not a restatement of the full digest — just the headline that matters for positioning.}
+{2-3 sentences: the most important news/analysis finding from today's digest. Not price movements — those come from market-pulse. What new information arrived that matters for positioning?}
 
 ## Triage
 
