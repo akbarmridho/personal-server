@@ -2,7 +2,7 @@ services:
   # --- Garmin data fetcher (built locally) ---
   garmin-fetch-data:
     build:
-      context: .
+      context: ./garmin-grafana
       dockerfile: Dockerfile
     container_name: fitness_garmin_fetch
     restart: unless-stopped
@@ -50,7 +50,7 @@ services:
   # --- InfluxDB daily backup ---
   influxdb-backup:
     build:
-      context: ./influxdb-backup
+      context: ./garmin-grafana/influxdb-backup
       dockerfile: Dockerfile
     container_name: fitness_influxdb_backup
     restart: unless-stopped
@@ -66,6 +66,23 @@ services:
       - /root/filen-sync/influxdb_backup:/backups
     networks:
       - personal_network
+
+  # nutrition-bot:
+  #   build:
+  #     context: ./nutrition
+  #     dockerfile: Dockerfile
+  #   container_name: fitness_nutrition_bot
+  #   restart: unless-stopped
+  #   env_file: .env
+  #   environment:
+  #     - DATABASE_URL=${NUTRITION_DATABASE_URL}
+  #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+  #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+  #   volumes:
+  #     - ./nutrition/data:/app/data
+  #     - ./garminconnect-tokens:/app/garminconnect-tokens
+  #   networks:
+  #     - personal_network
 
   # --- Grafana: unified dashboard ---
   grafana:
