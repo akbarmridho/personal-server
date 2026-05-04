@@ -1,0 +1,37 @@
+{
+  "name": "@personal-server/nutrition-tracker",
+  "version": "1.0.0",
+  "description": "Personal nutrition tracking Telegram bot with LLM-powered food estimation.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "node --import @dotenvx/dotenvx/config src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.49.0",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "@t3-oss/env-core": "^0.13.8",
+    "ai": "^5.0.115",
+    "drizzle-orm": "^0.44.2",
+    "grammy": "^1.35.0",
+    "minisearch": "^7.1.2",
+    "p-throttle": "^8.1.0",
+    "postgres": "^3.4.7",
+    "zod": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.4",
+    "drizzle-kit": "^0.31.1",
+    "typescript": "^5.9.2"
+  }
+}
