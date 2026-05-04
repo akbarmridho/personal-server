@@ -67,23 +67,6 @@ services:
     networks:
       - personal_network
 
-  # --- Ryot: workout + body measurement tracker ---
-  ryot:
-    image: ignisda/ryot:v10.3.9
-    container_name: fitness_ryot
-    restart: unless-stopped
-    env_file: .env
-    ports:
-      - "8027:8000"
-    environment:
-      - TZ=Asia/Jakarta
-      - FRONTEND_URL=${RYOT_FRONTEND_URL}
-      - DATABASE_URL=postgres://${RYOT_DB_USER}:${RYOT_DB_PASSWORD}@${RYOT_DB_HOST}:5432/${RYOT_DB_NAME}
-      - SERVER_ADMIN_ACCESS_TOKEN=${RYOT_ADMIN_TOKEN}
-      - DISABLE_TELEMETRY=true
-    networks:
-      - personal_network
-
   # --- Grafana: unified dashboard ---
   grafana:
     image: grafana/grafana:13.0

@@ -14,16 +14,17 @@ datasources:
     jsonData:
       httpMode: GET
 
-  - name: Ryot-Postgres
-    uid: ryot_postgres
-    type: postgres
-    access: proxy
-    url: postgres_main:5432
-    user: postgres
-    database: ryot
-    editable: true
-    secureJsonData:
-      password: postgres
-    jsonData:
-      sslmode: disable
-      postgresVersion: 1700
+  # todo change this into internal postgres for vibe coded ap
+  # - name: Ryot-Postgres
+  #   uid: ryot_postgres
+  #   type: postgres
+  #   access: proxy
+  #   url: postgres_main:5432
+  #   user: postgres
+  #   database: ryot
+  #   editable: true
+  #   secureJsonData:
+  #     password: postgres
+  #   jsonData:
+  #     sslmode: disable
+  #     postgresVersion: 1700

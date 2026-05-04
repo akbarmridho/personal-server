@@ -1,33 +1,26 @@
 # Fitness Tracker
 
-Unified fitness dashboard combining Garmin health data, Ryot workout logging, and body composition tracking via Grafana.
+Unified fitness dashboard combining Garmin health data via Grafana.
 
 ## Architecture
 
 ```
 Grafana (:8029)
 ├── Garmin Dashboard (InfluxDB) — HR, sleep, steps, stress, activities, strength sets
-└── Ryot Postgres — workouts, body measurements (InBody)
 
-Ryot (:8027) — PWA for logging workouts + body measurements at the gym
 ```
 
 ## Services
 
 | Service | Port | Purpose |
 |---|---|---|
-| Ryot | 8027 | Workout & measurement tracker (PWA) |
 | Grafana | 8029 | Unified dashboard |
 | InfluxDB | internal | Garmin time-series data |
 | garmin-fetch-data | internal | Auto-fetches from Garmin Connect every 5min (built locally) |
 
-Ryot uses the shared `postgres_main` from `deployments/postgres` with database `ryot`.
-
 ## Setup
 
 ```bash
-# Create Ryot database in shared postgres
-docker exec -it postgres_main psql -U postgres -c "CREATE DATABASE ryot;"
 
 # Create token directory
 mkdir -p garminconnect-tokens
@@ -136,32 +129,9 @@ docker compose exec garmin-fetch-data python /app/garmin_grafana/influxdb_export
 docker cp fitness_garmin_fetch:/tmp/GarminStats_Export_XXXXX.zip ./
 ```
 
-## Grafana → Ryot Postgres Queries
-
-Body measurements (InBody data):
-
-```sql
-SELECT
-  timestamp AS time,
-  (stat->>'value')::numeric AS value,
-  stat->>'name' AS metric
-FROM user_measurement,
-  jsonb_array_elements(information->'statistics') AS stat
-WHERE stat->>'name' IN ('weight', 'body_fat', 'skeletal_muscle_mass')
-ORDER BY timestamp
-```
-
-Workout history:
-
-```sql
-SELECT start_time AS time, name, duration / 60 AS duration_min, calories_burnt
-FROM workout
-ORDER BY start_time
-```
-
 ## Backup & Restore
 
-InfluxDB is backed up daily by the `influxdb-backup` sidecar to `/root/filen-sync/influxdb_backup/`. Backups older than 30 days are auto-pruned. Ryot data lives in `postgres_main` which is already backed up by `postgres_main_backup`.
+InfluxDB is backed up daily by the `influxdb-backup` sidecar to `/root/filen-sync/influxdb_backup/`. Backups older than 30 days are auto-pruned.
 
 Manual backup:
 
@@ -191,4 +161,3 @@ docker compose up -d
 
 Garmin data fetching: forked from [garmin-grafana](https://github.com/arpanghosh8453/garmin-grafana) by [@arpanghosh8453](https://github.com/arpanghosh8453) (AGPL-3.0).
 Upstream pinned at commit [`b45834d`](https://github.com/arpanghosh8453/garmin-grafana/commit/b45834db1ba4bb04d3a79485eaa53eb775d44160).
-Workout tracking: [Ryot](https://github.com/IgnisDa/ryot) by [@IgnisDa](https://github.com/IgnisDa) (GPL-3.0).

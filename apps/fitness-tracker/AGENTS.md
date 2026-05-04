@@ -1,6 +1,6 @@
 # Fitness Tracker
 
-Unified fitness dashboard: Garmin health data (InfluxDB) + Ryot workout/body tracking (Postgres) + Grafana visualization.
+Unified fitness dashboard: Garmin health data (InfluxDB) + Grafana visualization.
 
 ## Upstream Sources
 
@@ -14,19 +14,11 @@ The `src/garmin_grafana/` directory, `Dockerfile`, `pyproject.toml`, and `uv.loc
 
 To sync updates from upstream, diff against that commit and apply relevant changes to `src/garmin_grafana/`.
 
-### Ryot
-
-Used as a Docker image (`ignisda/ryot:v10`), not vendored.
-
-- Repo: <https://github.com/IgnisDa/ryot>
-- License: GPL-3.0
-
 ## Stack
 
 - `garmin-fetch-data` — Python container built from local Dockerfile. Fetches Garmin Connect data → InfluxDB.
 - `influxdb` — InfluxDB 1.11 for Garmin time-series data.
-- `ryot` — Ryot v10 for workout logging + body measurements. Uses shared `postgres_main` with database `ryot`.
-- `grafana` — Grafana with two datasources: Garmin InfluxDB + Ryot Postgres.
+- `grafana` — Grafana with two datasources: Garmin InfluxDB.
 
 ## Key Files
 
