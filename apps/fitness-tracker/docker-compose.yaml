@@ -73,9 +73,9 @@ services:
       dockerfile: Dockerfile
     container_name: fitness_nutrition_bot
     restart: unless-stopped
-    env_file: .env
+    env_file: ./nutrition/.env
     environment:
-      - DATABASE_URL=${NUTRITION_DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
     volumes:
