@@ -40,7 +40,6 @@ RUN pnpm install --frozen-lockfile --prod
 
 # Copy built output
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/drizzle.config.ts ./
 
 # Copy scripts (garmin sync)
 COPY scripts/ ./scripts/
@@ -51,4 +50,4 @@ COPY drizzle/ ./drizzle/
 # data/food-search.db is volume-mounted at runtime, not baked into image.
 # Run `pnpm run setup-db` on the host to build it.
 
-CMD ["sh", "-c", "npx drizzle-kit migrate && node dist/index.js"]
+CMD ["node", "dist/index.js"]
