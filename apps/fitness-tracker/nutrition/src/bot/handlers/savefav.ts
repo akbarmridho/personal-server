@@ -6,6 +6,7 @@ import type { Context } from "grammy";
 import type { DrizzleDB } from "../../db/index.js";
 import { analyzeMeal } from "../../llm/analyzer.js";
 import { createFavorite, listFavorites } from "../../repository/favorites.js";
+import { logger } from "../../utils/logger.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -17,10 +18,6 @@ interface SaveFavDeps {
   foodDb: Database.Database;
 }
 
-/**
- * /savefav <alias> <description or photo>
- * Analyzes food via LLM and saves as favorite without logging a meal.
- */
 export function createSaveFavHandler(deps: SaveFavDeps) {
   return async (contexts: Context[]) => {
     const ctx = contexts[0];
@@ -30,7 +27,6 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
-    // Extract text — first token after /savefav is the alias
     let text = "";
     for (const c of contexts) {
       const t =
@@ -50,7 +46,6 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
       return;
     }
 
-    // First word is the alias, rest is the food description
     const spaceIdx = text.indexOf(" ");
     if (spaceIdx === -1) {
       await ctx.reply(
@@ -62,10 +57,19 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
     const alias = text.slice(0, spaceIdx).trim();
     const foodDescription = text.slice(spaceIdx + 1).trim();
 
+    logger.info(
+      {
+        userId,
+        alias,
+        foodDescription: foodDescription.slice(0, 80),
+        messageCount: contexts.length,
+      },
+      "/savefav started",
+    );
+
     const processingMsg = await ctx.reply("⏳ Analyzing food for favorite...");
 
     try {
-      // Collect photos from all messages in the group
       const photos: { data: Uint8Array; mediaType: string }[] = [];
 
       for (const c of contexts) {
@@ -90,6 +94,12 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
         }
       }
 
+      logger.info(
+        { userId, alias, photoCount: photos.length },
+        "/savefav calling LLM",
+      );
+      const startTime = Date.now();
+
       const favorites = await listFavorites(deps.db, userId);
 
       const result = await analyzeMeal({
@@ -100,7 +110,13 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
         foodDb: deps.foodDb,
       });
 
+      const durationMs = Date.now() - startTime;
+
       if (result.error || result.items.length === 0) {
+        logger.warn(
+          { userId, alias, reason: result.reason, durationMs },
+          "/savefav LLM failed",
+        );
         await ctx.api.editMessageText(
           chatId,
           processingMsg.message_id,
@@ -124,6 +140,11 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
         references: item.references,
       });
 
+      logger.info(
+        { userId, alias, name: item.name, calories: item.calories, durationMs },
+        "/savefav favorite saved",
+      );
+
       await ctx.api.editMessageText(
         chatId,
         processingMsg.message_id,
@@ -132,6 +153,7 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
           `  ${item.calories} kcal | P:${item.protein_g}g C:${item.carbs_g}g F:${item.fat_g}g`,
       );
     } catch (err) {
+      logger.error({ err, userId, alias }, "/savefav handler error");
       await ctx.api.editMessageText(
         chatId,
         processingMsg.message_id,

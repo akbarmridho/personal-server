@@ -8,6 +8,8 @@ export function syncGarminWeight(weight: number, date: string): void {
     env.GARMIN_SYNC_SCRIPT ??
     resolve(process.cwd(), "scripts/sync_garmin_weight.py");
 
+  logger.info({ weight, date, scriptPath }, "garmin-sync: spawning");
+
   const child = spawn("python3", [scriptPath, String(weight), date], {
     stdio: "ignore",
     detached: true,
@@ -16,6 +18,6 @@ export function syncGarminWeight(weight: number, date: string): void {
   child.unref();
 
   child.on("error", (err) => {
-    logger.error(err, "Garmin sync spawn error");
+    logger.error({ err, weight, date }, "garmin-sync: spawn error");
   });
 }

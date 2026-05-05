@@ -22,6 +22,16 @@ interface AnalyzeMealInput {
 export async function analyzeMeal(
   input: AnalyzeMealInput,
 ): Promise<MealEstimation> {
+  const startTime = Date.now();
+  logger.info(
+    {
+      hasText: !!input.text,
+      photoCount: input.photos?.length ?? 0,
+      favCount: input.favorites.length,
+    },
+    "analyzeMeal: starting LLM call",
+  );
+
   try {
     const systemPrompt = buildMealSystemPrompt(
       input.favorites,
@@ -46,7 +56,7 @@ export async function analyzeMeal(
 
     const tools = createNutritionTools(input.foodDb);
 
-    const { output: object } = await generateText({
+    const { output: object, steps } = await generateText({
       model: nutritionModel,
       output: Output.object({ schema: MealEstimationSchema }),
       system: systemPrompt,
@@ -56,9 +66,21 @@ export async function analyzeMeal(
       temperature: 1,
     });
 
+    const durationMs = Date.now() - startTime;
+    logger.info(
+      {
+        durationMs,
+        steps: steps.length,
+        itemCount: object.items.length,
+        error: object.error,
+      },
+      "analyzeMeal: LLM call complete",
+    );
+
     return object;
   } catch (error) {
-    logger.error(error, "LLM analyzeMeal error");
+    const durationMs = Date.now() - startTime;
+    logger.error({ err: error, durationMs }, "analyzeMeal: LLM call failed");
     return {
       error: true,
       reason: error instanceof Error ? error.message : "Unknown LLM error",

@@ -8,6 +8,7 @@ import { analyzeMeal } from "../../llm/analyzer.js";
 import { createFavorite, listFavorites } from "../../repository/favorites.js";
 import { createMeals } from "../../repository/meals.js";
 import { formatMealBreakdown } from "../../utils/format.js";
+import { logger } from "../../utils/logger.js";
 import { buildMealKeyboard } from "../keyboards.js";
 
 dayjs.extend(utc);
@@ -21,10 +22,6 @@ interface LogDeps {
 }
 
 export function createLogHandler(deps: LogDeps) {
-  /**
-   * Handles one or more contexts from a media group (or a single message).
-   * The first context is used for replying; all contexts contribute photos.
-   */
   return async (contexts: Context[]) => {
     const ctx = contexts[0];
     const userId = ctx.from?.id?.toString();
@@ -33,11 +30,14 @@ export function createLogHandler(deps: LogDeps) {
     const chatId = ctx.chat?.id;
     if (!chatId) return;
 
-    // Send processing indicator immediately
+    logger.info(
+      { userId, messageCount: contexts.length },
+      "/log handler started",
+    );
+
     const processingMsg = await ctx.reply("⏳ Analyzing your meal...");
 
     try {
-      // Extract text from the first message that has a caption or /log text
       let text = "";
       for (const c of contexts) {
         const t =
@@ -50,7 +50,6 @@ export function createLogHandler(deps: LogDeps) {
         }
       }
 
-      // Collect photos from all messages in the group
       const photos: { data: Uint8Array; mediaType: string }[] = [];
       const photoFileIds: string[] = [];
 
@@ -77,7 +76,11 @@ export function createLogHandler(deps: LogDeps) {
         }
       }
 
-      // Validate input
+      logger.info(
+        { userId, text: text.slice(0, 100), photoCount: photos.length },
+        "/log input collected",
+      );
+
       if (!text && photos.length === 0) {
         await ctx.api.editMessageText(
           chatId,
@@ -87,10 +90,11 @@ export function createLogHandler(deps: LogDeps) {
         return;
       }
 
-      // Fetch user favorites
       const favorites = await listFavorites(deps.db, userId);
 
-      // Call LLM
+      logger.info({ userId, favCount: favorites.length }, "/log calling LLM");
+      const startTime = Date.now();
+
       const result = await analyzeMeal({
         text: text || undefined,
         photos: photos.length > 0 ? photos : undefined,
@@ -102,8 +106,13 @@ export function createLogHandler(deps: LogDeps) {
         foodDb: deps.foodDb,
       });
 
-      // Handle error
+      const durationMs = Date.now() - startTime;
+
       if (result.error) {
+        logger.warn(
+          { userId, reason: result.reason, durationMs },
+          "/log LLM returned error",
+        );
         await ctx.api.editMessageText(
           chatId,
           processingMsg.message_id,
@@ -112,7 +121,16 @@ export function createLogHandler(deps: LogDeps) {
         return;
       }
 
-      // Determine meal time
+      logger.info(
+        {
+          userId,
+          itemCount: result.items.length,
+          durationMs,
+          saveAs: result.save_as,
+        },
+        "/log LLM analysis complete",
+      );
+
       const mealTime = result.meal_time
         ? dayjs(result.meal_time).tz(TZ).toDate()
         : dayjs
@@ -120,10 +138,8 @@ export function createLogHandler(deps: LogDeps) {
             .tz(TZ)
             .toDate();
 
-      // Generate batch ID
       const batchId = String(Date.now());
 
-      // Create one meal row per item
       const mealRows = result.items.map((item) => ({
         userId,
         batchId,
@@ -141,8 +157,11 @@ export function createLogHandler(deps: LogDeps) {
       }));
 
       await createMeals(deps.db, mealRows);
+      logger.info(
+        { userId, batchId, rowCount: mealRows.length },
+        "/log meals saved to DB",
+      );
 
-      // Handle save_as (create favorite)
       if (result.save_as && result.items.length > 0) {
         const firstItem = result.items[0];
         try {
@@ -158,13 +177,13 @@ export function createLogHandler(deps: LogDeps) {
             portion: firstItem.portion,
             references: firstItem.references,
           });
+          logger.info({ userId, alias: result.save_as }, "/log favorite saved");
         } catch {
           // Ignore duplicate errors
         }
       }
 
-      // Edit processing message with formatted breakdown + inline buttons
-      const message = formatMealBreakdown(result.items);
+      const message = formatMealBreakdown(result.items, mealTime);
       const savedNote = result.save_as
         ? `\n\n💾 Saved as "${result.save_as}"`
         : "";
@@ -177,7 +196,10 @@ export function createLogHandler(deps: LogDeps) {
           reply_markup: buildMealKeyboard(batchId),
         },
       );
+
+      logger.info({ userId, batchId }, "/log handler complete");
     } catch (err) {
+      logger.error({ err, userId }, "/log handler error");
       await ctx.api.editMessageText(
         chatId,
         processingMsg.message_id,

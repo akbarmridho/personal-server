@@ -1,4 +1,5 @@
 import type { Context } from "grammy";
+import { logger } from "../utils/logger.js";
 
 interface PendingGroup {
   messages: Context[];
@@ -18,7 +19,7 @@ export function createMediaGroupCollector(
   return (ctx: Context) => {
     const groupId = ctx.message?.media_group_id;
 
-    // No media group — single photo, handle immediately
+    // No media group — single message, handle immediately
     if (!groupId) {
       return handler([ctx]);
     }
@@ -27,8 +28,16 @@ export function createMediaGroupCollector(
     if (existing) {
       existing.messages.push(ctx);
       clearTimeout(existing.timer);
+      logger.info(
+        { groupId, count: existing.messages.length },
+        "media-group: buffering message",
+      );
       existing.timer = setTimeout(() => {
         pending.delete(groupId);
+        logger.info(
+          { groupId, count: existing.messages.length },
+          "media-group: dispatching",
+        );
         handler(existing.messages);
       }, debounceMs);
     } else {
@@ -36,10 +45,15 @@ export function createMediaGroupCollector(
         messages: [ctx],
         timer: setTimeout(() => {
           pending.delete(groupId);
+          logger.info(
+            { groupId, count: group.messages.length },
+            "media-group: dispatching",
+          );
           handler(group.messages);
         }, debounceMs),
       };
       pending.set(groupId, group);
+      logger.info({ groupId }, "media-group: new group started");
     }
   };
 }

@@ -14,7 +14,6 @@ import { createLogHandler } from "./handlers/log.js";
 import { createMeasureHandler } from "./handlers/measure.js";
 import { createProgressHandler } from "./handlers/progress.js";
 import { createSaveFavHandler } from "./handlers/savefav.js";
-import { createWeightHandler } from "./handlers/weight.js";
 import { createMediaGroupCollector } from "./media-group.js";
 
 export interface BotDependencies {
@@ -37,7 +36,6 @@ export async function createBot(token: string, deps: BotDependencies) {
   const historyHandler = createHistoryHandler(deps);
   const favHandler = createFavHandler(deps);
   const unfavHandler = createUnfavHandler(deps);
-  const weightHandler = createWeightHandler(deps);
   const measureHandler = createMeasureHandler(deps);
   const progressHandler = createProgressHandler(deps);
 
@@ -52,11 +50,10 @@ export async function createBot(token: string, deps: BotDependencies) {
     "/week — This week's summary",
     "/month — This month's summary",
     "/history — View past logs",
-    "/fav &lt;name&gt; — Save a favorite food",
-    "/unfav &lt;name&gt; — Remove a favorite food",
-    "/weight &lt;kg&gt; — Log body weight",
-    "/measure — Log body composition (photo or text)",
-    "/progress — Show weight & body progress",
+    "/fav — List favorites",
+    "/unfav &lt;number&gt; — Remove a favorite",
+    "/measure — Log body composition &amp; weight",
+    "/progress — Show weight &amp; body progress",
     "/help — Show this help message",
   ].join("\n");
 
@@ -71,7 +68,6 @@ export async function createBot(token: string, deps: BotDependencies) {
   bot.command("history", historyHandler);
   bot.command("fav", favHandler);
   bot.command("unfav", unfavHandler);
-  bot.command("weight", weightHandler);
   bot.command("measure", measureHandler);
   bot.command("progress", progressHandler);
 
@@ -103,10 +99,9 @@ export async function createBot(token: string, deps: BotDependencies) {
     { command: "week", description: "Show this week's summary" },
     { command: "month", description: "Show this month's summary" },
     { command: "history", description: "View past logs" },
-    { command: "fav", description: "Save a favorite food" },
-    { command: "unfav", description: "Remove a favorite food" },
-    { command: "weight", description: "Log body weight in kg" },
-    { command: "measure", description: "Log body composition" },
+    { command: "fav", description: "List favorites" },
+    { command: "unfav", description: "Remove a favorite" },
+    { command: "measure", description: "Log body composition & weight" },
     { command: "progress", description: "Show weight & body progress" },
     { command: "help", description: "Show help message" },
   ]);

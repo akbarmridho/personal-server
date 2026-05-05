@@ -9,13 +9,25 @@ dayjs.extend(timezone);
 
 const TZ = "Asia/Jakarta";
 
-export function formatMealBreakdown(items: FoodItem[]): string {
+export function formatMealBreakdown(
+  items: FoodItem[],
+  mealTime?: Date,
+): string {
   if (items.length === 0) return "No items.";
 
-  const lines = items.map(
-    (item) =>
+  const lines: string[] = [];
+
+  if (mealTime) {
+    const timeStr = dayjs(mealTime).tz(TZ).format("YYYY-MM-DD HH:mm");
+    lines.push(`🕐 ${timeStr}`);
+    lines.push("");
+  }
+
+  for (const item of items) {
+    lines.push(
       `• ${item.name} (${item.portion})\n  ${item.calories} kcal | P:${item.protein_g}g C:${item.carbs_g}g F:${item.fat_g}g Fiber:${item.fiber_g}g`,
-  );
+    );
+  }
 
   const totals = items.reduce(
     (acc, item) => ({

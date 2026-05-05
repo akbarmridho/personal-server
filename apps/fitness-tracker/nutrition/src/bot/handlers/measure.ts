@@ -9,6 +9,7 @@ import {
 } from "../../repository/measurements.js";
 import { syncGarminWeight } from "../../sync/garmin.js";
 import { formatMeasurementComparison } from "../../utils/format.js";
+import { logger } from "../../utils/logger.js";
 import { parseMeasureInput } from "../../utils/measure-parser.js";
 
 dayjs.extend(utc);
@@ -65,15 +66,24 @@ export function createMeasureHandler(deps: MeasureDeps) {
     const today = dayjs().tz(TZ).format("YYYY-MM-DD");
     const parsed = parseMeasureInput(text, today);
     if (!parsed.ok) {
-      await ctx.reply(`❌ ${parsed.reason}\n\n` + getGuideText(), {
+      logger.info({ userId, reason: parsed.reason }, "/measure parse failed");
+      await ctx.reply(`❌ ${parsed.reason}\n\n${getGuideText()}`, {
         parse_mode: "HTML",
       });
       return;
     }
 
     const data = parsed.data;
+    logger.info(
+      {
+        userId,
+        weight: data.weight,
+        date: data.date,
+        bodyFatPct: data.bodyFatPct,
+      },
+      "/measure saving",
+    );
 
-    // Upsert
     await upsertMeasurement(deps.db, {
       userId,
       date: data.date,
@@ -90,10 +100,9 @@ export function createMeasureHandler(deps: MeasureDeps) {
       notes: data.notes,
     });
 
-    // Sync weight to Garmin
     syncGarminWeight(data.weight, data.date);
+    logger.info({ userId, date: data.date }, "/measure saved");
 
-    // Comparison
     const recent = await getRecentMeasurements(deps.db, userId, 2);
     const current = recent[0];
     const previous = recent.length > 1 ? recent[1] : null;
