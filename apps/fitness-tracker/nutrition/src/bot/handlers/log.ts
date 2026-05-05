@@ -21,130 +21,169 @@ interface LogDeps {
 }
 
 export function createLogHandler(deps: LogDeps) {
-  return async (ctx: Context) => {
+  /**
+   * Handles one or more contexts from a media group (or a single message).
+   * The first context is used for replying; all contexts contribute photos.
+   */
+  return async (contexts: Context[]) => {
+    const ctx = contexts[0];
     const userId = ctx.from?.id?.toString();
     if (!userId) return;
 
-    const text =
-      ctx.message?.text?.replace(/^\/log\s*/, "").trim() ||
-      ctx.message?.caption?.replace(/^\/log\s*/, "").trim() ||
-      "";
+    const chatId = ctx.chat?.id;
+    if (!chatId) return;
 
-    // Collect photos
-    const photos: { data: Uint8Array; mediaType: string }[] = [];
-    const photoFileIds: string[] = [];
+    // Send processing indicator immediately
+    const processingMsg = await ctx.reply("⏳ Analyzing your meal...");
 
-    if (ctx.message?.photo) {
-      const photo = ctx.message.photo[ctx.message.photo.length - 1];
-      const file = await ctx.api.getFile(photo.file_id);
-      if (file.file_path) {
-        const url = `https://api.telegram.org/file/bot${ctx.api.token}/${file.file_path}`;
-        const ext = file.file_path.split(".").pop()?.toLowerCase();
-        const mediaType =
-          ext === "png"
-            ? "image/png"
-            : ext === "webp"
-              ? "image/webp"
-              : "image/jpeg";
-        const res = await fetch(url);
-        photoFileIds.push(photo.file_id);
-        if (res.ok) {
-          const buffer = new Uint8Array(await res.arrayBuffer());
-          photos.push({ data: buffer, mediaType });
+    try {
+      // Extract text from the first message that has a caption or /log text
+      let text = "";
+      for (const c of contexts) {
+        const t =
+          c.message?.text?.replace(/^\/log\s*/, "").trim() ||
+          c.message?.caption?.replace(/^\/log\s*/, "").trim() ||
+          "";
+        if (t) {
+          text = t;
+          break;
         }
       }
-    }
 
-    // Validate input
-    if (!text && photos.length === 0) {
-      await ctx.reply(
-        "Please provide a food description, photo, or both.\nExample: /log nasi goreng ayam",
-      );
-      return;
-    }
+      // Collect photos from all messages in the group
+      const photos: { data: Uint8Array; mediaType: string }[] = [];
+      const photoFileIds: string[] = [];
 
-    // Fetch user favorites
-    const favorites = await listFavorites(deps.db, userId);
+      for (const c of contexts) {
+        if (c.message?.photo) {
+          const photo = c.message.photo[c.message.photo.length - 1];
+          const file = await ctx.api.getFile(photo.file_id);
+          if (file.file_path) {
+            const url = `https://api.telegram.org/file/bot${ctx.api.token}/${file.file_path}`;
+            const ext = file.file_path.split(".").pop()?.toLowerCase();
+            const mediaType =
+              ext === "png"
+                ? "image/png"
+                : ext === "webp"
+                  ? "image/webp"
+                  : "image/jpeg";
+            const res = await fetch(url);
+            photoFileIds.push(photo.file_id);
+            if (res.ok) {
+              const buffer = new Uint8Array(await res.arrayBuffer());
+              photos.push({ data: buffer, mediaType });
+            }
+          }
+        }
+      }
 
-    // Call LLM
-    const result = await analyzeMeal({
-      text: text || undefined,
-      photos: photos.length > 0 ? photos : undefined,
-      favorites,
-      messageTimestamp: dayjs
-        .unix(ctx.message?.date ?? Math.floor(Date.now() / 1000))
-        .tz(TZ)
-        .toDate(),
-      foodDb: deps.foodDb,
-    });
+      // Validate input
+      if (!text && photos.length === 0) {
+        await ctx.api.editMessageText(
+          chatId,
+          processingMsg.message_id,
+          "Please provide a food description, photo, or both.\nExample: /log nasi goreng ayam",
+        );
+        return;
+      }
 
-    // Handle error
-    if (result.error) {
-      await ctx.reply(
-        `❌ ${result.reason || "Could not estimate nutrition for this input."}`,
-      );
-      return;
-    }
+      // Fetch user favorites
+      const favorites = await listFavorites(deps.db, userId);
 
-    // Determine meal time
-    const mealTime = result.meal_time
-      ? dayjs(result.meal_time).tz(TZ).toDate()
-      : dayjs
+      // Call LLM
+      const result = await analyzeMeal({
+        text: text || undefined,
+        photos: photos.length > 0 ? photos : undefined,
+        favorites,
+        messageTimestamp: dayjs
           .unix(ctx.message?.date ?? Math.floor(Date.now() / 1000))
           .tz(TZ)
-          .toDate();
+          .toDate(),
+        foodDb: deps.foodDb,
+      });
 
-    // Generate batch ID
-    const batchId = String(Date.now());
-
-    // Create one meal row per item
-    const mealRows = result.items.map((item) => ({
-      userId,
-      batchId,
-      mealTime,
-      name: item.name,
-      description: item.description,
-      portion: item.portion,
-      photoFileIds: photoFileIds.length > 0 ? photoFileIds : null,
-      calories: item.calories,
-      proteinG: item.protein_g,
-      carbsG: item.carbs_g,
-      fatG: item.fat_g,
-      fiberG: item.fiber_g,
-      references: item.references,
-    }));
-
-    await createMeals(deps.db, mealRows);
-
-    // Handle save_as (create favorite)
-    if (result.save_as && result.items.length > 0) {
-      const firstItem = result.items[0];
-      try {
-        await createFavorite(deps.db, {
-          userId,
-          name: firstItem.name,
-          aliases: [result.save_as],
-          calories: firstItem.calories,
-          proteinG: firstItem.protein_g,
-          carbsG: firstItem.carbs_g,
-          fatG: firstItem.fat_g,
-          fiberG: firstItem.fiber_g,
-          portion: firstItem.portion,
-          references: firstItem.references,
-        });
-      } catch {
-        // Ignore duplicate errors
+      // Handle error
+      if (result.error) {
+        await ctx.api.editMessageText(
+          chatId,
+          processingMsg.message_id,
+          `❌ ${result.reason || "Could not estimate nutrition for this input."}`,
+        );
+        return;
       }
+
+      // Determine meal time
+      const mealTime = result.meal_time
+        ? dayjs(result.meal_time).tz(TZ).toDate()
+        : dayjs
+            .unix(ctx.message?.date ?? Math.floor(Date.now() / 1000))
+            .tz(TZ)
+            .toDate();
+
+      // Generate batch ID
+      const batchId = String(Date.now());
+
+      // Create one meal row per item
+      const mealRows = result.items.map((item) => ({
+        userId,
+        batchId,
+        mealTime,
+        name: item.name,
+        description: item.description,
+        portion: item.portion,
+        photoFileIds: photoFileIds.length > 0 ? photoFileIds : null,
+        calories: item.calories,
+        proteinG: item.protein_g,
+        carbsG: item.carbs_g,
+        fatG: item.fat_g,
+        fiberG: item.fiber_g,
+        references: item.references,
+      }));
+
+      await createMeals(deps.db, mealRows);
+
+      // Handle save_as (create favorite)
+      if (result.save_as && result.items.length > 0) {
+        const firstItem = result.items[0];
+        try {
+          await createFavorite(deps.db, {
+            userId,
+            name: firstItem.name,
+            aliases: [result.save_as],
+            calories: firstItem.calories,
+            proteinG: firstItem.protein_g,
+            carbsG: firstItem.carbs_g,
+            fatG: firstItem.fat_g,
+            fiberG: firstItem.fiber_g,
+            portion: firstItem.portion,
+            references: firstItem.references,
+          });
+        } catch {
+          // Ignore duplicate errors
+        }
+      }
+
+      // Edit processing message with formatted breakdown + inline buttons
+      const message = formatMealBreakdown(result.items);
+      const savedNote = result.save_as
+        ? `\n\n💾 Saved as "${result.save_as}"`
+        : "";
+
+      await ctx.api.editMessageText(
+        chatId,
+        processingMsg.message_id,
+        message + savedNote,
+        {
+          reply_markup: buildMealKeyboard(batchId),
+        },
+      );
+    } catch (err) {
+      await ctx.api.editMessageText(
+        chatId,
+        processingMsg.message_id,
+        "❌ Something went wrong while processing your meal. Please try again.",
+      );
+      throw err;
     }
-
-    // Reply with formatted breakdown + inline buttons
-    const message = formatMealBreakdown(result.items);
-    const savedNote = result.save_as
-      ? `\n\n💾 Saved as "${result.save_as}"`
-      : "";
-
-    await ctx.reply(message + savedNote, {
-      reply_markup: buildMealKeyboard(batchId),
-    });
   };
 }

@@ -15,7 +15,7 @@ async function main() {
   const foodDb = openFoodDb();
 
   // Create and start bot
-  const bot = createBot(env.TELEGRAM_BOT_TOKEN, {
+  const bot = await createBot(env.TELEGRAM_BOT_TOKEN, {
     db,
     foodDb,
   });
