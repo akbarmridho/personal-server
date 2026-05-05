@@ -1,8 +1,6 @@
+import type Database from "better-sqlite3";
 import { Bot } from "grammy";
-import type MiniSearch from "minisearch";
 import type { DrizzleDB } from "../db/index.js";
-import type { FoodResult } from "../search/openfoodfacts.js";
-import type { UsdaFood } from "../search/usda.js";
 import { createCallbackHandler } from "./handlers/callback.js";
 import {
   createFavHandler,
@@ -17,10 +15,9 @@ import { createMeasureHandler } from "./handlers/measure.js";
 import { createProgressHandler } from "./handlers/progress.js";
 import { createWeightHandler } from "./handlers/weight.js";
 
-interface BotDependencies {
+export interface BotDependencies {
   db: DrizzleDB;
-  usdaIndex: MiniSearch<UsdaFood>;
-  searchOpenFoodFacts: (query: string, limit?: number) => Promise<FoodResult[]>;
+  foodDb: Database.Database;
 }
 
 export function createBot(token: string, deps: BotDependencies) {

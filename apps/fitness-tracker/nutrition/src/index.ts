@@ -1,23 +1,18 @@
 import { createBot } from "./bot/index.js";
 import { db } from "./db/index.js";
 import { env } from "./infrastructure/env.js";
-import { createOpenFoodFactsClient } from "./search/openfoodfacts.js";
-import { loadUsdaIndex } from "./search/usda.js";
+import { openFoodDb } from "./search/food-db.js";
 import { logger } from "./utils/logger.js";
 
 async function main() {
-  // Load USDA index (fail-fast if JSON missing)
-  logger.info("Loading USDA Foundation Foods index...");
-  const usdaIndex = loadUsdaIndex();
-
-  // Create OpenFoodFacts client
-  const searchOpenFoodFacts = createOpenFoodFactsClient();
+  // Open food search database (fail-fast if not built)
+  logger.info("Opening food search database...");
+  const foodDb = openFoodDb();
 
   // Create and start bot
   const bot = createBot(env.TELEGRAM_BOT_TOKEN, {
     db,
-    usdaIndex,
-    searchOpenFoodFacts,
+    foodDb,
   });
 
   logger.info("Starting nutrition tracker bot...");

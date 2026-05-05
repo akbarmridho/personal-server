@@ -1,14 +1,12 @@
 import type { ImagePart, TextPart, UserContent } from "ai";
 import { generateText, Output, stepCountIs } from "ai";
-import type MiniSearch from "minisearch";
+import type Database from "better-sqlite3";
 import {
   type Favorite,
   type MealEstimation,
   MealEstimationSchema,
 } from "../db/types.js";
 import { nutritionModel } from "../infrastructure/llm.js";
-import type { FoodResult } from "../search/openfoodfacts.js";
-import type { UsdaFood } from "../search/usda.js";
 import { logger } from "../utils/logger.js";
 import { buildMealSystemPrompt } from "./prompts.js";
 import { createNutritionTools } from "./tools.js";
@@ -18,8 +16,7 @@ interface AnalyzeMealInput {
   photos?: { data: Uint8Array; mediaType: string }[];
   favorites: Favorite[];
   messageTimestamp: Date;
-  usdaIndex: MiniSearch<UsdaFood>;
-  searchOpenFoodFacts: (query: string, limit?: number) => Promise<FoodResult[]>;
+  foodDb: Database.Database;
 }
 
 export async function analyzeMeal(
@@ -47,18 +44,13 @@ export async function analyzeMeal(
       }
     }
 
-    const tools = createNutritionTools(
-      input.usdaIndex,
-      input.searchOpenFoodFacts,
-    );
+    const tools = createNutritionTools(input.foodDb);
 
     const { output: object } = await generateText({
       model: nutritionModel,
       output: Output.object({ schema: MealEstimationSchema }),
       system: systemPrompt,
-      messages: [
-        { role: "user", content: userContent satisfies UserContent },
-      ],
+      messages: [{ role: "user", content: userContent satisfies UserContent }],
       tools,
       stopWhen: stepCountIs(50),
       temperature: 1,

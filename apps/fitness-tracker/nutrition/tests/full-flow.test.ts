@@ -6,13 +6,12 @@ import { getDailyMeals } from "../src/repository/stats.js";
 import {
   cleanupTestUser,
   db,
-  getUsdaIndex,
+  getFoodDb,
   retry,
-  searchOpenFoodFacts,
   TEST_USER_ID,
 } from "./helpers.js";
 
-const usdaIndex = getUsdaIndex();
+const foodDb = getFoodDb();
 
 describe("Full Flow (no Telegram)", () => {
   beforeEach(async () => {
@@ -25,8 +24,7 @@ describe("Full Flow (no Telegram)", () => {
         text: "nasi goreng ayam",
         favorites: [],
         messageTimestamp: new Date("2026-05-05T12:00:00+07:00"),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);
@@ -64,8 +62,7 @@ describe("Full Flow (no Telegram)", () => {
         text: "indomie goreng, save as indomie",
         favorites: [],
         messageTimestamp: new Date(),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);

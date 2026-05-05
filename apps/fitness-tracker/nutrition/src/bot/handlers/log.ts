@@ -1,14 +1,12 @@
+import type Database from "better-sqlite3";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import type { Context } from "grammy";
-import type MiniSearch from "minisearch";
 import type { DrizzleDB } from "../../db/index.js";
 import { analyzeMeal } from "../../llm/analyzer.js";
 import { createFavorite, listFavorites } from "../../repository/favorites.js";
 import { createMeals } from "../../repository/meals.js";
-import type { FoodResult } from "../../search/openfoodfacts.js";
-import type { UsdaFood } from "../../search/usda.js";
 import { formatMealBreakdown } from "../../utils/format.js";
 import { buildMealKeyboard } from "../keyboards.js";
 
@@ -19,8 +17,7 @@ const TZ = "Asia/Jakarta";
 
 interface LogDeps {
   db: DrizzleDB;
-  usdaIndex: MiniSearch<UsdaFood>;
-  searchOpenFoodFacts: (query: string, limit?: number) => Promise<FoodResult[]>;
+  foodDb: Database.Database;
 }
 
 export function createLogHandler(deps: LogDeps) {
@@ -78,8 +75,7 @@ export function createLogHandler(deps: LogDeps) {
         .unix(ctx.message?.date ?? Math.floor(Date.now() / 1000))
         .tz(TZ)
         .toDate(),
-      usdaIndex: deps.usdaIndex,
-      searchOpenFoodFacts: deps.searchOpenFoodFacts,
+      foodDb: deps.foodDb,
     });
 
     // Handle error

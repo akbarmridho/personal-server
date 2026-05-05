@@ -2,14 +2,9 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { analyzeMeal } from "../src/llm/analyzer.js";
-import {
-  getUsdaIndex,
-  retry,
-  searchOpenFoodFacts,
-  TEST_USER_ID,
-} from "./helpers.js";
+import { getFoodDb, retry, TEST_USER_ID } from "./helpers.js";
 
-const usdaIndex = getUsdaIndex();
+const foodDb = getFoodDb();
 
 function loadSample(name: string): { data: Uint8Array; mediaType: string } {
   const path = resolve(import.meta.dirname, "../samples", name);
@@ -27,8 +22,7 @@ describe("LLM Meal Analysis", () => {
         text: "nasi goreng ayam",
         favorites: [],
         messageTimestamp: new Date(),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);
@@ -44,8 +38,7 @@ describe("LLM Meal Analysis", () => {
         text: "nasi goreng, es teh manis",
         favorites: [],
         messageTimestamp: new Date(),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);
@@ -72,8 +65,7 @@ describe("LLM Meal Analysis", () => {
         text: "nasi goreng special",
         favorites: [favorite],
         messageTimestamp: new Date(),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);
@@ -91,8 +83,7 @@ describe("LLM Meal Analysis", () => {
         text: "nasi goreng lunch yesterday",
         favorites: [],
         messageTimestamp: today,
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);
@@ -111,8 +102,7 @@ describe("LLM Meal Analysis", () => {
         text: "indomie goreng, save as indomie",
         favorites: [],
         messageTimestamp: new Date(),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(false);
@@ -125,8 +115,7 @@ describe("LLM Meal Analysis", () => {
         text: "xyzqwerty12345nonsense blabla",
         favorites: [],
         messageTimestamp: new Date(),
-        usdaIndex,
-        searchOpenFoodFacts,
+        foodDb,
       }),
     );
     expect(result.error).toBe(true);
@@ -147,8 +136,7 @@ describe("LLM Meal Analysis", () => {
           photos: [photo],
           favorites: [],
           messageTimestamp: new Date(),
-          usdaIndex,
-          searchOpenFoodFacts,
+          foodDb,
         }),
       );
       expect(result.error).toBe(false);

@@ -4,21 +4,18 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../src/db/schema.js";
 import { env } from "../src/infrastructure/env.js";
-import { createOpenFoodFactsClient } from "../src/search/openfoodfacts.js";
-import { loadUsdaIndex } from "../src/search/usda.js";
+import { openFoodDb } from "../src/search/food-db.js";
 
 const client = postgres(env.DATABASE_URL);
 export const db = drizzle(client, { schema });
 
-let usdaIndexCache: ReturnType<typeof loadUsdaIndex> | null = null;
-export function getUsdaIndex() {
-  if (!usdaIndexCache) {
-    usdaIndexCache = loadUsdaIndex();
+let foodDbCache: ReturnType<typeof openFoodDb> | null = null;
+export function getFoodDb() {
+  if (!foodDbCache) {
+    foodDbCache = openFoodDb();
   }
-  return usdaIndexCache;
+  return foodDbCache;
 }
-
-export const searchOpenFoodFacts = createOpenFoodFactsClient();
 
 export const TEST_USER_ID = "test_user_999";
 

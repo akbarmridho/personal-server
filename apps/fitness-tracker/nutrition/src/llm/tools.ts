@@ -1,29 +1,50 @@
 import { tool } from "ai";
-import type MiniSearch from "minisearch";
+import type Database from "better-sqlite3";
 import { z } from "zod";
-import type { FoodResult } from "../search/openfoodfacts.js";
-import { searchUsda, type UsdaFood } from "../search/usda.js";
+import { searchFoods } from "../search/food-db.js";
 
-export function createNutritionTools(
-  usdaIndex: MiniSearch<UsdaFood>,
-  searchOpenFoodFacts: (query: string, limit?: number) => Promise<FoodResult[]>,
-) {
+export function createNutritionTools(db: Database.Database) {
   return {
     search_usda: tool({
       description:
-        "Search USDA Foundation Foods for basic ingredient nutrition (per 100g). Use for raw ingredients like chicken, rice, eggs, vegetables.",
+        "Search USDA Foundation Foods for basic ingredient nutrition (per 100g). Use for raw ingredients like chicken, rice, eggs, vegetables, oils, grains.",
       inputSchema: z.object({
         query: z.string().describe("Food ingredient to search for"),
       }),
-      execute: async ({ query }) => searchUsda(usdaIndex, query),
+      execute: async ({ query }) => {
+        const results = searchFoods(db, query, {
+          limit: 5,
+          source: "usda",
+        });
+        return results.map(({ id, score, source, country, ...r }) => ({
+          ...r,
+          per: "100g",
+        }));
+      },
     }),
-    search_openfoodfacts: tool({
+    search_packaged_food: tool({
       description:
-        "Search OpenFoodFacts for packaged/branded food products (per 100g). Use for branded items like specific snacks, drinks, or processed foods.",
+        "Search OpenFoodFacts database for packaged/branded food products (per 100g). Use for branded items like Indomie, Pocari Sweat, Yakult, Ultra Milk, etc. Indonesian products are boosted by default.",
       inputSchema: z.object({
         query: z.string().describe("Product name or brand to search for"),
+        country: z
+          .string()
+          .optional()
+          .describe(
+            "Filter by country name (e.g. 'Indonesia', 'Japan'). Omit to search all countries.",
+          ),
       }),
-      execute: async ({ query }) => searchOpenFoodFacts(query),
+      execute: async ({ query, country }) => {
+        const results = searchFoods(db, query, {
+          limit: 5,
+          source: "openfoodfacts",
+          country,
+        });
+        return results.map(({ id, score, source, ...r }) => ({
+          ...r,
+          per: "100g",
+        }));
+      },
     }),
   };
 }

@@ -67,21 +67,22 @@ services:
     networks:
       - personal_network
 
-  # nutrition-bot:
-  #   build:
-  #     context: ./nutrition
-  #     dockerfile: Dockerfile
-  #   container_name: fitness_nutrition_bot
-  #   restart: unless-stopped
-  #   env_file: .env
-  #   environment:
-  #     - DATABASE_URL=${NUTRITION_DATABASE_URL}
-  #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-  #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-  #   volumes:
-  #     - ./garminconnect-tokens:/app/garminconnect-tokens
-  #   networks:
-  #     - personal_network
+  nutrition-bot:
+    build:
+      context: ./nutrition
+      dockerfile: Dockerfile
+    container_name: fitness_nutrition_bot
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DATABASE_URL=${NUTRITION_DATABASE_URL}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    volumes:
+      - ./nutrition/data:/app/data:ro
+      - ./garminconnect-tokens:/app/garminconnect-tokens
+    networks:
+      - personal_network
 
   # --- Grafana: unified dashboard ---
   grafana:

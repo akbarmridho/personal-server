@@ -5,18 +5,12 @@ FROM node:24-slim AS build
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl unzip && rm -rf /var/lib/apt/lists/*
-
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy package files and install deps
-COPY package.json pnpm-lock.yaml ./
+# Copy package files and install deps (including native better-sqlite3)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
-
-# Download USDA Foundation Foods data
-COPY scripts/ ./scripts/
-RUN bash scripts/download-usda.sh
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -39,20 +33,22 @@ RUN python3 -m venv /opt/garmin-venv \
   && /opt/garmin-venv/bin/pip install --no-cache-dir garminconnect
 ENV PATH="/opt/garmin-venv/bin:$PATH"
 
-# Install pnpm and production deps
+# Install pnpm and production deps (rebuilds better-sqlite3 for runtime arch)
 RUN corepack enable && corepack prepare pnpm@latest --activate
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
-# Copy built output and data
+# Copy built output
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/data ./data
 COPY --from=build /app/drizzle.config.ts ./
 
-# Copy scripts
+# Copy scripts (garmin sync)
 COPY scripts/ ./scripts/
 
 # Copy drizzle migrations
 COPY drizzle/ ./drizzle/
+
+# data/food-search.db is volume-mounted at runtime, not baked into image.
+# Run `pnpm run setup-db` on the host to build it.
 
 CMD ["sh", "-c", "npx drizzle-kit migrate && node dist/index.js"]
