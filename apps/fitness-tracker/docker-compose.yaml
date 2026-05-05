@@ -74,6 +74,9 @@ services:
     container_name: fitness_nutrition_bot
     restart: unless-stopped
     env_file: ./nutrition/.env
+    environment:
+      - FOOD_DB_PATH=/app/data/food-search.db
+      - GARMIN_SYNC_SCRIPT=/app/scripts/sync_garmin_weight.py
     volumes:
       - ./nutrition/data:/app/data:ro
       - ./garminconnect-tokens:/app/garminconnect-tokens

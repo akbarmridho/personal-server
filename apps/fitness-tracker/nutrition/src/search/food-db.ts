@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import Database from "better-sqlite3";
+import { env } from "../infrastructure/env.js";
 import { logger } from "../utils/logger.js";
 
 export interface FoodSearchResult {
@@ -19,7 +20,8 @@ export interface FoodSearchResult {
   score: number;
 }
 
-const DB_PATH = resolve(import.meta.dirname, "../../data/food-search.db");
+const DB_PATH =
+  env.FOOD_DB_PATH ?? resolve(process.cwd(), "data/food-search.db");
 
 export function openFoodDb(): Database.Database {
   if (!existsSync(DB_PATH)) {
@@ -30,9 +32,7 @@ export function openFoodDb(): Database.Database {
     process.exit(1);
   }
 
-  const db = new Database(DB_PATH, { readonly: true });
-  db.pragma("journal_mode = WAL");
-  db.pragma("mmap_size = 268435456"); // 256MB mmap for fast reads
+  const db = new Database(DB_PATH, { readonly: true, fileMustExist: true });
   return db;
 }
 
