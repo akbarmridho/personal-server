@@ -5,7 +5,7 @@ import { meals } from "../db/schema.js";
 const WIB = "Asia/Jakarta";
 const mealTimeWibDate = sql.raw(`(meal_time at time zone '${WIB}')::date`);
 const mealTimeWibDateTrunc = sql.raw(
-  `date_trunc('week', (meal_time at time zone '${WIB}')::date)`,
+  `date_trunc('week', (meal_time at time zone '${WIB}')::date)::date`,
 );
 
 export interface DaySummary {

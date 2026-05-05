@@ -132,10 +132,9 @@ export function createLogHandler(deps: LogDeps) {
       );
 
       const mealTime = result.meal_time
-        ? dayjs(result.meal_time).tz(TZ).toDate()
+        ? dayjs.tz(result.meal_time, TZ).toDate()
         : dayjs
             .unix(ctx.message?.date ?? Math.floor(Date.now() / 1000))
-            .tz(TZ)
             .toDate();
 
       const batchId = String(Date.now());

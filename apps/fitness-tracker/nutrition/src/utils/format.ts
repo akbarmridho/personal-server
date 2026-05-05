@@ -122,8 +122,9 @@ export function formatMonthlySummary(weeks: WeekSummary[]): string {
 
   for (const week of weeks) {
     if (week.days === 0) continue;
+    const weekDate = dayjs(week.weekStart).format("YYYY-MM-DD");
     const avg = Math.round(week.calories / week.days);
-    lines.push(`${week.weekStart}: avg ${avg} kcal/day (${week.days} days)`);
+    lines.push(`${weekDate}: avg ${avg} kcal/day (${week.days} days)`);
     totalCal += week.calories;
     totalDays += week.days;
   }
