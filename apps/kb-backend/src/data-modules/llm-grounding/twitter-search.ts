@@ -40,7 +40,7 @@ export const searchTwitter = async (params: TwitterSearchParams) => {
   };
 
   const response = await client.responses.create({
-    model: "grok-4-1-fast-reasoning",
+    model: "grok-4.3",
     input: [
       {
         role: "system",
