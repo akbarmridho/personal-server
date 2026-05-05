@@ -79,7 +79,6 @@ services:
   #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
   #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
   #   volumes:
-  #     - ./nutrition/data:/app/data
   #     - ./garminconnect-tokens:/app/garminconnect-tokens
   #   networks:
   #     - personal_network

@@ -5,12 +5,18 @@ FROM node:24-slim AS build
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl unzip && rm -rf /var/lib/apt/lists/*
+
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files and install deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
+
+# Download USDA Foundation Foods data
+COPY scripts/ ./scripts/
+RUN bash scripts/download-usda.sh
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -38,18 +44,15 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
-# Copy built output
+# Copy built output and data
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/data ./data
 COPY --from=build /app/drizzle.config.ts ./
-
-# Copy data directory (USDA JSON will be mounted or pre-loaded)
-COPY data/ ./data/
 
 # Copy scripts
 COPY scripts/ ./scripts/
 
-# Copy drizzle migrations if they exist
-COPY drizzle/ ./drizzle/ 2>/dev/null || true
+# Copy drizzle migrations
+COPY drizzle/ ./drizzle/
 
-# Entry point: run migrations then start bot
 CMD ["sh", "-c", "npx drizzle-kit migrate && node dist/index.js"]
