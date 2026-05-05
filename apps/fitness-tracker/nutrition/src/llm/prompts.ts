@@ -38,10 +38,3 @@ RULES:
     - "estimated (no reference data available)"
     - "favorite"${favSection}`;
 }
-
-export const MEASUREMENT_SYSTEM_PROMPT = `You are a body composition data parser. Extract numerical values from the user's text describing their InBody or body composition scan results.
-
-Parse all available metrics. The user may provide values in any format or language (including Indonesian).
-Common fields: weight (kg), body fat percentage, body fat mass (kg), skeletal muscle mass (kg), visceral fat level, BMR (kcal), total body water (L), BMI, fat-free mass (kg), SMI (skeletal muscle index).
-
-Return only the values that are explicitly mentioned. Do not guess or estimate missing values.`;

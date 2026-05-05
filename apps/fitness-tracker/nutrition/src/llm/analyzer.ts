@@ -1,17 +1,16 @@
 import type { ImagePart, TextPart, UserContent } from "ai";
-import { generateObject, generateText, Output, stepCountIs } from "ai";
+import { generateText, Output, stepCountIs } from "ai";
 import type MiniSearch from "minisearch";
 import {
   type Favorite,
   type MealEstimation,
   MealEstimationSchema,
-  type MeasurementData,
-  MeasurementSchema,
 } from "../db/types.js";
 import { nutritionModel } from "../infrastructure/llm.js";
 import type { FoodResult } from "../search/openfoodfacts.js";
 import type { UsdaFood } from "../search/usda.js";
-import { buildMealSystemPrompt, MEASUREMENT_SYSTEM_PROMPT } from "./prompts.js";
+import { logger } from "../utils/logger.js";
+import { buildMealSystemPrompt } from "./prompts.js";
 import { createNutritionTools } from "./tools.js";
 
 interface AnalyzeMealInput {
@@ -56,17 +55,18 @@ export async function analyzeMeal(
     const { output: object } = await generateText({
       model: nutritionModel,
       output: Output.object({ schema: MealEstimationSchema }),
+      system: systemPrompt,
       messages: [
-        { role: "system", content: systemPrompt },
         { role: "user", content: userContent satisfies UserContent },
       ],
       tools,
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(50),
+      temperature: 1,
     });
 
     return object;
   } catch (error) {
-    console.error("LLM analyzeMeal error:", error);
+    logger.error(error, "LLM analyzeMeal error");
     return {
       error: true,
       reason: error instanceof Error ? error.message : "Unknown LLM error",
@@ -74,44 +74,5 @@ export async function analyzeMeal(
       meal_time: null,
       save_as: null,
     };
-  }
-}
-
-export async function parseMeasurement(
-  text?: string,
-  photos?: { data: Uint8Array; mediaType: string }[],
-): Promise<MeasurementData | null> {
-  try {
-    const userContent: Array<TextPart | ImagePart> = [];
-
-    if (text) {
-      userContent.push({ type: "text", text });
-    }
-
-    if (photos) {
-      for (const photo of photos) {
-        userContent.push({
-          type: "image",
-          image: photo.data,
-          mediaType: photo.mediaType,
-        });
-      }
-    }
-
-    if (userContent.length === 0) return null;
-
-    const { object } = await generateObject({
-      model: nutritionModel,
-      schema: MeasurementSchema,
-      messages: [
-        { role: "system", content: MEASUREMENT_SYSTEM_PROMPT },
-        { role: "user", content: userContent satisfies UserContent },
-      ],
-    });
-
-    return object;
-  } catch (error) {
-    console.error("LLM parseMeasurement error:", error);
-    return null;
   }
 }

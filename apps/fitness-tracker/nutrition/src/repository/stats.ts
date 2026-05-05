@@ -3,6 +3,10 @@ import type { DrizzleDB } from "../db/index.js";
 import { meals } from "../db/schema.js";
 
 const WIB = "Asia/Jakarta";
+const mealTimeWibDate = sql.raw(`(meal_time at time zone '${WIB}')::date`);
+const mealTimeWibDateTrunc = sql.raw(
+  `date_trunc('week', (meal_time at time zone '${WIB}')::date)`,
+);
 
 export interface DaySummary {
   date: string;
@@ -22,12 +26,7 @@ export async function getDailyMeals(
   return db
     .select()
     .from(meals)
-    .where(
-      and(
-        eq(meals.userId, userId),
-        sql`(${meals.mealTime} at time zone ${WIB})::date = ${date}`,
-      ),
-    )
+    .where(and(eq(meals.userId, userId), sql`${mealTimeWibDate} = ${date}`))
     .orderBy(meals.mealTime);
 }
 
@@ -39,24 +38,24 @@ export async function getWeeklySummary(
 ): Promise<DaySummary[]> {
   const rows = await db
     .select({
-      date: sql<string>`(${meals.mealTime} at time zone ${WIB})::date::text`,
+      date: sql<string>`${mealTimeWibDate}::text`,
       calories: sql<number>`coalesce(sum(${meals.calories}), 0)`,
       proteinG: sql<number>`coalesce(sum(${meals.proteinG}), 0)`,
       carbsG: sql<number>`coalesce(sum(${meals.carbsG}), 0)`,
       fatG: sql<number>`coalesce(sum(${meals.fatG}), 0)`,
       fiberG: sql<number>`coalesce(sum(${meals.fiberG}), 0)`,
-      mealCount: sql<number>`count(*)`,
+      mealCount: sql<number>`count(*)::int`,
     })
     .from(meals)
     .where(
       and(
         eq(meals.userId, userId),
-        sql`(${meals.mealTime} at time zone ${WIB})::date >= ${startDate}`,
-        sql`(${meals.mealTime} at time zone ${WIB})::date <= ${endDate}`,
+        sql`${mealTimeWibDate} >= ${startDate}`,
+        sql`${mealTimeWibDate} <= ${endDate}`,
       ),
     )
-    .groupBy(sql`(${meals.mealTime} at time zone ${WIB})::date`)
-    .orderBy(sql`(${meals.mealTime} at time zone ${WIB})::date`);
+    .groupBy(mealTimeWibDate)
+    .orderBy(mealTimeWibDate);
 
   return rows;
 }
@@ -79,28 +78,24 @@ export async function getMonthlySummary(
 ): Promise<WeekSummary[]> {
   const rows = await db
     .select({
-      weekStart: sql<string>`date_trunc('week', (${meals.mealTime} at time zone ${WIB})::date)::text`,
+      weekStart: sql<string>`${mealTimeWibDateTrunc}::text`,
       calories: sql<number>`coalesce(sum(${meals.calories}), 0)`,
       proteinG: sql<number>`coalesce(sum(${meals.proteinG}), 0)`,
       carbsG: sql<number>`coalesce(sum(${meals.carbsG}), 0)`,
       fatG: sql<number>`coalesce(sum(${meals.fatG}), 0)`,
       fiberG: sql<number>`coalesce(sum(${meals.fiberG}), 0)`,
-      days: sql<number>`count(distinct (${meals.mealTime} at time zone ${WIB})::date)`,
+      days: sql<number>`count(distinct ${mealTimeWibDate})::int`,
     })
     .from(meals)
     .where(
       and(
         eq(meals.userId, userId),
-        sql`(${meals.mealTime} at time zone ${WIB})::date >= ${startDate}`,
-        sql`(${meals.mealTime} at time zone ${WIB})::date <= ${endDate}`,
+        sql`${mealTimeWibDate} >= ${startDate}`,
+        sql`${mealTimeWibDate} <= ${endDate}`,
       ),
     )
-    .groupBy(
-      sql`date_trunc('week', (${meals.mealTime} at time zone ${WIB})::date)`,
-    )
-    .orderBy(
-      sql`date_trunc('week', (${meals.mealTime} at time zone ${WIB})::date)`,
-    );
+    .groupBy(mealTimeWibDateTrunc)
+    .orderBy(mealTimeWibDateTrunc);
 
   return rows;
 }

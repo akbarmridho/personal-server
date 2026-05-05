@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
+import { logger } from "../utils/logger.js";
 
 export function syncGarminWeight(weight: number, date: string): void {
   const scriptPath = resolve(
@@ -15,6 +16,6 @@ export function syncGarminWeight(weight: number, date: string): void {
   child.unref();
 
   child.on("error", (err) => {
-    console.error("Garmin sync spawn error:", err.message);
+    logger.error(err, "Garmin sync spawn error");
   });
 }

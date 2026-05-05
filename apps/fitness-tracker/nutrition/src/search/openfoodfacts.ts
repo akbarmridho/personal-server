@@ -1,5 +1,8 @@
 import pThrottle from "p-throttle";
 
+const USER_AGENT =
+  "NutritionTracker - personal project - https://github.com/openfoodfacts";
+
 export interface FoodResult {
   name: string;
   brand: string;
@@ -11,22 +14,25 @@ export interface FoodResult {
 }
 
 export function createOpenFoodFactsClient() {
-  const throttle = pThrottle({ limit: 8, interval: 60_000 });
+  // OFF rate-limits anonymous users aggressively; keep requests conservative
+  const throttle = pThrottle({ limit: 5, interval: 60_000 });
 
   const search = throttle(
     async (query: string, limit = 5): Promise<FoodResult[]> => {
       const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
       url.searchParams.set("search_terms", query);
-      url.searchParams.set("cc", "id");
       url.searchParams.set("page_size", String(limit));
       url.searchParams.set("json", "1");
       url.searchParams.set("fields", "product_name,brands,nutriments");
 
       const res = await fetch(url, {
-        headers: { "User-Agent": "NutritionTrackerBot/1.0" },
+        headers: { "User-Agent": USER_AGENT },
       });
 
-      if (!res.ok) return [];
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`OpenFoodFacts search failed [${res.status}]: ${body}`);
+      }
 
       const data = (await res.json()) as {
         products?: Array<{

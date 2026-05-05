@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import MiniSearch from "minisearch";
+import { logger } from "../utils/logger.js";
 
 export interface UsdaFood {
   id: number;
@@ -22,29 +23,35 @@ export function loadUsdaIndex(): MiniSearch<UsdaFood> {
   try {
     raw = readFileSync(dataPath, "utf-8");
   } catch {
-    console.error("USDA Foundation Foods JSON not found at", dataPath);
+    logger.error({ dataPath }, "USDA Foundation Foods JSON not found");
     process.exit(1);
   }
 
-  const rawFoods = JSON.parse(raw) as Array<{
-    fdcId: number;
-    description: string;
-    foodNutrients: Array<{ nutrient: { id: number }; amount?: number }>;
-  }>;
+  const parsed = JSON.parse(raw) as {
+    FoundationFoods?: Array<{
+      fdcId: number;
+      description: string;
+      foodNutrients: Array<{ nutrient: { id: number }; amount?: number }>;
+    }>;
+  };
 
-  const foods: UsdaFood[] = rawFoods.map((f) => {
-    const getNutrient = (id: number) =>
-      f.foodNutrients.find((n) => n.nutrient.id === id)?.amount ?? 0;
-    return {
-      id: f.fdcId,
-      description: f.description,
-      calories: getNutrient(1008),
-      protein: getNutrient(1003),
-      carbs: getNutrient(1005),
-      fat: getNutrient(1004),
-      fiber: getNutrient(1079),
-    };
-  });
+  const rawFoods = parsed.FoundationFoods ?? (parsed as any);
+
+  const foods: UsdaFood[] = rawFoods
+    .filter((f: any) => f !== null)
+    .map((f: any) => {
+      const getNutrient = (id: number) =>
+        f.foodNutrients.find((n) => n.nutrient.id === id)?.amount ?? 0;
+      return {
+        id: f.fdcId,
+        description: f.description,
+        calories: getNutrient(1008),
+        protein: getNutrient(1003),
+        carbs: getNutrient(1005),
+        fat: getNutrient(1004),
+        fiber: getNutrient(1079),
+      };
+    });
 
   const index = new MiniSearch<UsdaFood>({
     fields: ["description"],
@@ -63,7 +70,7 @@ export function loadUsdaIndex(): MiniSearch<UsdaFood> {
   });
 
   index.addAll(foods);
-  console.log(`USDA index loaded: ${foods.length} foods`);
+  logger.info(`USDA index loaded: ${foods.length} foods`);
   return index;
 }
 

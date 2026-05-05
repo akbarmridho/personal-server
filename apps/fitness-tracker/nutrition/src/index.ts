@@ -3,10 +3,11 @@ import { db } from "./db/index.js";
 import { env } from "./infrastructure/env.js";
 import { createOpenFoodFactsClient } from "./search/openfoodfacts.js";
 import { loadUsdaIndex } from "./search/usda.js";
+import { logger } from "./utils/logger.js";
 
 async function main() {
   // Load USDA index (fail-fast if JSON missing)
-  console.log("Loading USDA Foundation Foods index...");
+  logger.info("Loading USDA Foundation Foods index...");
   const usdaIndex = loadUsdaIndex();
 
   // Create OpenFoodFacts client
@@ -19,13 +20,13 @@ async function main() {
     searchOpenFoodFacts,
   });
 
-  console.log("Starting nutrition tracker bot...");
+  logger.info("Starting nutrition tracker bot...");
   await bot.start({
-    onStart: () => console.log("Bot is running."),
+    onStart: () => logger.info("Bot is running."),
   });
 }
 
 main().catch((err) => {
-  console.error("Fatal error:", err);
+  logger.error(err, "Fatal error");
   process.exit(1);
 });
