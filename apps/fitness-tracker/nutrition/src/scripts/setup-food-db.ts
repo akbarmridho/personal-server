@@ -151,19 +151,23 @@ async function getOffCsvPath(): Promise<string> {
     return rootPath;
   }
 
-  // Download
+  // Check data dir
+  const dataCsvPath = resolve(DATA_DIR, OFF_CSV_FILENAME);
+  if (existsSync(dataCsvPath)) {
+    log(`Found OFF CSV at ${dataCsvPath}`);
+    return dataCsvPath;
+  }
+
+  // Download using curl (more reliable than fetch for large files — supports retries)
   const gzPath = resolve(DATA_DIR, `${OFF_CSV_FILENAME}.gz`);
   const csvPath = resolve(DATA_DIR, OFF_CSV_FILENAME);
 
   log(`Downloading OFF CSV from ${OFF_GZ_URL}...`);
-  const res = await fetch(OFF_GZ_URL);
-  if (!res.ok || !res.body) {
-    throw new Error(`Failed to download OFF CSV: ${res.status}`);
-  }
-
-  // Stream to disk
-  const writer = createWriteStream(gzPath);
-  await pipeline(res.body as any, writer);
+  const { execSync } = await import("node:child_process");
+  execSync(
+    `curl -fSL --retry 5 --retry-delay 10 --retry-connrefused -C - -o "${gzPath}" "${OFF_GZ_URL}"`,
+    { stdio: "inherit" },
+  );
   log(`Downloaded ${(statSync(gzPath).size / 1e9).toFixed(2)} GB compressed.`);
 
   // Extract
