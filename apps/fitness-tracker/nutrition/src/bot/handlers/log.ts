@@ -132,7 +132,7 @@ export function createLogHandler(deps: LogDeps) {
       );
 
       const mealTime = result.meal_time
-        ? dayjs.tz(result.meal_time, TZ).toDate()
+        ? dayjs(result.meal_time).toDate()
         : dayjs
             .unix(ctx.message?.date ?? Math.floor(Date.now() / 1000))
             .toDate();

@@ -1,9 +1,21 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone.js";
+import utc from "dayjs/plugin/utc.js";
 import type { Favorite } from "../db/types.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const TZ = "Asia/Jakarta";
 
 export function buildMealSystemPrompt(
   favorites: Favorite[],
-  currentDatetime: string,
+  messageTimestamp: Date,
 ): string {
+  const currentDatetime = dayjs(messageTimestamp)
+    .tz(TZ)
+    .format("YYYY-MM-DDTHH:mm:ssZ");
+
   const favSection =
     favorites.length > 0
       ? `\n\nUSER'S SAVED FAVORITES (use exact values when matched):\n${favorites
@@ -24,7 +36,7 @@ RULES:
 3. DECOMPOSITION: Internally decompose dishes into ingredients to look up reference data (USDA, OpenFoodFacts), but aggregate the result into a single item per dish. Include the per-ingredient lookups in the references array for audit.
 4. ESTIMATION: Based on reference data from tools, estimate portions and calculate total nutrition. Be realistic about typical Indonesian portion sizes.
 5. PHOTOS: If a photo shows a nutrition label, read values directly. If it shows food, estimate based on visual appearance. One photo of a single plate = 1 item.
-6. DATETIME: If the user mentions a time (e.g., "lunch yesterday", "breakfast 8am", "dinner last night"), parse it relative to the current datetime and return as ISO 8601 string in meal_time. If no time mentioned, return null.
+6. DATETIME: The current datetime is in Asia/Jakarta timezone (UTC+7). If the user mentions a specific time (e.g., "breakfast 8am", "lunch yesterday 1pm"), parse it relative to the current datetime and return as ISO 8601 string WITH the +07:00 offset in meal_time. If the user uses vague time descriptions that match the current time of day (e.g., "this night" when it's already night, "this morning" when it's morning), return null — the message timestamp will be used. Only return a meal_time when the described time clearly differs from the current time. If no time mentioned at all, return null.
 7. SAVE AS: If the user says "save as [name]" or "simpan sebagai [name]", set save_as to the alias name. Otherwise null.
 8. PORTION MODIFIERS: Handle multipliers like "x2", "double", "half", "setengah" (Indonesian for half). Multiply all nutrition values accordingly.
 9. ERRORS: If you cannot identify the food or the photo is unclear, set error to true and provide a reason. Return empty items array.

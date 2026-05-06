@@ -35,7 +35,7 @@ export async function analyzeMeal(
   try {
     const systemPrompt = buildMealSystemPrompt(
       input.favorites,
-      input.messageTimestamp.toISOString(),
+      input.messageTimestamp,
     );
 
     const userContent: Array<TextPart | ImagePart> = [];
