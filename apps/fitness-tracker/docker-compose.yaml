@@ -74,9 +74,12 @@ services:
     container_name: fitness_nutrition_bot
     restart: unless-stopped
     env_file: ./nutrition/.env
+    ports:
+      - "8027:8027"
     environment:
       - FOOD_DB_PATH=/app/data/food-search.db
       - GARMIN_SYNC_SCRIPT=/app/scripts/sync_garmin_weight.py
+      - PORT=8027
     volumes:
       - ./nutrition/data:/app/data
       - ./garminconnect-tokens:/app/garminconnect-tokens
