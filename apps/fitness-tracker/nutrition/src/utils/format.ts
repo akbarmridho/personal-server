@@ -64,7 +64,7 @@ export function formatDailySummary(meals: Meal[], dateLabel: string): string {
     const cal = meal.calories ?? 0;
     lines.push(`${time} — ${meal.name}`);
     lines.push(
-      `  ${Math.round(cal)} kcal | P:${Math.round(meal.proteinG ?? 0)}g C:${Math.round(meal.carbsG ?? 0)}g F:${Math.round(meal.fatG ?? 0)}g`,
+      `  ${Math.round(cal)} kcal | P:${Math.round(meal.proteinG ?? 0)}g C:${Math.round(meal.carbsG ?? 0)}g F:${Math.round(meal.fatG ?? 0)}g Fiber:${Math.round(meal.fiberG ?? 0)}g`,
     );
     totalCal += cal;
     totalP += meal.proteinG ?? 0;
@@ -92,21 +92,23 @@ export function formatWeeklySummary(
   let totalCal = 0,
     totalP = 0,
     totalC = 0,
-    totalF = 0;
+    totalF = 0,
+    totalFib = 0;
 
   for (const day of days) {
     totalCal += day.calories;
     totalP += day.proteinG;
     totalC += day.carbsG;
     totalF += day.fatG;
+    totalFib += day.fiberG;
     lines.push(
-      `${day.date}: ${Math.round(day.calories)} kcal | P:${Math.round(day.proteinG)}g C:${Math.round(day.carbsG)}g F:${Math.round(day.fatG)}g`,
+      `${day.date}: ${Math.round(day.calories)} kcal | P:${Math.round(day.proteinG)}g C:${Math.round(day.carbsG)}g F:${Math.round(day.fatG)}g Fiber:${Math.round(day.fiberG)}g`,
     );
   }
 
   lines.push("");
   lines.push(
-    `Avg/day: ${Math.round(totalCal / days.length)} kcal | P:${Math.round(totalP / days.length)}g C:${Math.round(totalC / days.length)}g F:${Math.round(totalF / days.length)}g`,
+    `Avg/day: ${Math.round(totalCal / days.length)} kcal | P:${Math.round(totalP / days.length)}g C:${Math.round(totalC / days.length)}g F:${Math.round(totalF / days.length)}g Fiber:${Math.round(totalFib / days.length)}g`,
   );
 
   return lines.join("\n");
@@ -124,7 +126,13 @@ export function formatMonthlySummary(weeks: WeekSummary[]): string {
     if (week.days === 0) continue;
     const weekDate = dayjs(week.weekStart).format("YYYY-MM-DD");
     const avg = Math.round(week.calories / week.days);
-    lines.push(`${weekDate}: avg ${avg} kcal/day (${week.days} days)`);
+    const avgP = Math.round(week.proteinG / week.days);
+    const avgC = Math.round(week.carbsG / week.days);
+    const avgF = Math.round(week.fatG / week.days);
+    const avgFib = Math.round(week.fiberG / week.days);
+    lines.push(
+      `${weekDate}: avg ${avg} kcal/day | P:${avgP}g C:${avgC}g F:${avgF}g Fiber:${avgFib}g (${week.days} days)`,
+    );
     totalCal += week.calories;
     totalDays += week.days;
   }
