@@ -2,6 +2,13 @@
 
 Unified fitness dashboard combining Garmin health data via Grafana.
 
+## TODO
+
+- more grafana charts for nutrition and liftosaur.
+  - can use grafonnet to vibe code the dashboard. <https://github.com/grafana/grafonnet>
+- when build liftosaur charts: <https://github.com/melihcolpan/MuscleMap> (or other body SVG)
+- expose grafana dashboard <https://github.com/grafana/mcp-grafana> (how it compare with garmin MCP)?
+
 ## Architecture
 
 ```

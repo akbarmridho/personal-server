@@ -241,11 +241,7 @@
       "id": 15,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -266,15 +262,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "2m"
-              ],
+              "params": ["2m"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -286,9 +278,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               },
               {
@@ -393,9 +383,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "/^Time$/",
           "values": false
         },
@@ -419,9 +407,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               },
               {
@@ -539,15 +525,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "$interval"
-              ],
+              "params": ["$interval"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -563,9 +545,7 @@
           "select": [
             [
               {
-                "params": [
-                  "value"
-                ],
+                "params": ["value"],
                 "type": "field"
               },
               {
@@ -595,9 +575,7 @@
           "select": [
             [
               {
-                "params": [
-                  "value"
-                ],
+                "params": ["value"],
                 "type": "field"
               }
             ]
@@ -623,9 +601,7 @@
           "select": [
             [
               {
-                "params": [
-                  "value"
-                ],
+                "params": ["value"],
                 "type": "field"
               }
             ]
@@ -651,9 +627,7 @@
           "select": [
             [
               {
-                "params": [
-                  "value"
-                ],
+                "params": ["value"],
                 "type": "field"
               }
             ]
@@ -759,11 +733,7 @@
       "id": 29,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -791,9 +761,7 @@
           "select": [
             [
               {
-                "params": [
-                  "stressLevel"
-                ],
+                "params": ["stressLevel"],
                 "type": "field"
               }
             ]
@@ -816,9 +784,7 @@
           "select": [
             [
               {
-                "params": [
-                  "BodyBatteryLevel"
-                ],
+                "params": ["BodyBatteryLevel"],
                 "type": "field"
               }
             ]
@@ -869,11 +835,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "names": [
-                "Time",
-                "Body Battery",
-                "Stress Level"
-              ]
+              "names": ["Time", "Body Battery", "Stress Level"]
             }
           }
         }
@@ -932,9 +894,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
+          "calcs": ["last"],
           "fields": "",
           "values": false
         },
@@ -952,15 +912,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -972,9 +928,7 @@
           "select": [
             [
               {
-                "params": [
-                  "restingHeartRate"
-                ],
+                "params": ["restingHeartRate"],
                 "type": "field"
               },
               {
@@ -1048,9 +1002,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
+          "calcs": ["last"],
           "fields": "",
           "values": false
         },
@@ -1068,15 +1020,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -1088,9 +1036,7 @@
           "select": [
             [
               {
-                "params": [
-                  "totalSteps"
-                ],
+                "params": ["totalSteps"],
                 "type": "field"
               },
               {
@@ -1194,11 +1140,7 @@
       "id": 16,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1219,15 +1161,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "15m"
-              ],
+              "params": ["15m"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -1243,9 +1181,7 @@
           "select": [
             [
               {
-                "params": [
-                  "StepsCount"
-                ],
+                "params": ["StepsCount"],
                 "type": "field"
               },
               {
@@ -1355,9 +1291,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
+          "calcs": ["last"],
           "fields": "",
           "values": false
         },
@@ -1375,15 +1309,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -1395,9 +1325,7 @@
           "select": [
             [
               {
-                "params": [
-                  "averageSpo2"
-                ],
+                "params": ["averageSpo2"],
                 "type": "field"
               },
               {
@@ -1489,15 +1417,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1h"
-              ],
+              "params": ["1h"],
               "type": "time"
             },
             {
-              "params": [
-                "0"
-              ],
+              "params": ["0"],
               "type": "fill"
             }
           ],
@@ -1513,9 +1437,7 @@
           "select": [
             [
               {
-                "params": [
-                  "StepsCount"
-                ],
+                "params": ["StepsCount"],
                 "type": "field"
               },
               {
@@ -1589,9 +1511,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
+          "calcs": ["last"],
           "fields": "",
           "values": false
         },
@@ -1609,15 +1529,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -1629,9 +1545,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepTimeSeconds"
-                ],
+                "params": ["sleepTimeSeconds"],
                 "type": "field"
               },
               {
@@ -1733,11 +1647,7 @@
       "id": 62,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1758,15 +1668,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "2m"
-              ],
+              "params": ["2m"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -1779,9 +1685,7 @@
           "select": [
             [
               {
-                "params": [
-                  "BreathingRate"
-                ],
+                "params": ["BreathingRate"],
                 "type": "field"
               },
               {
@@ -1836,10 +1740,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "names": [
-                "Time",
-                "Breathing Rate"
-              ]
+              "names": ["Time", "Breathing Rate"]
             }
           }
         }
@@ -1902,9 +1803,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
+          "calcs": ["last"],
           "fields": "",
           "values": false
         },
@@ -1922,15 +1821,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -1942,9 +1837,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highStressDuration"
-                ],
+                "params": ["highStressDuration"],
                 "type": "field"
               },
               {
@@ -2045,11 +1938,7 @@
       "id": 52,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -2078,9 +1967,7 @@
           "select": [
             [
               {
-                "params": [
-                  "SleepMovementActivityLevel"
-                ],
+                "params": ["SleepMovementActivityLevel"],
                 "type": "field"
               }
             ]
@@ -2189,16 +2076,11 @@
           "displayMode": "table",
           "placement": "right",
           "showLegend": false,
-          "values": [
-            "percent",
-            "value"
-          ]
+          "values": ["percent", "value"]
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "fields": "",
           "values": false
         },
@@ -2219,15 +2101,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2242,9 +2120,7 @@
           "select": [
             [
               {
-                "params": [
-                  "deepSleepSeconds"
-                ],
+                "params": ["deepSleepSeconds"],
                 "type": "field"
               },
               {
@@ -2264,15 +2140,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2287,9 +2159,7 @@
           "select": [
             [
               {
-                "params": [
-                  "lightSleepSeconds"
-                ],
+                "params": ["lightSleepSeconds"],
                 "type": "field"
               },
               {
@@ -2309,15 +2179,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2332,9 +2198,7 @@
           "select": [
             [
               {
-                "params": [
-                  "remSleepSeconds"
-                ],
+                "params": ["remSleepSeconds"],
                 "type": "field"
               },
               {
@@ -2354,15 +2218,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2377,9 +2237,7 @@
           "select": [
             [
               {
-                "params": [
-                  "awakeSleepSeconds"
-                ],
+                "params": ["awakeSleepSeconds"],
                 "type": "field"
               },
               {
@@ -2556,11 +2414,7 @@
       "id": 7,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -2589,9 +2443,7 @@
           "select": [
             [
               {
-                "params": [
-                  "heartRate"
-                ],
+                "params": ["heartRate"],
                 "type": "field"
               }
             ]
@@ -2614,9 +2466,7 @@
           "select": [
             [
               {
-                "params": [
-                  "spo2Reading"
-                ],
+                "params": ["spo2Reading"],
                 "type": "field"
               }
             ]
@@ -2639,9 +2489,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrvValue"
-                ],
+                "params": ["hrvValue"],
                 "type": "field"
               }
             ]
@@ -2674,12 +2522,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "names": [
-                "Time",
-                "SpO2",
-                "HRV",
-                "Sleeping HR"
-              ]
+              "names": ["Time", "SpO2", "HRV", "Sleeping HR"]
             }
           }
         }
@@ -2821,9 +2664,7 @@
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "fields": "",
           "values": false
         },
@@ -2845,15 +2686,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2866,9 +2703,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sedentarySeconds"
-                ],
+                "params": ["sedentarySeconds"],
                 "type": "field"
               },
               {
@@ -2888,15 +2723,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2909,9 +2740,7 @@
           "select": [
             [
               {
-                "params": [
-                  "vigorousIntensityMinutes"
-                ],
+                "params": ["vigorousIntensityMinutes"],
                 "type": "field"
               },
               {
@@ -2919,9 +2748,7 @@
                 "type": "last"
               },
               {
-                "params": [
-                  "* 60"
-                ],
+                "params": ["* 60"],
                 "type": "math"
               }
             ]
@@ -2937,15 +2764,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -2958,9 +2781,7 @@
           "select": [
             [
               {
-                "params": [
-                  "moderateIntensityMinutes"
-                ],
+                "params": ["moderateIntensityMinutes"],
                 "type": "field"
               },
               {
@@ -2968,9 +2789,7 @@
                 "type": "last"
               },
               {
-                "params": [
-                  "* 60"
-                ],
+                "params": ["* 60"],
                 "type": "math"
               }
             ]
@@ -2986,15 +2805,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3007,9 +2822,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepingSeconds"
-                ],
+                "params": ["sleepingSeconds"],
                 "type": "field"
               },
               {
@@ -3206,9 +3019,7 @@
           "select": [
             [
               {
-                "params": [
-                  "SleepStageLevel"
-                ],
+                "params": ["SleepStageLevel"],
                 "type": "field"
               }
             ]
@@ -3233,9 +3044,7 @@
           "select": [
             [
               {
-                "params": [
-                  "SleepStageLevel"
-                ],
+                "params": ["SleepStageLevel"],
                 "type": "field"
               }
             ]
@@ -3260,9 +3069,7 @@
           "select": [
             [
               {
-                "params": [
-                  "SleepStageLevel"
-                ],
+                "params": ["SleepStageLevel"],
                 "type": "field"
               }
             ]
@@ -3287,9 +3094,7 @@
           "select": [
             [
               {
-                "params": [
-                  "SleepStageLevel"
-                ],
+                "params": ["SleepStageLevel"],
                 "type": "field"
               }
             ]
@@ -3340,9 +3145,7 @@
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "fields": "",
           "values": false
         },
@@ -3362,15 +3165,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3382,9 +3181,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrTimeInZone_1"
-                ],
+                "params": ["hrTimeInZone_1"],
                 "type": "field"
               },
               {
@@ -3404,15 +3201,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3425,9 +3218,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrTimeInZone_2"
-                ],
+                "params": ["hrTimeInZone_2"],
                 "type": "field"
               },
               {
@@ -3447,15 +3238,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3468,9 +3255,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrTimeInZone_3"
-                ],
+                "params": ["hrTimeInZone_3"],
                 "type": "field"
               },
               {
@@ -3490,15 +3275,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3511,9 +3292,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrTimeInZone_4"
-                ],
+                "params": ["hrTimeInZone_4"],
                 "type": "field"
               },
               {
@@ -3533,15 +3312,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3554,9 +3329,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrTimeInZone_5"
-                ],
+                "params": ["hrTimeInZone_5"],
                 "type": "field"
               },
               {
@@ -3609,9 +3382,7 @@
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "fields": "",
           "values": false
         },
@@ -3638,9 +3409,7 @@
           "select": [
             [
               {
-                "params": [
-                  "calories"
-                ],
+                "params": ["calories"],
                 "type": "field"
               }
             ]
@@ -3663,9 +3432,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bmrCalories"
-                ],
+                "params": ["bmrCalories"],
                 "type": "field"
               }
             ]
@@ -3779,15 +3546,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "$__interval"
-              ],
+              "params": ["$__interval"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3799,9 +3562,7 @@
           "select": [
             [
               {
-                "params": [
-                  "averageHR"
-                ],
+                "params": ["averageHR"],
                 "type": "field"
               },
               {
@@ -3821,15 +3582,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "$__interval"
-              ],
+              "params": ["$__interval"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -3842,9 +3599,7 @@
           "select": [
             [
               {
-                "params": [
-                  "maxHR"
-                ],
+                "params": ["maxHR"],
                 "type": "field"
               },
               {
@@ -4018,9 +3773,7 @@
           "select": [
             [
               {
-                "params": [
-                  "distance"
-                ],
+                "params": ["distance"],
                 "type": "field"
               }
             ]
@@ -4036,9 +3789,7 @@
           "options": {
             "fields": {
               "Distance": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
+                "aggregations": ["lastNotNull"],
                 "operation": "aggregate"
               },
               "Time": {
@@ -4046,9 +3797,7 @@
                 "operation": "groupby"
               },
               "Value": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
+                "aggregations": ["lastNotNull"],
                 "operation": "aggregate"
               }
             }
@@ -4199,9 +3948,7 @@
           "select": [
             [
               {
-                "params": [
-                  "elapsedDuration"
-                ],
+                "params": ["elapsedDuration"],
                 "type": "field"
               }
             ]
@@ -4217,9 +3964,7 @@
           "options": {
             "fields": {
               "Duration": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
+                "aggregations": ["lastNotNull"],
                 "operation": "aggregate"
               },
               "Time": {
@@ -4227,9 +3972,7 @@
                 "operation": "groupby"
               },
               "Value": {
-                "aggregations": [
-                  "lastNotNull"
-                ],
+                "aggregations": ["lastNotNull"],
                 "operation": "aggregate"
               }
             }
@@ -4415,9 +4158,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Latitude"
-                ],
+                "params": ["Latitude"],
                 "type": "field"
               }
             ]
@@ -4448,9 +4189,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Longitude"
-                ],
+                "params": ["Longitude"],
                 "type": "field"
               }
             ]
@@ -4481,9 +4220,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               }
             ]
@@ -4514,15 +4251,11 @@
           "select": [
             [
               {
-                "params": [
-                  "Speed"
-                ],
+                "params": ["Speed"],
                 "type": "field"
               },
               {
-                "params": [
-                  "* 3.6"
-                ],
+                "params": ["* 3.6"],
                 "type": "math"
               }
             ]
@@ -4759,9 +4492,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Latitude"
-                ],
+                "params": ["Latitude"],
                 "type": "field"
               }
             ]
@@ -4792,9 +4523,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Longitude"
-                ],
+                "params": ["Longitude"],
                 "type": "field"
               }
             ]
@@ -4825,9 +4554,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               }
             ]
@@ -4858,9 +4585,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Speed"
-                ],
+                "params": ["Speed"],
                 "type": "field"
               }
             ]
@@ -4983,11 +4708,7 @@
         "fullHighlight": true,
         "groupWidth": 1,
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -5024,9 +4745,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               }
             ]
@@ -5154,11 +4873,7 @@
         "fullHighlight": true,
         "groupWidth": 1,
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "median"
-          ],
+          "calcs": ["min", "max", "median"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true,
@@ -5197,15 +4912,11 @@
           "select": [
             [
               {
-                "params": [
-                  "Cadence"
-                ],
+                "params": ["Cadence"],
                 "type": "field"
               },
               {
-                "params": [
-                  "* 2"
-                ],
+                "params": ["* 2"],
                 "type": "math"
               }
             ]
@@ -5394,9 +5105,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Distance"
-                ],
+                "params": ["Distance"],
                 "type": "field"
               }
             ]
@@ -5427,9 +5136,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               }
             ]
@@ -5460,15 +5167,11 @@
           "select": [
             [
               {
-                "params": [
-                  "Speed"
-                ],
+                "params": ["Speed"],
                 "type": "field"
               },
               {
-                "params": [
-                  "* 3.6"
-                ],
+                "params": ["* 3.6"],
                 "type": "math"
               }
             ]
@@ -5499,9 +5202,7 @@
           "select": [
             [
               {
-                "params": [
-                  "DurationSeconds"
-                ],
+                "params": ["DurationSeconds"],
                 "type": "field"
               }
             ]
@@ -5525,12 +5226,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "names": [
-                "Time",
-                "Heart Rate",
-                "Pace",
-                "Duration"
-              ]
+              "names": ["Time", "Heart Rate", "Pace", "Duration"]
             }
           }
         }
@@ -5680,15 +5376,11 @@
           "select": [
             [
               {
-                "params": [
-                  "Speed"
-                ],
+                "params": ["Speed"],
                 "type": "field"
               },
               {
-                "params": [
-                  "* 3.6"
-                ],
+                "params": ["* 3.6"],
                 "type": "math"
               }
             ]
@@ -5719,9 +5411,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               }
             ]
@@ -5859,11 +5549,7 @@
         "fullHighlight": true,
         "groupWidth": 1,
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -5899,9 +5585,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Speed"
-                ],
+                "params": ["Speed"],
                 "type": "field"
               }
             ]
@@ -5932,9 +5616,7 @@
           "select": [
             [
               {
-                "params": [
-                  "DurationSeconds"
-                ],
+                "params": ["DurationSeconds"],
                 "type": "field"
               }
             ]
@@ -6014,10 +5696,7 @@
           "options": {
             "byVariable": false,
             "include": {
-              "names": [
-                "Time",
-                "time/km"
-              ]
+              "names": ["Time", "time/km"]
             }
           }
         }
@@ -6146,11 +5825,7 @@
         "fullHighlight": true,
         "groupWidth": 1,
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -6186,9 +5861,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Altitude"
-                ],
+                "params": ["Altitude"],
                 "type": "field"
               }
             ]
@@ -6435,12 +6108,8 @@
         "footer": {
           "countRows": false,
           "enablePagination": false,
-          "fields": [
-            "Duration"
-          ],
-          "reducer": [
-            "sum"
-          ],
+          "fields": ["Duration"],
+          "reducer": ["sum"],
           "show": false
         },
         "frameIndex": 1,
@@ -6472,9 +6141,7 @@
           "select": [
             [
               {
-                "params": [
-                  "activityType"
-                ],
+                "params": ["activityType"],
                 "type": "field"
               }
             ]
@@ -6505,9 +6172,7 @@
           "select": [
             [
               {
-                "params": [
-                  "elapsedDuration"
-                ],
+                "params": ["elapsedDuration"],
                 "type": "field"
               }
             ]
@@ -6539,9 +6204,7 @@
           "select": [
             [
               {
-                "params": [
-                  "maxHR"
-                ],
+                "params": ["maxHR"],
                 "type": "field"
               }
             ]
@@ -6573,15 +6236,11 @@
           "select": [
             [
               {
-                "params": [
-                  "maxSpeed"
-                ],
+                "params": ["maxSpeed"],
                 "type": "field"
               },
               {
-                "params": [
-                  "* 3.6"
-                ],
+                "params": ["* 3.6"],
                 "type": "math"
               }
             ]
@@ -6613,9 +6272,7 @@
           "select": [
             [
               {
-                "params": [
-                  "distance"
-                ],
+                "params": ["distance"],
                 "type": "field"
               }
             ]
@@ -6647,9 +6304,7 @@
           "select": [
             [
               {
-                "params": [
-                  "locationName"
-                ],
+                "params": ["locationName"],
                 "type": "field"
               }
             ]
@@ -6777,9 +6432,7 @@
           "select": [
             [
               {
-                "params": [
-                  "activityType"
-                ],
+                "params": ["activityType"],
                 "type": "field"
               }
             ]
@@ -7089,9 +6742,7 @@
           "countRows": false,
           "enablePagination": false,
           "fields": "",
-          "reducer": [
-            "mean"
-          ],
+          "reducer": ["mean"],
           "show": true
         },
         "showHeader": true,
@@ -7112,15 +6763,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7133,9 +6780,7 @@
           "select": [
             [
               {
-                "params": [
-                  "totalDistanceMeters"
-                ],
+                "params": ["totalDistanceMeters"],
                 "type": "field"
               },
               {
@@ -7155,15 +6800,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7176,9 +6817,7 @@
           "select": [
             [
               {
-                "params": [
-                  "totalSteps"
-                ],
+                "params": ["totalSteps"],
                 "type": "field"
               },
               {
@@ -7198,15 +6837,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7219,9 +6854,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepingSeconds"
-                ],
+                "params": ["sleepingSeconds"],
                 "type": "field"
               },
               {
@@ -7241,15 +6874,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7262,9 +6891,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highStressDuration"
-                ],
+                "params": ["highStressDuration"],
                 "type": "field"
               },
               {
@@ -7284,15 +6911,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7305,9 +6928,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highlyActiveSeconds"
-                ],
+                "params": ["highlyActiveSeconds"],
                 "type": "field"
               },
               {
@@ -7327,15 +6948,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7347,9 +6964,7 @@
           "select": [
             [
               {
-                "params": [
-                  "restingHeartRate"
-                ],
+                "params": ["restingHeartRate"],
                 "type": "field"
               },
               {
@@ -7369,15 +6984,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7390,9 +7001,7 @@
           "select": [
             [
               {
-                "params": [
-                  "averageSpo2"
-                ],
+                "params": ["averageSpo2"],
                 "type": "field"
               },
               {
@@ -7412,15 +7021,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7433,9 +7038,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bodyBatteryChargedValue"
-                ],
+                "params": ["bodyBatteryChargedValue"],
                 "type": "field"
               },
               {
@@ -7520,11 +7123,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -7551,15 +7150,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7571,9 +7166,7 @@
           "select": [
             [
               {
-                "params": [
-                  "totalSteps"
-                ],
+                "params": ["totalSteps"],
                 "type": "field"
               },
               {
@@ -7652,11 +7245,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -7683,15 +7272,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7703,9 +7288,7 @@
           "select": [
             [
               {
-                "params": [
-                  "totalDistanceMeters"
-                ],
+                "params": ["totalDistanceMeters"],
                 "type": "field"
               },
               {
@@ -7814,11 +7397,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -7845,15 +7424,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7866,9 +7441,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bmrKilocalories"
-                ],
+                "params": ["bmrKilocalories"],
                 "type": "field"
               },
               {
@@ -7888,15 +7461,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -7908,9 +7477,7 @@
           "select": [
             [
               {
-                "params": [
-                  "activeKilocalories"
-                ],
+                "params": ["activeKilocalories"],
                 "type": "field"
               },
               {
@@ -8088,11 +7655,7 @@
       "id": 11,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -8113,15 +7676,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8134,9 +7693,7 @@
           "select": [
             [
               {
-                "params": [
-                  "averageSpO2Value"
-                ],
+                "params": ["averageSpO2Value"],
                 "type": "field"
               },
               {
@@ -8156,15 +7713,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8177,9 +7730,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrvValue"
-                ],
+                "params": ["hrvValue"],
                 "type": "field"
               },
               {
@@ -8199,15 +7750,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8220,9 +7767,7 @@
           "select": [
             [
               {
-                "params": [
-                  "restingHeartRate"
-                ],
+                "params": ["restingHeartRate"],
                 "type": "field"
               },
               {
@@ -8398,11 +7943,7 @@
       "id": 51,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -8423,15 +7964,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8444,9 +7981,7 @@
           "select": [
             [
               {
-                "params": [
-                  "BreathingRate"
-                ],
+                "params": ["BreathingRate"],
                 "type": "field"
               },
               {
@@ -8466,15 +8001,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8487,9 +8018,7 @@
           "select": [
             [
               {
-                "params": [
-                  "stressLevel"
-                ],
+                "params": ["stressLevel"],
                 "type": "field"
               },
               {
@@ -8509,15 +8038,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8530,9 +8055,7 @@
           "select": [
             [
               {
-                "params": [
-                  "avgSleepStress"
-                ],
+                "params": ["avgSleepStress"],
                 "type": "field"
               },
               {
@@ -8677,12 +8200,7 @@
       "id": 63,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean",
-            "lastNotNull"
-          ],
+          "calcs": ["min", "max", "mean", "lastNotNull"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -8703,15 +8221,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8724,9 +8238,7 @@
           "select": [
             [
               {
-                "params": [
-                  "time5K"
-                ],
+                "params": ["time5K"],
                 "type": "field"
               },
               {
@@ -8746,15 +8258,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8767,9 +8275,7 @@
           "select": [
             [
               {
-                "params": [
-                  "time10K"
-                ],
+                "params": ["time10K"],
                 "type": "field"
               },
               {
@@ -8789,15 +8295,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8810,9 +8312,7 @@
           "select": [
             [
               {
-                "params": [
-                  "timeHalfMarathon"
-                ],
+                "params": ["timeHalfMarathon"],
                 "type": "field"
               },
               {
@@ -8832,15 +8332,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -8853,9 +8349,7 @@
           "select": [
             [
               {
-                "params": [
-                  "timeMarathon"
-                ],
+                "params": ["timeMarathon"],
                 "type": "field"
               },
               {
@@ -8900,10 +8394,7 @@
             "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineStyle": {
-              "dash": [
-                0,
-                10
-              ],
+              "dash": [0, 10],
               "fill": "dot"
             },
             "lineWidth": 1,
@@ -9004,11 +8495,7 @@
       "id": 64,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -9029,15 +8516,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9050,9 +8533,7 @@
           "select": [
             [
               {
-                "params": [
-                  "VO2_max_value"
-                ],
+                "params": ["VO2_max_value"],
                 "type": "field"
               },
               {
@@ -9233,9 +8714,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Latitude"
-                ],
+                "params": ["Latitude"],
                 "type": "field"
               }
             ]
@@ -9259,9 +8738,7 @@
           "select": [
             [
               {
-                "params": [
-                  "Longitude"
-                ],
+                "params": ["Longitude"],
                 "type": "field"
               }
             ]
@@ -9411,9 +8888,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "displayMode": "list",
           "placement": "bottom",
           "showLegend": true
@@ -9440,15 +8915,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "12h"
-              ],
+              "params": ["12h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9461,9 +8932,7 @@
           "select": [
             [
               {
-                "params": [
-                  "deepSleepSeconds"
-                ],
+                "params": ["deepSleepSeconds"],
                 "type": "field"
               },
               {
@@ -9483,15 +8952,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "12h"
-              ],
+              "params": ["12h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9504,9 +8969,7 @@
           "select": [
             [
               {
-                "params": [
-                  "lightSleepSeconds"
-                ],
+                "params": ["lightSleepSeconds"],
                 "type": "field"
               },
               {
@@ -9526,15 +8989,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "12h"
-              ],
+              "params": ["12h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9547,9 +9006,7 @@
           "select": [
             [
               {
-                "params": [
-                  "remSleepSeconds"
-                ],
+                "params": ["remSleepSeconds"],
                 "type": "field"
               },
               {
@@ -9569,15 +9026,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "12h"
-              ],
+              "params": ["12h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9590,9 +9043,7 @@
           "select": [
             [
               {
-                "params": [
-                  "awakeSleepSeconds"
-                ],
+                "params": ["awakeSleepSeconds"],
                 "type": "field"
               },
               {
@@ -9725,16 +9176,11 @@
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true,
-          "values": [
-            "value",
-            "percent"
-          ]
+          "values": ["value", "percent"]
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "fields": "",
           "values": false
         },
@@ -9756,15 +9202,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9777,9 +9219,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sedentarySeconds"
-                ],
+                "params": ["sedentarySeconds"],
                 "type": "field"
               },
               {
@@ -9799,15 +9239,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9820,9 +9256,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highlyActiveSeconds"
-                ],
+                "params": ["highlyActiveSeconds"],
                 "type": "field"
               },
               {
@@ -9842,15 +9276,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9863,9 +9293,7 @@
           "select": [
             [
               {
-                "params": [
-                  "activeSeconds"
-                ],
+                "params": ["activeSeconds"],
                 "type": "field"
               },
               {
@@ -9885,15 +9313,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -9906,9 +9330,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepingSeconds"
-                ],
+                "params": ["sleepingSeconds"],
                 "type": "field"
               },
               {
@@ -9986,11 +9408,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -10017,15 +9435,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10038,9 +9452,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepScore"
-                ],
+                "params": ["sleepScore"],
                 "type": "field"
               },
               {
@@ -10228,11 +9640,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -10259,15 +9667,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10280,9 +9684,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepingSeconds"
-                ],
+                "params": ["sleepingSeconds"],
                 "type": "field"
               },
               {
@@ -10302,15 +9704,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10323,9 +9721,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sedentarySeconds"
-                ],
+                "params": ["sedentarySeconds"],
                 "type": "field"
               },
               {
@@ -10345,15 +9741,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10365,9 +9757,7 @@
           "select": [
             [
               {
-                "params": [
-                  "activeSeconds"
-                ],
+                "params": ["activeSeconds"],
                 "type": "field"
               },
               {
@@ -10387,15 +9777,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10408,9 +9794,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highlyActiveSeconds"
-                ],
+                "params": ["highlyActiveSeconds"],
                 "type": "field"
               },
               {
@@ -10516,11 +9900,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -10547,15 +9927,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10568,9 +9944,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bodyBatteryChargedValue"
-                ],
+                "params": ["bodyBatteryChargedValue"],
                 "type": "field"
               },
               {
@@ -10590,15 +9964,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10611,9 +9981,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bodyBatteryDrainedValue"
-                ],
+                "params": ["bodyBatteryDrainedValue"],
                 "type": "field"
               },
               {
@@ -10621,9 +9989,7 @@
                 "type": "mean"
               },
               {
-                "params": [
-                  "* -1"
-                ],
+                "params": ["* -1"],
                 "type": "math"
               }
             ]
@@ -10729,11 +10095,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -10760,15 +10122,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10780,9 +10138,7 @@
           "select": [
             [
               {
-                "params": [
-                  "moderateIntensityMinutes"
-                ],
+                "params": ["moderateIntensityMinutes"],
                 "type": "field"
               },
               {
@@ -10790,9 +10146,7 @@
                 "type": "max"
               },
               {
-                "params": [
-                  "* 60"
-                ],
+                "params": ["* 60"],
                 "type": "math"
               }
             ]
@@ -10808,15 +10162,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -10829,9 +10179,7 @@
           "select": [
             [
               {
-                "params": [
-                  "vigorousIntensityMinutes"
-                ],
+                "params": ["vigorousIntensityMinutes"],
                 "type": "field"
               },
               {
@@ -10839,9 +10187,7 @@
                 "type": "max"
               },
               {
-                "params": [
-                  "* 60"
-                ],
+                "params": ["* 60"],
                 "type": "math"
               }
             ]
@@ -11082,11 +10428,7 @@
         "fullHighlight": false,
         "groupWidth": 0.7,
         "legend": {
-          "calcs": [
-            "mean",
-            "max",
-            "min"
-          ],
+          "calcs": ["mean", "max", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -11113,15 +10455,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11134,9 +10472,7 @@
           "select": [
             [
               {
-                "params": [
-                  "lowStressDuration"
-                ],
+                "params": ["lowStressDuration"],
                 "type": "field"
               },
               {
@@ -11156,15 +10492,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11177,9 +10509,7 @@
           "select": [
             [
               {
-                "params": [
-                  "restStressDuration"
-                ],
+                "params": ["restStressDuration"],
                 "type": "field"
               },
               {
@@ -11199,15 +10529,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11220,9 +10546,7 @@
           "select": [
             [
               {
-                "params": [
-                  "mediumStressDuration"
-                ],
+                "params": ["mediumStressDuration"],
                 "type": "field"
               },
               {
@@ -11242,15 +10566,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11263,9 +10583,7 @@
           "select": [
             [
               {
-                "params": [
-                  "uncategorizedStressDuration"
-                ],
+                "params": ["uncategorizedStressDuration"],
                 "type": "field"
               },
               {
@@ -11285,15 +10603,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11305,9 +10619,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highStressDuration"
-                ],
+                "params": ["highStressDuration"],
                 "type": "field"
               },
               {
@@ -11418,16 +10730,11 @@
           "displayMode": "table",
           "placement": "right",
           "showLegend": true,
-          "values": [
-            "percent",
-            "value"
-          ]
+          "values": ["percent", "value"]
         },
         "pieType": "donut",
         "reduceOptions": {
-          "calcs": [
-            "mean"
-          ],
+          "calcs": ["mean"],
           "fields": "",
           "values": false
         },
@@ -11448,15 +10755,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11471,9 +10774,7 @@
           "select": [
             [
               {
-                "params": [
-                  "deepSleepSeconds"
-                ],
+                "params": ["deepSleepSeconds"],
                 "type": "field"
               },
               {
@@ -11493,15 +10794,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11516,9 +10813,7 @@
           "select": [
             [
               {
-                "params": [
-                  "lightSleepSeconds"
-                ],
+                "params": ["lightSleepSeconds"],
                 "type": "field"
               },
               {
@@ -11538,15 +10833,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11561,9 +10852,7 @@
           "select": [
             [
               {
-                "params": [
-                  "remSleepSeconds"
-                ],
+                "params": ["remSleepSeconds"],
                 "type": "field"
               },
               {
@@ -11583,15 +10872,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11606,9 +10891,7 @@
           "select": [
             [
               {
-                "params": [
-                  "awakeSleepSeconds"
-                ],
+                "params": ["awakeSleepSeconds"],
                 "type": "field"
               },
               {
@@ -11741,15 +11024,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11761,9 +11040,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bodyBatteryLowestValue"
-                ],
+                "params": ["bodyBatteryLowestValue"],
                 "type": "field"
               },
               {
@@ -11783,15 +11060,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -11804,9 +11077,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bodyBatteryHighestValue"
-                ],
+                "params": ["bodyBatteryHighestValue"],
                 "type": "field"
               },
               {
@@ -11850,11 +11121,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "names": [
-                "bb_low",
-                "Battery Difference",
-                "Time"
-              ]
+              "names": ["bb_low", "Battery Difference", "Time"]
             }
           }
         }
@@ -11890,10 +11157,7 @@
             "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineStyle": {
-              "dash": [
-                0,
-                10
-              ],
+              "dash": [0, 10],
               "fill": "dot"
             },
             "lineWidth": 2,
@@ -11968,11 +11232,7 @@
       "id": 34,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max",
-            "mean"
-          ],
+          "calcs": ["min", "max", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -11993,15 +11253,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "$__interval"
-              ],
+              "params": ["$__interval"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12013,9 +11269,7 @@
           "select": [
             [
               {
-                "params": [
-                  "weight"
-                ],
+                "params": ["weight"],
                 "type": "field"
               },
               {
@@ -12149,15 +11403,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12169,9 +11419,7 @@
           "select": [
             [
               {
-                "params": [
-                  "minHeartRate"
-                ],
+                "params": ["minHeartRate"],
                 "type": "field"
               },
               {
@@ -12191,15 +11439,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12212,9 +11456,7 @@
           "select": [
             [
               {
-                "params": [
-                  "maxHeartRate"
-                ],
+                "params": ["maxHeartRate"],
                 "type": "field"
               },
               {
@@ -12258,11 +11500,7 @@
           "id": "filterFieldsByName",
           "options": {
             "include": {
-              "names": [
-                "Time",
-                "hr_high",
-                "hr_low"
-              ]
+              "names": ["Time", "hr_high", "hr_low"]
             }
           }
         }
@@ -12555,15 +11793,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12575,9 +11809,7 @@
           "select": [
             [
               {
-                "params": [
-                  "restingHeartRate"
-                ],
+                "params": ["restingHeartRate"],
                 "type": "field"
               },
               {
@@ -12597,15 +11829,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12618,9 +11846,7 @@
           "select": [
             [
               {
-                "params": [
-                  "highStressDuration"
-                ],
+                "params": ["highStressDuration"],
                 "type": "field"
               },
               {
@@ -12640,15 +11866,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12661,9 +11883,7 @@
           "select": [
             [
               {
-                "params": [
-                  "activeSeconds"
-                ],
+                "params": ["activeSeconds"],
                 "type": "field"
               },
               {
@@ -12683,15 +11903,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12704,9 +11920,7 @@
           "select": [
             [
               {
-                "params": [
-                  "bodyBatteryHighestValue"
-                ],
+                "params": ["bodyBatteryHighestValue"],
                 "type": "field"
               },
               {
@@ -12726,15 +11940,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12747,9 +11957,7 @@
           "select": [
             [
               {
-                "params": [
-                  "totalSteps"
-                ],
+                "params": ["totalSteps"],
                 "type": "field"
               },
               {
@@ -12769,15 +11977,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12790,9 +11994,7 @@
           "select": [
             [
               {
-                "params": [
-                  "averageSpo2"
-                ],
+                "params": ["averageSpo2"],
                 "type": "field"
               },
               {
@@ -12812,15 +12014,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12833,9 +12031,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepScore"
-                ],
+                "params": ["sleepScore"],
                 "type": "field"
               },
               {
@@ -12855,15 +12051,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12876,9 +12068,7 @@
           "select": [
             [
               {
-                "params": [
-                  "sleepingSeconds"
-                ],
+                "params": ["sleepingSeconds"],
                 "type": "field"
               },
               {
@@ -12898,15 +12088,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1d"
-              ],
+              "params": ["1d"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -12919,9 +12105,7 @@
           "select": [
             [
               {
-                "params": [
-                  "hrvValue"
-                ],
+                "params": ["hrvValue"],
                 "type": "field"
               },
               {
@@ -13140,15 +12324,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "2m"
-              ],
+              "params": ["2m"],
               "type": "time"
             },
             {
-              "params": [
-                "0"
-              ],
+              "params": ["0"],
               "type": "fill"
             }
           ],
@@ -13161,9 +12341,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               },
               {
@@ -13182,15 +12360,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1h"
-              ],
+              "params": ["1h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -13203,9 +12377,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               },
               {
@@ -13224,15 +12396,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1h"
-              ],
+              "params": ["1h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -13245,9 +12413,7 @@
           "select": [
             [
               {
-                "params": [
-                  "BodyBatteryLevel"
-                ],
+                "params": ["BodyBatteryLevel"],
                 "type": "field"
               },
               {
@@ -13266,15 +12432,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1h"
-              ],
+              "params": ["1h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -13287,9 +12449,7 @@
           "select": [
             [
               {
-                "params": [
-                  "stressLevel"
-                ],
+                "params": ["stressLevel"],
                 "type": "field"
               },
               {
@@ -13308,15 +12468,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1h"
-              ],
+              "params": ["1h"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -13329,9 +12485,7 @@
           "select": [
             [
               {
-                "params": [
-                  "StepsCount"
-                ],
+                "params": ["StepsCount"],
                 "type": "field"
               },
               {
@@ -13432,15 +12586,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "$__interval"
-              ],
+              "params": ["$__interval"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -13452,9 +12602,7 @@
           "select": [
             [
               {
-                "params": [
-                  "HeartRate"
-                ],
+                "params": ["HeartRate"],
                 "type": "field"
               },
               {
@@ -13537,15 +12685,11 @@
           },
           "groupBy": [
             {
-              "params": [
-                "$__interval"
-              ],
+              "params": ["$__interval"],
               "type": "time"
             },
             {
-              "params": [
-                "null"
-              ],
+              "params": ["null"],
               "type": "fill"
             }
           ],
@@ -13557,9 +12701,7 @@
           "select": [
             [
               {
-                "params": [
-                  "StepsCount"
-                ],
+                "params": ["StepsCount"],
                 "type": "field"
               },
               {
@@ -13697,9 +12839,7 @@
           },
           "groupBy": [
             {
-              "params": [
-                "1h"
-              ],
+              "params": ["1h"],
               "type": "time"
             }
           ],
@@ -13714,9 +12854,7 @@
           "select": [
             [
               {
-                "params": [
-                  "SleepStageLevel"
-                ],
+                "params": ["SleepStageLevel"],
                 "type": "field"
               },
               {
@@ -13841,9 +12979,7 @@
           },
           "groupBy": [
             {
-              "params": [
-                "10m"
-              ],
+              "params": ["10m"],
               "type": "time"
             }
           ],
@@ -13855,9 +12991,7 @@
           "select": [
             [
               {
-                "params": [
-                  "value"
-                ],
+                "params": ["value"],
                 "type": "field"
               },
               {
@@ -13903,8 +13037,8 @@
       },
       {
         "current": {
-          "text": "Europe/Budapest",
-          "value": "Europe/Budapest"
+          "text": "Asia/Jakarta",
+          "value": "Asia/Jakarta"
         },
         "description": "Your local time zone for grouping stats",
         "label": "Local Time Zone",
@@ -13961,7 +13095,7 @@
             "value": "Europe/Warsaw"
           },
           {
-            "selected": true,
+            "selected": false,
             "text": "Europe/Budapest",
             "value": "Europe/Budapest"
           },
@@ -14101,7 +13235,7 @@
             "value": "Asia/Kuala_Lumpur"
           },
           {
-            "selected": false,
+            "selected": true,
             "text": "Asia/Jakarta",
             "value": "Asia/Jakarta"
           },
