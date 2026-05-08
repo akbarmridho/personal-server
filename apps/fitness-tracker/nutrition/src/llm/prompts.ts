@@ -80,9 +80,12 @@ ALIAS RULES:
 
 NUTRITION RULES:
 1. If a photo shows a nutrition label, read values directly.
-2. If it shows food or is a text description, estimate based on reference data from tools.
+2. If it shows food or is a text description, decompose into ingredients and use the search tools (USDA, OpenFoodFacts) to look up reference data. Estimate portions and calculate total nutrition.
 3. Return ONE item representing the food to save.
 4. Always include fiber. If unknown, estimate.
-5. Include references for audit (same format as meal logging).
+5. Include references for audit — each entry should include source, item name, and nutrition values used. Examples:
+    - "usda:rice, white, cooked (130kcal/100g, P:2.7g, C:28g, F:0.3g) x180g"
+    - "openfoodfacts:Yakult Original (50kcal/65ml, P:1g, C:11g, F:0g)"
+    - "nutrition_label (per serving: 250kcal, P:12g, C:30g, F:8g)"
 6. ERRORS: If you cannot identify the food, set error to true, provide a reason, and set item to null.${existingAliases}`;
 }
