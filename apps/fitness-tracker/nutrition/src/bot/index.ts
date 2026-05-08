@@ -14,7 +14,11 @@ import { createLogHandler } from "./handlers/log.js";
 import { createMeasureHandler } from "./handlers/measure.js";
 import { createProgressHandler } from "./handlers/progress.js";
 import { createSaveFavHandler } from "./handlers/savefav.js";
-import { createMediaGroupCollector } from "./media-group.js";
+import {
+  appendToMediaGroup,
+  createMediaGroupCollector,
+  isMediaGroupPending,
+} from "./media-group.js";
 
 export interface BotDependencies {
   db: DrizzleDB;
@@ -72,7 +76,14 @@ export async function createBot(token: string, deps: BotDependencies) {
   bot.command("progress", progressHandler);
 
   // Handle photos sent without /log command (treat as /log with photo)
-  bot.on("message:photo", logCollector);
+  bot.on("message:photo", (ctx) => {
+    const groupId = ctx.message?.media_group_id;
+    // If this photo belongs to a media group already claimed by another handler, route it there
+    if (isMediaGroupPending(groupId)) {
+      return appendToMediaGroup(groupId!, ctx);
+    }
+    return logCollector(ctx);
+  });
 
   // Fallback for any unhandled message
   bot.on("message", (ctx) => {

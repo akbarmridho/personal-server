@@ -10,7 +10,7 @@ dayjs.extend(timezone);
 const TZ = "Asia/Jakarta";
 
 /** Format number: drop decimals if whole, otherwise 1 decimal place */
-function fmt(n: number): string {
+export function fmt(n: number): string {
   return Number.isInteger(n) ? n.toString() : n.toFixed(1).replace(/\.0$/, "");
 }
 

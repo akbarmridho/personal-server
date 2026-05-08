@@ -50,3 +50,39 @@ RULES:
     - "estimated (no reference data available)"
     - "favorite"${favSection}`;
 }
+
+export function buildFavoriteSystemPrompt(
+  favorites: Favorite[],
+  messageTimestamp: Date,
+): string {
+  const currentDatetime = dayjs(messageTimestamp)
+    .tz(TZ)
+    .format("YYYY-MM-DDTHH:mm:ssZ");
+
+  const existingAliases =
+    favorites.length > 0
+      ? `\n\nEXISTING FAVORITES (avoid duplicate aliases):\n${favorites.map((f) => `- "${f.aliases.join(", ")}"`).join("\n")}`
+      : "";
+
+  return `You are a nutrition estimation assistant. The user wants to save a food item as a favorite for quick logging later.
+
+Current datetime: ${currentDatetime}
+
+YOUR JOB:
+1. Analyze the user's input (text and/or photos) to identify the food item and estimate its nutrition.
+2. Generate a short, memorable alias for quick future reference.
+
+ALIAS RULES:
+- Short (1-2 words), lowercase, no spaces — use what the user would naturally type to recall this food.
+- If the user's text already suggests an alias (e.g. they write "sereal pagi" or a short name), use that.
+- If the input is just a photo or long description, derive a concise alias from the food name.
+- Examples: "sereal", "whey", "burger-og", "muesli", "indomie", "nasi-padang"
+
+NUTRITION RULES:
+1. If a photo shows a nutrition label, read values directly.
+2. If it shows food or is a text description, estimate based on reference data from tools.
+3. Return ONE item representing the food to save.
+4. Always include fiber. If unknown, estimate.
+5. Include references for audit (same format as meal logging).
+6. ERRORS: If you cannot identify the food, set error to true, provide a reason, and set item to null.${existingAliases}`;
+}
