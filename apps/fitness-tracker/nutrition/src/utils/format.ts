@@ -9,6 +9,11 @@ dayjs.extend(timezone);
 
 const TZ = "Asia/Jakarta";
 
+/** Format number: drop decimals if whole, otherwise 1 decimal place */
+function fmt(n: number): string {
+  return Number.isInteger(n) ? n.toString() : n.toFixed(1).replace(/\.0$/, "");
+}
+
 export function formatMealBreakdown(
   items: FoodItem[],
   mealTime?: Date,
@@ -25,7 +30,7 @@ export function formatMealBreakdown(
 
   for (const item of items) {
     lines.push(
-      `• ${item.name} (${item.portion})\n  ${item.calories} kcal | P:${item.protein_g}g C:${item.carbs_g}g F:${item.fat_g}g Fiber:${item.fiber_g}g`,
+      `• ${item.name} (${item.portion})\n  ${fmt(item.calories)} kcal | P:${fmt(item.protein_g)}g C:${fmt(item.carbs_g)}g F:${fmt(item.fat_g)}g Fiber:${fmt(item.fiber_g)}g`,
     );
   }
 
@@ -42,7 +47,7 @@ export function formatMealBreakdown(
 
   lines.push("");
   lines.push(
-    `Total: ${Math.round(totals.calories)} kcal | P:${Math.round(totals.protein)}g C:${Math.round(totals.carbs)}g F:${Math.round(totals.fat)}g Fiber:${Math.round(totals.fiber)}g`,
+    `Total: ${fmt(totals.calories)} kcal | P:${fmt(totals.protein)}g C:${fmt(totals.carbs)}g F:${fmt(totals.fat)}g Fiber:${fmt(totals.fiber)}g`,
   );
 
   return lines.join("\n");
@@ -64,7 +69,7 @@ export function formatDailySummary(meals: Meal[], dateLabel: string): string {
     const cal = meal.calories ?? 0;
     lines.push(`${time} — ${meal.name}`);
     lines.push(
-      `  ${Math.round(cal)} kcal | P:${Math.round(meal.proteinG ?? 0)}g C:${Math.round(meal.carbsG ?? 0)}g F:${Math.round(meal.fatG ?? 0)}g Fiber:${Math.round(meal.fiberG ?? 0)}g`,
+      `  ${fmt(cal)} kcal | P:${fmt(meal.proteinG ?? 0)}g C:${fmt(meal.carbsG ?? 0)}g F:${fmt(meal.fatG ?? 0)}g Fiber:${fmt(meal.fiberG ?? 0)}g`,
     );
     totalCal += cal;
     totalP += meal.proteinG ?? 0;
@@ -75,7 +80,7 @@ export function formatDailySummary(meals: Meal[], dateLabel: string): string {
 
   lines.push("");
   lines.push(
-    `Total: ${Math.round(totalCal)} kcal | P:${Math.round(totalP)}g C:${Math.round(totalC)}g F:${Math.round(totalF)}g Fiber:${Math.round(totalFib)}g`,
+    `Total: ${fmt(totalCal)} kcal | P:${fmt(totalP)}g C:${fmt(totalC)}g F:${fmt(totalF)}g Fiber:${fmt(totalFib)}g`,
   );
 
   return lines.join("\n");
@@ -102,13 +107,13 @@ export function formatWeeklySummary(
     totalF += day.fatG;
     totalFib += day.fiberG;
     lines.push(
-      `${day.date}: ${Math.round(day.calories)} kcal | P:${Math.round(day.proteinG)}g C:${Math.round(day.carbsG)}g F:${Math.round(day.fatG)}g Fiber:${Math.round(day.fiberG)}g`,
+      `${day.date}: ${fmt(day.calories)} kcal | P:${fmt(day.proteinG)}g C:${fmt(day.carbsG)}g F:${fmt(day.fatG)}g Fiber:${fmt(day.fiberG)}g`,
     );
   }
 
   lines.push("");
   lines.push(
-    `Avg/day: ${Math.round(totalCal / days.length)} kcal | P:${Math.round(totalP / days.length)}g C:${Math.round(totalC / days.length)}g F:${Math.round(totalF / days.length)}g Fiber:${Math.round(totalFib / days.length)}g`,
+    `Avg/day: ${fmt(totalCal / days.length)} kcal | P:${fmt(totalP / days.length)}g C:${fmt(totalC / days.length)}g F:${fmt(totalF / days.length)}g Fiber:${fmt(totalFib / days.length)}g`,
   );
 
   return lines.join("\n");
@@ -125,11 +130,11 @@ export function formatMonthlySummary(weeks: WeekSummary[]): string {
   for (const week of weeks) {
     if (week.days === 0) continue;
     const weekDate = dayjs(week.weekStart).format("YYYY-MM-DD");
-    const avg = Math.round(week.calories / week.days);
-    const avgP = Math.round(week.proteinG / week.days);
-    const avgC = Math.round(week.carbsG / week.days);
-    const avgF = Math.round(week.fatG / week.days);
-    const avgFib = Math.round(week.fiberG / week.days);
+    const avg = fmt(week.calories / week.days);
+    const avgP = fmt(week.proteinG / week.days);
+    const avgC = fmt(week.carbsG / week.days);
+    const avgF = fmt(week.fatG / week.days);
+    const avgFib = fmt(week.fiberG / week.days);
     lines.push(
       `${weekDate}: avg ${avg} kcal/day | P:${avgP}g C:${avgC}g F:${avgF}g Fiber:${avgFib}g (${week.days} days)`,
     );
@@ -139,7 +144,7 @@ export function formatMonthlySummary(weeks: WeekSummary[]): string {
 
   if (totalDays > 0) {
     lines.push("");
-    lines.push(`Overall avg: ${Math.round(totalCal / totalDays)} kcal/day`);
+    lines.push(`Overall avg: ${fmt(totalCal / totalDays)} kcal/day`);
   }
 
   return lines.join("\n");
