@@ -75,13 +75,24 @@ export async function createBot(token: string, deps: BotDependencies) {
   bot.command("measure", measureHandler);
   bot.command("progress", progressHandler);
 
-  // Handle photos sent without /log command (treat as /log with photo)
+  // Handle photos — check caption for commands, otherwise treat as /log
   bot.on("message:photo", (ctx) => {
     const groupId = ctx.message?.media_group_id;
     // If this photo belongs to a media group already claimed by another handler, route it there
     if (isMediaGroupPending(groupId)) {
       return appendToMediaGroup(groupId!, ctx);
     }
+
+    // Check caption for commands (grammy's bot.command() doesn't match captions)
+    const caption = ctx.message.caption ?? "";
+    if (caption.startsWith("/savefav")) {
+      return saveFavCollector(ctx);
+    }
+    if (caption.startsWith("/log")) {
+      return logCollector(ctx);
+    }
+
+    // No command in caption — default to log
     return logCollector(ctx);
   });
 
