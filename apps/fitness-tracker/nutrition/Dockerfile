@@ -10,7 +10,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files and install deps (including native better-sqlite3)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --config.confirmModulesPurge=false
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -36,7 +36,7 @@ ENV PATH="/opt/garmin-venv/bin:$PATH"
 # Install pnpm and production deps (rebuilds better-sqlite3 for runtime arch)
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod --config.confirmModulesPurge=false
 
 # Copy built output
 COPY --from=build /app/dist ./dist
