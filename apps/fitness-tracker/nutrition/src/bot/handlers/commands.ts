@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek.js";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
 import type { Context } from "grammy";
@@ -20,6 +21,7 @@ import {
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(isoWeek);
 
 const TZ = "Asia/Jakarta";
 
@@ -44,7 +46,7 @@ export function createWeekHandler(deps: CommandDeps) {
     if (!userId) return;
 
     const now = dayjs().tz(TZ);
-    const monday = now.startOf("week").add(1, "day"); // dayjs week starts Sunday
+    const monday = now.startOf("isoWeek");
     const sunday = monday.add(6, "day");
     const mondayStr = monday.format("YYYY-MM-DD");
     const sundayStr = sunday.format("YYYY-MM-DD");
@@ -62,7 +64,7 @@ export function createMonthHandler(deps: CommandDeps) {
     if (!userId) return;
 
     const now = dayjs().tz(TZ);
-    const currentMonday = now.startOf("week").add(1, "day");
+    const currentMonday = now.startOf("isoWeek");
     const startMonday = currentMonday.subtract(21, "day");
     const endSunday = currentMonday.add(6, "day");
 
