@@ -6,12 +6,11 @@ FROM node:24-slim AS build
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
 # Copy package files and install deps (including native better-sqlite3)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-ENV COREPACK_ENABLE_STRICT=0
-RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm rebuild better-sqlite3
+RUN pnpm install --frozen-lockfile
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -35,9 +34,9 @@ RUN python3 -m venv /opt/garmin-venv \
 ENV PATH="/opt/garmin-venv/bin:$PATH"
 
 # Install pnpm and production deps (rebuilds better-sqlite3 for runtime arch)
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod --ignore-scripts && pnpm rebuild better-sqlite3
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy built output
 COPY --from=build /app/dist ./dist
