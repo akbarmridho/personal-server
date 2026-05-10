@@ -2,6 +2,7 @@
   "name": "ai-frontend",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
     "build": "pnpm typecheck && react-router build",
     "dev": "react-router dev",

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Client-side connector for transparent HTTP proxy and future browser interception tasks.",
+  "packageManager": "pnpm@10.23.0",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

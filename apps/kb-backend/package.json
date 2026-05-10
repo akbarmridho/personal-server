@@ -2,6 +2,7 @@
   "name": "@personal-server/kb-backend",
   "version": "1.0.0",
   "description": "Backend for managing document knowledge base.",
+  "packageManager": "pnpm@10.23.0",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
