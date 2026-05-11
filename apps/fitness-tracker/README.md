@@ -49,13 +49,11 @@ Garmin rate-limits datacenter IPs aggressively. If the server gets 429 errors du
 
 ```bash
 cd apps/fitness-tracker
-uv sync
-uv run python -c "
-from garminconnect import Garmin
-g = Garmin('your_email@example.com', 'your_actual_password')
-g.login('./garminconnect-tokens')
-print('Login successful, tokens saved')
-"
+./scripts/garmin-relogin.sh
+# Reads GARMINCONNECT_EMAIL + GARMINCONNECT_BASE64_PASSWORD from .env
+
+# Or pass credentials directly:
+./scripts/garmin-relogin.sh your_email@example.com your_actual_password
 ```
 
 Then copy the tokens to the server:
