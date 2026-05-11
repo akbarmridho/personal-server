@@ -5,7 +5,11 @@ import utc from "dayjs/plugin/utc.js";
 import type { Context } from "grammy";
 import type { DrizzleDB } from "../../db/index.js";
 import { analyzeMeal } from "../../llm/analyzer.js";
-import { createFavorite, listFavorites } from "../../repository/favorites.js";
+import {
+  createFavorite,
+  findDuplicateByAlias,
+  listFavorites,
+} from "../../repository/favorites.js";
 import { createMeals } from "../../repository/meals.js";
 import { formatMealBreakdown } from "../../utils/format.js";
 import { logger } from "../../utils/logger.js";
@@ -163,28 +167,41 @@ export function createLogHandler(deps: LogDeps) {
 
       if (result.save_as && result.items.length > 0) {
         const firstItem = result.items[0];
-        try {
-          await createFavorite(deps.db, {
-            userId,
-            name: firstItem.name,
-            aliases: [result.save_as],
-            calories: firstItem.calories,
-            proteinG: firstItem.protein_g,
-            carbsG: firstItem.carbs_g,
-            fatG: firstItem.fat_g,
-            fiberG: firstItem.fiber_g,
-            portion: firstItem.portion,
-            references: firstItem.references,
-          });
-          logger.info({ userId, alias: result.save_as }, "/log favorite saved");
-        } catch {
-          // Ignore duplicate errors
+        const duplicate = findDuplicateByAlias(favorites, [result.save_as]);
+        if (duplicate) {
+          logger.info(
+            { userId, alias: result.save_as, existingName: duplicate.name },
+            "/log save_as skipped — duplicate alias",
+          );
+        } else {
+          try {
+            await createFavorite(deps.db, {
+              userId,
+              name: firstItem.name,
+              aliases: [result.save_as],
+              calories: firstItem.calories,
+              proteinG: firstItem.protein_g,
+              carbsG: firstItem.carbs_g,
+              fatG: firstItem.fat_g,
+              fiberG: firstItem.fiber_g,
+              portion: firstItem.portion,
+              references: firstItem.references,
+            });
+            logger.info(
+              { userId, alias: result.save_as },
+              "/log favorite saved",
+            );
+          } catch {
+            // Ignore other errors
+          }
         }
       }
 
       const message = formatMealBreakdown(result.items, mealTime);
       const savedNote = result.save_as
-        ? `\n\n💾 Saved as "${result.save_as}"`
+        ? findDuplicateByAlias(favorites, [result.save_as])
+          ? `\n\n⚠️ "${result.save_as}" already exists as a favorite — skipped saving.`
+          : `\n\n💾 Saved as "${result.save_as}"`
         : "";
 
       await ctx.api.editMessageText(

@@ -111,7 +111,7 @@ export function createFavHandler(deps: CommandDeps) {
 
     const lines = favorites.map(
       (f, i) =>
-        `${i + 1}. ${f.aliases.join(", ")} — ${f.calories} kcal | P:${f.proteinG}g C:${f.carbsG}g F:${f.fatG}g${f.portion ? ` (${f.portion})` : ""}`,
+        `${i + 1}. ${f.aliases.join(", ")} — ${f.calories} kcal | P:${f.proteinG}g C:${f.carbsG}g F:${f.fatG}g Fiber:${f.fiberG ?? 0}g${f.portion ? ` (${f.portion})` : ""}`,
     );
     await ctx.reply(`⭐ Your Favorites\n\n${lines.join("\n")}`);
   };

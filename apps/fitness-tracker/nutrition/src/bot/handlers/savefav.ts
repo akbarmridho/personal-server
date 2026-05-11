@@ -5,7 +5,11 @@ import utc from "dayjs/plugin/utc.js";
 import type { Context } from "grammy";
 import type { DrizzleDB } from "../../db/index.js";
 import { analyzeFavorite } from "../../llm/analyze-favorite.js";
-import { createFavorite, listFavorites } from "../../repository/favorites.js";
+import {
+  createFavorite,
+  findDuplicateByAlias,
+  listFavorites,
+} from "../../repository/favorites.js";
 import { fmt } from "../../utils/format.js";
 import { logger } from "../../utils/logger.js";
 
@@ -104,6 +108,21 @@ export function createSaveFavHandler(deps: SaveFavDeps) {
       }
 
       const { item, alias } = result;
+
+      const duplicate = findDuplicateByAlias(favorites, [alias]);
+      if (duplicate) {
+        logger.info(
+          { userId, alias, existingName: duplicate.name, durationMs },
+          "/savefav duplicate alias found",
+        );
+        await ctx.api.editMessageText(
+          chatId,
+          processingMsg.message_id,
+          `⚠️ Alias "${alias}" already exists as favorite "${duplicate.name}".\n` +
+            `Use /unfav to remove it first, or use a different name.`,
+        );
+        return;
+      }
 
       await createFavorite(deps.db, {
         userId,
