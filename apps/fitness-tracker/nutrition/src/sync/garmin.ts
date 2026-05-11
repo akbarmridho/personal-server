@@ -45,8 +45,33 @@ export function syncGarminBodyComp(data: BodyCompData): void {
   );
 
   const child = spawn("python3", args, {
-    stdio: "ignore",
+    stdio: ["ignore", "pipe", "pipe"],
     detached: true,
+  });
+
+  let stdout = "";
+  let stderr = "";
+
+  child.stdout.on("data", (chunk: Buffer) => {
+    stdout += chunk.toString();
+  });
+
+  child.stderr.on("data", (chunk: Buffer) => {
+    stderr += chunk.toString();
+  });
+
+  child.on("close", (code) => {
+    if (code === 0) {
+      logger.info(
+        { stdout: stdout.trim(), date: data.date },
+        "garmin-sync: success",
+      );
+    } else {
+      logger.error(
+        { code, stdout: stdout.trim(), stderr: stderr.trim(), date: data.date },
+        "garmin-sync: script failed",
+      );
+    }
   });
 
   child.unref();
