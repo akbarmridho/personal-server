@@ -8,6 +8,13 @@
       "when": 1777941592121,
       "tag": "0000_aromatic_robin_chapel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778516862348,
+      "tag": "0001_cute_black_widow",
+      "breakpoints": true
     }
   ]
 }

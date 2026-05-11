@@ -7,7 +7,7 @@ import {
   getRecentMeasurements,
   upsertMeasurement,
 } from "../../repository/measurements.js";
-import { syncGarminWeight } from "../../sync/garmin.js";
+import { syncGarminBodyComp } from "../../sync/garmin.js";
 import { formatMeasurementComparison } from "../../utils/format.js";
 import { logger } from "../../utils/logger.js";
 import { parseMeasureInput } from "../../utils/measure-parser.js";
@@ -38,6 +38,7 @@ Send <code>/measure</code> with key:value pairs. All fields optional except <cod
 <code>tbw</code> / <code>total_body_water</code> — total body water in L
 <code>bmi</code> — body mass index
 <code>ffm</code> / <code>fat_free_mass</code> — fat-free mass in kg
+<code>bm</code> / <code>mineral</code> / <code>bone_mass</code> — bone mass (mineral) in kg
 <code>smi</code> — skeletal muscle index
 <code>notes</code> — any note
 <code>date</code> — YYYY-MM-DD (default: today)
@@ -96,11 +97,21 @@ export function createMeasureHandler(deps: MeasureDeps) {
       totalBodyWater: data.totalBodyWater,
       bmi: data.bmi,
       fatFreeMass: data.fatFreeMass,
+      boneMass: data.boneMass,
       smi: data.smi,
       notes: data.notes,
     });
 
-    syncGarminWeight(data.weight, data.date);
+    syncGarminBodyComp({
+      weight: data.weight,
+      date: data.date,
+      percentFat: data.bodyFatPct,
+      muscleMass: data.skeletalMuscleMass,
+      basalMet: data.bmr,
+      visceralFatRating: data.visceralFatLevel,
+      bmi: data.bmi,
+      boneMass: data.boneMass,
+    });
     logger.info({ userId, date: data.date }, "/measure saved");
 
     const recent = await getRecentMeasurements(deps.db, userId, 2);

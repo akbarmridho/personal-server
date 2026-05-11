@@ -9,6 +9,7 @@ export interface ParsedMeasurement {
   totalBodyWater?: number;
   bmi?: number;
   fatFreeMass?: number;
+  boneMass?: number;
   smi?: number;
   notes?: string;
 }
@@ -28,10 +29,7 @@ export function parseKeyValuePairs(text: string): Record<string, string> {
   return pairs;
 }
 
-export function parseMeasureInput(
-  text: string,
-  today: string,
-): ParseResult {
+export function parseMeasureInput(text: string, today: string): ParseResult {
   const pairs = parseKeyValuePairs(text);
   if (Object.keys(pairs).length === 0) {
     return { ok: false, reason: "No key:value pairs found" };
@@ -71,7 +69,9 @@ export function parseMeasureInput(
     if (raw === undefined || raw === "") return;
     const n = Number(raw);
     if (Number.isNaN(n)) return;
-    (data as unknown as Record<string, unknown>)[target] = opts?.int ? Math.round(n) : n;
+    (data as unknown as Record<string, unknown>)[target] = opts?.int
+      ? Math.round(n)
+      : n;
   };
 
   setIfNumber("f", "bodyFatPct");
@@ -89,6 +89,9 @@ export function parseMeasureInput(
   setIfNumber("bmi", "bmi");
   setIfNumber("ffm", "fatFreeMass");
   setIfNumber("fat_free_mass", "fatFreeMass");
+  setIfNumber("bm", "boneMass");
+  setIfNumber("mineral", "boneMass");
+  setIfNumber("bone_mass", "boneMass");
   setIfNumber("smi", "smi");
 
   const rawNotes = pairs.notes ?? pairs.note;

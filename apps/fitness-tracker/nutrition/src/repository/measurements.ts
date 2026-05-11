@@ -21,6 +21,7 @@ export async function upsertMeasurement(
         totalBodyWater: data.totalBodyWater,
         bmi: data.bmi,
         fatFreeMass: data.fatFreeMass,
+        boneMass: data.boneMass,
         smi: data.smi,
         notes: data.notes,
         updatedAt: new Date(),

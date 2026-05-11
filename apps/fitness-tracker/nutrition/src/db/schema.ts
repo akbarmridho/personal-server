@@ -64,6 +64,7 @@ export const measurements = pgTable(
     totalBodyWater: doublePrecision("total_body_water"),
     bmi: doublePrecision("bmi"),
     fatFreeMass: doublePrecision("fat_free_mass"),
+    boneMass: doublePrecision("bone_mass"),
     smi: doublePrecision("smi"),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true })

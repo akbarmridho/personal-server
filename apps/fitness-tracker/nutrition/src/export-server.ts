@@ -5,6 +5,28 @@ import { meals, measurements } from "./db/schema.js";
 import { env } from "./infrastructure/env.js";
 import { logger } from "./utils/logger.js";
 
+const MEAL_FIELDS_META = {
+  calories: { unit: "kcal" },
+  proteinG: { unit: "g" },
+  carbsG: { unit: "g" },
+  fatG: { unit: "g" },
+  fiberG: { unit: "g" },
+} as const;
+
+const MEASUREMENT_FIELDS_META = {
+  weight: { unit: "kg" },
+  bodyFatPct: { unit: "%" },
+  bodyFatMass: { unit: "kg" },
+  skeletalMuscleMass: { unit: "kg" },
+  visceralFatLevel: { unit: "level" },
+  bmr: { unit: "kcal" },
+  totalBodyWater: { unit: "L" },
+  bmi: { unit: "kg/m²" },
+  fatFreeMass: { unit: "kg" },
+  boneMass: { unit: "kg" },
+  smi: { unit: "kg/m²" },
+} as const;
+
 function startExportServer(): Server {
   const server = createServer(async (req, res) => {
     if (req.method !== "GET" || req.url !== "/export") {
@@ -29,7 +51,14 @@ function startExportServer(): Server {
 
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
-        JSON.stringify({ meals: allMeals, measurements: allMeasurements }),
+        JSON.stringify({
+          meals: allMeals,
+          measurements: allMeasurements,
+          units: {
+            meals: MEAL_FIELDS_META,
+            measurements: MEASUREMENT_FIELDS_META,
+          },
+        }),
       );
     } catch (err) {
       logger.error(err, "Export endpoint error");

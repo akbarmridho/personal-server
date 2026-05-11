@@ -244,6 +244,13 @@ export function formatMeasurementComparison(
       unit: "kg",
       lowerIsBetter: false,
     },
+    {
+      label: "Bone Mass",
+      value: current.boneMass,
+      prevValue: previous?.boneMass ?? null,
+      unit: "kg",
+      lowerIsBetter: false,
+    },
   ];
 
   for (const m of metrics) {
