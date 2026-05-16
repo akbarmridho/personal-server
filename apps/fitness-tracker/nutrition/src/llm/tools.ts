@@ -7,7 +7,7 @@ export function createNutritionTools(db: Database.Database) {
   return {
     search_usda: tool({
       description:
-        "Search USDA Foundation Foods for basic ingredient nutrition (per 100g). Use for raw ingredients like chicken, rice, eggs, vegetables, oils, grains.",
+        "Search USDA Foundation Foods for basic ingredient nutrition (per 100g). Use for raw ingredients like chicken, rice, eggs, vegetables, oils, grains. Note: beverages (coffee, tea, juice) are NOT in this database — use search_packaged_food for those.",
       inputSchema: z.object({
         query: z.string().describe("Food ingredient to search for"),
       }),
@@ -24,7 +24,7 @@ export function createNutritionTools(db: Database.Database) {
     }),
     search_packaged_food: tool({
       description:
-        "Search OpenFoodFacts database for packaged/branded food products (per 100g). Use for branded items like Indomie, Pocari Sweat, Yakult, Ultra Milk, etc. Indonesian products are boosted by default.",
+        "Search OpenFoodFacts database for packaged/branded food products and beverages (per 100g). Use for branded items like Indomie, Pocari Sweat, Yakult, Ultra Milk, etc. Also use for beverages (coffee, espresso, tea, juice) which are not in USDA. Indonesian products are boosted by default.",
       inputSchema: z.object({
         query: z.string().describe("Product name or brand to search for"),
         country: z

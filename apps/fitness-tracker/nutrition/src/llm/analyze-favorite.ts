@@ -1,6 +1,7 @@
 import type { ImagePart, TextPart, UserContent } from "ai";
 import { generateText, Output, stepCountIs } from "ai";
 import type Database from "better-sqlite3";
+import pRetry from "p-retry";
 import { z } from "zod";
 import { type Favorite, FoodItemSchema } from "../db/types.js";
 import { nutritionModel } from "../infrastructure/llm.js";
@@ -61,15 +62,35 @@ export async function analyzeFavorite(
 
     const tools = createNutritionTools(input.foodDb);
 
-    const { output: object, steps } = await generateText({
-      model: nutritionModel,
-      output: Output.object({ schema: FavoriteResultSchema }),
-      system: systemPrompt,
-      messages: [{ role: "user", content: userContent satisfies UserContent }],
-      tools,
-      stopWhen: stepCountIs(50),
-      temperature: 1,
-    });
+    const { output: object, steps } = await pRetry(
+      async () => {
+        return generateText({
+          model: nutritionModel,
+          output: Output.object({ schema: FavoriteResultSchema }),
+          system: systemPrompt,
+          messages: [
+            { role: "user", content: userContent satisfies UserContent },
+          ],
+          tools,
+          stopWhen: stepCountIs(50),
+          temperature: 1,
+        });
+      },
+      {
+        retries: 2,
+        minTimeout: 1000,
+        onFailedAttempt: (err) => {
+          logger.warn(
+            {
+              attempt: err.attemptNumber,
+              retriesLeft: err.retriesLeft,
+              message: err.message,
+            },
+            "analyzeFavorite: retrying LLM call",
+          );
+        },
+      },
+    );
 
     const durationMs = Date.now() - startTime;
     logger.info(

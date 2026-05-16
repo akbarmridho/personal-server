@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import type { DrizzleDB } from "../db/index.js";
 import { measurements } from "../db/schema.js";
 
@@ -40,6 +40,22 @@ export async function getRecentMeasurements(
     .select()
     .from(measurements)
     .where(eq(measurements.userId, userId))
+    .orderBy(desc(measurements.date))
+    .limit(limit);
+}
+
+/** Get recent entries that have body composition data (bodyFatPct filled) */
+export async function getRecentBodyCompMeasurements(
+  db: DrizzleDB,
+  userId: string,
+  limit = 2,
+) {
+  return db
+    .select()
+    .from(measurements)
+    .where(
+      and(eq(measurements.userId, userId), isNotNull(measurements.bodyFatPct)),
+    )
     .orderBy(desc(measurements.date))
     .limit(limit);
 }

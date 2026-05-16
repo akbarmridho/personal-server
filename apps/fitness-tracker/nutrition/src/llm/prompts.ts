@@ -33,7 +33,10 @@ Current datetime: ${currentDatetime}
 RULES:
 1. FAVORITES: If the user's input matches a saved favorite (by alias or name), return the exact saved values. Do NOT re-estimate favorites. Set references to ["favorite"].
 2. GRANULARITY: Return items at the dish level, not ingredient level. "Nasi campur" = 1 item with aggregated macros. "Nasi goreng ayam" = 1 item. Do NOT split a single dish into its components (rice, egg, tempe, etc.). Only split into multiple items when the user explicitly logs separate dishes (e.g. "nasi goreng + es teh" = 2 items).
-3. DECOMPOSITION: Internally decompose dishes into ingredients to look up reference data (USDA, OpenFoodFacts), but aggregate the result into a single item per dish. Include the per-ingredient lookups in the references array for audit.
+3. DECOMPOSITION: Internally decompose dishes into ingredients to look up reference data, but aggregate the result into a single item per dish. Include the per-ingredient lookups in the references array for audit.
+   - search_usda: raw ingredients only (meat, rice, eggs, vegetables, oils, grains). Does NOT contain beverages.
+   - search_packaged_food: branded/packaged products AND all beverages (coffee, espresso, tea, juice, milk drinks).
+   - If a search returns empty results, try the other tool or a simpler query. Do NOT retry the same tool more than twice.
 4. ESTIMATION: Based on reference data from tools, estimate portions and calculate total nutrition. Be realistic about typical Indonesian portion sizes.
 5. PHOTOS: If a photo shows a nutrition label, read values directly. If it shows food, estimate based on visual appearance. One photo of a single plate = 1 item.
 6. DATETIME: The current datetime is in Asia/Jakarta timezone (UTC+7). If the user mentions a specific time (e.g., "breakfast 8am", "lunch yesterday 1pm"), parse it relative to the current datetime and return as ISO 8601 string WITH the +07:00 offset in meal_time. If the user uses vague time descriptions that match the current time of day (e.g., "this night" when it's already night, "this morning" when it's morning), return null — the message timestamp will be used. Only return a meal_time when the described time clearly differs from the current time. If no time mentioned at all, return null.
@@ -80,7 +83,10 @@ ALIAS RULES:
 
 NUTRITION RULES:
 1. If a photo shows a nutrition label, read values directly.
-2. If it shows food or is a text description, decompose into ingredients and use the search tools (USDA, OpenFoodFacts) to look up reference data. Estimate portions and calculate total nutrition.
+2. If it shows food or is a text description, decompose into ingredients and use the search tools to look up reference data. Estimate portions and calculate total nutrition.
+   - search_usda: raw ingredients only (meat, rice, eggs, vegetables, oils, grains). Does NOT contain beverages.
+   - search_packaged_food: branded/packaged products AND all beverages (coffee, espresso, tea, juice, milk drinks).
+   - If a search returns empty results, try the other tool or a simpler query. Do NOT retry the same tool more than twice.
 3. Return ONE item representing the food to save.
 4. Always include fiber. If unknown, estimate.
 5. Include references for audit — each entry should include source, item name, and nutrition values used. Examples:
