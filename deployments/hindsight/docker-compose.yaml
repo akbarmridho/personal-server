@@ -1,0 +1,52 @@
+services:
+  hindsight_postgres:
+    image: pgvector/pgvector:0.8.0-pg17
+    container_name: hindsight_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hindsight
+      POSTGRES_PASSWORD: hindsight
+      POSTGRES_DB: hindsight
+    volumes:
+      - hindsight_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hindsight"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hindsight_api:
+    image: ghcr.io/vectorize-io/hindsight-api:0.6.1
+    container_name: hindsight_api
+    restart: unless-stopped
+    depends_on:
+      hindsight_postgres:
+        condition: service_healthy
+    environment:
+      HINDSIGHT_API_DATABASE_URL: postgresql://hindsight:hindsight@hindsight_postgres:5432/hindsight
+      HINDSIGHT_API_LLM_PROVIDER: opencode-go
+      HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_LLM_API_KEY}
+      HINDSIGHT_API_LLM_MODEL: deepseek-v4-flash
+      HINDSIGHT_API_EMBEDDINGS_PROVIDER: openrouter
+      HINDSIGHT_API_EMBEDDINGS_OPENROUTER_API_KEY: ${HINDSIGHT_EMBEDDINGS_API_KEY}
+      HINDSIGHT_API_EMBEDDINGS_OPENROUTER_MODEL: qwen/qwen3-embedding-8b
+      HINDSIGHT_API_VECTOR_EXTENSION: pgvector
+      HINDSIGHT_API_WORKER_ID: hindsight-prod
+    ports:
+      - "7000:8888"
+
+  hindsight_control_plane:
+    image: ghcr.io/vectorize-io/hindsight-control-plane:0.6.1
+    container_name: hindsight_control_plane
+    restart: unless-stopped
+    depends_on:
+      - hindsight_api
+    environment:
+      HINDSIGHT_CP_DATAPLANE_API_URL: http://hindsight_api:8888
+    ports:
+      - "7001:9999"
+
+volumes:
+  hindsight_postgres_data:
