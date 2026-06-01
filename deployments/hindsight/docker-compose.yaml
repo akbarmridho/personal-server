@@ -18,7 +18,7 @@ services:
       retries: 5
 
   hindsight_api:
-    image: ghcr.io/vectorize-io/hindsight-api:0.6.1
+    image: ghcr.io/vectorize-io/hindsight-api:0.7.1
     container_name: hindsight_api
     restart: unless-stopped
     depends_on:
@@ -29,16 +29,18 @@ services:
       HINDSIGHT_API_LLM_PROVIDER: opencode-go
       HINDSIGHT_API_LLM_API_KEY: ${HINDSIGHT_LLM_API_KEY}
       HINDSIGHT_API_LLM_MODEL: deepseek-v4-flash
-      HINDSIGHT_API_EMBEDDINGS_PROVIDER: openrouter
-      HINDSIGHT_API_EMBEDDINGS_OPENROUTER_API_KEY: ${HINDSIGHT_EMBEDDINGS_API_KEY}
-      HINDSIGHT_API_EMBEDDINGS_OPENROUTER_MODEL: qwen/qwen3-embedding-8b
+      HINDSIGHT_API_EMBEDDINGS_PROVIDER: openai
+      HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY: ${HINDSIGHT_EMBEDDINGS_API_KEY}
+      HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL: qwen/qwen3-embedding-8b
+      HINDSIGHT_API_EMBEDDINGS_OPENAI_BASE_URL: https://openrouter.ai/api/v1
+      HINDSIGHT_API_EMBEDDINGS_OPENAI_DIMENSIONS: "1024"
       HINDSIGHT_API_VECTOR_EXTENSION: pgvector
       HINDSIGHT_API_WORKER_ID: hindsight-prod
     ports:
       - "7000:8888"
 
   hindsight_control_plane:
-    image: ghcr.io/vectorize-io/hindsight-control-plane:0.6.1
+    image: ghcr.io/vectorize-io/hindsight-control-plane:0.7.1
     container_name: hindsight_control_plane
     restart: unless-stopped
     depends_on:
